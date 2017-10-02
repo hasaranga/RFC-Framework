@@ -1,0 +1,218 @@
+
+/*
+    RFC - KListBox.cpp
+    Copyright (C) 2013-2017 CrownSoft
+  
+    This software is provided 'as-is', without any express or implied
+    warranty.  In no event will the authors be held liable for any damages
+    arising from the use of this software.
+
+    Permission is granted to anyone to use this software for any purpose,
+    including commercial applications, and to alter it and redistribute it
+    freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+       claim that you wrote the original software. If you use this software
+       in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+    2. Altered source versions must be plainly marked as such, and must not be
+       misrepresented as being the original software.
+    3. This notice may not be removed or altered from any source distribution.
+      
+*/
+
+#include"../rfc.h"
+#include"KListBox.h"
+
+KListBox::KListBox(bool multipleSelection,bool sort,bool vscroll)
+{
+	this->multipleSelection=multipleSelection;
+	listener=0;
+
+	selectedItemIndex=-1;
+	selectedItemEnd=-1;
+
+	compClassName=L"LISTBOX";
+
+	this->SetSize(100, 100);
+	this->SetPosition(0, 0);
+
+	this->SetStyle(LBS_NOTIFY | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP);
+
+	if(multipleSelection)
+		this->SetStyle(compDwStyle | LBS_MULTIPLESEL);
+	if(sort)
+		this->SetStyle(compDwStyle | LBS_SORT);
+	if(vscroll)
+		this->SetStyle(compDwStyle | WS_VSCROLL);
+
+	this->SetExStyle(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
+
+	stringList=new KPointerList<KString*>;
+}
+
+void KListBox::SetListener(KListBoxListener *listener)
+{
+	this->listener=listener;
+}
+
+void KListBox::AddItem(const KString& text)
+{
+	KString *str=new KString(text);
+	stringList->AddPointer(str);
+
+	if(compHWND)
+		::SendMessageW(compHWND,LB_ADDSTRING,0,(LPARAM)(const wchar_t*)*str);
+}
+
+void KListBox::RemoveItem(int index)
+{
+	KString *text=stringList->GetPointer(index);
+	if (text)
+		delete text;
+
+	stringList->RemovePointer(index);
+
+	if(compHWND)	 
+		::SendMessageW(compHWND,LB_DELETESTRING,index,0);
+}
+
+void KListBox::RemoveItem(const KString& text)
+{
+	int itemIndex = this->GetItemIndex(text);
+	if(itemIndex>-1)
+		this->RemoveItem(itemIndex);
+}
+
+int KListBox::GetItemIndex(const KString& text)
+{
+	int listSize=stringList->GetSize();
+	if(listSize)
+	{
+		for(int i=0;i<listSize;i++)
+		{
+			if(stringList->GetPointer(i)->EqualsIgnoreCase(text))
+				return i;
+		}
+	}
+	return -1;
+}
+
+int KListBox::GetItemCount()
+{
+	return stringList->GetSize();
+}
+
+int KListBox::GetSelectedItemIndex()
+{
+	if(compHWND)
+	{	 
+		int index=(int)::SendMessageW(compHWND,LB_GETCURSEL,0,0);
+		if(index!=LB_ERR)
+			return index;
+		return -1;
+	}else
+	{
+		return -1;
+	}	
+}
+
+KString KListBox::GetSelectedItem()
+{
+	int itemIndex = this->GetSelectedItemIndex();
+	if(itemIndex>-1)
+		return *stringList->GetPointer(itemIndex);
+	return KString();
+}
+
+int KListBox::GetSelectedItems(int* itemArray,int itemCountInArray)
+{
+	if(compHWND)
+	{	 
+		int items=(int)::SendMessageW(compHWND,LB_GETSELITEMS,itemCountInArray,(LPARAM)itemArray);
+		if(items!=LB_ERR)
+			return items;
+		return -1;
+	}else
+	{
+		return -1;
+	}
+}
+
+void KListBox::ClearList()
+{
+	stringList->DeleteAll();
+
+	if(compHWND)
+		::SendMessageW(compHWND,LB_RESETCONTENT,0,0);
+}
+
+void KListBox::SelectItem(int index)
+{
+	selectedItemIndex=index;
+
+	if(compHWND)
+		::SendMessageW(compHWND,LB_SETCURSEL,index,0);
+}
+
+void KListBox::SelectItems(int start,int end)
+{
+	if(multipleSelection)
+	{
+		selectedItemIndex=start;
+		selectedItemEnd=end;
+
+		if(compHWND)
+			::SendMessageW(compHWND,LB_SELITEMRANGE,TRUE,MAKELPARAM(start,end));
+	}
+}
+
+bool KListBox::CreateComponent()
+{
+	if(!compParentHWND) // user must specify parent handle!
+		return false;
+
+	::CreateRFCComponent(this); // we dont need to register LISTBOX class!
+
+	if(compHWND)
+	{
+		::SendMessageW(compHWND,WM_SETFONT,(WPARAM)compFont->GetFontHandle(),MAKELPARAM(true, 0)); // set default font!
+
+		::EnableWindow(compHWND,compEnabled);
+
+		int listSize=stringList->GetSize();
+		if(listSize)
+		{
+			for(int i=0;i<listSize;i++)
+				::SendMessageW(compHWND,LB_ADDSTRING,0,(LPARAM)(const wchar_t*)*stringList->GetPointer(i));
+		}
+
+		if(!multipleSelection) // single selction!
+		{
+			if(selectedItemIndex>-1)
+				::SendMessageW(compHWND,LB_SETCURSEL,selectedItemIndex,0);
+		}else
+		{
+			if(selectedItemIndex>-1)
+				::SendMessageW(compHWND,LB_SELITEMRANGE,TRUE,MAKELPARAM(selectedItemIndex,selectedItemEnd));
+		}
+
+		if(this->IsVisible())
+			this->SetVisible(true);
+		return true;
+	}
+
+	return false;
+}
+
+void KListBox::OnItemSelect()
+{
+	if(listener)
+		listener->OnListBoxItemSelect(this);
+}
+
+KListBox::~KListBox()
+{
+	stringList->DeleteAll();
+	delete stringList;
+}
