@@ -1481,7 +1481,7 @@ public:
 	/**
 		Constructs String object using integer
 	*/
-	KString(const int value,const int radix);
+	KString(const int value, const int radix = 10);
 
 	/**
 		Constructs String object using float
@@ -2155,6 +2155,11 @@ public:
 	virtual bool WriteString(const KString& text, bool isUnicode = false);
 
 	virtual bool SetFilePointerToStart();
+
+	/**
+		moves file pointer to given distance from start.
+	*/
+	virtual bool SetFilePointerTo(DWORD distance);
 
 	virtual bool SetFilePointerToEnd();
 

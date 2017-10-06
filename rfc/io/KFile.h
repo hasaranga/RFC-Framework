@@ -86,6 +86,11 @@ public:
 
 	virtual bool SetFilePointerToStart();
 
+	/**
+		moves file pointer to given distance from start.
+	*/
+	virtual bool SetFilePointerTo(DWORD distance);
+
 	virtual bool SetFilePointerToEnd();
 
 	/**

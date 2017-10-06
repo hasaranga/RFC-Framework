@@ -9,6 +9,7 @@ v0.2.6:
 	added antiAliased flag, LoadFont, RemoveFont methods into KFont class
 	added uSleep method into KThread class
 	added DrawOnHDC method into KBitmap class
+	added SetFilePointerTo method into KFile class
 	changed the implementation of KPlatformUtil::GenerateClassName
 	changed the default code page of KString into UTF-8
 	fixed a bug in KCommonDialogBox::ShowSaveFileDialog

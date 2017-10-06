@@ -1018,32 +1018,34 @@ KString::KString(const int value,const int radix)
 KString::KString(const float value, const int numDecimals, bool compact)
 {
 	// round it to given digits
-	char l_fmtp[32], l_buf[64];
-	sprintf(l_fmtp, "%%.%df", numDecimals);
-	sprintf(l_buf, l_fmtp, value);
+	char *str_fmtp = (char*)malloc(32);
+	char *str_buf = (char*)malloc(64);
+
+	sprintf(str_fmtp, "%%.%df", numDecimals);
+	sprintf(str_buf, str_fmtp, value);
 
 	if (compact)
 	{
-		int len = (int)strlen(l_buf) - 1;
+		int len = (int)strlen(str_buf) - 1;
 		for (int i = 0; i < numDecimals; i++) // kill ending zeros
 		{
-			if (l_buf[len - i] == '0')
-				l_buf[len - i] = 0; // kill it
+			if (str_buf[len - i] == '0')
+				str_buf[len - i] = 0; // kill it
 			else
 				break;
 		}
 
 		// kill if last char is dot
-		len = (int)strlen(l_buf) - 1;
-		if (l_buf[len] == '.')
-			l_buf[len] = 0; // kill it
+		len = (int)strlen(str_buf) - 1;
+		if (str_buf[len] == '.')
+			str_buf[len] = 0; // kill it
 	}
 
-	int count = ::MultiByteToWideChar(CP_UTF8, 0, l_buf, -1, 0, 0); // get char count with null character
+	int count = ::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, 0, 0); // get char count with null character
 	if (count)
 	{
 		wchar_t *w_text = (wchar_t *)::malloc(count * sizeof(wchar_t));
-		if (::MultiByteToWideChar(CP_UTF8, 0, l_buf, -1, w_text, count))
+		if (::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, w_text, count))
 		{
 			count--; // ignore null character
 
@@ -1053,6 +1055,8 @@ KString::KString(const float value, const int numDecimals, bool compact)
 			stringHolder->w_text = w_text;
 			stringHolder->count = count;
 
+			free(str_buf);
+			free(str_fmtp);
 			return;
 		}
 		else
@@ -1060,6 +1064,9 @@ KString::KString(const float value, const int numDecimals, bool compact)
 			::free(w_text);
 		}
 	}
+
+	free(str_buf);
+	free(str_fmtp);
 }
 
 const KString& KString::operator= (const KString& other)
@@ -1737,6 +1744,11 @@ DWORD KFile::WriteFile(void* buffer, DWORD numberOfBytesToWrite)
 bool KFile::SetFilePointerToStart()
 {
 	return ::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER ? false : true;
+}
+
+bool KFile::SetFilePointerTo(DWORD distance)
+{
+	return ::SetFilePointer(fileHandle, distance, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER ? false : true;
 }
 
 bool KFile::SetFilePointerToEnd()
