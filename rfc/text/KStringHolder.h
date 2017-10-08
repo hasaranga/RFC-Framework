@@ -1,5 +1,4 @@
 
-
 /*
     RFC - KString.h
     Copyright (C) 2013-2017 CrownSoft
@@ -25,8 +24,8 @@
 #ifndef _RFC_KSTRINGHOLDER_H_
 #define _RFC_KSTRINGHOLDER_H_
 
-#include"../config.h"
-#include<windows.h>
+#include "../config.h"
+#include <windows.h>
 
 
 /**
@@ -37,6 +36,7 @@ class RFC_API KStringHolder
 	volatile LONG refCount;
 	char *a_text; // ansi version
 	CRITICAL_SECTION cs_a_text; // to guard ansi string creation
+
 public:
 	wchar_t *w_text; // unicode version
 	int count; // character count

@@ -24,7 +24,7 @@
 #ifndef _RFC_KTRACKBAR_H_
 #define _RFC_KTRACKBAR_H_
 
-#include"KComponent.h"
+#include "KComponent.h"
 
 class KTrackBarListener;
 
@@ -35,12 +35,12 @@ protected:
 	KTrackBarListener *listener;
 
 public:
-	KTrackBar(bool showTicks=false,bool vertical=false);
+	KTrackBar(bool showTicks = false, bool vertical = false);
 
 	/**
 		Range between 0 to 100
 	*/
-	virtual void SetRange(int min,int max);
+	virtual void SetRange(int min, int max);
 
 	virtual void SetValue(int value);
 

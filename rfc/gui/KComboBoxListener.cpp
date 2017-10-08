@@ -21,7 +21,7 @@
       
 */
 
-#include"KComboBoxListener.h"
+#include "KComboBoxListener.h"
 
 KComboBoxListener::KComboBoxListener(){}
 

@@ -21,12 +21,12 @@
       
 */
 
-#include"KLabel.h"
-#include"../rfc.h"
+#include "KLabel.h"
+#include "../rfc.h"
 
 KLabel::KLabel()
 {
-	compClassName=L"STATIC";
+	compClassName = L"STATIC";
 
 	this->SetText(L"Label");
 	this->SetSize(100, 25);
@@ -44,9 +44,9 @@ bool KLabel::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,WM_SETFONT,(WPARAM)compFont->GetFontHandle(),MAKELPARAM(true, 0)); // set default font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
 
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 
 		if(this->IsVisible())
 			this->SetVisible(true);

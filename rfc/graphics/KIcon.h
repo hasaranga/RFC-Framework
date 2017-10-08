@@ -24,8 +24,8 @@
 #ifndef _RFC_KICON_H_
 #define _RFC_KICON_H_
 
-#include"../text/KString.h"
-#include<windows.h>
+#include "../text/KString.h"
+#include <windows.h>
 
 /**
 	Can be use to load icon from file or resource.

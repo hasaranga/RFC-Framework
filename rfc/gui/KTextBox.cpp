@@ -21,12 +21,12 @@
       
 */
 
-#include"../rfc.h"
-#include"KTextBox.h"
+#include "../rfc.h"
+#include "KTextBox.h"
 
 KTextBox::KTextBox(bool readOnly)
 {
-	compClassName=L"EDIT";
+	compClassName = L"EDIT";
 
 	this->SetSize(100, 20);
 	this->SetPosition(0, 0);
@@ -41,17 +41,17 @@ KString KTextBox::GetText()
 {
 	if(compHWND)
 	{
-		int length=::GetWindowTextLengthW(compHWND);
+		int length = ::GetWindowTextLengthW(compHWND);
 		if(length)
 		{
-			int size=(length+1)*sizeof(wchar_t);
-			wchar_t *text=(wchar_t*)::malloc(size);
-			::GetWindowTextW(compHWND,text,size);
-			compText=KString(text);
+			int size = (length + 1) * sizeof(wchar_t);
+			wchar_t *text = (wchar_t*)::malloc(size);
+			::GetWindowTextW(compHWND, text, size);
+			compText = KString(text);
 			::free(text);
 		}else
 		{
-			compText=KString();
+			compText = KString();
 		}
 	}
 	return compText;
@@ -67,9 +67,9 @@ bool KTextBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,WM_SETFONT,(WPARAM)compFont->GetFontHandle(),MAKELPARAM(true, 0)); // set default font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
 
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 
 		if(this->IsVisible())
 			this->SetVisible(true);

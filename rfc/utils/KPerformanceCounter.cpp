@@ -21,7 +21,7 @@
       
 */
 
-#include"KPerformanceCounter.h"
+#include "KPerformanceCounter.h"
 
 KPerformanceCounter::KPerformanceCounter()
 {

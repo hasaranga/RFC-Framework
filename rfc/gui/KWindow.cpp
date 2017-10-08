@@ -21,8 +21,8 @@
       
 */
 
-#include"KWindow.h"
-#include"../rfc.h"
+#include "KWindow.h"
+#include "../rfc.h"
 
 KWindow::KWindow()
 {
@@ -31,7 +31,7 @@ KWindow::KWindow()
 	this->SetVisible(false);
 	this->SetStyle(WS_POPUP);
 	this->SetExStyle(WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT);
-	wc.style=CS_OWNDC|CS_HREDRAW|CS_VREDRAW;
+	wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 }
 
 void KWindow::Flash()
@@ -126,18 +126,18 @@ void KWindow::OnResized()
 
 LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	static const wchar_t* RFCPropText_Object=L"RFC";
-	static const wchar_t* RFCPropText_ClsName=L"RFCClsName";
+	static const wchar_t* RFCPropText_Object = L"RFC";
+	static const wchar_t* RFCPropText_ClsName = L"RFCClsName";
 
 	switch(msg)
 	{
 		case WM_COMMAND:
 			{
-				if(HIWORD(wParam)==BN_CLICKED) // button, checkbox, radio button or menu clicked event!
+				if(HIWORD(wParam) == BN_CLICKED) // button, checkbox, radio button or menu clicked event!
 				{
 					if(lParam)
 					{
-						KButton *btn=(KButton*)::GetPropW((HWND)lParam, RFCPropText_Object);
+						KButton *btn = (KButton*)::GetPropW((HWND)lParam, RFCPropText_Object);
 						if(btn) // button, checkbox or radio button!
 						{
 							btn->OnPress();
@@ -145,28 +145,28 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						}
 					}else // its menu item! unfortunately windows does not send menu handle with clicked event!
 					{
-						KMenuItem *menuItem=KPlatformUtil::GetInstance()->GetMenuItemByID(LOWORD(wParam));
+						KMenuItem *menuItem = KPlatformUtil::GetInstance()->GetMenuItemByID(LOWORD(wParam));
 						if(menuItem)
 						{
 							menuItem->OnPress();
 							break;
 						}
 					}
-				}else if(HIWORD(wParam)==LBN_SELCHANGE) // listbox sel change! (this msg also pops for combo)
+				}else if(HIWORD(wParam) == LBN_SELCHANGE) // listbox sel change! (this msg also pops for combo)
 				{
-					wchar_t* clsName=(wchar_t*)::GetPropW((HWND)lParam, RFCPropText_ClsName);
-					if(::_wcsicmp(clsName,L"COMBOBOX")!=0) // ignore combobox (use _wcsicmp instead of wcscmp, coz combo cls name might be ComboBox or COMBOBOX)
+					wchar_t* clsName = (wchar_t*)::GetPropW((HWND)lParam, RFCPropText_ClsName);
+					if(::_wcsicmp(clsName, L"COMBOBOX") != 0) // ignore combobox (use _wcsicmp instead of wcscmp, coz combo cls name might be ComboBox or COMBOBOX)
 					{
-						KListBox *listBox=(KListBox*)::GetPropW((HWND)lParam, RFCPropText_Object);
+						KListBox *listBox = (KListBox*)::GetPropW((HWND)lParam, RFCPropText_Object);
 						if(listBox)
 						{
 							listBox->OnItemSelect();
 							break;
 						}
 					}
-				}else if(HIWORD(wParam)==CBN_SELENDOK) // combobox sel change!
+				}else if(HIWORD(wParam) == CBN_SELENDOK) // combobox sel change!
 				{
-					KComboBox *comboBox=(KComboBox*)::GetPropW((HWND)lParam, RFCPropText_Object);
+					KComboBox *comboBox = (KComboBox*)::GetPropW((HWND)lParam, RFCPropText_Object);
 					if(comboBox)
 					{
 						comboBox->OnItemSelect();
@@ -174,16 +174,61 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 				}
 			}
-			return KComponent::WindowProc(hwnd,msg,wParam,lParam);
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+			case WM_NOTIFY:
+			{
+				if (((LPNMHDR)lParam)->code == NM_CLICK) // List view item click
+				{
+					KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
+					if (gridView)
+					{
+						gridView->OnItemClick();
+						break;
+					}
+				}
+				else if (((LPNMHDR)lParam)->code == LVN_ITEMCHANGED) // List view item selection changed (mouse or keyboard)
+				{
+					LPNMLISTVIEW pNMListView = (LPNMLISTVIEW)lParam;
+					if ((pNMListView->uChanged & LVIF_STATE) && (pNMListView->uNewState & LVIS_SELECTED))
+					{
+						KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
+						if (gridView)
+						{
+							gridView->OnItemSelected();
+							break;
+						}
+					}
+				}
+				else if (((LPNMHDR)lParam)->code == NM_RCLICK) // List view item right click
+				{
+					KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
+					if (gridView)
+					{
+						gridView->OnItemRightClick();
+						break;
+					}
+				}
+				else if (((LPNMHDR)lParam)->code == NM_DBLCLK) // List view item double click
+				{
+					KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
+					if (gridView)
+					{
+						gridView->OnItemDoubleClick();
+						break;
+					}
+				}
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
 		case WM_HSCROLL:
 		case WM_VSCROLL:
 			{
 				int nScrollCode = (int)LOWORD(wParam);
 
-				if( (TB_THUMBTRACK==nScrollCode)||(TB_LINEDOWN==nScrollCode) || (TB_LINEUP==nScrollCode) || (TB_BOTTOM==nScrollCode) || (TB_TOP==nScrollCode) || (TB_PAGEUP==nScrollCode) || (TB_PAGEDOWN==nScrollCode) ) // its trackbar!
+				if( (TB_THUMBTRACK == nScrollCode) || (TB_LINEDOWN == nScrollCode) || (TB_LINEUP == nScrollCode) || (TB_BOTTOM == nScrollCode) || (TB_TOP == nScrollCode) || (TB_PAGEUP == nScrollCode) || (TB_PAGEDOWN == nScrollCode) ) // its trackbar!
 				{
-					KTrackBar *trackBar=(KTrackBar*)::GetPropW((HWND)lParam, RFCPropText_Object);
+					KTrackBar *trackBar = (KTrackBar*)::GetPropW((HWND)lParam, RFCPropText_Object);
 					if(trackBar)
 					{
 						trackBar->OnChange();
@@ -191,18 +236,18 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					}
 				}
 			}
-			return KComponent::WindowProc(hwnd,msg,wParam,lParam);
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
 		case WM_TIMER:
 			{
-				KTimer *timer=KPlatformUtil::GetInstance()->GetTimerByID((UINT)wParam);
+				KTimer *timer = KPlatformUtil::GetInstance()->GetTimerByID((UINT)wParam);
 				if(timer)
 				{
 					timer->OnTimer();
 					break;
 				}
 			}
-			return KComponent::WindowProc(hwnd,msg,wParam,lParam);
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
 		case WM_MOVE: // window has been moved! we can't use lparam since it's giving client area pos instead of window...
 			{

@@ -21,12 +21,12 @@
       
 */
 
-#include"KCheckBox.h"
-#include"../rfc.h"
+#include "KCheckBox.h"
+#include "../rfc.h"
 
 KCheckBox::KCheckBox()
 {
-	checked=false;
+	checked = false;
 
 	this->SetText(L"CheckBox");
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP);
@@ -41,10 +41,10 @@ bool KCheckBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,WM_SETFONT,(WPARAM)compFont->GetFontHandle(),MAKELPARAM(true, 0)); // set default font!
-		::SendMessageW(compHWND,BM_SETCHECK,checked,0);
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		::SendMessageW(compHWND, BM_SETCHECK, checked, 0);
 
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 
 		if(this->IsVisible())
 			this->SetVisible(true);
@@ -55,10 +55,10 @@ bool KCheckBox::CreateComponent()
 
 void KCheckBox::OnPress()
 {
-	if(::SendMessageW(compHWND,BM_GETCHECK,0,0)==BST_CHECKED)
-		checked=true;
+	if(::SendMessageW(compHWND, BM_GETCHECK, 0, 0) == BST_CHECKED)
+		checked = true;
 	else
-		checked=false;
+		checked = false;
 
 	if(listener)
 		listener->OnButtonPress(this);
@@ -71,10 +71,10 @@ bool KCheckBox::IsChecked()
 
 void KCheckBox::SetCheckedState(bool state)
 {
-	checked=state;
+	checked = state;
 
 	if(compHWND)
-		::SendMessageW(compHWND,BM_SETCHECK,checked,0);
+		::SendMessageW(compHWND, BM_SETCHECK, checked, 0);
 }
 
 KCheckBox::~KCheckBox()

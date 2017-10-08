@@ -13,7 +13,7 @@
 				#define RFC_API __declspec(dllexport)
 			#else
 				#define RFC_API __declspec(dllimport)
-				#pragma comment(lib,"rfc026.lib")
+				#pragma comment(lib, "rfc026.lib")
 			#endif
 		#endif
 	#else // non M$ compilers must use entire source code or amalgamated version.

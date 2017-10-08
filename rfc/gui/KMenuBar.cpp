@@ -26,19 +26,19 @@
 
 KMenuBar::KMenuBar()
 {
-	hMenu=::CreateMenu();
+	hMenu = ::CreateMenu();
 }
 
 void KMenuBar::AddMenu(const KString& text, KMenu *menu)
 {
-	::InsertMenuW(hMenu,0xFFFFFFFF,MF_BYPOSITION|MF_POPUP|MF_STRING,(UINT_PTR)menu->GetMenuHandle(),(const wchar_t*)text);
+	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), (const wchar_t*)text);
 }
 
 void KMenuBar::AddToWindow(KWindow *window)
 {
-	HWND hwnd=window->GetHWND();
+	HWND hwnd = window->GetHWND();
 	if(hwnd)
-		::SetMenu(hwnd,hMenu);
+		::SetMenu(hwnd, hMenu);
 }
 
 KMenuBar::~KMenuBar()

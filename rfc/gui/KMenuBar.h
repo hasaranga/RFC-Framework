@@ -24,8 +24,8 @@
 #ifndef _RFC_KMENUBAR_H_
 #define _RFC_KMENUBAR_H_
 
-#include"KMenu.h"
-#include"KWindow.h"
+#include "KMenu.h"
+#include "KWindow.h"
 
 class RFC_API KMenuBar
 {

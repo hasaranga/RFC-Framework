@@ -22,88 +22,92 @@
 */
 
 
-#include"KComponent.h"
-#include"../rfc.h"
+#include "KComponent.h"
+#include "../rfc.h"
 
 
 KComponent::KComponent()
 {
-	isRegistered=false;
+	isRegistered = false;
 
-	compClassName=KPlatformUtil::GetInstance()->GenerateClassName();
+	compClassName = KPlatformUtil::GetInstance()->GenerateClassName();
 
-	compHWND=0;
-	compParentHWND=0;
-	compText=KString();
-	compDwStyle=0;
-	compDwExStyle=0;
-	cursor=0;
-	compX=CW_USEDEFAULT;
-	compY=CW_USEDEFAULT;
-	compWidth=CW_USEDEFAULT;
-	compHeight=CW_USEDEFAULT;
-	compVisible=true;
-	compEnabled=true;
+	compHWND = 0;
+	compParentHWND = 0;
+	compText = KString();
+	compDwStyle = 0;
+	compDwExStyle = 0;
+	cursor = 0;
+	compX = CW_USEDEFAULT;
+	compY = CW_USEDEFAULT;
+	compWidth = CW_USEDEFAULT;
+	compHeight = CW_USEDEFAULT;
+	compVisible = true;
+	compEnabled = true;
 
-	wc.cbSize=sizeof(WNDCLASSEX);
-	wc.hCursor=::LoadCursor(NULL,IDC_ARROW);
-	wc.hIcon=0;
-	wc.lpszMenuName=0;
-	wc.hbrBackground=(HBRUSH)::GetSysColorBrush(COLOR_BTNFACE);
-	wc.cbClsExtra=0;
-	wc.cbWndExtra=0;
-	wc.hIconSm=0;
-	wc.style=0;
-	wc.hInstance=KPlatformUtil::GetInstance()->GetAppHInstance();
-	wc.lpszClassName=(const wchar_t*)compClassName;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
+	wc.hIcon = 0;
+	wc.lpszMenuName = 0;
+	wc.hbrBackground = (HBRUSH)::GetSysColorBrush(COLOR_BTNFACE);
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hIconSm = 0;
+	wc.style = 0;
+	wc.hInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
+	wc.lpszClassName = (const wchar_t*)compClassName;
 
-	wc.lpfnWndProc=::GlobalWnd_Proc;
+	wc.lpfnWndProc = ::GlobalWnd_Proc;
 
-	compFont=KFont::GetDefaultFont();
+	compFont = KFont::GetDefaultFont();
 }
 
 void KComponent::OnHotPlug()
 {
 
 	RECT rect;
-	::GetWindowRect(compHWND,&rect);
-	compWidth=rect.right-rect.left;
-	compHeight=rect.bottom-rect.top;
-	compX=rect.left;
-	compY=rect.top;
+	::GetWindowRect(compHWND, &rect);
+	compWidth = rect.right - rect.left;
+	compHeight = rect.bottom - rect.top;
+	compX = rect.left;
+	compY = rect.top;
 
-	compVisible=::IsWindowVisible(compHWND)?true:false;
-	compEnabled=::IsWindowEnabled(compHWND)?true:false;
+	compVisible = ::IsWindowVisible(compHWND) ? true : false;
+	compEnabled = ::IsWindowEnabled(compHWND) ? true : false;
 
 	compDwStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_STYLE);
 	compDwExStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_EXSTYLE);
 
-	compParentHWND=::GetParent(compHWND);
+	compParentHWND = ::GetParent(compHWND);
 
-	wchar_t buff[255];
-	::GetWindowTextW(compHWND,buff,255);
-	compText=buff;
+	wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t));
+	buff[0] = 0;
+	::GetWindowTextW(compHWND, buff, 256);
+	compText = buff;
 
+	free(buff);
 }
 
 void KComponent::HotPlugInto(HWND component)
 {
-	static const wchar_t* RFCPropText_Object=L"RFC";
-	static const wchar_t* RFCPropText_OldProc=L"RFCOldProc";
-	static const wchar_t* RFCPropText_ClsName=L"RFCClsName";
+	static const wchar_t* RFCPropText_Object = L"RFC";
+	static const wchar_t* RFCPropText_OldProc = L"RFCOldProc";
+	static const wchar_t* RFCPropText_ClsName = L"RFCClsName";
 
-	compHWND=component;
-	::SetPropW(compHWND,RFCPropText_Object,(HANDLE)this);
+	compHWND = component;
+	::SetPropW(compHWND, RFCPropText_Object, (HANDLE)this);
 	FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(compHWND, GWLP_WNDPROC);
-	::SetPropW(compHWND,RFCPropText_OldProc,(HANDLE)lpfnOldWndProc);
+	::SetPropW(compHWND, RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
 
-	wchar_t clsName[255];
-	::GetClassNameW(compHWND,clsName,255);
-	compClassName=clsName;
+	wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));
+	clsName[0] = 0;
+	::GetClassNameW(compHWND, clsName, 256);
+	compClassName = clsName;
+	::free(clsName);
 
-	::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(),compClassName,&wc);
+	::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(), compClassName, &wc);
 
-	::SetPropW(compHWND,RFCPropText_ClsName,(HANDLE)(const wchar_t*)compClassName);
+	::SetPropW(compHWND, RFCPropText_ClsName, (HANDLE)(const wchar_t*)compClassName);
 
 	::SetWindowLongPtrW(compHWND, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
 
@@ -112,7 +116,7 @@ void KComponent::HotPlugInto(HWND component)
 
 void KComponent::SetMouseCursor(KCursor *cursor)
 {
-	this->cursor=cursor;
+	this->cursor = cursor;
 	if(compHWND)
 		::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->GetHandle());
 }
@@ -133,7 +137,7 @@ bool KComponent::CreateComponent()
 
 	if(compHWND)
 	{
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 
 		if(this->IsVisible())
 			this->SetVisible(true);
@@ -148,20 +152,20 @@ bool KComponent::CreateComponent()
 
 LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	static const wchar_t* RFCPropText_OldProc=L"RFCOldProc";
+	static const wchar_t* RFCPropText_OldProc = L"RFCOldProc";
 
-	FARPROC lpfnOldWndProc=(FARPROC)::GetPropW(hwnd, RFCPropText_OldProc);
+	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, RFCPropText_OldProc);
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc!=(void*)::GlobalWnd_Proc) // it's subclassed control or dialog! RFCOldProc of subclassed dialog is not GlobalDlg_Proc function.
-			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam,lParam);
-	return ::DefWindowProcW(hwnd,msg,wParam,lParam);
+		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed control or dialog! RFCOldProc of subclassed dialog is not GlobalDlg_Proc function.
+			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
+	return ::DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
 void KComponent::SetFont(KFont *compFont)
 {
-	this->compFont=compFont;
+	this->compFont = compFont;
 	if(compHWND)
-		::SendMessageW(compHWND,WM_SETFONT,(WPARAM)compFont->GetFontHandle(),MAKELPARAM(true, 0));
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0));
 }
 
 KFont* KComponent::GetFont()
@@ -176,14 +180,14 @@ KString KComponent::GetText()
 
 void KComponent::SetText(const KString& compText)
 {
-	this->compText=compText;
+	this->compText = compText;
 	if(compHWND)
 		::SetWindowTextW(compHWND, (const wchar_t*)this->compText);
 }
 
 void KComponent::SetHWND(HWND compHWND)
 {
-	this->compHWND=compHWND;
+	this->compHWND = compHWND;
 }
 
 HWND KComponent::GetHWND()
@@ -193,9 +197,9 @@ HWND KComponent::GetHWND()
 
 void KComponent::SetParentHWND(HWND compParentHWND)
 {
-	this->compParentHWND=compParentHWND;
+	this->compParentHWND = compParentHWND;
 	if(compHWND)
-		::SetParent(compHWND,compParentHWND);
+		::SetParent(compHWND, compParentHWND);
 }
 
 HWND KComponent::GetParentHWND()
@@ -210,7 +214,7 @@ DWORD KComponent::GetStyle()
 
 void KComponent::SetStyle(DWORD compStyle)
 {
-	this->compDwStyle=compStyle;
+	this->compDwStyle = compStyle;
 	if(compHWND)
 		::SetWindowLongPtrW(compHWND, GWL_STYLE, compStyle);
 }
@@ -222,7 +226,7 @@ DWORD KComponent::GetExStyle()
 
 void KComponent::SetExStyle(DWORD compDwExStyle)
 {
-	this->compDwExStyle=compDwExStyle;
+	this->compDwExStyle = compDwExStyle;
 	if(compHWND)
 		::SetWindowLongPtrW(compHWND, GWL_EXSTYLE, compDwExStyle);
 }
@@ -247,29 +251,29 @@ int KComponent::GetHeight()
 	return compHeight;
 }
 
-void KComponent::SetSize(int compWidth,int compHeight)
+void KComponent::SetSize(int compWidth, int compHeight)
 {
-	this->compWidth=compWidth;
-	this->compHeight=compHeight;
+	this->compWidth = compWidth;
+	this->compHeight = compHeight;
 
 	if(compHWND)
-		::SetWindowPos(compHWND,0,0,0,compWidth,compHeight,SWP_NOMOVE|SWP_NOREPOSITION);
+		::SetWindowPos(compHWND, 0, 0, 0, compWidth, compHeight, SWP_NOMOVE | SWP_NOREPOSITION);
 }
 
-void KComponent::SetPosition(int compX,int compY)
+void KComponent::SetPosition(int compX, int compY)
 {
-	this->compX=compX;
-	this->compY=compY;
+	this->compX = compX;
+	this->compY = compY;
 
 	if(compHWND)
-		::SetWindowPos(compHWND,0,compX,compY,0,0,SWP_NOSIZE|SWP_NOREPOSITION);
+		::SetWindowPos(compHWND, 0, compX, compY, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION);
 }
 
 void KComponent::SetVisible(bool state)
 {
-	this->compVisible=state;
+	this->compVisible = state;
 	if(compHWND)
-		::ShowWindow(compHWND,state ? SW_SHOW:SW_HIDE);
+		::ShowWindow(compHWND, state ? SW_SHOW : SW_HIDE);
 }
 
 bool KComponent::IsVisible()
@@ -287,7 +291,7 @@ void KComponent::SetEnabled(bool state)
 	compEnabled=state;
 
 	if(compHWND)
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 }
 
 void KComponent::BringToFront()
@@ -311,5 +315,5 @@ void KComponent::Repaint()
 KComponent::~KComponent()
 {
 	if(isRegistered)
-		::UnregisterClassW((const wchar_t*)compClassName,KPlatformUtil::GetInstance()->GetAppHInstance());
+		::UnregisterClassW((const wchar_t*)compClassName, KPlatformUtil::GetInstance()->GetAppHInstance());
 }

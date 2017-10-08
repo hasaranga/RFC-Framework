@@ -24,8 +24,8 @@
 #ifndef _RFC_KAPPLICATION_H_
 #define _RFC_KAPPLICATION_H_
 
-#include"config.h"
-#include"text/KString.h"
+#include "config.h"
+#include "text/KString.h"
 
 /**
 	Derive your application object from this class!
@@ -66,7 +66,7 @@ public:
 		@param argv array of command-line arguments! access them like this KString* arg1=argv[0];
 		@param argc number of arguments
 	*/
-	virtual int Main(KString **argv,int argc);
+	virtual int Main(KString **argv, int argc);
 
 	/** 
 		Destructs an Application object.

@@ -25,10 +25,10 @@
 #define _RFC_KCOMPONENT_H_
 
 
-#include<windows.h>
-#include"../graphics/KFont.h"
-#include"../graphics/KCursor.h"
-#include"../text/KString.h"
+#include <windows.h>
+#include "../graphics/KFont.h"
+#include "../graphics/KCursor.h"
+#include "../text/KString.h"
 
 /**
 	Base class of all W32 gui objects.
@@ -171,12 +171,12 @@ public:
 	/**
 		Sets width and height of the component.
 	*/
-	virtual void SetSize(int compWidth,int compHeight);
+	virtual void SetSize(int compWidth, int compHeight);
 
 	/**
 		Sets x and y position of the component. x and y are relative to parent component
 	*/
-	virtual void SetPosition(int compX,int compY);
+	virtual void SetPosition(int compX, int compY);
 
 	/**
 		Sets visible state of the component

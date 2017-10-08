@@ -24,7 +24,7 @@
 #ifndef _RFC_KRADIOBUTTON_H_
 #define _RFC_KRADIOBUTTON_H_
 
-#include"KCheckBox.h"
+#include "KCheckBox.h"
 
 class RFC_API KRadioButton : public KCheckBox
 {

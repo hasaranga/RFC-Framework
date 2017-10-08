@@ -1,5 +1,6 @@
 v0.2.6:
 	added KRegistry, KSettingsWriter, KSettingsReader, KMD5, KSHA1, KPerformanceCounter classes
+	added KGridView class
 	added KFORMAT_ID macro
 	added HotPlugAndCreateDialogBox function
 	added SetClientAreaSize, OnMoved, OnResized, Destroy, Flash methods into KWindow class
@@ -13,6 +14,7 @@ v0.2.6:
 	changed the implementation of KPlatformUtil::GenerateClassName
 	changed the default code page of KString into UTF-8
 	fixed a bug in KCommonDialogBox::ShowSaveFileDialog
+	fixed a bug in KPointerList::RemoveAll
 	fixed memory leak in KListBox::RemoveItem
 	fixed memory leak in KComboBox::RemoveItem
 	fixed MinGW build error

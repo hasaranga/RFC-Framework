@@ -21,14 +21,14 @@
       
 */
 
-#include"KButton.h"
-#include"../rfc.h"
+#include "KButton.h"
+#include "../rfc.h"
 
 KButton::KButton()
 {
-	listener=0;
+	listener = 0;
 
-	compClassName=L"BUTTON";
+	compClassName = L"BUTTON";
 
 	this->SetText(L"Button");
 	this->SetSize(100, 30);
@@ -39,7 +39,7 @@ KButton::KButton()
 
 void KButton::SetListener(KButtonListener *listener)
 {
-	this->listener=listener;
+	this->listener = listener;
 }
 
 KButtonListener* KButton::GetListener()
@@ -62,9 +62,9 @@ bool KButton::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,WM_SETFONT,(WPARAM)compFont->GetFontHandle(),MAKELPARAM(true, 0)); // set default font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
 
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 
 		if(this->IsVisible())
 			this->SetVisible(true);

@@ -21,7 +21,7 @@ misrepresented as being the original software.
 
 */
 
-#include"KWindowTypes.h"
+#include "KWindowTypes.h"
 
 
 KHotPluggedDialog::KHotPluggedDialog(){}
@@ -29,7 +29,7 @@ KHotPluggedDialog::KHotPluggedDialog(){}
 
 void KHotPluggedDialog::OnClose()
 {
-	::EndDialog(compHWND,0);
+	::EndDialog(compHWND, 0);
 }
 
 void KHotPluggedDialog::OnDestroy(){}

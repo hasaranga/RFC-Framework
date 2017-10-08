@@ -24,7 +24,7 @@
 #ifndef _RFC_KBUTTON_H_
 #define _RFC_KBUTTON_H_
 
-#include"KComponent.h"
+#include "KComponent.h"
 
 class KButtonListener;
 

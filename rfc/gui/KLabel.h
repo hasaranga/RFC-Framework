@@ -24,7 +24,7 @@
 #ifndef _RFC_KLABEL_H_
 #define _RFC_KLABEL_H_
 
-#include"KComponent.h"
+#include "KComponent.h"
 
 class RFC_API KLabel : public KComponent
 {

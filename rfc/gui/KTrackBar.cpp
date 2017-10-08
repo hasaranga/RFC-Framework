@@ -21,16 +21,16 @@
       
 */
 
-#include"../rfc.h"
-#include"KTrackBar.h"
+#include "../rfc.h"
+#include "KTrackBar.h"
 
 
-KTrackBar::KTrackBar(bool showTicks,bool vertical)
+KTrackBar::KTrackBar(bool showTicks, bool vertical)
 {
-	listener=0;
-	rangeMin=0;
-	rangeMax=100;
-	value=0;
+	listener = 0;
+	rangeMin = 0;
+	rangeMax = 100;
+	value = 0;
 
 	this->SetSize(100, 25);
 	this->SetPosition(0, 0);
@@ -40,34 +40,34 @@ KTrackBar::KTrackBar(bool showTicks,bool vertical)
 	this->SetStyle(compDwStyle | (showTicks ? TBS_AUTOTICKS : TBS_NOTICKS));
 	this->SetStyle(compDwStyle | (vertical ? TBS_VERT : TBS_HORZ));
 
-	compClassName=KString(TRACKBAR_CLASSW);
+	compClassName = KString(TRACKBAR_CLASSW);
 }
 
-void KTrackBar::SetRange(int min,int max)
+void KTrackBar::SetRange(int min, int max)
 {
-	rangeMin=min;
-	rangeMax=max;
+	rangeMin = min;
+	rangeMax = max;
 	if(compHWND)
-		::SendMessageW(compHWND,TBM_SETRANGE,TRUE,(LPARAM) MAKELONG(min,max));	
+		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(min, max));	
 }
 
 void KTrackBar::SetValue(int value)
 {
-	this->value=value;
+	this->value = value;
 	if(compHWND)
-		::SendMessageW(compHWND,TBM_SETPOS,TRUE,(LPARAM)value);
+		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
 }
 
 void KTrackBar::OnChange()
 {
-	value=(int)::SendMessageW(compHWND,TBM_GETPOS,0,0);
+	value = (int)::SendMessageW(compHWND, TBM_GETPOS, 0, 0);
 	if(listener)
 		listener->OnTrackBarChange(this);
 }
 
 void KTrackBar::SetListener(KTrackBarListener *listener)
 {
-	this->listener=listener;
+	this->listener = listener;
 }
 
 int KTrackBar::GetValue()
@@ -84,12 +84,12 @@ bool KTrackBar::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,WM_SETFONT,(WPARAM)compFont->GetFontHandle(),MAKELPARAM(true, 0)); // set default font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
 
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 
-		::SendMessageW(compHWND,TBM_SETRANGE,TRUE,(LPARAM) MAKELONG(rangeMin,rangeMax));	
-		::SendMessageW(compHWND,TBM_SETPOS,TRUE,(LPARAM)value);
+		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(rangeMin, rangeMax));	
+		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
 
 		if(this->IsVisible())
 			this->SetVisible(true);

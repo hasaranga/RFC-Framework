@@ -24,7 +24,7 @@
 #ifndef _RFC_KPASSWORDBOX_H_
 #define _RFC_KPASSWORDBOX_H_
 
-#include"KTextBox.h"
+#include "KTextBox.h"
 
 class RFC_API KPasswordBox : public KTextBox
 {

@@ -21,7 +21,7 @@
       
 */
 
-#include"KMenu.h"
+#include "KMenu.h"
 
 
 KMenu::KMenu()
@@ -36,7 +36,7 @@ void KMenu::AddMenuItem(KMenuItem *menuItem)
 
 void KMenu::AddSubMenu(const KString& text, KMenu *menu)
 {
-	::InsertMenuW(hMenu,0xFFFFFFFF,MF_BYPOSITION|MF_POPUP|MF_STRING,(UINT_PTR)menu->GetMenuHandle(),(const wchar_t*)text);
+	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), (const wchar_t*)text);
 }
 
 void KMenu::AddSeperator()
@@ -44,11 +44,11 @@ void KMenu::AddSeperator()
 	MENUITEMINFOW mii;
 	::ZeroMemory(&mii, sizeof(mii));
 
-	mii.cbSize=sizeof(MENUITEMINFOW);
-	mii.fMask=MIIM_TYPE;
-	mii.fType=MFT_SEPARATOR;
+	mii.cbSize = sizeof(MENUITEMINFOW);
+	mii.fMask = MIIM_TYPE;
+	mii.fType = MFT_SEPARATOR;
 
-	::InsertMenuItemW(hMenu,0xFFFFFFFF,FALSE,&mii);
+	::InsertMenuItemW(hMenu, 0xFFFFFFFF, FALSE, &mii);
 }
 
 HMENU KMenu::GetMenuHandle()

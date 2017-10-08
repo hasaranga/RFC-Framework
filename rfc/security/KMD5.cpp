@@ -21,9 +21,9 @@ misrepresented as being the original software.
 
 */
 
-#include"KMD5.h"
-#include"../io/KFile.h"
-#include"../external/md5.h"
+#include "KMD5.h"
+#include "../io/KFile.h"
+#include "../external/md5.h"
 
 KMD5::KMD5()
 {

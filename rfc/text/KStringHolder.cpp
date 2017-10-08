@@ -21,15 +21,15 @@
       
 */
 
-#include"KStringHolder.h"
+#include "KStringHolder.h"
 
 
 KStringHolder::KStringHolder()
 {
-	refCount=0;
-	a_text=0;
-	w_text=0;
-	count=0;
+	refCount = 0;
+	a_text = 0;
+	w_text = 0;
+	count = 0;
 	::InitializeCriticalSection(&cs_a_text);
 }
 
@@ -45,8 +45,8 @@ void KStringHolder::AddReference()
 
 void KStringHolder::ReleaseReference()
 {
-	LONG res=::InterlockedDecrement(&refCount);
-	if(res==0)
+	LONG res = ::InterlockedDecrement(&refCount);
+	if(res == 0)
 	{
 		if(a_text)
 		{
@@ -80,7 +80,7 @@ const char* KStringHolder::GetAnsiVersion(UINT codePage)
 				return a_text;
 			}
 			::free(a_text);
-			a_text=0;
+			a_text = 0;
 		}
 
 		::LeaveCriticalSection(&cs_a_text);

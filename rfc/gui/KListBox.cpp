@@ -21,18 +21,18 @@
       
 */
 
-#include"../rfc.h"
-#include"KListBox.h"
+#include "../rfc.h"
+#include "KListBox.h"
 
 KListBox::KListBox(bool multipleSelection,bool sort,bool vscroll)
 {
 	this->multipleSelection=multipleSelection;
-	listener=0;
+	listener = 0;
 
-	selectedItemIndex=-1;
-	selectedItemEnd=-1;
+	selectedItemIndex = -1;
+	selectedItemEnd = -1;
 
-	compClassName=L"LISTBOX";
+	compClassName = L"LISTBOX";
 
 	this->SetSize(100, 100);
 	this->SetPosition(0, 0);
@@ -48,33 +48,33 @@ KListBox::KListBox(bool multipleSelection,bool sort,bool vscroll)
 
 	this->SetExStyle(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
 
-	stringList=new KPointerList<KString*>;
+	stringList = new KPointerList<KString*>;
 }
 
 void KListBox::SetListener(KListBoxListener *listener)
 {
-	this->listener=listener;
+	this->listener = listener;
 }
 
 void KListBox::AddItem(const KString& text)
 {
-	KString *str=new KString(text);
+	KString *str = new KString(text);
 	stringList->AddPointer(str);
 
 	if(compHWND)
-		::SendMessageW(compHWND,LB_ADDSTRING,0,(LPARAM)(const wchar_t*)*str);
+		::SendMessageW(compHWND, LB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*str);
 }
 
 void KListBox::RemoveItem(int index)
 {
-	KString *text=stringList->GetPointer(index);
+	KString *text = stringList->GetPointer(index);
 	if (text)
 		delete text;
 
 	stringList->RemovePointer(index);
 
 	if(compHWND)	 
-		::SendMessageW(compHWND,LB_DELETESTRING,index,0);
+		::SendMessageW(compHWND, LB_DELETESTRING, index, 0);
 }
 
 void KListBox::RemoveItem(const KString& text)
@@ -86,10 +86,10 @@ void KListBox::RemoveItem(const KString& text)
 
 int KListBox::GetItemIndex(const KString& text)
 {
-	int listSize=stringList->GetSize();
+	int listSize = stringList->GetSize();
 	if(listSize)
 	{
-		for(int i=0;i<listSize;i++)
+		for(int i = 0; i < listSize; i++)
 		{
 			if(stringList->GetPointer(i)->EqualsIgnoreCase(text))
 				return i;
@@ -107,8 +107,8 @@ int KListBox::GetSelectedItemIndex()
 {
 	if(compHWND)
 	{	 
-		int index=(int)::SendMessageW(compHWND,LB_GETCURSEL,0,0);
-		if(index!=LB_ERR)
+		int index = (int)::SendMessageW(compHWND, LB_GETCURSEL, 0, 0);
+		if(index != LB_ERR)
 			return index;
 		return -1;
 	}else
@@ -120,17 +120,17 @@ int KListBox::GetSelectedItemIndex()
 KString KListBox::GetSelectedItem()
 {
 	int itemIndex = this->GetSelectedItemIndex();
-	if(itemIndex>-1)
+	if(itemIndex > -1)
 		return *stringList->GetPointer(itemIndex);
 	return KString();
 }
 
-int KListBox::GetSelectedItems(int* itemArray,int itemCountInArray)
+int KListBox::GetSelectedItems(int* itemArray, int itemCountInArray)
 {
 	if(compHWND)
 	{	 
-		int items=(int)::SendMessageW(compHWND,LB_GETSELITEMS,itemCountInArray,(LPARAM)itemArray);
-		if(items!=LB_ERR)
+		int items = (int)::SendMessageW(compHWND, LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
+		if(items != LB_ERR)
 			return items;
 		return -1;
 	}else
@@ -144,26 +144,26 @@ void KListBox::ClearList()
 	stringList->DeleteAll();
 
 	if(compHWND)
-		::SendMessageW(compHWND,LB_RESETCONTENT,0,0);
+		::SendMessageW(compHWND, LB_RESETCONTENT, 0, 0);
 }
 
 void KListBox::SelectItem(int index)
 {
-	selectedItemIndex=index;
+	selectedItemIndex = index;
 
 	if(compHWND)
-		::SendMessageW(compHWND,LB_SETCURSEL,index,0);
+		::SendMessageW(compHWND, LB_SETCURSEL, index, 0);
 }
 
-void KListBox::SelectItems(int start,int end)
+void KListBox::SelectItems(int start, int end)
 {
 	if(multipleSelection)
 	{
-		selectedItemIndex=start;
-		selectedItemEnd=end;
+		selectedItemIndex = start;
+		selectedItemEnd = end;
 
 		if(compHWND)
-			::SendMessageW(compHWND,LB_SELITEMRANGE,TRUE,MAKELPARAM(start,end));
+			::SendMessageW(compHWND, LB_SELITEMRANGE, TRUE, MAKELPARAM(start, end));
 	}
 }
 
@@ -176,25 +176,25 @@ bool KListBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,WM_SETFONT,(WPARAM)compFont->GetFontHandle(),MAKELPARAM(true, 0)); // set default font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
 
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 
 		int listSize=stringList->GetSize();
 		if(listSize)
 		{
-			for(int i=0;i<listSize;i++)
-				::SendMessageW(compHWND,LB_ADDSTRING,0,(LPARAM)(const wchar_t*)*stringList->GetPointer(i));
+			for(int i = 0; i < listSize; i++)
+				::SendMessageW(compHWND, LB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*stringList->GetPointer(i));
 		}
 
 		if(!multipleSelection) // single selction!
 		{
-			if(selectedItemIndex>-1)
-				::SendMessageW(compHWND,LB_SETCURSEL,selectedItemIndex,0);
+			if(selectedItemIndex > -1)
+				::SendMessageW(compHWND, LB_SETCURSEL, selectedItemIndex, 0);
 		}else
 		{
 			if(selectedItemIndex>-1)
-				::SendMessageW(compHWND,LB_SELITEMRANGE,TRUE,MAKELPARAM(selectedItemIndex,selectedItemEnd));
+				::SendMessageW(compHWND, LB_SELITEMRANGE, TRUE, MAKELPARAM(selectedItemIndex, selectedItemEnd));
 		}
 
 		if(this->IsVisible())

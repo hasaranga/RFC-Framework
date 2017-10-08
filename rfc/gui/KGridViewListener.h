@@ -1,6 +1,6 @@
 
 /*
-    RFC - KTextArea.cpp
+    RFC - KGridViewListener.h
     Copyright (C) 2013-2017 CrownSoft
   
     This software is provided 'as-is', without any express or implied
@@ -21,19 +21,27 @@
       
 */
 
-#include "KTextArea.h"
+#ifndef _RFC_KGRIDVIEWLISTENER_H_
+#define _RFC_KGRIDVIEWLISTENER_H_
 
-KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
+#include"../config.h"
+
+class KGridView;
+
+class RFC_API KGridViewListener
 {
-	this->SetSize(200, 100);
-	this->SetStyle(compDwStyle | ES_MULTILINE);
+public:
+	KGridViewListener();
 
-	if(autoScroll)
-		this->SetStyle(compDwStyle | ES_AUTOHSCROLL | ES_AUTOVSCROLL);
-	else
-		this->SetStyle(compDwStyle | WS_HSCROLL | WS_VSCROLL);
-}
+	virtual ~KGridViewListener();
 
-KTextArea::~KTextArea()
-{
-}
+	virtual void OnGridViewItemClick(KGridView *gridView);
+
+	virtual void OnGridViewItemSelect(KGridView *gridView);
+
+	virtual void OnGridViewItemRightClick(KGridView *gridView);
+
+	virtual void OnGridViewItemDoubleClick(KGridView *gridView);
+};
+
+#endif

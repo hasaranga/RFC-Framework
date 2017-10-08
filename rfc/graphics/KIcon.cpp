@@ -21,13 +21,13 @@
       
 */
 
-#include"../utils/KPlatformUtil.h"
-#include"../graphics/KIcon.h"
+#include "../utils/KPlatformUtil.h"
+#include "../graphics/KIcon.h"
 
 KIcon::KIcon()
 {
-	hIcon=0;
-	appHInstance=KPlatformUtil::GetInstance()->GetAppHInstance();
+	hIcon = 0;
+	appHInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
 }
 
 bool KIcon::LoadFromResource(WORD resourceID)

@@ -24,8 +24,8 @@
 #ifndef _RFC_KPERFORMANCECOUNTER_H_
 #define _RFC_KPERFORMANCECOUNTER_H_
 
-#include"../config.h"
-#include<windows.h>
+#include "../config.h"
+#include <windows.h>
 
 class RFC_API KPerformanceCounter
 {

@@ -24,12 +24,12 @@
 #ifndef _RFC_KPLATFORMUTIL_H_
 #define _RFC_KPLATFORMUTIL_H_
 
-#include"../text/KString.h"
-#include<windows.h>
-#include<stdio.h>
-#include"../containers/KPointerList.h"
-#include"../gui/KMenuItem.h"
-#include"../threads/KTimer.h"
+#include "../text/KString.h"
+#include <windows.h>
+#include <stdio.h>
+#include "../containers/KPointerList.h"
+#include "../gui/KMenuItem.h"
+#include "../threads/KTimer.h"
 
 /**
 	Singleton class which can be use to get HINSTANCE of your application.

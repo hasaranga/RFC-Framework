@@ -24,59 +24,61 @@
 #ifndef _RFC_H_
 #define _RFC_H_
 
-#include<windows.h>
-#include<commctrl.h>
+#include <windows.h>
+#include <commctrl.h>
 
 #ifdef _MSC_VER
-#pragma comment(lib,"Comctl32.lib")
+#pragma comment(lib, "Comctl32.lib")
 #endif
 
-#include"config.h"
+#include "config.h"
 
-#include"utils/KPlatformUtil.h"
-#include"utils/KPerformanceCounter.h"
-#include"utils/KRegistry.h"
-#include"KApplication.h"
-#include"text/KString.h"
-#include"graphics/KFont.h"
-#include"graphics/KIcon.h"
-#include"graphics/KBitmap.h"
-#include"graphics/KCursor.h"
-#include"gui/KComponent.h"
-#include"gui/KWindow.h"
-#include"gui/KWindowTypes.h"
-#include"gui/KButtonListener.h"
-#include"gui/KButton.h"
-#include"gui/KLabel.h"
-#include"gui/KCheckBox.h"
-#include"gui/KRadioButton.h"
-#include"gui/KPushButton.h"
-#include"gui/KGroupBox.h"
-#include"gui/KProgressBar.h"
-#include"gui/KMenuItemListener.h"
-#include"gui/KMenuItem.h"
-#include"gui/KMenu.h"
-#include"gui/KMenuBar.h"
-#include"gui/KTextBox.h"
-#include"gui/KPasswordBox.h"
-#include"gui/KTextArea.h"
-#include"gui/KListBox.h"
-#include"gui/KListBoxListener.h"
-#include"gui/KComboBox.h"
-#include"gui/KComboBoxListener.h"
-#include"gui/KTrackBar.h"
-#include"gui/KTrackBarListener.h"
-#include"gui/KCommonDialogBox.h"
-#include"gui/KNumericField.h"
-#include"threads/KThread.h"
-#include"threads/KTimer.h"
-#include"threads/KTimerListener.h"
-#include"io/KFile.h"
-#include"io/KDirectory.h"
-#include"io/KSettingsWriter.h"
-#include"io/KSettingsReader.h"
-#include"security/KMD5.h"
-#include"security/KSHA1.h"
+#include "utils/KPlatformUtil.h"
+#include "utils/KPerformanceCounter.h"
+#include "utils/KRegistry.h"
+#include "KApplication.h"
+#include "text/KString.h"
+#include "graphics/KFont.h"
+#include "graphics/KIcon.h"
+#include "graphics/KBitmap.h"
+#include "graphics/KCursor.h"
+#include "gui/KComponent.h"
+#include "gui/KWindow.h"
+#include "gui/KWindowTypes.h"
+#include "gui/KButtonListener.h"
+#include "gui/KButton.h"
+#include "gui/KLabel.h"
+#include "gui/KCheckBox.h"
+#include "gui/KRadioButton.h"
+#include "gui/KPushButton.h"
+#include "gui/KGroupBox.h"
+#include "gui/KProgressBar.h"
+#include "gui/KMenuItemListener.h"
+#include "gui/KMenuItem.h"
+#include "gui/KMenu.h"
+#include "gui/KMenuBar.h"
+#include "gui/KTextBox.h"
+#include "gui/KPasswordBox.h"
+#include "gui/KTextArea.h"
+#include "gui/KListBox.h"
+#include "gui/KListBoxListener.h"
+#include "gui/KComboBox.h"
+#include "gui/KComboBoxListener.h"
+#include "gui/KTrackBar.h"
+#include "gui/KTrackBarListener.h"
+#include "gui/KCommonDialogBox.h"
+#include "gui/KNumericField.h"
+#include "gui/KGridViewListener.h"
+#include "gui/KGridView.h"
+#include "threads/KThread.h"
+#include "threads/KTimer.h"
+#include "threads/KTimerListener.h"
+#include "io/KFile.h"
+#include "io/KDirectory.h"
+#include "io/KSettingsWriter.h"
+#include "io/KSettingsReader.h"
+#include "security/KMD5.h"
+#include "security/KSHA1.h"
 
 
 RFC_API LRESULT CALLBACK GlobalWnd_Proc(HWND,UINT,WPARAM,LPARAM);
@@ -97,18 +99,18 @@ RFC_API HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KCompon
 #define START_RFC_APPLICATION(AppClass) \
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
 { \
-	InitRFC(hInstance);\
-	int argc=0;\
-	LPWSTR *args=CommandLineToArgvW(GetCommandLineW(),&argc);\
-	KString **str_argv = (KString**)malloc(argc*PTR_SIZE); \
-	for(int i=0;i<argc;i++){str_argv[i]=new KString(args[i]);}\
-	AppClass* application=new AppClass();\
-	int retVal=application->Main(str_argv,argc);\
+	::InitRFC(hInstance);\
+	int argc = 0;\
+	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc);\
+	KString **str_argv = (KString**)::malloc(argc * PTR_SIZE); \
+	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i]);}\
+	AppClass* application = new AppClass();\
+	int retVal = application->Main(str_argv, argc);\
 	delete application;\
-	DeInitRFC();\
-	for(int i=0;i<argc;i++){delete str_argv[i];}\
-	free((void*)str_argv);\
-	GlobalFree(args);\
+	::DeInitRFC();\
+	for(int i = 0; i < argc; i++){delete str_argv[i];}\
+	::free((void*)str_argv);\
+	::GlobalFree(args);\
 	return retVal;\
 }
 
@@ -116,11 +118,11 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 #define START_RFC_APPLICATION_NO_CMD_ARGS(AppClass) \
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
 { \
-	InitRFC(hInstance);\
-	AppClass* application=new AppClass();\
-	int retVal=application->Main(0,0);\
+	::InitRFC(hInstance);\
+	AppClass* application = new AppClass();\
+	int retVal = application->Main(0, 0);\
 	delete application;\
-	DeInitRFC();\
+	::DeInitRFC();\
 	return retVal;\
 }
 

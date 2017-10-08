@@ -24,8 +24,8 @@
 #ifndef _RFC_KLISTBOX_H_
 #define _RFC_KLISTBOX_H_
 
-#include"KComponent.h"
-#include"../containers/KPointerList.h"
+#include "KComponent.h"
+#include "../containers/KPointerList.h"
 
 class KListBoxListener;
 
@@ -40,7 +40,7 @@ protected:
 	KListBoxListener *listener;
 
 public:
-	KListBox(bool multipleSelection=false,bool sort=false,bool vscroll=true);
+	KListBox(bool multipleSelection=false, bool sort=false, bool vscroll=true);
 
 	virtual void SetListener(KListBoxListener *listener);
 
@@ -58,13 +58,13 @@ public:
 
 	virtual KString GetSelectedItem();
 
-	virtual int GetSelectedItems(int* itemArray,int itemCountInArray);
+	virtual int GetSelectedItems(int* itemArray, int itemCountInArray);
 
 	virtual void ClearList();
 
 	virtual void SelectItem(int index);
 
-	virtual void SelectItems(int start,int end);
+	virtual void SelectItems(int start, int end);
 
 	virtual bool CreateComponent();
 

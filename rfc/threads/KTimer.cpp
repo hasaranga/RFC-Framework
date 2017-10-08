@@ -21,21 +21,21 @@
       
 */
 
-#include"../rfc.h"
-#include"../utils/KPlatformUtil.h"
-#include"KTimer.h"
+#include "../rfc.h"
+#include "../utils/KPlatformUtil.h"
+#include "KTimer.h"
 
 KTimer::KTimer()
 {
-	resolution=1000;
-	started=false;
-	listener=0;
-	timerID=KPlatformUtil::GetInstance()->GenerateTimerID(this);
+	resolution = 1000;
+	started = false;
+	listener = 0;
+	timerID = KPlatformUtil::GetInstance()->GenerateTimerID(this);
 }
 
 void KTimer::SetInterval(int resolution)
 {
-	this->resolution=resolution;
+	this->resolution = resolution;
 }
 
 int KTimer::GetInterval()
@@ -45,12 +45,12 @@ int KTimer::GetInterval()
 
 void KTimer::SetTimerWindow(KWindow *window)
 {
-	this->window=window;
+	this->window = window;
 }
 
 void KTimer::SetTimerID(UINT timerID)
 {
-	this->timerID=timerID;
+	this->timerID = timerID;
 }
 
 UINT KTimer::GetTimerID()
@@ -68,8 +68,8 @@ void KTimer::StartTimer()
 		HWND hwnd = window->GetHWND();
 		if(hwnd)
 		{
-			::SetTimer(hwnd,timerID,resolution,0);
-			started=true;
+			::SetTimer(hwnd, timerID, resolution, 0);
+			started = true;
 		}
 	}
 }
@@ -82,9 +82,9 @@ void KTimer::StopTimer()
 		if(hwnd)
 		{
 			if(started)
-				::KillTimer(hwnd,timerID);
+				::KillTimer(hwnd, timerID);
 
-			started=false;
+			started = false;
 		}
 	}
 }
@@ -102,7 +102,7 @@ void KTimer::OnTimer()
 
 void KTimer::SetListener(KTimerListener *listener)
 {
-	this->listener=listener;
+	this->listener = listener;
 }
 
 KTimer::~KTimer()

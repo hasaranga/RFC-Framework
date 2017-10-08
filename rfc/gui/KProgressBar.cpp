@@ -21,14 +21,14 @@
       
 */
 
-#include"KProgressBar.h"
-#include"../rfc.h"
+#include "KProgressBar.h"
+#include "../rfc.h"
 
-KProgressBar::KProgressBar(bool smooth,bool vertical)
+KProgressBar::KProgressBar(bool smooth, bool vertical)
 {
-	value=0;
+	value = 0;
 
-	compClassName=PROGRESS_CLASSW;
+	compClassName = PROGRESS_CLASSW;
 
 	this->SetPosition(0, 0);
 	this->SetSize(100, 20);
@@ -52,7 +52,7 @@ void KProgressBar::SetValue(int value)
 	this->value=value;
 
 	if(compHWND)
-		::SendMessageW(compHWND,PBM_SETPOS,value,0);
+		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
 bool KProgressBar::CreateComponent()
@@ -64,10 +64,10 @@ bool KProgressBar::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,PBM_SETRANGE,0,MAKELPARAM(0,100)); // set range between 0-100
-		::SendMessageW(compHWND,PBM_SETPOS,value,0); // set current value!
+		::SendMessageW(compHWND, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); // set range between 0-100
+		::SendMessageW(compHWND, PBM_SETPOS, value, 0); // set current value!
 
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 
 		if(this->IsVisible())
 			this->SetVisible(true);

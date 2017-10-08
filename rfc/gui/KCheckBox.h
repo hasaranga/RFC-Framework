@@ -24,7 +24,7 @@
 #ifndef _RFC_KCHECKBOX_H_
 #define _RFC_KCHECKBOX_H_
 
-#include"KButton.h"
+#include "KButton.h"
 
 class RFC_API KCheckBox : public KButton
 {

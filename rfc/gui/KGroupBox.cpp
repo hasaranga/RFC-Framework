@@ -1,6 +1,6 @@
 
 /*
-    RFC - KGroupBox.h
+    RFC - KGroupBox.cpp
     Copyright (C) 2013-2017 CrownSoft
   
     This software is provided 'as-is', without any express or implied
@@ -21,7 +21,7 @@
       
 */
 
-#include"KGroupBox.h"
+#include "KGroupBox.h"
 
 KGroupBox::KGroupBox()
 {

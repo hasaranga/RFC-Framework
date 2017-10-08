@@ -24,9 +24,9 @@
 #ifndef _RFC_KTIMER_H_
 #define _RFC_KTIMER_H_
 
-#include"KTimerListener.h"
-#include"../gui/KWindow.h"
-#include<windows.h>
+#include "KTimerListener.h"
+#include "../gui/KWindow.h"
+#include <windows.h>
 
 /**
     Encapsulates a timer.

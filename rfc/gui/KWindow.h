@@ -24,8 +24,8 @@
 #ifndef _RFC_KWINDOW_H_
 #define _RFC_KWINDOW_H_
 
-#include"KComponent.h"
-#include"../graphics/KIcon.h"
+#include "KComponent.h"
+#include "../graphics/KIcon.h"
 
 class RFC_API KWindow : public KComponent
 {

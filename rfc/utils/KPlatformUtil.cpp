@@ -21,33 +21,33 @@
       
 */
 
-#include"KPlatformUtil.h"
-#include"../gui/KMenuItem.h"
+#include "KPlatformUtil.h"
+#include "../gui/KMenuItem.h"
 
 KPlatformUtil* KPlatformUtil::_instance=0;
 
 KPlatformUtil::KPlatformUtil()
 {
-	timerCount=0;
-	menuItemCount=0;
-	classCount=0;
-	hInstance=0;
+	timerCount = 0;
+	menuItemCount = 0;
+	classCount = 0;
+	hInstance = 0;
 	::InitializeCriticalSection(&g_csCount);
-	menuItemList=new KPointerList<KMenuItem*>();
-	timerList=new KPointerList<KTimer*>();
+	menuItemList = new KPointerList<KMenuItem*>();
+	timerList = new KPointerList<KTimer*>();
 }
 
 KPlatformUtil* KPlatformUtil::GetInstance()
 {
 	if(_instance)
 		return _instance;
-	_instance=new KPlatformUtil();
+	_instance = new KPlatformUtil();
 	return _instance;
 }
 
 void KPlatformUtil::SetAppHInstance(HINSTANCE hInstance)
 {
-	this->hInstance=hInstance;
+	this->hInstance = hInstance;
 }
 
 HINSTANCE KPlatformUtil::GetAppHInstance()
@@ -61,12 +61,13 @@ UINT KPlatformUtil::GenerateMenuItemID(KMenuItem *menuItem)
 	menuItemCount++;
 	menuItemList->AddPointer(menuItem);
 	::LeaveCriticalSection(&g_csCount);
-	return menuItemCount+30000;
+
+	return menuItemCount + 30000;
 }
 
 KMenuItem* KPlatformUtil::GetMenuItemByID(UINT id)
 {
-	return menuItemList->GetPointer(id-30001);
+	return menuItemList->GetPointer(id - 30001);
 }
 
 KString KPlatformUtil::GenerateClassName()
@@ -75,9 +76,9 @@ KString KPlatformUtil::GenerateClassName()
 	static wchar_t className[32];
 
 	#ifdef _MSC_VER
-	::swprintf(className, 32, L"RFC_%d_%d", (int)hInstance, classCount);
+		::swprintf(className, 32, L"RFC_%d_%d", (int)hInstance, classCount);
 	#else
-	::swprintf(className,L"RFC_%d_%d", (int)hInstance, classCount);
+		::swprintf(className,L"RFC_%d_%d", (int)hInstance, classCount);
 	#endif
 
 	classCount++;
@@ -91,12 +92,13 @@ UINT KPlatformUtil::GenerateTimerID(KTimer *timer)
 	timerCount++;
 	timerList->AddPointer(timer);
 	::LeaveCriticalSection(&g_csCount);
-	return timerCount+1000;
+
+	return timerCount + 1000;
 }
 
 KTimer* KPlatformUtil::GetTimerByID(UINT id)
 {
-	return timerList->GetPointer(id-1001);
+	return timerList->GetPointer(id - 1001);
 }
 
 KPlatformUtil::~KPlatformUtil()

@@ -21,7 +21,7 @@ misrepresented as being the original software.
 
 */
 
-#include"KDirectory.h"
+#include "KDirectory.h"
 
 
 KDirectory::KDirectory(){}

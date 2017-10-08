@@ -24,7 +24,7 @@
 #ifndef _RFC_KPROGRESSAR_H_
 #define _RFC_KPROGRESSAR_H_
 
-#include"KComponent.h"
+#include "KComponent.h"
 
 class RFC_API KProgressBar : public KComponent
 {
@@ -32,7 +32,7 @@ protected:
 	int value;
 
 public:
-	KProgressBar(bool smooth=true,bool vertical=false);
+	KProgressBar(bool smooth=true, bool vertical=false);
 
 	virtual int GetValue();
 

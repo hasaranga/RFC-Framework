@@ -28,31 +28,31 @@
 
 KMenuItem::KMenuItem()
 {
-	hMenu=0;
-	listener=0;
-	itemText=KString();
-	enabled=true;
-	checked=false;
-	itemID=KPlatformUtil::GetInstance()->GenerateMenuItemID(this);
+	hMenu = 0;
+	listener = 0;
+	itemText = KString();
+	enabled = true;
+	checked = false;
+	itemID = KPlatformUtil::GetInstance()->GenerateMenuItemID(this);
 }
 
 void KMenuItem::AddToMenu(HMENU hMenu)
 {
-	this->hMenu=hMenu;
+	this->hMenu = hMenu;
 
 	MENUITEMINFOW mii;
 	::ZeroMemory(&mii, sizeof(mii));
 
-	mii.cbSize=sizeof(MENUITEMINFOW);
-	mii.fMask=MIIM_DATA|MIIM_ID|MIIM_STATE|MIIM_TYPE;
-	mii.fType=MFT_STRING;
-	mii.dwTypeData=(LPWSTR)(const wchar_t*)itemText;
-	mii.cch=lstrlenW((LPWSTR)(const wchar_t*)itemText);
-	mii.fState=(enabled?MFS_ENABLED:MFS_DISABLED)|(checked?MFS_CHECKED:MFS_UNCHECKED);
-	mii.wID=itemID;
-	mii.dwItemData=(ULONG_PTR)this; // for future!
+	mii.cbSize = sizeof(MENUITEMINFOW);
+	mii.fMask = MIIM_DATA | MIIM_ID | MIIM_STATE | MIIM_TYPE;
+	mii.fType = MFT_STRING;
+	mii.dwTypeData = (LPWSTR)(const wchar_t*)itemText;
+	mii.cch = lstrlenW((LPWSTR)(const wchar_t*)itemText);
+	mii.fState = (enabled ? MFS_ENABLED : MFS_DISABLED) | (checked ? MFS_CHECKED : MFS_UNCHECKED);
+	mii.wID = itemID;
+	mii.dwItemData = (ULONG_PTR)this; // for future!
 
-	::InsertMenuItemW(hMenu,itemID,FALSE,&mii);
+	::InsertMenuItemW(hMenu, itemID, FALSE, &mii);
 
 }
 
@@ -63,17 +63,17 @@ bool KMenuItem::IsChecked()
 
 void KMenuItem::SetCheckedState(bool state)
 {
-	checked=state;
+	checked = state;
 	if(hMenu) // it's alredy created menu item!
 	{
 		MENUITEMINFOW mii;
 		::ZeroMemory(&mii, sizeof(mii));
 
-		mii.cbSize=sizeof(MENUITEMINFOW);
-		mii.fMask=MIIM_STATE;
-		mii.fState=checked?MFS_CHECKED:MFS_UNCHECKED;
+		mii.cbSize = sizeof(MENUITEMINFOW);
+		mii.fMask = MIIM_STATE;
+		mii.fState = checked ? MFS_CHECKED : MFS_UNCHECKED;
 
-		::SetMenuItemInfoW(hMenu,itemID,FALSE,&mii);
+		::SetMenuItemInfoW(hMenu, itemID, FALSE, &mii);
 	}
 }
 
@@ -84,35 +84,35 @@ bool KMenuItem::IsEnabled()
 
 void KMenuItem::SetEnabled(bool state)
 {
-	enabled=state;
+	enabled = state;
 	if(hMenu) // it's alredy created menu item!
 	{
 		MENUITEMINFOW mii;
 		::ZeroMemory(&mii, sizeof(mii));
 
-		mii.cbSize=sizeof(MENUITEMINFOW);
-		mii.fMask=MIIM_STATE;
-		mii.fState=enabled?MFS_ENABLED:MFS_DISABLED;
+		mii.cbSize = sizeof(MENUITEMINFOW);
+		mii.fMask = MIIM_STATE;
+		mii.fState = enabled ? MFS_ENABLED : MFS_DISABLED;
 
-		::SetMenuItemInfoW(hMenu,itemID,FALSE,&mii);
+		::SetMenuItemInfoW(hMenu, itemID, FALSE, &mii);
 	}
 }
 
 void KMenuItem::SetText(const KString& text)
 {
-	itemText=text;
+	itemText = text;
 	if(hMenu) // it's alredy created menu item!
 	{
 		MENUITEMINFOW mii;
 		::ZeroMemory(&mii, sizeof(mii));
 
-		mii.cbSize=sizeof(MENUITEMINFOW);
-		mii.fMask=MIIM_TYPE;
-		mii.fType=MFT_STRING;
-		mii.dwTypeData=(LPWSTR)(const wchar_t*)itemText;
-		mii.cch=lstrlenW((LPWSTR)(const wchar_t*)itemText);
+		mii.cbSize = sizeof(MENUITEMINFOW);
+		mii.fMask = MIIM_TYPE;
+		mii.fType = MFT_STRING;
+		mii.dwTypeData = (LPWSTR)(const wchar_t*)itemText;
+		mii.cch = lstrlenW((LPWSTR)(const wchar_t*)itemText);
 
-		::SetMenuItemInfoW(hMenu,itemID,FALSE,&mii);
+		::SetMenuItemInfoW(hMenu, itemID, FALSE, &mii);
 	}
 }
 
@@ -133,7 +133,7 @@ HMENU KMenuItem::GetMenuHandle()
 
 void KMenuItem::SetListener(KMenuItemListener *listener)
 {
-	this->listener=listener;
+	this->listener = listener;
 }
 
 KMenuItemListener* KMenuItem::GetListener()

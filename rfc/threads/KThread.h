@@ -24,8 +24,8 @@
 #ifndef _RFC_KTHREAD_H_
 #define _RFC_KTHREAD_H_
 
-#include"../config.h"
-#include<windows.h>
+#include "../config.h"
+#include <windows.h>
 
 /**
     Encapsulates a thread.
@@ -53,6 +53,7 @@ protected:
 	HANDLE handle;
 	volatile bool isThreadRunning;
 	volatile bool threadShouldStop;
+
 public:
 	KThread();
 

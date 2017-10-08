@@ -21,7 +21,7 @@ misrepresented as being the original software.
 
 */
 
-#include"KFile.h"
+#include "KFile.h"
 
 KFile::KFile()
 {

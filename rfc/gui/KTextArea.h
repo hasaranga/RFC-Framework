@@ -24,12 +24,12 @@
 #ifndef _RFC_KTEXTAREA_H_
 #define _RFC_KTEXTAREA_H_
 
-#include"KTextBox.h"
+#include "KTextBox.h"
 
 class RFC_API KTextArea : public KTextBox
 {
 public:
-	KTextArea(bool autoScroll=false,bool readOnly=false);
+	KTextArea(bool autoScroll = false, bool readOnly = false);
 
 	virtual ~KTextArea();
 };

@@ -25,13 +25,13 @@
 #ifndef _RFC_KPOINTERLIST_H_
 #define _RFC_KPOINTERLIST_H_
 
-#include<malloc.h>
-#include<windows.h>
-#include"../config.h"
+#include <malloc.h>
+#include <windows.h>
+#include "../config.h"
 
 #if defined(_MSC_VER) && _MSC_VER > 1000
-#pragma warning(disable:4311)
-#pragma warning(disable:4312)
+	#pragma warning(disable:4311)
+	#pragma warning(disable:4312)
 #endif
 
 
@@ -59,19 +59,20 @@ protected:
 
 	CRITICAL_SECTION criticalSection;
 	bool isThreadSafe;
+
 public:
 	/**
 		Constructs PointerList object.
 		@param roomIncrement initial and reallocation size of internal memory block in DWORDS
 		@param isThreadSafe make all the methods thread-safe
 	*/
-	KPointerList(int roomIncrement=1024,bool isThreadSafe=false) // 1024*4=4096 = default alignment!
+	KPointerList(int roomIncrement = 1024, bool isThreadSafe = false) // 1024*4=4096 = default alignment!
 	{
-		roomCount=roomIncrement;
-		this->roomIncrement=roomIncrement;
-		this->isThreadSafe=isThreadSafe;
-		size=0;
-		list = ::malloc(roomCount*PTR_SIZE);
+		roomCount = roomIncrement;
+		this->roomIncrement = roomIncrement;
+		this->isThreadSafe = isThreadSafe;
+		size = 0;
+		list = ::malloc(roomCount * PTR_SIZE);
 		
 		if(isThreadSafe)
 		{
@@ -90,7 +91,7 @@ public:
 			::EnterCriticalSection(&criticalSection); // thread safe!
 		}
 
-		if(roomCount>=(size+1)) // no need reallocation. coz room count is enough!
+		if(roomCount >= (size + 1) ) // no need reallocation. coz room count is enough!
 		{
 			*(NATIVE_INT*)((NATIVE_INT)list + (size * PTR_SIZE)) = (NATIVE_INT)pointer;
 
@@ -102,11 +103,11 @@ public:
 			return true;
 		}else // require reallocation!
 		{
-			roomCount+=roomIncrement;
-			void* retVal = ::realloc(list, roomCount*PTR_SIZE); 
+			roomCount += roomIncrement;
+			void* retVal = ::realloc(list, roomCount * PTR_SIZE); 
 			if(retVal)
 			{
-				list=retVal;
+				list = retVal;
 
 				*(NATIVE_INT*)((NATIVE_INT)list + (size * PTR_SIZE)) = (NATIVE_INT)pointer;
 
@@ -138,9 +139,9 @@ public:
 			::EnterCriticalSection(&criticalSection);
 		}
 
-		if( (0<=id) & (id<size) ) // checks for valid range!
+		if( (0 <= id) & (id < size) ) // checks for valid range!
 		{	
-			T object = (T)(*(NATIVE_INT*)((NATIVE_INT)list + (id*PTR_SIZE)));
+			T object = (T)(*(NATIVE_INT*)((NATIVE_INT)list + (id * PTR_SIZE)));
 			if(isThreadSafe)
 			{
 				::LeaveCriticalSection(&criticalSection);
@@ -169,13 +170,14 @@ public:
 		Replace pointer of given id with new pointer
 		@returns false if id is out of range!
 	*/
-	bool SetPointer(int id,T pointer)
+	bool SetPointer(int id, T pointer)
 	{
 		if(isThreadSafe)
 		{
 			::EnterCriticalSection(&criticalSection);
 		}
-		if( (0<=id) & (id<size) )
+
+		if( (0 <= id) & (id < size) )
 		{			
 			*(NATIVE_INT*)((NATIVE_INT)list + (id * PTR_SIZE)) = (NATIVE_INT)pointer;
 			if(isThreadSafe)
@@ -203,22 +205,23 @@ public:
 		{
 			::EnterCriticalSection(&criticalSection);
 		}
-		if( (0<=id) & (id<size) )
-		{	
-			int newRoomCount=(((size-1)/roomIncrement)+1)*roomIncrement;
-			void* newList = ::malloc(newRoomCount*PTR_SIZE);
 
-			for(register int i=0,j=0;i<size;i++)
+		if( (0 <= id) & (id < size) )
+		{	
+			int newRoomCount = (((size - 1) / roomIncrement) + 1) * roomIncrement;
+			void* newList = ::malloc(newRoomCount * PTR_SIZE);
+
+			for(register int i = 0, j = 0; i < size; i++)
 			{
-				if(i!=id)
+				if(i != id)
 				{
 					*(NATIVE_INT*)((NATIVE_INT)newList + (j*PTR_SIZE)) = *(NATIVE_INT*)((NATIVE_INT)list + (i * PTR_SIZE));
 					j++;
 				}	
 			}
 			::free(list); // free old list!
-			list=newList;
-			roomCount=newRoomCount;
+			list = newList;
+			roomCount = newRoomCount;
 			size--;
 			if(isThreadSafe)
 			{
@@ -246,10 +249,12 @@ public:
 		{
 			::EnterCriticalSection(&criticalSection);
 		}
+
 		::free(list);
-		roomCount=roomIncrement;
-		list == ::malloc(roomCount*PTR_SIZE);
-		size=0;
+		roomCount = roomIncrement;
+		list = ::malloc(roomCount * PTR_SIZE);
+		size = 0;
+
 		if(isThreadSafe)
 		{
 			::LeaveCriticalSection(&criticalSection);
@@ -266,16 +271,18 @@ public:
 		{
 			::EnterCriticalSection(&criticalSection);
 		}
-		for(int i=0;i<size;i++)
+
+		for(int i = 0; i < size; i++)
 		{
-			T object = (T)(*(NATIVE_INT*)((NATIVE_INT)list + (i*PTR_SIZE)));
+			T object = (T)(*(NATIVE_INT*)((NATIVE_INT)list + (i * PTR_SIZE)));
 			delete object;
 		}
 
 		::free(list);
-		roomCount=roomIncrement;
-		list = ::malloc(roomCount*PTR_SIZE);
-		size=0;
+		roomCount = roomIncrement;
+		list = ::malloc(roomCount * PTR_SIZE);
+		size = 0;
+
 		if(isThreadSafe)
 		{
 			::LeaveCriticalSection(&criticalSection);
@@ -292,7 +299,8 @@ public:
 		{
 			::EnterCriticalSection(&criticalSection);
 		}
-		for(register int i=0;i<size;i++)
+
+		for(register int i = 0; i < size; i++)
 		{
 			if (*(NATIVE_INT*)((NATIVE_INT)list + (i*PTR_SIZE)) == (NATIVE_INT)pointer)
 			{
@@ -303,6 +311,7 @@ public:
 				return i;
 			}
 		}
+
 		if(isThreadSafe)
 		{
 			::LeaveCriticalSection(&criticalSection);

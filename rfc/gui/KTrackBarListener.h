@@ -24,7 +24,7 @@
 #ifndef _RFC_KTRACKBARLISTENER_H_
 #define _RFC_KTRACKBARLISTENER_H_
 
-#include"../config.h"
+#include "../config.h"
 
 class KTrackBar;
 

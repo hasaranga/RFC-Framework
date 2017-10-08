@@ -3,9 +3,7 @@
 # RFC Framework
 
 
-RFC Framework v0.2.6
-Copyright (C) 2013-2017 CrownSoft
-
+RFC Framework v0.2.6 By CrownSoft.
 
 RFC Framework is a C++ framework which helps you to create Windows GUI applications with clean and minimum code. By using this framework, you can write applications using object oriented fashion!
 

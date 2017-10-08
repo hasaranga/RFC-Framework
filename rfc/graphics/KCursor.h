@@ -24,8 +24,8 @@
 #ifndef _RFC_KCURSOR_H_
 #define _RFC_KCURSOR_H_
 
-#include"../text/KString.h"
-#include<windows.h>
+#include "../text/KString.h"
+#include <windows.h>
 
 /**
 	Can be use to load cursor from file or resource.

@@ -24,7 +24,7 @@
 #ifndef _RFC_KWINDOWTYPES_H_
 #define _RFC_KWINDOWTYPES_H_
 
-#include"KWindow.h"
+#include "KWindow.h"
 
 class RFC_API KHotPluggedDialog : public KWindow
 {

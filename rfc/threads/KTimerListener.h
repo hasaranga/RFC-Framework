@@ -1,5 +1,4 @@
 
-
 /*
     RFC - KTimerListener.h
     Copyright (C) 2013-2017 CrownSoft
@@ -25,7 +24,7 @@
 #ifndef _RFC_KTIMER_LISTENER_H_
 #define _RFC_KTIMER_LISTENER_H_
 
-#include"../config.h"
+#include "../config.h"
 
 class KTimer;
 

@@ -21,20 +21,20 @@
       
 */
 
-#include"../rfc.h"
-#include"KThread.h"
+#include "../rfc.h"
+#include "KThread.h"
 
 
 KThread::KThread()
 {
-	handle=0;
-	isThreadRunning=false;
-	threadShouldStop=false;
+	handle = 0;
+	isThreadRunning = false;
+	threadShouldStop = false;
 }
 
 void KThread::SetHandle(HANDLE handle)
 {
-	this->handle=handle;
+	this->handle = handle;
 }
 
 HANDLE KThread::GetHandle()
@@ -62,7 +62,7 @@ bool KThread::IsThreadRunning()
 
 void KThread::ThreadShouldStop()
 {
-	threadShouldStop=true;
+	threadShouldStop = true;
 }
 
 void KThread::WaitUntilThreadFinish()
@@ -75,8 +75,8 @@ void KThread::WaitUntilThreadFinish()
 
 bool KThread::StartThread()
 {
-	threadShouldStop=false;
-	isThreadRunning=true;
+	threadShouldStop = false;
+	isThreadRunning = true;
 	return ::CreateRFCThread(this);
 }
 
@@ -89,7 +89,7 @@ void KThread::uSleep(int waitTime)
 
 	do {
 		QueryPerformanceCounter((LARGE_INTEGER *)&time2);
-	} while (time2 - time1 < waitTime*freq / 1000000);
+	} while (time2 - time1 < waitTime * freq / 1000000);
 }
 
 KThread::~KThread()

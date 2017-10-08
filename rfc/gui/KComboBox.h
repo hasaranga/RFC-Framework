@@ -24,8 +24,8 @@
 #ifndef _RFC_KCOMBOBOX_H_
 #define _RFC_KCOMBOBOX_H_
 
-#include"KComponent.h"
-#include"../containers/KPointerList.h"
+#include "KComponent.h"
+#include "../containers/KPointerList.h"
 
 
 class KComboBoxListener;

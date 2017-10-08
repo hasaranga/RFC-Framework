@@ -21,20 +21,20 @@
       
 */
 
-#include"KPasswordBox.h"
+#include "KPasswordBox.h"
 
 KPasswordBox::KPasswordBox(bool readOnly):KTextBox(readOnly)
 {
-	pwdChar='*';
+	pwdChar = '*';
 	this->SetStyle(compDwStyle | ES_PASSWORD);
 }
 
 void KPasswordBox::SetPasswordChar(const char pwdChar)
 {
-	this->pwdChar=pwdChar;
+	this->pwdChar = pwdChar;
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,EM_SETPASSWORDCHAR,pwdChar,0);
+		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
 		this->Repaint();
 	}
 }
@@ -48,7 +48,7 @@ bool KPasswordBox::CreateComponent()
 {
 	if(KTextBox::CreateComponent())
 	{
-		::SendMessageW(compHWND,EM_SETPASSWORDCHAR,pwdChar,0);
+		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
 		return true;
 	}
 	return false;

@@ -21,13 +21,13 @@
       
 */
 
-#include"KApplication.h"
+#include "KApplication.h"
 
 KApplication::KApplication()
 {
 }
 
-int KApplication::Main(KString **argv,int argc)
+int KApplication::Main(KString **argv, int argc)
 {
 	return 0;
 }

@@ -28,12 +28,12 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #endif
 
-#include"../config.h"
-#include"KStringHolder.h"
+#include "../config.h"
+#include "KStringHolder.h"
 
-#include<windows.h>
-#include<string.h>
-#include<malloc.h>
+#include <windows.h>
+#include <string.h>
+#include <malloc.h>
 
 /**
 	Using a reference-counted internal representation, these strings are fast and efficient.
@@ -70,7 +70,7 @@ public:
 	/**
 		Constructs String object using integer
 	*/
-	KString(const int value,const int radix);
+	KString(const int value, const int radix = 10);
 
 	/**
 		Constructs String object using float
@@ -185,10 +185,10 @@ public:
 	virtual ~KString();
 };
 
-RFC_API const KString operator+ (const char* const string1,const KString& string2);
+RFC_API const KString operator+ (const char* const string1, const KString& string2);
 
-RFC_API const KString operator+ (const wchar_t* const string1,const KString& string2);
+RFC_API const KString operator+ (const wchar_t* const string1, const KString& string2);
 
-RFC_API const KString operator+ (const KString& string1,const KString& string2);
+RFC_API const KString operator+ (const KString& string1, const KString& string2);
 
 #endif

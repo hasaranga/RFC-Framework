@@ -83,7 +83,7 @@ bool KRegistry::WriteString(HKEY hKeyRoot, const KString& subKey, const KString&
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return false;
 
-	int bCount = (value.GetLength()*sizeof(wchar_t)) + 1; // +1 for ending null
+	int bCount = (value.GetLength() * sizeof(wchar_t)) + 1; // +1 for ending null
 	LONG ret = ::RegSetValueExW(hkey, valueName, 0, REG_SZ, (LPBYTE)(const wchar_t*)value, bCount);
 	::RegCloseKey(hkey);
 

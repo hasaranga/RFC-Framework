@@ -24,8 +24,8 @@
 #ifndef _RFC_KMENU_H_
 #define _RFC_KMENU_H_
 
-#include"KMenuItem.h"
-#include"KWindow.h"
+#include "KMenuItem.h"
+#include "KWindow.h"
 
 class RFC_API KMenu
 {

@@ -21,16 +21,16 @@
       
 */
 
-#include"../rfc.h"
-#include"KComboBox.h"
+#include "../rfc.h"
+#include "KComboBox.h"
 
 
 KComboBox::KComboBox(bool sort)
 {
-	listener=0;
-	selectedItemIndex=-1;
+	listener = 0;
+	selectedItemIndex = -1;
 
-	compClassName=L"COMBOBOX";
+	compClassName = L"COMBOBOX";
 
 	this->SetSize(100, 100);
 	this->SetPosition(0, 0);
@@ -42,15 +42,16 @@ KComboBox::KComboBox(bool sort)
 
 	this->SetExStyle(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
 
-	stringList=new KPointerList<KString*>;
+	stringList = new KPointerList<KString*>;
 }
 
 void KComboBox::AddItem(const KString& text)
 {
-	KString *str=new KString(text);
+	KString *str = new KString(text);
 	stringList->AddPointer(str);
+
 	if(compHWND)
-		::SendMessageW(compHWND,CB_ADDSTRING,0,(LPARAM)(const wchar_t*)*str);
+		::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*str);
 }
 
 void KComboBox::RemoveItem(int index)
@@ -62,7 +63,7 @@ void KComboBox::RemoveItem(int index)
 	stringList->RemovePointer(index);
 
 	if(compHWND)	 
-		::SendMessageW(compHWND,CB_DELETESTRING,index,0);
+		::SendMessageW(compHWND, CB_DELETESTRING, index, 0);
 }
 
 void KComboBox::RemoveItem(const KString& text)
@@ -74,10 +75,10 @@ void KComboBox::RemoveItem(const KString& text)
 
 int KComboBox::GetItemIndex(const KString& text)
 {
-	int listSize=stringList->GetSize();
+	int listSize = stringList->GetSize();
 	if(listSize)
 	{
-		for(int i=0;i<listSize;i++)
+		for(int i = 0; i < listSize; i++)
 		{
 			if(stringList->GetPointer(i)->EqualsIgnoreCase(text))
 				return i;
@@ -95,8 +96,8 @@ int KComboBox::GetSelectedItemIndex()
 {
 	if(compHWND)
 	{	 
-		int index=(int)::SendMessageW(compHWND,CB_GETCURSEL,0,0);
-		if(index!=CB_ERR)
+		int index = (int)::SendMessageW(compHWND, CB_GETCURSEL, 0, 0);
+		if(index != CB_ERR)
 			return index;
 		return -1;
 	}else
@@ -118,16 +119,16 @@ void KComboBox::ClearList()
 	stringList->DeleteAll();
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,CB_RESETCONTENT,0,0);
+		::SendMessageW(compHWND, CB_RESETCONTENT, 0, 0);
 	}
 }
 
 void KComboBox::SelectItem(int index)
 {
-	selectedItemIndex=index;
+	selectedItemIndex = index;
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,CB_SETCURSEL,index,0);
+		::SendMessageW(compHWND, CB_SETCURSEL, index, 0);
 	}
 }
 
@@ -140,19 +141,19 @@ bool KComboBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND,WM_SETFONT,(WPARAM)compFont->GetFontHandle(),MAKELPARAM(true, 0)); // set default font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
 
-		::EnableWindow(compHWND,compEnabled);
+		::EnableWindow(compHWND, compEnabled);
 
 		int listSize=stringList->GetSize();
 		if(listSize)
 		{
-			for(int i=0;i<listSize;i++)
-				::SendMessageW(compHWND,CB_ADDSTRING,0,(LPARAM)(const wchar_t*)*stringList->GetPointer(i));
+			for(int i = 0; i < listSize; i++)
+				::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*stringList->GetPointer(i));
 		}
 
 		if(selectedItemIndex>-1)
-			::SendMessageW(compHWND,CB_SETCURSEL,selectedItemIndex,0);
+			::SendMessageW(compHWND, CB_SETCURSEL, selectedItemIndex, 0);
 
 
 		if(this->IsVisible())
@@ -165,7 +166,7 @@ bool KComboBox::CreateComponent()
 
 void KComboBox::SetListener(KComboBoxListener *listener)
 {
-	this->listener=listener;
+	this->listener = listener;
 }
 
 void KComboBox::OnItemSelect()

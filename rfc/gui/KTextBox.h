@@ -24,12 +24,12 @@
 #ifndef _RFC_KTEXTBOX_H_
 #define _RFC_KTEXTBOX_H_
 
-#include"KComponent.h"
+#include "KComponent.h"
 
 class RFC_API KTextBox : public KComponent
 {
 public:
-	KTextBox(bool readOnly=false);
+	KTextBox(bool readOnly = false);
 
 	virtual KString GetText();
 

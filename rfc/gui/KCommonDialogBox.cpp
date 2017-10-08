@@ -21,7 +21,7 @@
       
 */
 
-#include"KCommonDialogBox.h"
+#include "KCommonDialogBox.h"
 
 bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName)
 {
@@ -37,12 +37,12 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title,
 	ofn.lpstrFilter = filter;
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
-	ofn.Flags =  OFN_FILEMUSTEXIST|OFN_HIDEREADONLY;
+	ofn.Flags =  OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 	ofn.lpstrTitle = (const wchar_t*)title;
 
 	if(::GetOpenFileNameW(&ofn))
 	{
-		*fileName=KString(buff);
+		*fileName = KString(buff);
 		::free(buff);
 
 		return true;
@@ -72,7 +72,7 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 
 	if(::GetSaveFileNameW(&ofn))
 	{
-		*fileName=KString(buff);
+		*fileName = KString(buff);
 		::free(buff);
 
 		return true;

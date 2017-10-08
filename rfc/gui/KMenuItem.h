@@ -24,8 +24,8 @@
 #ifndef _RFC_KMENUITEM_H_
 #define _RFC_KMENUITEM_H_
 
-#include"../text/KString.h"
-#include<windows.h>
+#include "../text/KString.h"
+#include <windows.h>
 
 class KMenuItemListener;
 

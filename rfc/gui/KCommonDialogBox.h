@@ -24,8 +24,8 @@
 #ifndef _RFC_KCOMMONDIALOGBOX_H_
 #define _RFC_KCOMMONDIALOGBOX_H_
 
-#include"KWindow.h"
-#include"../text/KString.h"
+#include "KWindow.h"
+#include "../text/KString.h"
 
 class RFC_API KCommonDialogBox
 {

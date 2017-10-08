@@ -24,7 +24,7 @@
 #ifndef _RFC_KCOMBOBOXLISTENER_H_
 #define _RFC_KCOMBOBOXLISTENER_H_
 
-#include"../config.h"
+#include "../config.h"
 
 class KComboBox;
 

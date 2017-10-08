@@ -21,28 +21,28 @@
       
 */
 
-#include"KFont.h"
+#include "KFont.h"
 
 KFont* KFont::defaultInstance=0;
 
 KFont::KFont()
 {
-	hFont=(HFONT)::GetStockObject(DEFAULT_GUI_FONT);
-	customFont=false;
+	hFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
+	customFont = false;
 }
 
 KFont::KFont(const KString& face, int size, bool bold, bool italic, bool antiAliased)
 {
 	hFont = ::CreateFontW(size, 0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic ? TRUE : FALSE, 0, 0, DEFAULT_CHARSET, 0, 0, antiAliased ? DEFAULT_QUALITY : NONANTIALIASED_QUALITY, VARIABLE_PITCH | FF_DONTCARE, (const wchar_t*)face);
 	if(hFont)
-		customFont=true;
+		customFont = true;
 }
 
 KFont* KFont::GetDefaultFont()
 {
 	if(KFont::defaultInstance)
 		return KFont::defaultInstance;
-	KFont::defaultInstance=new KFont();
+	KFont::defaultInstance = new KFont();
 	return KFont::defaultInstance;
 }
 

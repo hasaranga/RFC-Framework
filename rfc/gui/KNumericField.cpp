@@ -21,7 +21,7 @@
       
 */
 
-#include"KNumericField.h"
+#include "KNumericField.h"
 
 KNumericField::KNumericField():KTextBox(false)
 {

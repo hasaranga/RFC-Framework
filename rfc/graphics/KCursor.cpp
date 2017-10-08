@@ -21,13 +21,13 @@
       
 */
 
-#include"../utils/KPlatformUtil.h"
-#include"../graphics/KCursor.h"
+#include "../utils/KPlatformUtil.h"
+#include "../graphics/KCursor.h"
 
 KCursor::KCursor()
 {
-	hCursor=0;
-	appHInstance=KPlatformUtil::GetInstance()->GetAppHInstance();
+	hCursor = 0;
+	appHInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
 }
 
 bool KCursor::LoadFromResource(WORD resourceID)

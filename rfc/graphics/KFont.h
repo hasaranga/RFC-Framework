@@ -24,8 +24,8 @@
 #ifndef _RFC_KFONT_H_
 #define _RFC_KFONT_H_
 
-#include<windows.h>
-#include"../text/KString.h"
+#include <windows.h>
+#include "../text/KString.h"
 
 /**
 	Can be use to create system default font or custom font. Once created, you cannot change font properties.

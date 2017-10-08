@@ -24,8 +24,8 @@
 #ifndef _RFC_KBITMAP_H_
 #define _RFC_KBITMAP_H_
 
-#include"../text/KString.h"
-#include<windows.h>
+#include "../text/KString.h"
+#include <windows.h>
 
 /**
 	Can be use to load bitmap image from file or resource.

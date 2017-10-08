@@ -21,13 +21,13 @@
       
 */
 
-#include"../utils/KPlatformUtil.h"
-#include"../graphics/KBitmap.h"
+#include "../utils/KPlatformUtil.h"
+#include "../graphics/KBitmap.h"
 
 KBitmap::KBitmap()
 {
-	hBitmap=0;
-	appHInstance=KPlatformUtil::GetInstance()->GetAppHInstance();
+	hBitmap = 0;
+	appHInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
 }
 
 bool KBitmap::LoadFromResource(WORD resourceID)
