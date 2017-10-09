@@ -16,7 +16,7 @@ public:
 		myWindow.CenterScreen();
 		myWindow.SetVisible(true);
 
-		::DoMessagePump(); // message loop (this function not return untill you call PostQuitMessage)
+		::DoMessagePump(); // message loop (this function will not return untill you call PostQuitMessage)
 
 		return 0;
 	}

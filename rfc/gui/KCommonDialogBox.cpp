@@ -25,11 +25,11 @@
 
 bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName)
 {
-	// assumes MAX_PATH * 2 is enough!
+	// assumes MAX_PATH * 2 is enough!	
+	wchar_t *buff = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
+	buff[0] = 0;
 
 	OPENFILENAMEW ofn;
-	wchar_t *buff = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
-
 	::ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
 
 	ofn.lStructSize = sizeof(OPENFILENAMEW);
@@ -56,10 +56,10 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title,
 bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName)
 {
 	// assumes MAX_PATH * 2 is enough!
+	wchar_t *buff = (wchar_t*)::malloc((MAX_PATH * 2) * sizeof(wchar_t));
+	buff[0] = 0;
 
 	OPENFILENAMEW ofn;
-	wchar_t *buff = (wchar_t*)::malloc((MAX_PATH * 2) * sizeof(wchar_t));
-
 	::ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
 
 	ofn.lStructSize = sizeof(OPENFILENAMEW);

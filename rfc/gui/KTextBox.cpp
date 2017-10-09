@@ -46,6 +46,7 @@ KString KTextBox::GetText()
 		{
 			int size = (length + 1) * sizeof(wchar_t);
 			wchar_t *text = (wchar_t*)::malloc(size);
+			text[0] = 0;
 			::GetWindowTextW(compHWND, text, size);
 			compText = KString(text);
 			::free(text);
