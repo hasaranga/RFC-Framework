@@ -34,7 +34,6 @@ KComponent::KComponent()
 
 	compHWND = 0;
 	compParentHWND = 0;
-	compText = KString();
 	compDwStyle = 0;
 	compDwExStyle = 0;
 	cursor = 0;
@@ -64,7 +63,6 @@ KComponent::KComponent()
 
 void KComponent::OnHotPlug()
 {
-
 	RECT rect;
 	::GetWindowRect(compHWND, &rect);
 	compWidth = rect.right - rect.left;
@@ -80,12 +78,10 @@ void KComponent::OnHotPlug()
 
 	compParentHWND = ::GetParent(compHWND);
 
-	wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t));
+	wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t)); // assume 256 is enough
 	buff[0] = 0;
 	::GetWindowTextW(compHWND, buff, 256);
-	compText = buff;
-
-	free(buff);
+	compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 }
 
 void KComponent::HotPlugInto(HWND component)
@@ -102,8 +98,7 @@ void KComponent::HotPlugInto(HWND component)
 	wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));
 	clsName[0] = 0;
 	::GetClassNameW(compHWND, clsName, 256);
-	compClassName = clsName;
-	::free(clsName);
+	compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
 
 	::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(), compClassName, &wc);
 
@@ -156,9 +151,9 @@ LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, RFCPropText_OldProc);
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed control or dialog! RFCOldProc of subclassed dialog is not GlobalDlg_Proc function.
+		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed standard-control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
-	return ::DefWindowProcW(hwnd, msg, wParam, lParam);
+	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }
 
 void KComponent::SetFont(KFont *compFont)

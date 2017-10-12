@@ -26,7 +26,7 @@
 
 KTextBox::KTextBox(bool readOnly)
 {
-	compClassName = L"EDIT";
+	compClassName = STATIC_TXT("EDIT");
 
 	this->SetSize(100, 20);
 	this->SetPosition(0, 0);
@@ -48,8 +48,7 @@ KString KTextBox::GetText()
 			wchar_t *text = (wchar_t*)::malloc(size);
 			text[0] = 0;
 			::GetWindowTextW(compHWND, text, size);
-			compText = KString(text);
-			::free(text);
+			compText = KString(text, KString::FREE_TEXT_WHEN_DONE);
 		}else
 		{
 			compText = KString();
@@ -68,7 +67,8 @@ bool KTextBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 

@@ -25,7 +25,6 @@ misrepresented as being the original software.
 
 KFile::KFile()
 {
-	fileName = L"";
 	autoCloseHandle = false;
 	desiredAccess = KFile::KBOTH;
 	fileHandle = INVALID_HANDLE_VALUE;
@@ -151,7 +150,16 @@ KString KFile::ReadAsString(bool isUnicode)
 		if (numberOfBytesRead == fileSize)
 		{
 			buffer[fileSize] = 0; // null terminated string
-			return isUnicode ? KString((const wchar_t*)buffer) : KString((const char*)buffer);
+			if (isUnicode)
+			{
+				return KString((const wchar_t*)buffer, KString::FREE_TEXT_WHEN_DONE);
+			}
+			else
+			{
+				KString strData((const char*)buffer);
+				::free(buffer);
+				return strData;
+			}
 		}
 
 		::free(buffer); // cannot read entire file!

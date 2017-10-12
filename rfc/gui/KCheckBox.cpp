@@ -28,7 +28,7 @@ KCheckBox::KCheckBox()
 {
 	checked = false;
 
-	this->SetText(L"CheckBox");
+	this->SetText(STATIC_TXT("CheckBox"));
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP);
 }
 
@@ -41,7 +41,9 @@ bool KCheckBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::SendMessageW(compHWND, BM_SETCHECK, checked, 0);
 
 		::EnableWindow(compHWND, compEnabled);

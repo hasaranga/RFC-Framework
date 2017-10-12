@@ -75,14 +75,14 @@ public:
 	*/
 	virtual void* ReadAsData();
 
-	virtual KString ReadAsString(bool isUnicode=false);
+	virtual KString ReadAsString(bool isUnicode = true);
 
 	/**
 		returns number of bytes written.
 	*/
 	virtual DWORD WriteFile(void* buffer, DWORD numberOfBytesToWrite);
 
-	virtual bool WriteString(const KString& text, bool isUnicode = false);
+	virtual bool WriteString(const KString& text, bool isUnicode = true);
 
 	virtual bool SetFilePointerToStart();
 

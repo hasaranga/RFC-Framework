@@ -24,8 +24,9 @@
 #include "KStringHolder.h"
 
 
-KStringHolder::KStringHolder()
+KStringHolder::KStringHolder(bool isStaticText)
 {
+	this->isStaticText = isStaticText;
 	refCount = 0;
 	a_text = 0;
 	w_text = 0;
@@ -54,7 +55,8 @@ void KStringHolder::ReleaseReference()
 		}
 		if(w_text)
 		{
-			::free(w_text);
+			if (!isStaticText)
+				::free(w_text);
 		}
 		delete this;
 	}

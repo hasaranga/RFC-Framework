@@ -36,12 +36,13 @@ class RFC_API KStringHolder
 	volatile LONG refCount;
 	char *a_text; // ansi version
 	CRITICAL_SECTION cs_a_text; // to guard ansi string creation
+	bool isStaticText; // do not free w_text if true
 
 public:
 	wchar_t *w_text; // unicode version
 	int count; // character count
 
-	KStringHolder();
+	KStringHolder(bool isStaticText = false);
 
 	~KStringHolder();
 

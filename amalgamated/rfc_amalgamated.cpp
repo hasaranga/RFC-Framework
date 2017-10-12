@@ -511,12 +511,10 @@ bool KRegistry::ReadString(HKEY hKeyRoot, const KString& subKey, const KString& 
 			}
 			else{
 				void* buffer = ::malloc(requiredBytes + 1); // +1 for strings which doesn't have ending null
-				::ZeroMemory(buffer, requiredBytes + 1);
+				::ZeroMemory(buffer, requiredBytes + 1); // ending null might not contain in register
 
 				ret = ::RegQueryValueExW(hkey, valueName, NULL, NULL, (LPBYTE)buffer, &requiredBytes);
-				*result = KString((wchar_t*)buffer);
-
-				::free(buffer);
+				*result = KString((wchar_t*)buffer, KString::FREE_TEXT_WHEN_DONE);
 			}
 
 			::RegCloseKey(hkey);
@@ -959,18 +957,25 @@ KString::KString(const char* const text, UINT codePage)
 	stringHolder=0;		
 }
 
-KString::KString(const wchar_t* const text)
+KString::KString(const wchar_t* const text, unsigned char behaviour)
 {
 	if (text != 0)
 	{
 		int count = (int)::wcslen(text);
 		if(count)
 		{
-			stringHolder = new KStringHolder();
+			stringHolder = new KStringHolder(behaviour == STATIC_TEXT_DO_NOT_FREE);
 			stringHolder->AddReference();
 
-			stringHolder->w_text = (wchar_t*)::malloc((count+1) * sizeof(wchar_t));
-			::wcscpy(stringHolder->w_text, text);
+			if( (behaviour == STATIC_TEXT_DO_NOT_FREE) || (behaviour == FREE_TEXT_WHEN_DONE) )
+			{
+				stringHolder->w_text = (wchar_t*)text;
+			}
+			else{ // USE_COPY_OF_TEXT or invalid option
+				stringHolder->w_text = (wchar_t*)::malloc((count + 1) * sizeof(wchar_t));
+				::wcscpy(stringHolder->w_text, text);
+			}
+
 			stringHolder->count = count;
 			return;
 		}
@@ -1323,8 +1328,9 @@ KString::~KString()
 
 
 
-KStringHolder::KStringHolder()
+KStringHolder::KStringHolder(bool isStaticText)
 {
+	this->isStaticText = isStaticText;
 	refCount = 0;
 	a_text = 0;
 	w_text = 0;
@@ -1353,7 +1359,8 @@ void KStringHolder::ReleaseReference()
 		}
 		if(w_text)
 		{
-			::free(w_text);
+			if (!isStaticText)
+				::free(w_text);
 		}
 		delete this;
 	}
@@ -1587,7 +1594,7 @@ KString KDirectory::GetModuleDir(HMODULE hModule)
 	// assumes MAX_PATH * 2 is enough!
 
 	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
-	::ZeroMemory(path, (MAX_PATH * 2) * sizeof(wchar_t) );
+	path[0] = 0;
 	::GetModuleFileNameW(hModule, path, MAX_PATH * 2);
 
 	wchar_t *p;
@@ -1595,34 +1602,25 @@ KString KDirectory::GetModuleDir(HMODULE hModule)
 	for (; p > path && *p != L'\\'; p--) {} // back up to last backslash
 	*p = 0;	// kill it
 
-	KString strPath(path);
-	::free(path);
-
-	return strPath;
+	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
 KString KDirectory::GetTempDir()
 {
 	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH + 1) * sizeof(wchar_t) );
-	::ZeroMemory(path, (MAX_PATH + 1) * sizeof(wchar_t) );
+	path[0] = 0;
 	::GetTempPathW(MAX_PATH + 1, path);
 
-	KString strPath(path);
-	::free(path);
-
-	return strPath;
+	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
 KString KDirectory::GetApplicationDataDir(bool isAllUsers)
 {
 	wchar_t *path = (wchar_t*)::malloc( MAX_PATH * sizeof(wchar_t) );
-	::ZeroMemory(path, MAX_PATH * sizeof(wchar_t) );
+	path[0] = 0;
 	::SHGetFolderPathW(NULL, isAllUsers ? CSIDL_COMMON_APPDATA : CSIDL_APPDATA, NULL, 0, path);
 
-	KString strPath(path);
-	::free(path);
-
-	return strPath;
+	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
 // =========== KFile.cpp ===========
@@ -1652,7 +1650,6 @@ misrepresented as being the original software.
 
 KFile::KFile()
 {
-	fileName = L"";
 	autoCloseHandle = false;
 	desiredAccess = KFile::KBOTH;
 	fileHandle = INVALID_HANDLE_VALUE;
@@ -1778,7 +1775,16 @@ KString KFile::ReadAsString(bool isUnicode)
 		if (numberOfBytesRead == fileSize)
 		{
 			buffer[fileSize] = 0; // null terminated string
-			return isUnicode ? KString((const wchar_t*)buffer) : KString((const char*)buffer);
+			if (isUnicode)
+			{
+				return KString((const wchar_t*)buffer, KString::FREE_TEXT_WHEN_DONE);
+			}
+			else
+			{
+				KString strData((const char*)buffer);
+				::free(buffer);
+				return strData;
+			}
 		}
 
 		::free(buffer); // cannot read entire file!
@@ -1875,10 +1881,7 @@ KString KSettingsReader::ReadString()
 		wchar_t *buffer = (wchar_t*)malloc(size);
 		settingsFile.ReadFile(buffer, size);
 
-		KString retVal(buffer);
-		free(buffer);
-
-		return retVal;
+		return KString(buffer, KString::FREE_TEXT_WHEN_DONE);
 	}
 	else
 	{
@@ -1978,7 +1981,7 @@ void KSettingsWriter::WriteString(const KString& text)
 	int size = text.GetLength();
 	if (size)
 	{
-		size = (size + 1)*sizeof(wchar_t);
+		size = (size + 1) * sizeof(wchar_t);
 		settingsFile.WriteFile(&size, sizeof(int));
 
 		settingsFile.WriteFile((wchar_t*)(const wchar_t*)text, size);
@@ -2043,9 +2046,9 @@ KButton::KButton()
 {
 	listener = 0;
 
-	compClassName = L"BUTTON";
+	compClassName = STATIC_TXT("BUTTON");
 
-	this->SetText(L"Button");
+	this->SetText(STATIC_TXT("Button"));
 	this->SetSize(100, 30);
 	this->SetPosition(0, 0);
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY | WS_TABSTOP);
@@ -2077,7 +2080,8 @@ bool KButton::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -2152,7 +2156,7 @@ KCheckBox::KCheckBox()
 {
 	checked = false;
 
-	this->SetText(L"CheckBox");
+	this->SetText(STATIC_TXT("CheckBox"));
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP);
 }
 
@@ -2165,7 +2169,9 @@ bool KCheckBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::SendMessageW(compHWND, BM_SETCHECK, checked, 0);
 
 		::EnableWindow(compHWND, compEnabled);
@@ -2236,7 +2242,7 @@ KComboBox::KComboBox(bool sort)
 	listener = 0;
 	selectedItemIndex = -1;
 
-	compClassName = L"COMBOBOX";
+	compClassName = STATIC_TXT("COMBOBOX");
 
 	this->SetSize(100, 100);
 	this->SetPosition(0, 0);
@@ -2322,7 +2328,7 @@ KString KComboBox::GetSelectedItem()
 
 void KComboBox::ClearList()
 {
-	stringList->DeleteAll();
+	stringList->DeleteAll(true);
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, CB_RESETCONTENT, 0, 0);
@@ -2347,7 +2353,8 @@ bool KComboBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -2358,7 +2365,7 @@ bool KComboBox::CreateComponent()
 				::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*stringList->GetPointer(i));
 		}
 
-		if(selectedItemIndex>-1)
+		if(selectedItemIndex > -1)
 			::SendMessageW(compHWND, CB_SETCURSEL, selectedItemIndex, 0);
 
 
@@ -2383,7 +2390,7 @@ void KComboBox::OnItemSelect()
 
 KComboBox::~KComboBox()
 {
-	stringList->DeleteAll();
+	stringList->DeleteAll(false);
 	delete stringList;
 }
 
@@ -2464,9 +2471,7 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title,
 
 	if(::GetOpenFileNameW(&ofn))
 	{
-		*fileName = KString(buff);
-		::free(buff);
-
+		*fileName = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 		return true;
 	}else
 	{
@@ -2494,9 +2499,7 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 
 	if(::GetSaveFileNameW(&ofn))
 	{
-		*fileName = KString(buff);
-		::free(buff);
-
+		*fileName = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 		return true;
 	}else
 	{
@@ -2540,7 +2543,6 @@ KComponent::KComponent()
 
 	compHWND = 0;
 	compParentHWND = 0;
-	compText = KString();
 	compDwStyle = 0;
 	compDwExStyle = 0;
 	cursor = 0;
@@ -2570,7 +2572,6 @@ KComponent::KComponent()
 
 void KComponent::OnHotPlug()
 {
-
 	RECT rect;
 	::GetWindowRect(compHWND, &rect);
 	compWidth = rect.right - rect.left;
@@ -2586,12 +2587,10 @@ void KComponent::OnHotPlug()
 
 	compParentHWND = ::GetParent(compHWND);
 
-	wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t));
+	wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t)); // assume 256 is enough
 	buff[0] = 0;
 	::GetWindowTextW(compHWND, buff, 256);
-	compText = buff;
-
-	free(buff);
+	compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 }
 
 void KComponent::HotPlugInto(HWND component)
@@ -2608,8 +2607,7 @@ void KComponent::HotPlugInto(HWND component)
 	wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));
 	clsName[0] = 0;
 	::GetClassNameW(compHWND, clsName, 256);
-	compClassName = clsName;
-	::free(clsName);
+	compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
 
 	::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(), compClassName, &wc);
 
@@ -2662,9 +2660,9 @@ LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, RFCPropText_OldProc);
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed control or dialog! RFCOldProc of subclassed dialog is not GlobalDlg_Proc function.
+		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed standard-control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
-	return ::DefWindowProcW(hwnd, msg, wParam, lParam);
+	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }
 
 void KComponent::SetFont(KFont *compFont)
@@ -2931,10 +2929,7 @@ KString KGridView::GetRecordAt(int rowIndex, int columnIndex)
 
 	::SendMessageW(compHWND, LVM_GETITEMTEXTW, (WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_GetItemText macro. it relies on preprocessor defs.
 
-	KString retVal(buffer);
-	::free(buffer);
-
-	return retVal;
+	return KString(buffer, KString::FREE_TEXT_WHEN_DONE);
 }
 
 int KGridView::GetSelectedRow()
@@ -2998,6 +2993,9 @@ bool KGridView::CreateComponent()
 	if (compHWND)
 	{
 		ListView_SetExtendedListViewStyle(compHWND, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -3096,7 +3094,7 @@ void KGridViewListener::OnGridViewItemDoubleClick(KGridView *gridView){}
 
 KGroupBox::KGroupBox()
 {
-	this->SetText(L"GroupBox");
+	this->SetText(STATIC_TXT("GroupBox"));
 	this->SetSize(100, 100);
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_GROUPBOX);
 }
@@ -3132,9 +3130,9 @@ KGroupBox::~KGroupBox()
 
 KLabel::KLabel()
 {
-	compClassName = L"STATIC";
+	compClassName = STATIC_TXT("STATIC");
 
-	this->SetText(L"Label");
+	this->SetText(STATIC_TXT("Label"));
 	this->SetSize(100, 25);
 	this->SetPosition(0, 0);
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY);
@@ -3150,7 +3148,8 @@ bool KLabel::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -3198,7 +3197,7 @@ KListBox::KListBox(bool multipleSelection,bool sort,bool vscroll)
 	selectedItemIndex = -1;
 	selectedItemEnd = -1;
 
-	compClassName = L"LISTBOX";
+	compClassName = STATIC_TXT("LISTBOX");
 
 	this->SetSize(100, 100);
 	this->SetPosition(0, 0);
@@ -3307,7 +3306,7 @@ int KListBox::GetSelectedItems(int* itemArray, int itemCountInArray)
 
 void KListBox::ClearList()
 {
-	stringList->DeleteAll();
+	stringList->DeleteAll(true);
 
 	if(compHWND)
 		::SendMessageW(compHWND, LB_RESETCONTENT, 0, 0);
@@ -3342,7 +3341,8 @@ bool KListBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -3379,7 +3379,7 @@ void KListBox::OnItemSelect()
 
 KListBox::~KListBox()
 {
-	stringList->DeleteAll();
+	stringList->DeleteAll(false);
 	delete stringList;
 }
 
@@ -3564,7 +3564,6 @@ KMenuItem::KMenuItem()
 {
 	hMenu = 0;
 	listener = 0;
-	itemText = KString();
 	enabled = true;
 	checked = false;
 	itemID = KPlatformUtil::GetInstance()->GenerateMenuItemID(this);
@@ -3838,7 +3837,7 @@ KProgressBar::KProgressBar(bool smooth, bool vertical)
 {
 	value = 0;
 
-	compClassName = PROGRESS_CLASSW;
+	compClassName = KString(PROGRESS_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
 
 	this->SetPosition(0, 0);
 	this->SetSize(100, 20);
@@ -3917,7 +3916,7 @@ KProgressBar::~KProgressBar()
 
 KPushButton::KPushButton()
 {
-	this->SetText(L"PushButton");
+	this->SetText(STATIC_TXT("Push Button"));
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP);
 }
 
@@ -3952,7 +3951,7 @@ KPushButton::~KPushButton()
 
 KRadioButton::KRadioButton()
 {
-	this->SetText(L"RadioButton");
+	this->SetText(STATIC_TXT("RadioButton"));
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_RADIOBUTTON | BS_NOTIFY | WS_TABSTOP);
 }
 
@@ -4027,7 +4026,7 @@ KTextArea::~KTextArea()
 
 KTextBox::KTextBox(bool readOnly)
 {
-	compClassName = L"EDIT";
+	compClassName = STATIC_TXT("EDIT");
 
 	this->SetSize(100, 20);
 	this->SetPosition(0, 0);
@@ -4049,8 +4048,7 @@ KString KTextBox::GetText()
 			wchar_t *text = (wchar_t*)::malloc(size);
 			text[0] = 0;
 			::GetWindowTextW(compHWND, text, size);
-			compText = KString(text);
-			::free(text);
+			compText = KString(text, KString::FREE_TEXT_WHEN_DONE);
 		}else
 		{
 			compText = KString();
@@ -4069,7 +4067,8 @@ bool KTextBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -4125,7 +4124,7 @@ KTrackBar::KTrackBar(bool showTicks, bool vertical)
 	this->SetStyle(compDwStyle | (showTicks ? TBS_AUTOTICKS : TBS_NOTICKS));
 	this->SetStyle(compDwStyle | (vertical ? TBS_VERT : TBS_HORZ));
 
-	compClassName = KString(TRACKBAR_CLASSW);
+	compClassName = KString(TRACKBAR_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
 }
 
 void KTrackBar::SetRange(int min, int max)
@@ -4169,7 +4168,8 @@ bool KTrackBar::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -4247,7 +4247,7 @@ void KTrackBarListener::OnTrackBarChange(KTrackBar *trackBar){}
 
 KWindow::KWindow()
 {
-	this->SetText(L"KWindow");
+	this->SetText(STATIC_TXT("KWindow"));
 	this->SetSize(400, 200);
 	this->SetVisible(false);
 	this->SetStyle(WS_POPUP);
@@ -4555,7 +4555,7 @@ KHotPluggedDialog::~KHotPluggedDialog(){}
 
 KOverlappedWindow::KOverlappedWindow()
 {
-	this->SetText(L"KOverlapped Window");
+	this->SetText(STATIC_TXT("KOverlapped Window"));
 	this->SetStyle(WS_OVERLAPPEDWINDOW);
 }
 
@@ -4564,7 +4564,7 @@ KOverlappedWindow::~KOverlappedWindow(){}
 
 KFrame::KFrame()
 {
-	this->SetText(L"KFrame");
+	this->SetText(STATIC_TXT("KFrame"));
 	this->SetStyle(WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
 }
 
@@ -4574,7 +4574,7 @@ KFrame::~KFrame(){}
 
 KDialog::KDialog()
 {
-	this->SetText(L"KDialog");
+	this->SetText(STATIC_TXT("KDialog"));
 	this->SetStyle(WS_POPUP | WS_CAPTION | WS_SYSMENU);
 }
 
@@ -4584,12 +4584,13 @@ KDialog::~KDialog(){}
 
 KToolWindow::KToolWindow()
 {
-	this->SetText(L"KTool Window");
+	this->SetText(STATIC_TXT("KTool Window"));
 	this->SetStyle(WS_OVERLAPPED | WS_SYSMENU);
 	this->SetExStyle(WS_EX_TOOLWINDOW);
 }
 
 KToolWindow::~KToolWindow(){}
+
 
 // =========== KBitmap.cpp ===========
 

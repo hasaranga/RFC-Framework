@@ -106,10 +106,7 @@ KString KGridView::GetRecordAt(int rowIndex, int columnIndex)
 
 	::SendMessageW(compHWND, LVM_GETITEMTEXTW, (WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_GetItemText macro. it relies on preprocessor defs.
 
-	KString retVal(buffer);
-	::free(buffer);
-
-	return retVal;
+	return KString(buffer, KString::FREE_TEXT_WHEN_DONE);
 }
 
 int KGridView::GetSelectedRow()
@@ -173,6 +170,9 @@ bool KGridView::CreateComponent()
 	if (compHWND)
 	{
 		ListView_SetExtendedListViewStyle(compHWND, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 

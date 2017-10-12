@@ -47,6 +47,13 @@ protected:
 
 public:
 
+	enum TextTypes
+	{
+		STATIC_TEXT_DO_NOT_FREE = 1,
+		FREE_TEXT_WHEN_DONE = 2,
+		USE_COPY_OF_TEXT = 3,
+	};
+
 	/**
 		Constructs an empty string
 	*/
@@ -65,7 +72,7 @@ public:
 	/**
 		Constructs String object using unicode string
 	*/
-	KString(const wchar_t* const text);
+	KString(const wchar_t* const text, unsigned char behaviour = USE_COPY_OF_TEXT);
 
 	/**
 		Constructs String object using integer
@@ -190,5 +197,8 @@ RFC_API const KString operator+ (const char* const string1, const KString& strin
 RFC_API const KString operator+ (const wchar_t* const string1, const KString& string2);
 
 RFC_API const KString operator+ (const KString& string1, const KString& string2);
+
+#define STATIC_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE)
+#define BUFFER_TXT(X) KString(X, KString::FREE_TEXT_WHEN_DONE)
 
 #endif

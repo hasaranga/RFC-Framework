@@ -26,7 +26,7 @@
 
 KWindow::KWindow()
 {
-	this->SetText(L"KWindow");
+	this->SetText(STATIC_TXT("KWindow"));
 	this->SetSize(400, 200);
 	this->SetVisible(false);
 	this->SetStyle(WS_POPUP);

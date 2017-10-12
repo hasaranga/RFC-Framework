@@ -243,7 +243,7 @@ public:
 	/**
 		Clears the list!
 	*/
-	void RemoveAll()// remove all pointers from list!
+	void RemoveAll(bool reallocate = true)// remove all pointers from list!
 	{
 		if(isThreadSafe)
 		{
@@ -252,7 +252,7 @@ public:
 
 		::free(list);
 		roomCount = roomIncrement;
-		list = ::malloc(roomCount * PTR_SIZE);
+		list = reallocate ? ::malloc(roomCount * PTR_SIZE) : 0;
 		size = 0;
 
 		if(isThreadSafe)
@@ -265,7 +265,7 @@ public:
 		Call destructors of all objects which are pointed by pointers in the list.
 		Also clears the list.
 	*/
-	void DeleteAll()
+	void DeleteAll(bool reallocate = true)
 	{
 		if(isThreadSafe)
 		{
@@ -279,8 +279,9 @@ public:
 		}
 
 		::free(list);
+
 		roomCount = roomIncrement;
-		list = ::malloc(roomCount * PTR_SIZE);
+		list = reallocate ? ::malloc(roomCount * PTR_SIZE) : 0;
 		size = 0;
 
 		if(isThreadSafe)
@@ -330,7 +331,9 @@ public:
 	/** Destructs PointerList object.*/
 	~KPointerList()
 	{
-		::free(list);
+		if (list)
+			::free(list);
+
 		if(isThreadSafe)
 		{
 			::DeleteCriticalSection(&criticalSection);

@@ -39,7 +39,7 @@ KHotPluggedDialog::~KHotPluggedDialog(){}
 
 KOverlappedWindow::KOverlappedWindow()
 {
-	this->SetText(L"KOverlapped Window");
+	this->SetText(STATIC_TXT("KOverlapped Window"));
 	this->SetStyle(WS_OVERLAPPEDWINDOW);
 }
 
@@ -48,7 +48,7 @@ KOverlappedWindow::~KOverlappedWindow(){}
 
 KFrame::KFrame()
 {
-	this->SetText(L"KFrame");
+	this->SetText(STATIC_TXT("KFrame"));
 	this->SetStyle(WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
 }
 
@@ -58,7 +58,7 @@ KFrame::~KFrame(){}
 
 KDialog::KDialog()
 {
-	this->SetText(L"KDialog");
+	this->SetText(STATIC_TXT("KDialog"));
 	this->SetStyle(WS_POPUP | WS_CAPTION | WS_SYSMENU);
 }
 
@@ -68,9 +68,10 @@ KDialog::~KDialog(){}
 
 KToolWindow::KToolWindow()
 {
-	this->SetText(L"KTool Window");
+	this->SetText(STATIC_TXT("KTool Window"));
 	this->SetStyle(WS_OVERLAPPED | WS_SYSMENU);
 	this->SetExStyle(WS_EX_TOOLWINDOW);
 }
 
 KToolWindow::~KToolWindow(){}
+

@@ -26,9 +26,9 @@
 
 KLabel::KLabel()
 {
-	compClassName = L"STATIC";
+	compClassName = STATIC_TXT("STATIC");
 
-	this->SetText(L"Label");
+	this->SetText(STATIC_TXT("Label"));
 	this->SetSize(100, 25);
 	this->SetPosition(0, 0);
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY);
@@ -44,7 +44,8 @@ bool KLabel::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 

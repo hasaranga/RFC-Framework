@@ -42,9 +42,7 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title,
 
 	if(::GetOpenFileNameW(&ofn))
 	{
-		*fileName = KString(buff);
-		::free(buff);
-
+		*fileName = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 		return true;
 	}else
 	{
@@ -72,9 +70,7 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 
 	if(::GetSaveFileNameW(&ofn))
 	{
-		*fileName = KString(buff);
-		::free(buff);
-
+		*fileName = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 		return true;
 	}else
 	{

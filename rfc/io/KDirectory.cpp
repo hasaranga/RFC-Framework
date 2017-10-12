@@ -50,7 +50,7 @@ KString KDirectory::GetModuleDir(HMODULE hModule)
 	// assumes MAX_PATH * 2 is enough!
 
 	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
-	::ZeroMemory(path, (MAX_PATH * 2) * sizeof(wchar_t) );
+	path[0] = 0;
 	::GetModuleFileNameW(hModule, path, MAX_PATH * 2);
 
 	wchar_t *p;
@@ -58,32 +58,23 @@ KString KDirectory::GetModuleDir(HMODULE hModule)
 	for (; p > path && *p != L'\\'; p--) {} // back up to last backslash
 	*p = 0;	// kill it
 
-	KString strPath(path);
-	::free(path);
-
-	return strPath;
+	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
 KString KDirectory::GetTempDir()
 {
 	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH + 1) * sizeof(wchar_t) );
-	::ZeroMemory(path, (MAX_PATH + 1) * sizeof(wchar_t) );
+	path[0] = 0;
 	::GetTempPathW(MAX_PATH + 1, path);
 
-	KString strPath(path);
-	::free(path);
-
-	return strPath;
+	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
 KString KDirectory::GetApplicationDataDir(bool isAllUsers)
 {
 	wchar_t *path = (wchar_t*)::malloc( MAX_PATH * sizeof(wchar_t) );
-	::ZeroMemory(path, MAX_PATH * sizeof(wchar_t) );
+	path[0] = 0;
 	::SHGetFolderPathW(NULL, isAllUsers ? CSIDL_COMMON_APPDATA : CSIDL_APPDATA, NULL, 0, path);
 
-	KString strPath(path);
-	::free(path);
-
-	return strPath;
+	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }

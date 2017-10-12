@@ -30,7 +30,7 @@ KComboBox::KComboBox(bool sort)
 	listener = 0;
 	selectedItemIndex = -1;
 
-	compClassName = L"COMBOBOX";
+	compClassName = STATIC_TXT("COMBOBOX");
 
 	this->SetSize(100, 100);
 	this->SetPosition(0, 0);
@@ -116,7 +116,7 @@ KString KComboBox::GetSelectedItem()
 
 void KComboBox::ClearList()
 {
-	stringList->DeleteAll();
+	stringList->DeleteAll(true);
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, CB_RESETCONTENT, 0, 0);
@@ -141,7 +141,8 @@ bool KComboBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -152,7 +153,7 @@ bool KComboBox::CreateComponent()
 				::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*stringList->GetPointer(i));
 		}
 
-		if(selectedItemIndex>-1)
+		if(selectedItemIndex > -1)
 			::SendMessageW(compHWND, CB_SETCURSEL, selectedItemIndex, 0);
 
 
@@ -177,7 +178,7 @@ void KComboBox::OnItemSelect()
 
 KComboBox::~KComboBox()
 {
-	stringList->DeleteAll();
+	stringList->DeleteAll(false);
 	delete stringList;
 }
 

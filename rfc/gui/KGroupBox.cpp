@@ -25,7 +25,7 @@
 
 KGroupBox::KGroupBox()
 {
-	this->SetText(L"GroupBox");
+	this->SetText(STATIC_TXT("GroupBox"));
 	this->SetSize(100, 100);
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_GROUPBOX);
 }

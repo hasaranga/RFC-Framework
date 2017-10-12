@@ -103,7 +103,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	int argc = 0;\
 	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc);\
 	KString **str_argv = (KString**)::malloc(argc * PTR_SIZE); \
-	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i]);}\
+	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);}\
 	AppClass* application = new AppClass();\
 	int retVal = application->Main(str_argv, argc);\
 	delete application;\

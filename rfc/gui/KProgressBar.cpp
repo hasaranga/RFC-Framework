@@ -28,7 +28,7 @@ KProgressBar::KProgressBar(bool smooth, bool vertical)
 {
 	value = 0;
 
-	compClassName = PROGRESS_CLASSW;
+	compClassName = KString(PROGRESS_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
 
 	this->SetPosition(0, 0);
 	this->SetSize(100, 20);

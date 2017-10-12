@@ -90,18 +90,25 @@ KString::KString(const char* const text, UINT codePage)
 	stringHolder=0;		
 }
 
-KString::KString(const wchar_t* const text)
+KString::KString(const wchar_t* const text, unsigned char behaviour)
 {
 	if (text != 0)
 	{
 		int count = (int)::wcslen(text);
 		if(count)
 		{
-			stringHolder = new KStringHolder();
+			stringHolder = new KStringHolder(behaviour == STATIC_TEXT_DO_NOT_FREE);
 			stringHolder->AddReference();
 
-			stringHolder->w_text = (wchar_t*)::malloc((count+1) * sizeof(wchar_t));
-			::wcscpy(stringHolder->w_text, text);
+			if( (behaviour == STATIC_TEXT_DO_NOT_FREE) || (behaviour == FREE_TEXT_WHEN_DONE) )
+			{
+				stringHolder->w_text = (wchar_t*)text;
+			}
+			else{ // USE_COPY_OF_TEXT or invalid option
+				stringHolder->w_text = (wchar_t*)::malloc((count + 1) * sizeof(wchar_t));
+				::wcscpy(stringHolder->w_text, text);
+			}
+
 			stringHolder->count = count;
 			return;
 		}

@@ -28,9 +28,9 @@ KButton::KButton()
 {
 	listener = 0;
 
-	compClassName = L"BUTTON";
+	compClassName = STATIC_TXT("BUTTON");
 
-	this->SetText(L"Button");
+	this->SetText(STATIC_TXT("Button"));
 	this->SetSize(100, 30);
 	this->SetPosition(0, 0);
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY | WS_TABSTOP);
@@ -62,7 +62,8 @@ bool KButton::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 

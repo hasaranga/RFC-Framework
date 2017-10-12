@@ -30,7 +30,6 @@ KMenuItem::KMenuItem()
 {
 	hMenu = 0;
 	listener = 0;
-	itemText = KString();
 	enabled = true;
 	checked = false;
 	itemID = KPlatformUtil::GetInstance()->GenerateMenuItemID(this);

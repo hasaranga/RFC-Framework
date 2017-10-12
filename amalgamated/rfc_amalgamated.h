@@ -981,7 +981,7 @@ public:
 	/**
 		Clears the list!
 	*/
-	void RemoveAll()// remove all pointers from list!
+	void RemoveAll(bool reallocate = true)// remove all pointers from list!
 	{
 		if(isThreadSafe)
 		{
@@ -990,7 +990,7 @@ public:
 
 		::free(list);
 		roomCount = roomIncrement;
-		list = ::malloc(roomCount * PTR_SIZE);
+		list = reallocate ? ::malloc(roomCount * PTR_SIZE) : 0;
 		size = 0;
 
 		if(isThreadSafe)
@@ -1003,7 +1003,7 @@ public:
 		Call destructors of all objects which are pointed by pointers in the list.
 		Also clears the list.
 	*/
-	void DeleteAll()
+	void DeleteAll(bool reallocate = true)
 	{
 		if(isThreadSafe)
 		{
@@ -1017,8 +1017,9 @@ public:
 		}
 
 		::free(list);
+
 		roomCount = roomIncrement;
-		list = ::malloc(roomCount * PTR_SIZE);
+		list = reallocate ? ::malloc(roomCount * PTR_SIZE) : 0;
 		size = 0;
 
 		if(isThreadSafe)
@@ -1068,7 +1069,9 @@ public:
 	/** Destructs PointerList object.*/
 	~KPointerList()
 	{
-		::free(list);
+		if (list)
+			::free(list);
+
 		if(isThreadSafe)
 		{
 			::DeleteCriticalSection(&criticalSection);
@@ -1201,12 +1204,13 @@ class RFC_API KStringHolder
 	volatile LONG refCount;
 	char *a_text; // ansi version
 	CRITICAL_SECTION cs_a_text; // to guard ansi string creation
+	bool isStaticText; // do not free w_text if true
 
 public:
 	wchar_t *w_text; // unicode version
 	int count; // character count
 
-	KStringHolder();
+	KStringHolder(bool isStaticText = false);
 
 	~KStringHolder();
 
@@ -1515,6 +1519,13 @@ protected:
 
 public:
 
+	enum TextTypes
+	{
+		STATIC_TEXT_DO_NOT_FREE = 1,
+		FREE_TEXT_WHEN_DONE = 2,
+		USE_COPY_OF_TEXT = 3,
+	};
+
 	/**
 		Constructs an empty string
 	*/
@@ -1533,7 +1544,7 @@ public:
 	/**
 		Constructs String object using unicode string
 	*/
-	KString(const wchar_t* const text);
+	KString(const wchar_t* const text, unsigned char behaviour = USE_COPY_OF_TEXT);
 
 	/**
 		Constructs String object using integer
@@ -1658,6 +1669,9 @@ RFC_API const KString operator+ (const char* const string1, const KString& strin
 RFC_API const KString operator+ (const wchar_t* const string1, const KString& string2);
 
 RFC_API const KString operator+ (const KString& string1, const KString& string2);
+
+#define STATIC_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE)
+#define BUFFER_TXT(X) KString(X, KString::FREE_TEXT_WHEN_DONE)
 
 #endif
 
@@ -2202,14 +2216,14 @@ public:
 	*/
 	virtual void* ReadAsData();
 
-	virtual KString ReadAsString(bool isUnicode=false);
+	virtual KString ReadAsString(bool isUnicode = true);
 
 	/**
 		returns number of bytes written.
 	*/
 	virtual DWORD WriteFile(void* buffer, DWORD numberOfBytesToWrite);
 
-	virtual bool WriteString(const KString& text, bool isUnicode = false);
+	virtual bool WriteString(const KString& text, bool isUnicode = true);
 
 	virtual bool SetFilePointerToStart();
 
@@ -4027,7 +4041,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	int argc = 0;\
 	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc);\
 	KString **str_argv = (KString**)::malloc(argc * PTR_SIZE); \
-	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i]);}\
+	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);}\
 	AppClass* application = new AppClass();\
 	int retVal = application->Main(str_argv, argc);\
 	delete application;\

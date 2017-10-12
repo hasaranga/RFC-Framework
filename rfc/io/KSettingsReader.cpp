@@ -63,10 +63,7 @@ KString KSettingsReader::ReadString()
 		wchar_t *buffer = (wchar_t*)malloc(size);
 		settingsFile.ReadFile(buffer, size);
 
-		KString retVal(buffer);
-		free(buffer);
-
-		return retVal;
+		return KString(buffer, KString::FREE_TEXT_WHEN_DONE);
 	}
 	else
 	{

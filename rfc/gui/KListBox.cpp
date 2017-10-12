@@ -32,7 +32,7 @@ KListBox::KListBox(bool multipleSelection,bool sort,bool vscroll)
 	selectedItemIndex = -1;
 	selectedItemEnd = -1;
 
-	compClassName = L"LISTBOX";
+	compClassName = STATIC_TXT("LISTBOX");
 
 	this->SetSize(100, 100);
 	this->SetPosition(0, 0);
@@ -141,7 +141,7 @@ int KListBox::GetSelectedItems(int* itemArray, int itemCountInArray)
 
 void KListBox::ClearList()
 {
-	stringList->DeleteAll();
+	stringList->DeleteAll(true);
 
 	if(compHWND)
 		::SendMessageW(compHWND, LB_RESETCONTENT, 0, 0);
@@ -176,7 +176,8 @@ bool KListBox::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -213,6 +214,6 @@ void KListBox::OnItemSelect()
 
 KListBox::~KListBox()
 {
-	stringList->DeleteAll();
+	stringList->DeleteAll(false);
 	delete stringList;
 }

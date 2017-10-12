@@ -40,7 +40,7 @@ KTrackBar::KTrackBar(bool showTicks, bool vertical)
 	this->SetStyle(compDwStyle | (showTicks ? TBS_AUTOTICKS : TBS_NOTICKS));
 	this->SetStyle(compDwStyle | (vertical ? TBS_VERT : TBS_HORZ));
 
-	compClassName = KString(TRACKBAR_CLASSW);
+	compClassName = KString(TRACKBAR_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
 }
 
 void KTrackBar::SetRange(int min, int max)
@@ -84,7 +84,8 @@ bool KTrackBar::CreateComponent()
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set default font!
+		if (compFont != KFont::GetDefaultFont())
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
