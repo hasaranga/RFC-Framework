@@ -1,24 +1,24 @@
 
 /*
-    RFC - rfc.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - rfc.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #include "rfc.h"
@@ -29,22 +29,16 @@ public:
 	static KComponent *currentComponent;
 	static HHOOK wnd_hook;
 	static CRITICAL_SECTION g_csComponent; // guard currentComponent!
-
-	static const wchar_t* RFCPropText_Object;
-	static const wchar_t* RFCPropText_OldProc;
-	static const wchar_t* RFCPropText_ClsName;
-
 	static volatile int rfcRefCount;
 };
 
 KComponent* InternalVariables::currentComponent = 0;
 HHOOK InternalVariables::wnd_hook = 0;
-const wchar_t* InternalVariables::RFCPropText_Object = L"RFC";
-const wchar_t* InternalVariables::RFCPropText_OldProc = L"RFCOldProc";
-const wchar_t* InternalVariables::RFCPropText_ClsName = L"RFCClsName";
 volatile int InternalVariables::rfcRefCount = 0;
 CRITICAL_SECTION InternalVariables::g_csComponent;
 
+const wchar_t* InternalDefinitions::RFCPropText_Object = L"RFC";
+const wchar_t* InternalDefinitions::RFCPropText_OldProc = L"RFCOldProc";
 
 LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 {
@@ -53,10 +47,9 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 
 	if(nCode==HCBT_CREATEWND){
 		HWND hwnd=(HWND)wParam;
-		::SetPropW(hwnd, InternalVariables::RFCPropText_Object, (HANDLE)InternalVariables::currentComponent);
+		::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)InternalVariables::currentComponent);
 		FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
-		::SetPropW(hwnd, InternalVariables::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
-		::SetPropW(hwnd, InternalVariables::RFCPropText_ClsName, (HANDLE)(const wchar_t*)InternalVariables::currentComponent->GetComponentClassName());
+		::SetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
 
 		::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
 	}
@@ -68,7 +61,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
 
-	KComponent *component = (KComponent*)::GetPropW(hwnd, InternalVariables::RFCPropText_Object);
+	KComponent *component = (KComponent*)::GetPropW(hwnd, InternalDefinitions::RFCPropText_Object);
 
 	if(!component){ // just for safe!
 		return ::DefWindowProcW( hwnd, msg, wParam, lParam );
@@ -78,13 +71,12 @@ LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 		component->SetHWND(hwnd);
 
 	if(msg==WM_NCDESTROY){
-		::RemovePropW(hwnd, InternalVariables::RFCPropText_Object);
-		::RemovePropW(hwnd, InternalVariables::RFCPropText_ClsName);
+		::RemovePropW(hwnd, InternalDefinitions::RFCPropText_Object);
 
-		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalVariables::RFCPropText_OldProc);
+		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
 		if (lpfnOldWndProc)
 		{
-			::RemovePropW(hwnd, InternalVariables::RFCPropText_OldProc);
+			::RemovePropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
 			::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc); // restore default wnd proc!
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 		}
@@ -93,24 +85,35 @@ LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 	return component->WindowProc(hwnd, msg, wParam, lParam);
 }
 
-HWND CreateRFCComponent(KComponent* component)
-{
-	// we make thread safe this function!
+HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc)
+{	
+	if (subClassWindowProc)
+	{
+		::EnterCriticalSection(&InternalVariables::g_csComponent);
 
-	::EnterCriticalSection(&InternalVariables::g_csComponent);
+		InternalVariables::currentComponent = component;
 
-	InternalVariables::currentComponent = component;
+		// install hook to get called before WM_CREATE_WINDOW msg!
+		InternalVariables::wnd_hook = ::SetWindowsHookExW(WH_CBT, &RFCCTL_CBTProc, 0, ::GetCurrentThreadId());
 
-	// install hook to receive WM_CREATE_WINDOW msg!
-	InternalVariables::wnd_hook = ::SetWindowsHookExW(WH_CBT, &RFCCTL_CBTProc, 0, ::GetCurrentThreadId());
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), (const wchar_t*)component->GetComponentClassName(), (const wchar_t*)component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
 
-	HWND hwnd = ::CreateWindowExW(component->GetExStyle(), (const wchar_t*)component->GetComponentClassName(), (const wchar_t*)component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), 0, KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
+		::UnhookWindowsHookEx(InternalVariables::wnd_hook);
 
-	::UnhookWindowsHookEx(InternalVariables::wnd_hook);
+		::LeaveCriticalSection(&InternalVariables::g_csComponent);
 
-	::LeaveCriticalSection(&InternalVariables::g_csComponent);
+		return hwnd;
+	}
+	else
+	{
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), (const wchar_t*)component->GetComponentClassName(), (const wchar_t*)component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
 
-	return hwnd;
+		::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)component);
+
+		component->SetHWND(hwnd);
+
+		return hwnd;
+	}
 }
 
 void DoMessagePump(bool handleTabKey)
@@ -197,7 +200,7 @@ INT_PTR CALLBACK GlobalDlg_Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 		KComponent* comp = (KComponent*)lParam;
 		if(comp)
 		{
-			comp->HotPlugInto(hwndDlg);
+			comp->HotPlugInto(hwndDlg, true, true);
 		}
 		return FALSE;
 	}

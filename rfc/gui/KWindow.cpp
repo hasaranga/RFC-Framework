@@ -1,24 +1,24 @@
 
 /*
-    RFC - KWindow.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KWindow.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #include "KWindow.h"
@@ -32,6 +32,7 @@ KWindow::KWindow()
 	this->SetStyle(WS_POPUP);
 	this->SetExStyle(WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT);
 	wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+	compCtlID = 0; // control id is zero for top level window
 }
 
 void KWindow::Flash()
@@ -65,14 +66,14 @@ void KWindow::CenterScreen()
 	this->SetPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
 }
 
-bool KWindow::AddComponent(KComponent *component)
+bool KWindow::AddComponent(KComponent *component, bool subClassWindowProc)
 {
 	if(component)
 	{
 		if(compHWND)
 		{
 			component->SetParentHWND(compHWND);
-			return component->CreateComponent();
+			return component->CreateComponent(subClassWindowProc);
 		}
 	}
 	return false;
@@ -126,115 +127,107 @@ void KWindow::OnResized()
 
 LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	static const wchar_t* RFCPropText_Object = L"RFC";
-	static const wchar_t* RFCPropText_ClsName = L"RFCClsName";
-
 	switch(msg)
 	{
-		case WM_COMMAND:
+		case WM_DRAWITEM: // owner-drawn button, combo box and list box... (menu ignored. use windowProc of parent window if you want to draw menu)
 			{
-				if(HIWORD(wParam) == BN_CLICKED) // button, checkbox, radio button or menu clicked event!
+				if (wParam != 0) // ignore menus
 				{
-					if(lParam)
+					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, InternalDefinitions::RFCPropText_Object);
+					if (component)
 					{
-						KButton *btn = (KButton*)::GetPropW((HWND)lParam, RFCPropText_Object);
-						if(btn) // button, checkbox or radio button!
-						{
-							btn->OnPress();
-							break;
-						}
-					}else // its menu item! unfortunately windows does not send menu handle with clicked event!
-					{
-						KMenuItem *menuItem = KPlatformUtil::GetInstance()->GetMenuItemByID(LOWORD(wParam));
-						if(menuItem)
-						{
-							menuItem->OnPress();
-							break;
-						}
-					}
-				}else if(HIWORD(wParam) == LBN_SELCHANGE) // listbox sel change! (this msg also pops for combo)
-				{
-					wchar_t* clsName = (wchar_t*)::GetPropW((HWND)lParam, RFCPropText_ClsName);
-					if(::_wcsicmp(clsName, L"COMBOBOX") != 0) // ignore combobox (use _wcsicmp instead of wcscmp, coz combo cls name might be ComboBox or COMBOBOX)
-					{
-						KListBox *listBox = (KListBox*)::GetPropW((HWND)lParam, RFCPropText_Object);
-						if(listBox)
-						{
-							listBox->OnItemSelect();
-							break;
-						}
-					}
-				}else if(HIWORD(wParam) == CBN_SELENDOK) // combobox sel change!
-				{
-					KComboBox *comboBox = (KComboBox*)::GetPropW((HWND)lParam, RFCPropText_Object);
-					if(comboBox)
-					{
-						comboBox->OnItemSelect();
-						break;
+						LRESULT result = 0; // just for safe
+						if (component->EventProc(msg, wParam, lParam, &result))
+							return result;
 					}
 				}
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
-			case WM_NOTIFY:
+		case WM_MEASUREITEM: // combo box, list box, list-view control... (menu ignored. use windowProc of parent window if you want to set the size of menu)
 			{
-				if (((LPNMHDR)lParam)->code == NM_CLICK) // List view item click
+				if (wParam != 0) // ignore menus
 				{
-					KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
-					if (gridView)
+					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), InternalDefinitions::RFCPropText_Object);
+					if (component)
 					{
-						gridView->OnItemClick();
-						break;
+						LRESULT result = 0; // just for safe
+						if (component->EventProc(msg, wParam, lParam, &result))
+							return result;
 					}
-				}
-				else if (((LPNMHDR)lParam)->code == LVN_ITEMCHANGED) // List view item selection changed (mouse or keyboard)
+				}			
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_COMPAREITEM: // owner-drawn combo box or list box
+			{
+				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, InternalDefinitions::RFCPropText_Object);
+				if (component)
 				{
-					LPNMLISTVIEW pNMListView = (LPNMLISTVIEW)lParam;
-					if ((pNMListView->uChanged & LVIF_STATE) && (pNMListView->uNewState & LVIS_SELECTED))
-					{
-						KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
-						if (gridView)
-						{
-							gridView->OnItemSelected();
-							break;
-						}
-					}
-				}
-				else if (((LPNMHDR)lParam)->code == NM_RCLICK) // List view item right click
-				{
-					KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
-					if (gridView)
-					{
-						gridView->OnItemRightClick();
-						break;
-					}
-				}
-				else if (((LPNMHDR)lParam)->code == NM_DBLCLK) // List view item double click
-				{
-					KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
-					if (gridView)
-					{
-						gridView->OnItemDoubleClick();
-						break;
-					}
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
 				}
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
-		case WM_HSCROLL:
-		case WM_VSCROLL:
+		case WM_CTLCOLORBTN: // buttons 
 			{
-				int nScrollCode = (int)LOWORD(wParam);
-
-				if( (TB_THUMBTRACK == nScrollCode) || (TB_LINEDOWN == nScrollCode) || (TB_LINEUP == nScrollCode) || (TB_BOTTOM == nScrollCode) || (TB_TOP == nScrollCode) || (TB_PAGEUP == nScrollCode) || (TB_PAGEDOWN == nScrollCode) ) // its trackbar!
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
 				{
-					KTrackBar *trackBar = (KTrackBar*)::GetPropW((HWND)lParam, RFCPropText_Object);
-					if(trackBar)
-					{
-						trackBar->OnChange();
-						break;
-					}
-				}
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CTLCOLOREDIT: // edit controls 
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CTLCOLORLISTBOX: // listbox controls 
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CTLCOLORSTATIC: // static controls
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
@@ -246,18 +239,6 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					timer->OnTimer();
 					break;
 				}
-			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
-
-		case WM_MOVE: // window has been moved! we can't use lparam since it's giving client area pos instead of window...
-			{
-				RECT rect;
-				::GetWindowRect(compHWND, &rect);
-
-				this->compX = rect.left;
-				this->compY = rect.top;
-
-				this->OnMoved();
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
@@ -273,12 +254,73 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
+		case WM_MOVE: // window has been moved! we can't use lparam since it's giving client area pos instead of window...
+			{
+				RECT rect;
+				::GetWindowRect(compHWND, &rect);
+
+				this->compX = rect.left;
+				this->compY = rect.top;
+
+				this->OnMoved();
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_HSCROLL: // trackbar
+		case WM_VSCROLL:
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_COMMAND: // button, checkbox, radio button, listbox, combobox or menu-item
+			{
+				if( (HIWORD(wParam) == BN_CLICKED) && (lParam == 0) ) // its menu item! unfortunately windows does not send menu handle with clicked event!
+				{
+					KMenuItem *menuItem = KPlatformUtil::GetInstance()->GetMenuItemByID(LOWORD(wParam));
+					if(menuItem)
+					{
+						menuItem->OnPress();
+						break;
+					}
+				}
+				else // send to appropriate component
+				{
+					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+					if (component)
+					{
+						LRESULT result = 0; // just for safe
+						if (component->EventProc(msg, wParam, lParam, &result))
+							return result;
+					}
+				}
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_NOTIFY: // GridView etc...
+			{
+				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
 		case WM_CLOSE:
-			OnClose();
+			this->OnClose();
 			break;
 
 		case WM_DESTROY:
-			OnDestroy();
+			this->OnDestroy();
 			break;
 
 		default:

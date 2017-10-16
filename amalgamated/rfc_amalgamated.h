@@ -607,25 +607,25 @@ namespace ExtLibs{
 // =========== KMenuItemListener.h ===========
 
 /*
-    RFC - KMenuItemListener.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KMenuItemListener.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KMENUITEMLISTENER_H_
@@ -649,25 +649,25 @@ public:
 // =========== KGridViewListener.h ===========
 
 /*
-    RFC - KGridViewListener.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KGridViewListener.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KGRIDVIEWLISTENER_H_
@@ -683,8 +683,6 @@ public:
 
 	virtual ~KGridViewListener();
 
-	virtual void OnGridViewItemClick(KGridView *gridView);
-
 	virtual void OnGridViewItemSelect(KGridView *gridView);
 
 	virtual void OnGridViewItemRightClick(KGridView *gridView);
@@ -697,25 +695,25 @@ public:
 // =========== KListBoxListener.h ===========
 
 /*
-    RFC - KListBoxListener.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KListBoxListener.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KLISTBOXLISTENER_H_
@@ -739,25 +737,25 @@ public:
 // =========== KPointerList.h ===========
 
 /*
-    RFC - KPointerList.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KPointerList.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -1085,25 +1083,25 @@ public:
 // =========== KTrackBarListener.h ===========
 
 /*
-    RFC - KTrackBarListener.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTrackBarListener.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KTRACKBARLISTENER_H_
@@ -1127,25 +1125,25 @@ public:
 // =========== KButtonListener.h ===========
 
 /*
-    RFC - KButtonListener.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KButtonListener.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KBUTTONLISTENER_H_
@@ -1169,25 +1167,25 @@ public:
 // =========== KStringHolder.h ===========
 
 /*
-    RFC - KString.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KString.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KSTRINGHOLDER_H_
@@ -1235,25 +1233,25 @@ public:
 // =========== KComboBoxListener.h ===========
 
 /*
-    RFC - KComboBoxListener.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KComboBoxListener.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KCOMBOBOXLISTENER_H_
@@ -1277,25 +1275,25 @@ public:
 // =========== KPerformanceCounter.h ===========
 
 /*
-    RFC - KPerformanceCounter.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KPerformanceCounter.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KPERFORMANCECOUNTER_H_
@@ -1328,25 +1326,25 @@ public:
 // =========== KThread.h ===========
 
 /*
-    RFC - KThread.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KThread.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KTHREAD_H_
@@ -1355,11 +1353,11 @@ public:
 #include <windows.h>
 
 /**
-    Encapsulates a thread.
+	Encapsulates a thread.
 
-    Subclasses derive from KThread and implement the Run() method, in which they
-    do their business. The thread can then be started with the StartThread() method
-    and controlled with various other methods.
+	Subclasses derive from KThread and implement the Run() method, in which they
+	do their business. The thread can then be started with the StartThread() method
+	and controlled with various other methods.
 
 	Run() method implementation might be like this
 	@code
@@ -1432,25 +1430,25 @@ public:
 // =========== KTimerListener.h ===========
 
 /*
-    RFC - KTimerListener.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTimerListener.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KTIMER_LISTENER_H_
@@ -1474,25 +1472,25 @@ public:
 // =========== KString.h ===========
 
 /*
-    RFC - KString.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KString.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KSTRING_H_
@@ -1568,14 +1566,14 @@ public:
 	const KString& operator= (const wchar_t* const other);
 
 
-    /** Appends a string at the end of this one.
-        @returns     the concatenated string
-    */
+	/** Appends a string at the end of this one.
+		@returns     the concatenated string
+	*/
 	const KString operator+ (const KString& stringToAppend);
 
-    /** Appends a unicode string at the end of this one.
-        @returns     the concatenated string
-    */
+	/** Appends a unicode string at the end of this one.
+		@returns     the concatenated string
+	*/
 	const KString operator+ (const wchar_t* const textToAppend);
 	/**
 		Returns ansi version of this string
@@ -1587,33 +1585,33 @@ public:
 	*/
 	operator const wchar_t*()const;
 
-    /** 
+	/** 
 		Returns a character from the string.
 		@returns -1 if index is out of range
-    */
+	*/
 	const char operator[](const int index)const;
 
 	/**
-	    Appends a string at the end of this one.
-        @returns     the concatenated string
+		Appends a string at the end of this one.
+		@returns     the concatenated string
 	*/
 	virtual KString Append(const KString& otherString)const;
 
-    /** 
+	/** 
 		Returns a subsection of the string.
 
-        If the range specified is beyond the limits of the string, empty string
-        will be return.
+		If the range specified is beyond the limits of the string, empty string
+		will be return.
 
-        @param start   the index of the start of the substring needed
-        @param end     all characters from start up to this index are returned
-    */
+		@param start   the index of the start of the substring needed
+		@param end     all characters from start up to this index are returned
+	*/
 	virtual KString SubString(int start, int end)const;
 
-    /** 
+	/** 
 		Case-insensitive comparison with another string.
-        @returns     true if the two strings are identical, false if not
-    */
+		@returns     true if the two strings are identical, false if not
+	*/
 	virtual bool EqualsIgnoreCase(const KString& otherString)const;
 
 	/**
@@ -1640,10 +1638,10 @@ public:
 	*/
 	virtual bool IsQuotedString()const;
 
-    /** 
+	/** 
 		Returns a character from the string.
 		@returns -1 if index is out of range
-    */
+	*/
 	virtual wchar_t GetCharAt(int index)const;
 
 	/**
@@ -1675,10 +1673,10 @@ RFC_API const KString operator+ (const KString& string1, const KString& string2)
 
 #endif
 
-// =========== KApplication.h ===========
+// =========== KRegistry.h ===========
 
 /*
-    RFC - KApplication.h
+    RFC - KRegistry.h
     Copyright (C) 2013-2017 CrownSoft
   
     This software is provided 'as-is', without any express or implied
@@ -1697,6 +1695,79 @@ RFC_API const KString operator+ (const KString& string1, const KString& string2)
        misrepresented as being the original software.
     3. This notice may not be removed or altered from any source distribution.
       
+*/
+
+#ifndef _RFC_KREGISTRY_H_
+#define _RFC_KREGISTRY_H_
+
+#include<windows.h>
+
+class RFC_API KRegistry
+{
+
+public:
+	KRegistry();
+
+	// returns true on success or if the key already exists.
+	static bool CreateKey(HKEY hKeyRoot, const KString& subKey);
+
+	// the subkey to be deleted must not have subkeys. 
+	static bool DeleteKey(HKEY hKeyRoot, const KString& subKey);
+
+	static bool ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString *result);
+
+	static bool WriteString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
+
+	static bool ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD *result);
+
+	static bool WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
+
+	/**
+		you must free the buffer when you are done with it.
+
+		e.g. @code
+		void *buffer;
+		DWORD bufferSize;
+		if(KRegistry::ReadBinary(xxx, xxx, xxx, &buffer, &buffSize))
+		{
+			// do your thing here...
+
+			free(buffer);
+		}
+		@endcode
+	*/
+	static bool ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void **buffer, DWORD *buffSize);
+
+	static bool WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void *buffer, DWORD buffSize);
+
+	virtual ~KRegistry();
+
+};
+
+#endif
+
+// =========== KApplication.h ===========
+
+/*
+	RFC - KApplication.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KAPPLICATION_H_
@@ -1752,28 +1823,136 @@ public:
 
 #endif
 
+// =========== KLogger.h ===========
+
+/*
+	RFC - KLogger.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KLOGGER_H_
+#define _RFC_KLOGGER_H_
+
+#include <windows.h>
+
+/**
+	Super fast logging class for logging within a (audio)loop. (not thread safe)
+	Writes logging data into ram & dumps data into file when needed.
+	You can use this class instead of OutputDebugString API.(OutputDebugString is too slow & ETW is too complex?)
+	Use Log Viewer tool to view generated log file.
+
+	Log File Format:
+		file header:				'R' 'L' 'O' 'G'
+		event count:				int32					; (event count)
+		event start packet format:	byte|short16|short16	; (event type|secs|mills)
+		event param number format:	byte|data				; (param type|data)
+		event param string format:	byte|byte|data			; (param type|data size[max 255]|data)
+		event end packet format:	byte					; (EVT_END)
+*/
+class KLogger
+{
+protected:
+	DWORD bufferSize;
+	DWORD bufferIndex;
+	unsigned int totalMills;
+	unsigned int totalEvents;
+	char *buffer;
+	bool bufferFull, isFirstCall;
+	KPerformanceCounter pCounter;
+
+public:
+
+	enum ByteSizes
+	{
+		SZ_MEGABYTE = 1024 * 1024,
+		SZ_KILOBYTE = 1024,
+	};
+
+	enum EventTypes
+	{
+		EVT_END = 0,
+		EVT_INFORMATION = 1,
+		EVT_WARNING = 2,
+		EVT_ERROR = 3,
+	};
+
+	enum ParamTypes
+	{
+		// skipped value zero. because parser will fail to recognize EVT_END.
+		PARAM_STRING = 1,
+		PARAM_INT32 = 2,
+		PARAM_SHORT16 = 3,
+		PARAM_FLOAT = 4,
+		PARAM_DOUBLE = 5,
+	};
+
+	KLogger(DWORD bufferSize = (SZ_MEGABYTE * 10));
+
+	virtual bool WriteNewEvent(unsigned char eventType = EVT_INFORMATION);
+
+	virtual bool EndEvent();
+
+	/**
+		textLength is number of chars. max value is 255.
+	*/
+	virtual bool AddTextParam(const char *text, unsigned char textLength);
+
+	virtual bool AddIntParam(int value);
+
+	virtual bool AddShortParam(unsigned short value);
+
+	virtual bool AddFloatParam(float value);
+	
+	virtual bool AddDoubleParam(double value);
+
+	virtual bool IsBufferFull();
+
+	virtual bool WriteToFile(const KString &filePath);
+
+	virtual ~KLogger();
+};
+
+#endif
+
 // =========== KMenuItem.h ===========
 
 /*
-    RFC - KMenuItem.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KMenuItem.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KMENUITEM_H_
@@ -1828,25 +2007,25 @@ public:
 // =========== KCursor.h ===========
 
 /*
-    RFC - KCursor.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KCursor.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KCURSOR_H_
@@ -1893,25 +2072,25 @@ public:
 // =========== KBitmap.h ===========
 
 /*
-    RFC - KBitmap.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KBitmap.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KBITMAP_H_
@@ -1961,25 +2140,25 @@ public:
 // =========== KFont.h ===========
 
 /*
-    RFC - KFont.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KFont.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KFONT_H_
@@ -2035,25 +2214,25 @@ public:
 // =========== KIcon.h ===========
 
 /*
-    RFC -KIcon.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC -KIcon.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KICON_H_
@@ -2100,25 +2279,25 @@ public:
 // =========== KMD5.h ===========
 
 /*
-    RFC - KMD5.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KMD5.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KMD5_H_
@@ -2139,28 +2318,143 @@ public:
 
 #endif
 
+// =========== KDirectory.h ===========
+
+/*
+	RFC - KDirectory.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KDIRECTORY_H_
+#define _RFC_KDIRECTORY_H_
+
+#include <windows.h>
+#include <shlobj.h>
+
+/**
+Can be use to manipulate dirs.
+*/
+class RFC_API KDirectory
+{
+public:
+	KDirectory();
+
+	static bool IsDirExists(const KString& dirName);
+
+	/**
+		returns false if directory already exists.
+	*/
+	static bool CreateDir(const KString& dirName);
+
+	/**
+		deletes an existing empty directory.
+	*/
+	static bool RemoveDir(const KString& dirName);
+
+	/**
+		returns the directory of given module. if HModule is NULL this function will return dir of exe.
+		returns empty string on error.
+	*/
+	static KString GetModuleDir(HMODULE hModule);
+
+	/**
+		returns the the directory for temporary files.
+		returns empty string on error.
+	*/
+	static KString GetTempDir();
+
+	/**
+		returns the the Application Data directory. if isAllUsers is true this function will return dir shared across all users.
+		returns empty string on error.
+	*/
+	static KString GetApplicationDataDir(bool isAllUsers = false);
+
+	virtual ~KDirectory();
+};
+
+#endif
+
+// =========== KSHA1.h ===========
+
+/*
+	RFC - KSHA1.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KSHA1_H_
+#define _RFC_KSHA1_H_
+
+
+class RFC_API KSHA1
+{
+public:
+	KSHA1();
+
+	static KString GenerateFromString(const KString& text);
+
+	static KString GenerateFromFile(const KString& fileName);
+
+	virtual ~KSHA1();
+};
+
+#endif
+
 // =========== KFile.h ===========
 
 /*
-    RFC - KFile.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KFile.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KFILE_H_
@@ -2250,216 +2544,28 @@ public:
 
 #endif
 
-// =========== KSHA1.h ===========
-
-/*
-    RFC - KSHA1.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KSHA1_H_
-#define _RFC_KSHA1_H_
-
-
-class RFC_API KSHA1
-{
-public:
-	KSHA1();
-
-	static KString GenerateFromString(const KString& text);
-
-	static KString GenerateFromFile(const KString& fileName);
-
-	virtual ~KSHA1();
-};
-
-#endif
-
-// =========== KDirectory.h ===========
-
-/*
-    RFC - KDirectory.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KDIRECTORY_H_
-#define _RFC_KDIRECTORY_H_
-
-#include <windows.h>
-#include <shlobj.h>
-
-/**
-Can be use to manipulate dirs.
-*/
-class RFC_API KDirectory
-{
-public:
-	KDirectory();
-
-	static bool IsDirExists(const KString& dirName);
-
-	/**
-		returns false if directory already exists.
-	*/
-	static bool CreateDir(const KString& dirName);
-
-	/**
-		deletes an existing empty directory.
-	*/
-	static bool RemoveDir(const KString& dirName);
-
-	/**
-		returns the directory of given module. if HModule is NULL this function will return dir of exe.
-		returns empty string on error.
-	*/
-	static KString GetModuleDir(HMODULE hModule);
-
-	/**
-		returns the the directory for temporary files.
-		returns empty string on error.
-	*/
-	static KString GetTempDir();
-
-	/**
-		returns the the Application Data directory. if isAllUsers is true this function will return dir shared across all users.
-		returns empty string on error.
-	*/
-	static KString GetApplicationDataDir(bool isAllUsers = false);
-
-	virtual ~KDirectory();
-};
-
-#endif
-
-// =========== KRegistry.h ===========
-
-/*
-    RFC - KRegistry.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KREGISTRY_H_
-#define _RFC_KREGISTRY_H_
-
-#include<windows.h>
-
-class RFC_API KRegistry
-{
-
-public:
-	KRegistry();
-
-	// returns true on success or if the key already exists.
-	static bool CreateKey(HKEY hKeyRoot, const KString& subKey);
-
-	// the subkey to be deleted must not have subkeys. 
-	static bool DeleteKey(HKEY hKeyRoot, const KString& subKey);
-
-	static bool ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString *result);
-
-	static bool WriteString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
-
-	static bool ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD *result);
-
-	static bool WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
-
-	/**
-		you must free the buffer when you are done with it.
-
-		e.g. @code
-		void *buffer;
-		DWORD bufferSize;
-		if(KRegistry::ReadBinary(xxx, xxx, xxx, &buffer, &buffSize))
-		{
-			// do your thing here...
-
-			free(buffer);
-		}
-		@endcode
-	*/
-	static bool ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void **buffer, DWORD *buffSize);
-
-	static bool WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void *buffer, DWORD buffSize);
-
-	virtual ~KRegistry();
-
-};
-
-#endif
-
 // =========== KComponent.h ===========
 
 /*
-    RFC - KComponent.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KComponent.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KCOMPONENT_H_
@@ -2480,6 +2586,7 @@ protected:
 	HWND compParentHWND;
 	DWORD compDwStyle;
 	DWORD compDwExStyle;
+	UINT compCtlID;
 	int compX;
 	int compY;
 	int compWidth;
@@ -2496,16 +2603,16 @@ public:
 	KComponent();
 
 	/**
-		window messages can arrive before this event.
-		this method does not update compFont and cursor variables.
-		if you override this method, make sure to call parent "OnHotPlug" method first.
+		Called after hotplugged into a given HWND.
 	*/
 	virtual void OnHotPlug();
 
 	/**
-		HotPlugs any given window
+		HotPlugs given HWND. this method does not update current compFont and cursor variables.
+		Set fetchInfo to true if you want to acquire all the information about this HWND. (width, height, position etc...)
+		Set fetchInfo to false if you only need to receive events. (button click etc...)
 	*/
-	virtual void HotPlugInto(HWND component);
+	virtual void HotPlugInto(HWND component, bool fetchInfo = true, bool subClassWindowProc = false);
 
 	/**
 		Sets mouse cursor of this component.
@@ -2519,15 +2626,30 @@ public:
 
 	/**
 		Registers the class name and creates the component. 
+		top level windows & owner-drawn controls must set subClassWindowProc to true.
+		Otherwise WindowProc will be disabled & you will not receive WM_MEASUREITEM like messages into the EventProc.
 		@returns false if registration failed or component creation failed.
 	*/
-	virtual bool CreateComponent();
+	virtual bool CreateComponent(bool subClassWindowProc = true);
 
 	/**
-		Handles windows messages. 
+		Handles internal window messages. (subclassed window proc)
 		Important: Pass unprocessed messages to parent if you override this method.
 	*/
 	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	/**
+		Receives messages like WM_COMMAND, WM_NOTIFY, WM_DRAWITEM from the parent window. (if it belongs to this component)
+		Pass unprocessed messages to parent if you override this method.
+		@returns true if msg processed.
+	*/
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+
+	/**
+		Identifier of the child component which can be used with WM_MEASUREITEM like messages.
+		@returns zero for top level windows
+	*/
+	virtual UINT GetControlID();
 
 	/**
 		Sets font of this component
@@ -2660,25 +2782,25 @@ public:
 // =========== KProgressBar.h ===========
 
 /*
-    RFC - KProgressBar.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KProgressBar.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KPROGRESSAR_H_
@@ -2697,7 +2819,7 @@ public:
 
 	virtual void SetValue(int value);
 
-	virtual bool CreateComponent();
+	virtual bool CreateComponent(bool subClassWindowProc = false);
 
 	virtual ~KProgressBar();
 };
@@ -2705,210 +2827,28 @@ public:
 
 #endif
 
-// =========== KLabel.h ===========
-
-/*
-    RFC - KLabel.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KLABEL_H_
-#define _RFC_KLABEL_H_
-
-
-class RFC_API KLabel : public KComponent
-{
-public:
-	KLabel();
-
-	virtual bool CreateComponent();
-
-	virtual ~KLabel();
-};
-
-#endif
-
-// =========== KTextBox.h ===========
-
-/*
-    RFC - KTextBox.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KTEXTBOX_H_
-#define _RFC_KTEXTBOX_H_
-
-
-class RFC_API KTextBox : public KComponent
-{
-public:
-	KTextBox(bool readOnly = false);
-
-	virtual KString GetText();
-
-	virtual bool CreateComponent();
-
-	virtual ~KTextBox();
-};
-
-#endif
-
-// =========== KTextArea.h ===========
-
-/*
-    RFC - KTextArea.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KTEXTAREA_H_
-#define _RFC_KTEXTAREA_H_
-
-
-class RFC_API KTextArea : public KTextBox
-{
-public:
-	KTextArea(bool autoScroll = false, bool readOnly = false);
-
-	virtual ~KTextArea();
-};
-
-
-#endif
-
-// =========== KTrackBar.h ===========
-
-/*
-    RFC - KTrackBar.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KTRACKBAR_H_
-#define _RFC_KTRACKBAR_H_
-
-
-class KTrackBarListener;
-
-class RFC_API KTrackBar : public KComponent
-{
-protected:
-	int rangeMin,rangeMax,value;
-	KTrackBarListener *listener;
-
-public:
-	KTrackBar(bool showTicks = false, bool vertical = false);
-
-	/**
-		Range between 0 to 100
-	*/
-	virtual void SetRange(int min, int max);
-
-	virtual void SetValue(int value);
-
-	virtual int GetValue();
-
-	virtual void SetListener(KTrackBarListener *listener);
-
-	virtual void OnChange();
-
-	virtual bool CreateComponent();
-
-	virtual ~KTrackBar();
-};
-
-
-#endif
-
-
 // =========== KGridView.h ===========
 
 /*
-    RFC - KGridView.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KGridView.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KGRIDVIEW_H_
@@ -2954,11 +2894,11 @@ public:
 
 	virtual void CreateColumn(const KString& text, int columnWidth = 100);
 
-	virtual bool CreateComponent();
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual void OnItemClick();
+	virtual bool CreateComponent(bool subClassWindowProc = false);
 
-	virtual void OnItemSelected();
+	virtual void OnItemSelect();
 
 	virtual void OnItemRightClick();
 
@@ -2969,28 +2909,173 @@ public:
 
 #endif
 
+// =========== KLabel.h ===========
+
+/*
+	RFC - KLabel.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KLABEL_H_
+#define _RFC_KLABEL_H_
+
+
+class RFC_API KLabel : public KComponent
+{
+public:
+	KLabel();
+
+	virtual bool CreateComponent(bool subClassWindowProc = false);
+
+	virtual ~KLabel();
+};
+
+#endif
+
+// =========== KTextBox.h ===========
+
+/*
+	RFC - KTextBox.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KTEXTBOX_H_
+#define _RFC_KTEXTBOX_H_
+
+
+class RFC_API KTextBox : public KComponent
+{
+public:
+	KTextBox(bool readOnly = false);
+
+	virtual KString GetText();
+
+	virtual bool CreateComponent(bool subClassWindowProc = false);
+
+	virtual ~KTextBox();
+};
+
+#endif
+
+// =========== KTrackBar.h ===========
+
+/*
+	RFC - KTrackBar.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KTRACKBAR_H_
+#define _RFC_KTRACKBAR_H_
+
+
+class KTrackBarListener;
+
+class RFC_API KTrackBar : public KComponent
+{
+protected:
+	int rangeMin,rangeMax,value;
+	KTrackBarListener *listener;
+
+public:
+	KTrackBar(bool showTicks = false, bool vertical = false);
+
+	/**
+		Range between 0 to 100
+	*/
+	virtual void SetRange(int min, int max);
+
+	virtual void SetValue(int value);
+
+	virtual int GetValue();
+
+	virtual void SetListener(KTrackBarListener *listener);
+
+	virtual void OnChange();
+
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+
+	virtual bool CreateComponent(bool subClassWindowProc = false);
+
+	virtual ~KTrackBar();
+};
+
+
+#endif
+
+
 // =========== KSettingsWriter.h ===========
 
 /*
-    RFC - KSettingsWriter.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KSettingsWriter.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KSETTINGSWRITER_H_
@@ -3034,25 +3119,25 @@ public:
 // =========== KSettingsReader.h ===========
 
 /*
-    RFC - KSettingsReader.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KSettingsReader.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KSETTINGSREADER_H_
@@ -3096,25 +3181,25 @@ public:
 // =========== KButton.h ===========
 
 /*
-    RFC - KButton.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KButton.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KBUTTON_H_
@@ -3137,7 +3222,9 @@ public:
 
 	virtual void OnPress();
 
-	virtual bool CreateComponent();
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+
+	virtual bool CreateComponent(bool subClassWindowProc = false);
 
 	virtual ~KButton();
 };
@@ -3147,25 +3234,25 @@ public:
 // =========== KCheckBox.h ===========
 
 /*
-    RFC - KCheckBox.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KCheckBox.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KCHECKBOX_H_
@@ -3180,7 +3267,7 @@ protected:
 public:
 	KCheckBox();
 
-	virtual bool CreateComponent();
+	virtual bool CreateComponent(bool subClassWindowProc = false);
 
 	virtual void OnPress();
 
@@ -3196,25 +3283,25 @@ public:
 // =========== KWindow.h ===========
 
 /*
-    RFC - KWindow.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KWindow.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KWINDOW_H_
@@ -3238,7 +3325,11 @@ public:
 
 	virtual void CenterScreen();
 
-	virtual bool AddComponent(KComponent *component);
+	/**
+		set subClassWindowProc value to true if component is owner-drawn.
+		Otherwise WindowProc will be disabled & you will not receive WM_MEASUREITEM like messages into the EventProc.
+	*/
+	virtual bool AddComponent(KComponent *component, bool subClassWindowProc = false);
 
 	virtual bool SetClientAreaSize(int width, int height);
 
@@ -3258,25 +3349,25 @@ public:
 // =========== KTimer.h ===========
 
 /*
-    RFC - KTimer.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTimer.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KTIMER_H_
@@ -3285,10 +3376,10 @@ public:
 #include <windows.h>
 
 /**
-    Encapsulates a timer.
+	Encapsulates a timer.
 
-    The timer can be started with the StartTimer() method
-    and controlled with various other methods. Before you start timer, you must set 
+	The timer can be started with the StartTimer() method
+	and controlled with various other methods. Before you start timer, you must set 
 	timer window by calling SetTimerWindow method.
 */
 class RFC_API KTimer
@@ -3344,98 +3435,28 @@ public:
 
 #endif
 
-// =========== KComboBox.h ===========
-
-/*
-    RFC - KComboBox.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KCOMBOBOX_H_
-#define _RFC_KCOMBOBOX_H_
-
-
-
-class KComboBoxListener;
-
-class RFC_API KComboBox : public KComponent
-{
-protected:
-	KPointerList<KString*> *stringList;
-	int selectedItemIndex;
-	KComboBoxListener *listener;
-
-public:
-	KComboBox(bool sort=false);
-
-	virtual void AddItem(const KString& text);
-
-	virtual void RemoveItem(int index);
-
-	virtual void RemoveItem(const KString& text);
-
-	virtual int GetItemIndex(const KString& text);
-
-	virtual int GetItemCount();
-
-	virtual int GetSelectedItemIndex();
-
-	virtual KString GetSelectedItem();
-
-	virtual void ClearList();
-
-	virtual void SelectItem(int index);
-
-	virtual bool CreateComponent();
-
-	virtual void SetListener(KComboBoxListener *listener);
-
-	virtual void OnItemSelect();
-
-	virtual ~KComboBox();
-};
-
-#endif
-
 // =========== KListBox.h ===========
 
 /*
-    RFC - KListBox.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KListBox.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KLISTBOX_H_
@@ -3481,7 +3502,9 @@ public:
 
 	virtual void SelectItems(int start, int end);
 
-	virtual bool CreateComponent();
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+
+	virtual bool CreateComponent(bool subClassWindowProc = false);
 
 	virtual void OnItemSelect();
 
@@ -3490,28 +3513,100 @@ public:
 
 #endif
 
+// =========== KComboBox.h ===========
+
+/*
+	RFC - KComboBox.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KCOMBOBOX_H_
+#define _RFC_KCOMBOBOX_H_
+
+
+
+class KComboBoxListener;
+
+class RFC_API KComboBox : public KComponent
+{
+protected:
+	KPointerList<KString*> *stringList;
+	int selectedItemIndex;
+	KComboBoxListener *listener;
+
+public:
+	KComboBox(bool sort=false);
+
+	virtual void AddItem(const KString& text);
+
+	virtual void RemoveItem(int index);
+
+	virtual void RemoveItem(const KString& text);
+
+	virtual int GetItemIndex(const KString& text);
+
+	virtual int GetItemCount();
+
+	virtual int GetSelectedItemIndex();
+
+	virtual KString GetSelectedItem();
+
+	virtual void ClearList();
+
+	virtual void SelectItem(int index);
+
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+
+	virtual bool CreateComponent(bool subClassWindowProc = false);
+
+	virtual void SetListener(KComboBoxListener *listener);
+
+	virtual void OnItemSelect();
+
+	virtual ~KComboBox();
+};
+
+#endif
+
 // =========== KCommonDialogBox.h ===========
 
 /*
-    RFC - KCommonDialogBox.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KCommonDialogBox.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KCOMMONDIALOGBOX_H_
@@ -3539,25 +3634,25 @@ public:
 // =========== KMenu.h ===========
 
 /*
-    RFC - KMenu.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KMenu.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KMENU_H_
@@ -3587,28 +3682,74 @@ public:
 
 #endif
 
+// =========== KMenuBar.h ===========
+
+/*
+	RFC - KMenuBar.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KMENUBAR_H_
+#define _RFC_KMENUBAR_H_
+
+
+class RFC_API KMenuBar
+{
+protected:
+	HMENU hMenu;
+
+public:
+	KMenuBar();
+
+	virtual void AddMenu(const KString& text, KMenu *menu);
+
+	virtual void AddToWindow(KWindow *window);
+
+	virtual ~KMenuBar();
+};
+
+
+#endif
+
 // =========== KPlatformUtil.h ===========
 
 /*
-    RFC - KPlatformUtil.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KPlatformUtil.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KPLATFORMUTIL_H_
@@ -3636,6 +3777,7 @@ protected:
 	CRITICAL_SECTION g_csCount;
 	int classCount;
 	int timerCount;
+	int controlCount;
 	UINT menuItemCount;
 
 	KPointerList<KMenuItem*> *menuItemList;
@@ -3648,6 +3790,8 @@ public:
 	void SetAppHInstance(HINSTANCE hInstance);
 
 	HINSTANCE GetAppHInstance();
+
+	UINT GenerateControlID();
 
 	KString GenerateClassName();
 	UINT GenerateMenuItemID(KMenuItem *menuItem);
@@ -3666,25 +3810,25 @@ public:
 // =========== KNumericField.h ===========
 
 /*
-    RFC - KNumericField.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KNumericField.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KNUMERICFIELD_H_
@@ -3704,25 +3848,25 @@ public:
 // =========== KPasswordBox.h ===========
 
 /*
-    RFC - KPasswordBox.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KPasswordBox.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KPASSWORDBOX_H_
@@ -3751,25 +3895,25 @@ public:
 // =========== KPushButton.h ===========
 
 /*
-    RFC - KPushButton.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KPushButton.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KPUSHBUTTON_H_
@@ -3789,25 +3933,25 @@ public:
 // =========== KGroupBox.h ===========
 
 /*
-    RFC - KGroupBox.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KGroupBox.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KGROUPBOX_H_
@@ -3824,66 +3968,28 @@ public:
 
 #endif
 
-// =========== KRadioButton.h ===========
-
-/*
-    RFC - KRadioButton.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KRADIOBUTTON_H_
-#define _RFC_KRADIOBUTTON_H_
-
-
-class RFC_API KRadioButton : public KCheckBox
-{
-public:
-	KRadioButton();
-
-	virtual ~KRadioButton();
-};
-
-#endif
-
 // =========== KWindowTypes.h ===========
 
 /*
-    RFC - KWindowTypes.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KWindowTypes.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KWINDOWTYPES_H_
@@ -3936,74 +4042,105 @@ public:
 
 #endif
 
-// =========== KMenuBar.h ===========
+// =========== KTextArea.h ===========
 
 /*
-    RFC - KMenuBar.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTextArea.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
-#ifndef _RFC_KMENUBAR_H_
-#define _RFC_KMENUBAR_H_
+#ifndef _RFC_KTEXTAREA_H_
+#define _RFC_KTEXTAREA_H_
 
 
-class RFC_API KMenuBar
+class RFC_API KTextArea : public KTextBox
 {
-protected:
-	HMENU hMenu;
-
 public:
-	KMenuBar();
+	KTextArea(bool autoScroll = false, bool readOnly = false);
 
-	virtual void AddMenu(const KString& text, KMenu *menu);
-
-	virtual void AddToWindow(KWindow *window);
-
-	virtual ~KMenuBar();
+	virtual ~KTextArea();
 };
 
+
+#endif
+
+// =========== KRadioButton.h ===========
+
+/*
+	RFC - KRadioButton.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KRADIOBUTTON_H_
+#define _RFC_KRADIOBUTTON_H_
+
+
+class RFC_API KRadioButton : public KCheckBox
+{
+public:
+	KRadioButton();
+
+	virtual ~KRadioButton();
+};
 
 #endif
 
 // =========== rfc.h ===========
 
 /*
-    RFC Framework v0.2.6
-    Copyright (C) 2013-2017 CrownSoft
+	RFC Framework v0.2.6
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_H_
@@ -4023,8 +4160,11 @@ RFC_API LRESULT CALLBACK GlobalWnd_Proc(HWND,UINT,WPARAM,LPARAM);
 RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
 RFC_API DWORD WINAPI GlobalThread_Proc(LPVOID);
 
-RFC_API HWND CreateRFCComponent(KComponent*);
-RFC_API bool CreateRFCThread(KThread*);
+/**
+	top level windows & owner-drawn controls must set subClassWindowProc to true.
+*/
+RFC_API HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc);
+RFC_API bool CreateRFCThread(KThread* thread);
 
 RFC_API void DoMessagePump(bool handleTabKey=true);
 
@@ -4101,6 +4241,13 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	(((DWORD)(ch4)& 0xFF00) << 8) | \
 	(((DWORD)(ch4)& 0xFF0000) >> 8) | \
 	(((DWORD)(ch4)& 0xFF000000) >> 24))
+
+class RFC_API InternalDefinitions
+{
+public:
+	static const wchar_t* RFCPropText_Object;
+	static const wchar_t* RFCPropText_OldProc;
+};
 
 #endif
 

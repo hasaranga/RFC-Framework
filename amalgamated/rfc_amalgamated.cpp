@@ -8,25 +8,25 @@
 // =========== KApplication.cpp ===========
 
 /*
-    RFC - KApplication.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KApplication.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -46,25 +46,25 @@ KApplication::~KApplication()
 // =========== rfc.cpp ===========
 
 /*
-    RFC - rfc.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - rfc.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -74,22 +74,16 @@ public:
 	static KComponent *currentComponent;
 	static HHOOK wnd_hook;
 	static CRITICAL_SECTION g_csComponent; // guard currentComponent!
-
-	static const wchar_t* RFCPropText_Object;
-	static const wchar_t* RFCPropText_OldProc;
-	static const wchar_t* RFCPropText_ClsName;
-
 	static volatile int rfcRefCount;
 };
 
 KComponent* InternalVariables::currentComponent = 0;
 HHOOK InternalVariables::wnd_hook = 0;
-const wchar_t* InternalVariables::RFCPropText_Object = L"RFC";
-const wchar_t* InternalVariables::RFCPropText_OldProc = L"RFCOldProc";
-const wchar_t* InternalVariables::RFCPropText_ClsName = L"RFCClsName";
 volatile int InternalVariables::rfcRefCount = 0;
 CRITICAL_SECTION InternalVariables::g_csComponent;
 
+const wchar_t* InternalDefinitions::RFCPropText_Object = L"RFC";
+const wchar_t* InternalDefinitions::RFCPropText_OldProc = L"RFCOldProc";
 
 LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 {
@@ -98,10 +92,9 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 
 	if(nCode==HCBT_CREATEWND){
 		HWND hwnd=(HWND)wParam;
-		::SetPropW(hwnd, InternalVariables::RFCPropText_Object, (HANDLE)InternalVariables::currentComponent);
+		::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)InternalVariables::currentComponent);
 		FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
-		::SetPropW(hwnd, InternalVariables::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
-		::SetPropW(hwnd, InternalVariables::RFCPropText_ClsName, (HANDLE)(const wchar_t*)InternalVariables::currentComponent->GetComponentClassName());
+		::SetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
 
 		::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
 	}
@@ -113,7 +106,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
 
-	KComponent *component = (KComponent*)::GetPropW(hwnd, InternalVariables::RFCPropText_Object);
+	KComponent *component = (KComponent*)::GetPropW(hwnd, InternalDefinitions::RFCPropText_Object);
 
 	if(!component){ // just for safe!
 		return ::DefWindowProcW( hwnd, msg, wParam, lParam );
@@ -123,13 +116,12 @@ LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 		component->SetHWND(hwnd);
 
 	if(msg==WM_NCDESTROY){
-		::RemovePropW(hwnd, InternalVariables::RFCPropText_Object);
-		::RemovePropW(hwnd, InternalVariables::RFCPropText_ClsName);
+		::RemovePropW(hwnd, InternalDefinitions::RFCPropText_Object);
 
-		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalVariables::RFCPropText_OldProc);
+		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
 		if (lpfnOldWndProc)
 		{
-			::RemovePropW(hwnd, InternalVariables::RFCPropText_OldProc);
+			::RemovePropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
 			::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc); // restore default wnd proc!
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 		}
@@ -138,24 +130,35 @@ LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 	return component->WindowProc(hwnd, msg, wParam, lParam);
 }
 
-HWND CreateRFCComponent(KComponent* component)
-{
-	// we make thread safe this function!
+HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc)
+{	
+	if (subClassWindowProc)
+	{
+		::EnterCriticalSection(&InternalVariables::g_csComponent);
 
-	::EnterCriticalSection(&InternalVariables::g_csComponent);
+		InternalVariables::currentComponent = component;
 
-	InternalVariables::currentComponent = component;
+		// install hook to get called before WM_CREATE_WINDOW msg!
+		InternalVariables::wnd_hook = ::SetWindowsHookExW(WH_CBT, &RFCCTL_CBTProc, 0, ::GetCurrentThreadId());
 
-	// install hook to receive WM_CREATE_WINDOW msg!
-	InternalVariables::wnd_hook = ::SetWindowsHookExW(WH_CBT, &RFCCTL_CBTProc, 0, ::GetCurrentThreadId());
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), (const wchar_t*)component->GetComponentClassName(), (const wchar_t*)component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
 
-	HWND hwnd = ::CreateWindowExW(component->GetExStyle(), (const wchar_t*)component->GetComponentClassName(), (const wchar_t*)component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), 0, KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
+		::UnhookWindowsHookEx(InternalVariables::wnd_hook);
 
-	::UnhookWindowsHookEx(InternalVariables::wnd_hook);
+		::LeaveCriticalSection(&InternalVariables::g_csComponent);
 
-	::LeaveCriticalSection(&InternalVariables::g_csComponent);
+		return hwnd;
+	}
+	else
+	{
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), (const wchar_t*)component->GetComponentClassName(), (const wchar_t*)component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
 
-	return hwnd;
+		::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)component);
+
+		component->SetHWND(hwnd);
+
+		return hwnd;
+	}
 }
 
 void DoMessagePump(bool handleTabKey)
@@ -242,7 +245,7 @@ INT_PTR CALLBACK GlobalDlg_Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 		KComponent* comp = (KComponent*)lParam;
 		if(comp)
 		{
-			comp->HotPlugInto(hwndDlg);
+			comp->HotPlugInto(hwndDlg, true, true);
 		}
 		return FALSE;
 	}
@@ -288,25 +291,25 @@ void DeInitRFC()
 // =========== KPerformanceCounter.cpp ===========
 
 /*
-    RFC - KPerformanceCounter.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KPerformanceCounter.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -343,25 +346,25 @@ KPerformanceCounter::~KPerformanceCounter()
 // =========== KPlatformUtil.cpp ===========
 
 /*
-    RFC - KPlatformUtil.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KPlatformUtil.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -372,6 +375,7 @@ KPlatformUtil::KPlatformUtil()
 	timerCount = 0;
 	menuItemCount = 0;
 	classCount = 0;
+	controlCount = 0;
 	hInstance = 0;
 	::InitializeCriticalSection(&g_csCount);
 	menuItemList = new KPointerList<KMenuItem*>();
@@ -396,6 +400,15 @@ HINSTANCE KPlatformUtil::GetAppHInstance()
 	return hInstance;
 }
 
+UINT KPlatformUtil::GenerateControlID()
+{
+	::EnterCriticalSection(&g_csCount);
+	controlCount++;
+	::LeaveCriticalSection(&g_csCount);
+
+	return controlCount + 100;
+}
+
 UINT KPlatformUtil::GenerateMenuItemID(KMenuItem *menuItem)
 {
 	::EnterCriticalSection(&g_csCount);
@@ -414,17 +427,31 @@ KMenuItem* KPlatformUtil::GetMenuItemByID(UINT id)
 KString KPlatformUtil::GenerateClassName()
 {
 	::EnterCriticalSection(&g_csCount);
-	static wchar_t className[32];
 
+	wchar_t *className = (wchar_t*)::malloc(32 * sizeof(wchar_t));
+
+	className[0] = L'R';
+	className[1] = L'F';
+	className[2] = L'C';
+	className[3] = L'_';
+
+	::_itow((int)hInstance, &className[4], 10);
+
+	int lastPos = (int)::wcslen(className);
+	className[lastPos] = L'_';
+
+	::_itow(classCount, &className[lastPos + 1], 10);
+
+	/*
 	#ifdef _MSC_VER
 		::swprintf(className, 32, L"RFC_%d_%d", (int)hInstance, classCount);
 	#else
 		::swprintf(className,L"RFC_%d_%d", (int)hInstance, classCount);
-	#endif
+	#endif */
 
 	classCount++;
 	::LeaveCriticalSection(&g_csCount);
-	return KString(className);
+	return KString(className, KString::FREE_TEXT_WHEN_DONE);
 }
 
 UINT KPlatformUtil::GenerateTimerID(KTimer *timer)
@@ -452,25 +479,25 @@ KPlatformUtil::~KPlatformUtil()
 // =========== KRegistry.cpp ===========
 
 /*
-    RFC - KRegistry.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KRegistry.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -627,25 +654,25 @@ KRegistry::~KRegistry()
 // =========== KThread.cpp ===========
 
 /*
-    RFC - KThread.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KThread.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -724,25 +751,25 @@ KThread::~KThread()
 // =========== KTimer.cpp ===========
 
 /*
-    RFC - KTimer.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTimer.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -835,25 +862,25 @@ KTimer::~KTimer()
 // =========== KTimerListener.cpp ===========
 
 /*
-    RFC - KTimerListener.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTimerListener.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -868,25 +895,25 @@ void KTimerListener::OnTimer(KTimer *timer){}
 // =========== KString.cpp ===========
 
 /*
-    RFC - KString.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KString.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #include <stdio.h>
@@ -1305,25 +1332,25 @@ KString::~KString()
 // =========== KStringHolder.cpp ===========
 
 /*
-    RFC - KStringHolder.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KStringHolder.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -1397,25 +1424,25 @@ const char* KStringHolder::GetAnsiVersion(UINT codePage)
 // =========== KMD5.cpp ===========
 
 /*
-RFC - KMD5.cpp
-Copyright (C) 2013-2017 CrownSoft
+	RFC - KMD5.cpp
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-This software is provided 'as-is', without any express or implied
-warranty.  In no event will the authors be held liable for any damages
-arising from the use of this software.
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not
-claim that you wrote the original software. If you use this software
-in a product, an acknowledgment in the product documentation would be
-appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be
-misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -1466,25 +1493,25 @@ KMD5::~KMD5()
 // =========== KSHA1.cpp ===========
 
 /*
-    RFC - KSHA1.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KSHA1.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -1545,25 +1572,25 @@ KSHA1::~KSHA1()
 // =========== KDirectory.cpp ===========
 
 /*
-RFC - KDirectory.cpp
-Copyright (C) 2013-2017 CrownSoft
+	RFC - KDirectory.cpp
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-This software is provided 'as-is', without any express or implied
-warranty.  In no event will the authors be held liable for any damages
-arising from the use of this software.
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not
-claim that you wrote the original software. If you use this software
-in a product, an acknowledgment in the product documentation would be
-appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be
-misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -1626,25 +1653,25 @@ KString KDirectory::GetApplicationDataDir(bool isAllUsers)
 // =========== KFile.cpp ===========
 
 /*
-RFC - KFile.cpp
-Copyright (C) 2013-2017 CrownSoft
+	RFC - KFile.cpp
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-This software is provided 'as-is', without any express or implied
-warranty.  In no event will the authors be held liable for any damages
-arising from the use of this software.
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not
-claim that you wrote the original software. If you use this software
-in a product, an acknowledgment in the product documentation would be
-appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be
-misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -1816,28 +1843,230 @@ KFile::~KFile()
 		::CloseHandle(fileHandle);
 }
 
+// =========== KLogger.cpp ===========
+
+/*
+	RFC - KLogger.cpp
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+
+KLogger::KLogger(DWORD bufferSize)
+{
+	buffer = (char*)malloc(bufferSize);
+	this->bufferSize = bufferSize;
+	bufferIndex = 0;
+	totalEvents = 0;
+	bufferFull = false;
+	isFirstCall = true;
+}
+
+bool KLogger::WriteNewEvent(unsigned char eventType)
+{
+	if (!bufferFull)
+	{
+		if ((bufferIndex + 300) >= bufferSize) // assume each event data is not greater than 300 bytes
+		{
+			bufferFull = true;
+			return false;
+		}
+
+		unsigned short secs = 0;
+		unsigned short mills = 0;
+
+		if (isFirstCall)
+		{
+			pCounter.StartCounter();
+			isFirstCall = false;
+			totalMills = 0;
+		}
+		else{
+			double deltaMills = pCounter.EndCounter();
+			totalMills += (unsigned int)deltaMills;
+
+			secs = (unsigned short)(totalMills/1000);
+			mills = (unsigned short)(totalMills % 1000);
+
+			pCounter.StartCounter();
+		}
+
+		buffer[bufferIndex] = eventType; // write event type
+		bufferIndex += sizeof(unsigned char);
+
+		*((unsigned short*)&buffer[bufferIndex]) = secs; // write secs
+		bufferIndex += sizeof(unsigned short);
+
+		*((unsigned short*)&buffer[bufferIndex]) = mills; // write mills
+		bufferIndex += sizeof(unsigned short);
+
+		totalEvents++;
+
+		return true;
+	}
+	return false;
+}
+
+bool KLogger::EndEvent()
+{
+	if (!bufferFull)
+	{
+		buffer[bufferIndex] = EVT_END; // write event end
+		bufferIndex += sizeof(unsigned char);
+
+		return true;
+	}
+	return false;
+}
+
+bool KLogger::AddTextParam(const char *text, unsigned char textLength)
+{
+	if( (textLength < 256) && (!bufferFull) )
+	{
+		buffer[bufferIndex] = PARAM_STRING; // write param type
+		bufferIndex += sizeof(unsigned char);
+
+		buffer[bufferIndex] = textLength; // write data size
+		bufferIndex += sizeof(unsigned char);
+
+		for (int i = 0; i < textLength; i++) // write data
+		{
+			buffer[bufferIndex] = text[i];
+			bufferIndex += sizeof(unsigned char);
+		}
+
+		return true;
+	}
+	return false;
+}
+
+bool KLogger::AddIntParam(int value)
+{
+	if(!bufferFull)
+	{
+		buffer[bufferIndex] = PARAM_INT32; // write param type
+		bufferIndex += sizeof(unsigned char);
+
+		*((int*)&buffer[bufferIndex]) = value; // write data
+		bufferIndex += sizeof(int);
+
+		return true;
+	}
+	return false;
+}
+
+bool KLogger::AddShortParam(unsigned short value)
+{
+	if(!bufferFull)
+	{
+		buffer[bufferIndex] = PARAM_SHORT16; // write param type
+		bufferIndex += sizeof(unsigned char);
+
+		*((unsigned short*)&buffer[bufferIndex]) = value; // write data
+		bufferIndex += sizeof(unsigned short);
+
+		return true;
+	}
+	return false;
+}
+
+bool KLogger::AddFloatParam(float value)
+{
+	if(!bufferFull)
+	{
+		buffer[bufferIndex] = PARAM_FLOAT; // write param type
+		bufferIndex += sizeof(unsigned char);
+
+		*((float*)&buffer[bufferIndex]) = value; // write data
+		bufferIndex += sizeof(float);
+
+		return true;
+	}
+	return false;
+}
+	
+bool KLogger::AddDoubleParam(double value)
+{
+	if(!bufferFull)
+	{
+		buffer[bufferIndex] = PARAM_DOUBLE; // write param type
+		bufferIndex += sizeof(unsigned char);
+
+		*((double*)&buffer[bufferIndex]) = value; // write data
+		bufferIndex += sizeof(double);
+
+		return true;
+	}
+	return false;
+}
+
+bool KLogger::IsBufferFull()
+{
+	return bufferFull;
+}
+
+bool KLogger::WriteToFile(const KString &filePath)
+{
+	KFile file;
+
+	if (KFile::IsFileExists(filePath))
+		KFile::DeleteFile(filePath);
+
+	if (file.OpenFile(filePath,KFile::KWRITE))
+	{
+		file.WriteFile((void*)"RLOG", 4);
+		file.WriteFile(&totalEvents, 4);
+		file.WriteFile(buffer, bufferIndex);
+
+		return true;
+	}
+
+	return false;
+}
+
+KLogger::~KLogger()
+{
+	free(buffer);
+}
+
 // =========== KSettingsReader.cpp ===========
 
 /*
-    RFC - KSettingsReader.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KSettingsReader.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -1929,25 +2158,25 @@ KSettingsReader::~KSettingsReader()
 // =========== KSettingsWriter.cpp ===========
 
 /*
-    RFC - KSettingsWriter.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KSettingsWriter.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -2020,25 +2249,25 @@ KSettingsWriter::~KSettingsWriter()
 // =========== KButton.cpp ===========
 
 /*
-    RFC - KButton.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KButton.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -2071,22 +2300,35 @@ void KButton::OnPress()
 		listener->OnButtonPress(this);
 }
 
-bool KButton::CreateComponent()
+bool KButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+{
+	if ((msg == WM_COMMAND) && (HIWORD(wParam) == BN_CLICKED))
+	{
+		this->OnPress();
+
+		*result = 0;
+		return true;
+	}
+
+	return KComponent::EventProc(msg, wParam, lParam, result);
+}
+
+bool KButton::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register BUTTON class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 	return false;
@@ -2099,25 +2341,25 @@ KButton::~KButton()
 // =========== KButtonListener.cpp ===========
 
 /*
-    RFC - KButtonListener.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KButtonListener.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -2130,25 +2372,25 @@ void KButtonListener::OnButtonPress(KButton *button){}
 // =========== KCheckBox.cpp ===========
 
 /*
-    RFC - KCheckBox.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KCheckBox.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -2160,24 +2402,24 @@ KCheckBox::KCheckBox()
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP);
 }
 
-bool KCheckBox::CreateComponent()
+bool KCheckBox::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register BUTTON class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::SendMessageW(compHWND, BM_SETCHECK, checked, 0);
 
 		::EnableWindow(compHWND, compEnabled);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 	return false;
@@ -2214,25 +2456,25 @@ KCheckBox::~KCheckBox()
 // =========== KComboBox.cpp ===========
 
 /*
-    RFC - KComboBox.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KComboBox.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -2321,7 +2563,7 @@ int KComboBox::GetSelectedItemIndex()
 KString KComboBox::GetSelectedItem()
 {
 	int itemIndex = this->GetSelectedItemIndex();
-	if(itemIndex>-1)
+	if(itemIndex > -1)
 		return *stringList->GetPointer(itemIndex);
 	return KString();
 }
@@ -2344,21 +2586,33 @@ void KComboBox::SelectItem(int index)
 	}
 }
 
-bool KComboBox::CreateComponent()
+bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+{
+	if ((msg == WM_COMMAND) && (HIWORD(wParam) == CBN_SELENDOK))
+	{
+		this->OnItemSelect();
+
+		*result = 0;
+		return true;
+	}
+
+	return KComponent::EventProc(msg, wParam, lParam, result);
+}
+
+bool KComboBox::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register COMBOBOX class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register COMBOBOX class!
 
 	if(compHWND)
 	{
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
-		int listSize=stringList->GetSize();
+		int listSize = stringList->GetSize();
 		if(listSize)
 		{
 			for(int i = 0; i < listSize; i++)
@@ -2368,9 +2622,9 @@ bool KComboBox::CreateComponent()
 		if(selectedItemIndex > -1)
 			::SendMessageW(compHWND, CB_SETCURSEL, selectedItemIndex, 0);
 
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
 		return true;
 	}
 
@@ -2399,25 +2653,25 @@ KComboBox::~KComboBox()
 // =========== KComboBoxListener.cpp ===========
 
 /*
-    RFC - KComboBoxListener.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KComboBoxListener.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -2430,25 +2684,25 @@ void KComboBoxListener::OnComboBoxItemSelect(KComboBox *comboBox){}
 // =========== KCommonDialogBox.cpp ===========
 
 /*
-    RFC - KCommonDialogBox.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KCommonDialogBox.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -2511,25 +2765,25 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 // =========== KComponent.cpp ===========
 
 /*
-    RFC - KComponent.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KComponent.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -2539,7 +2793,9 @@ KComponent::KComponent()
 {
 	isRegistered = false;
 
-	compClassName = KPlatformUtil::GetInstance()->GenerateClassName();
+	KPlatformUtil *platformUtil = KPlatformUtil::GetInstance();
+	compClassName = platformUtil->GenerateClassName();
+	compCtlID = platformUtil->GenerateControlID();
 
 	compHWND = 0;
 	compParentHWND = 0;
@@ -2562,7 +2818,7 @@ KComponent::KComponent()
 	wc.cbWndExtra = 0;
 	wc.hIconSm = 0;
 	wc.style = 0;
-	wc.hInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
+	wc.hInstance = platformUtil->GetAppHInstance();
 	wc.lpszClassName = (const wchar_t*)compClassName;
 
 	wc.lpfnWndProc = ::GlobalWnd_Proc;
@@ -2572,50 +2828,61 @@ KComponent::KComponent()
 
 void KComponent::OnHotPlug()
 {
-	RECT rect;
-	::GetWindowRect(compHWND, &rect);
-	compWidth = rect.right - rect.left;
-	compHeight = rect.bottom - rect.top;
-	compX = rect.left;
-	compY = rect.top;
 
-	compVisible = ::IsWindowVisible(compHWND) ? true : false;
-	compEnabled = ::IsWindowEnabled(compHWND) ? true : false;
-
-	compDwStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_STYLE);
-	compDwExStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_EXSTYLE);
-
-	compParentHWND = ::GetParent(compHWND);
-
-	wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t)); // assume 256 is enough
-	buff[0] = 0;
-	::GetWindowTextW(compHWND, buff, 256);
-	compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 }
 
-void KComponent::HotPlugInto(HWND component)
+void KComponent::HotPlugInto(HWND component, bool fetchInfo, bool subClassWindowProc)
 {
-	static const wchar_t* RFCPropText_Object = L"RFC";
-	static const wchar_t* RFCPropText_OldProc = L"RFCOldProc";
-	static const wchar_t* RFCPropText_ClsName = L"RFCClsName";
-
 	compHWND = component;
-	::SetPropW(compHWND, RFCPropText_Object, (HANDLE)this);
-	FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(compHWND, GWLP_WNDPROC);
-	::SetPropW(compHWND, RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
 
-	wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));
-	clsName[0] = 0;
-	::GetClassNameW(compHWND, clsName, 256);
-	compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
+	if (fetchInfo)
+	{
+		wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));
+		clsName[0] = 0;
+		::GetClassNameW(compHWND, clsName, 256);
+		compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
 
-	::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(), compClassName, &wc);
+		::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(), compClassName, &wc);
 
-	::SetPropW(compHWND, RFCPropText_ClsName, (HANDLE)(const wchar_t*)compClassName);
+		compCtlID = (UINT)::GetWindowLongPtrW(compHWND, GWL_ID);
 
-	::SetWindowLongPtrW(compHWND, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+		RECT rect;
+		::GetWindowRect(compHWND, &rect);
+		compWidth = rect.right - rect.left;
+		compHeight = rect.bottom - rect.top;
+		compX = rect.left;
+		compY = rect.top;
+
+		compVisible = ::IsWindowVisible(compHWND) ? true : false;
+		compEnabled = ::IsWindowEnabled(compHWND) ? true : false;
+
+		compDwStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_STYLE);
+		compDwExStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_EXSTYLE);
+
+		compParentHWND = ::GetParent(compHWND);
+
+		wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t)); // assume 256 is enough
+		buff[0] = 0;
+		::GetWindowTextW(compHWND, buff, 256);
+		compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
+	}
+
+	::SetPropW(compHWND, InternalDefinitions::RFCPropText_Object, (HANDLE)(KComponent*)this);
+
+	if (subClassWindowProc)
+	{
+		FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(compHWND, GWLP_WNDPROC);
+		::SetPropW(compHWND, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
+
+		::SetWindowLongPtrW(compHWND, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+	}	
 
 	this->OnHotPlug();
+}
+
+UINT KComponent::GetControlID()
+{
+	return compCtlID;
 }
 
 void KComponent::SetMouseCursor(KCursor *cursor)
@@ -2630,21 +2897,23 @@ KString KComponent::GetComponentClassName()
 	return compClassName;
 }
 
-bool KComponent::CreateComponent()
+bool KComponent::CreateComponent(bool subClassWindowProc)
 {
 	if(!::RegisterClassExW(&wc))
 		return false;
 
 	isRegistered=true;
 
-	::CreateRFCComponent(this);
+	::CreateRFCComponent(this, subClassWindowProc);
 
 	if(compHWND)
 	{
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::EnableWindow(compHWND, compEnabled);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
 
 		if(cursor)
 			::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->GetHandle());
@@ -2656,13 +2925,16 @@ bool KComponent::CreateComponent()
 
 LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	static const wchar_t* RFCPropText_OldProc = L"RFCOldProc";
-
-	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, RFCPropText_OldProc);
+	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
 	if(lpfnOldWndProc)
 		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed standard-control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
+}
+
+bool KComponent::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+{
+	return false;
 }
 
 void KComponent::SetFont(KFont *compFont)
@@ -2825,25 +3097,25 @@ KComponent::~KComponent()
 // =========== KGridView.cpp ===========
 
 /*
-    RFC - KGridView.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KGridView.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -2983,36 +3255,61 @@ void KGridView::CreateColumn(const KString& text, int columnWidth)
 	colCount++;
 }
 
-bool KGridView::CreateComponent()
+bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+{
+	if (msg == WM_NOTIFY)
+	{
+		if (((LPNMHDR)lParam)->code == LVN_ITEMCHANGED) // List view item selection changed (mouse or keyboard)
+		{
+			LPNMLISTVIEW pNMListView = (LPNMLISTVIEW)lParam;
+			if ((pNMListView->uChanged & LVIF_STATE) && (pNMListView->uNewState & LVIS_SELECTED))
+			{
+				this->OnItemSelect();
+				*result = 0;
+				return true;
+			}
+		}
+		else if (((LPNMHDR)lParam)->code == NM_RCLICK) // List view item right click
+		{
+			this->OnItemRightClick();
+			*result = 0;
+			return true;
+		}
+		else if (((LPNMHDR)lParam)->code == NM_DBLCLK) // List view item double click
+		{
+			this->OnItemDoubleClick();
+			*result = 0;
+			return true;
+		}
+	}
+
+	return KComponent::EventProc(msg, wParam, lParam, result);
+}
+
+bool KGridView::CreateComponent(bool subClassWindowProc)
 {
 	if (!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register WC_LISTVIEWW class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register WC_LISTVIEWW class!
 
 	if (compHWND)
 	{
 		ListView_SetExtendedListViewStyle(compHWND, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
-		if (this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 	return false;
 }
 
-void KGridView::OnItemClick()
-{
-	if (listener)
-		listener->OnGridViewItemClick(this);
-}
-
-void KGridView::OnItemSelected()
+void KGridView::OnItemSelect()
 {
 	if (listener)
 		listener->OnGridViewItemSelect(this);
@@ -3034,32 +3331,31 @@ void KGridView::OnItemDoubleClick()
 // =========== KGridViewListener.cpp ===========
 
 /*
-    RFC - KGridViewListener.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KGridViewListener.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
 KGridViewListener::KGridViewListener(){}
-KGridViewListener::~KGridViewListener(){}
 
-void KGridViewListener::OnGridViewItemClick(KGridView *gridView){}
+KGridViewListener::~KGridViewListener(){}
 
 void KGridViewListener::OnGridViewItemSelect(KGridView *gridView){}
 
@@ -3070,25 +3366,25 @@ void KGridViewListener::OnGridViewItemDoubleClick(KGridView *gridView){}
 // =========== KGroupBox.cpp ===========
 
 /*
-    RFC - KGroupBox.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KGroupBox.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3106,25 +3402,25 @@ KGroupBox::~KGroupBox()
 // =========== KLabel.cpp ===========
 
 /*
-    RFC - KLabel.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KLabel.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3139,22 +3435,22 @@ KLabel::KLabel()
 	this->SetExStyle(WS_EX_WINDOWEDGE);
 }
 
-bool KLabel::CreateComponent()
+bool KLabel::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register Label class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register Label class!
 
 	if(compHWND)
 	{
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 	return false;
@@ -3167,25 +3463,25 @@ KLabel::~KLabel()
 // =========== KListBox.cpp ===========
 
 /*
-    RFC - KListBox.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KListBox.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3332,17 +3628,29 @@ void KListBox::SelectItems(int start, int end)
 	}
 }
 
-bool KListBox::CreateComponent()
+bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+{
+	if ((msg == WM_COMMAND) && (HIWORD(wParam) == LBN_SELCHANGE)) // listbox sel change!
+	{
+		this->OnItemSelect();
+
+		*result = 0;
+		return true;
+	}
+
+	return KComponent::EventProc(msg, wParam, lParam, result);
+}
+
+bool KListBox::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register LISTBOX class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register LISTBOX class!
 
 	if(compHWND)
 	{
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -3363,8 +3671,9 @@ bool KListBox::CreateComponent()
 				::SendMessageW(compHWND, LB_SELITEMRANGE, TRUE, MAKELPARAM(selectedItemIndex, selectedItemEnd));
 		}
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 
@@ -3386,25 +3695,25 @@ KListBox::~KListBox()
 // =========== KListBoxListener.cpp ===========
 
 /*
-    RFC - KListBoxListener.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KListBoxListener.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3416,25 +3725,25 @@ void KListBoxListener::OnListBoxItemSelect(KListBox *listBox){}
 // =========== KMenu.cpp ===========
 
 /*
-    RFC - KMenu.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KMenu.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3489,25 +3798,25 @@ KMenu::~KMenu()
 // =========== KMenuBar.cpp ===========
 
 /*
-    RFC - KMenuBar.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KMenuBar.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3537,25 +3846,25 @@ KMenuBar::~KMenuBar()
 // =========== KMenuItem.cpp ===========
 
 /*
-    RFC - KMenuItem.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KMenuItem.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3688,25 +3997,25 @@ KMenuItem::~KMenuItem()
 // =========== KMenuItemListener.cpp ===========
 
 /*
-    RFC - KMenuItemListener.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KMenuItemListener.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3719,25 +4028,25 @@ void KMenuItemListener::OnMenuItemPress(KMenuItem *menuItem){}
 // =========== KNumericField.cpp ===========
 
 /*
-    RFC - KNumericField.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KNumericField.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3751,25 +4060,25 @@ KNumericField::~KNumericField(){}
 // =========== KPasswordBox.cpp ===========
 
 /*
-    RFC - KPasswordBox.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KPasswordBox.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3811,25 +4120,25 @@ KPasswordBox::~KPasswordBox()
 // =========== KProgressBar.cpp ===========
 
 /*
-    RFC - KProgressBar.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KProgressBar.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3864,12 +4173,12 @@ void KProgressBar::SetValue(int value)
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
-bool KProgressBar::CreateComponent()
+bool KProgressBar::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register PROGRESS_CLASSW class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register PROGRESS_CLASSW class!
 
 	if(compHWND)
 	{
@@ -3878,8 +4187,9 @@ bool KProgressBar::CreateComponent()
 
 		::EnableWindow(compHWND, compEnabled);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 	return false;	
@@ -3892,25 +4202,25 @@ KProgressBar::~KProgressBar()
 // =========== KPushButton.cpp ===========
 
 /*
-    RFC - KPushButton.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KPushButton.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3927,25 +4237,25 @@ KPushButton::~KPushButton()
 // =========== KRadioButton.cpp ===========
 
 /*
-    RFC - KRadioButton.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KRadioButton.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -3962,25 +4272,25 @@ KRadioButton::~KRadioButton()
 // =========== KTextArea.cpp ===========
 
 /*
-    RFC - KTextArea.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTextArea.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -4002,25 +4312,25 @@ KTextArea::~KTextArea()
 // =========== KTextBox.cpp ===========
 
 /*
-    RFC - KTextBox.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTextBox.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -4058,22 +4368,22 @@ KString KTextBox::GetText()
 }
 
 
-bool KTextBox::CreateComponent()
+bool KTextBox::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register EDIT class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register EDIT class!
 
 	if(compHWND)
 	{
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 	return false;
@@ -4086,25 +4396,25 @@ KTextBox::~KTextBox()
 // =========== KTrackBar.cpp ===========
 
 /*
-    RFC - KTrackBar.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTrackBar.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -4159,25 +4469,42 @@ int KTrackBar::GetValue()
 	return value;
 }
 
-bool KTrackBar::CreateComponent()
+bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+{
+	if( (msg == WM_HSCROLL) || (msg == WM_VSCROLL) )
+	{
+		int nScrollCode = (int)LOWORD(wParam);
+
+		if( (TB_THUMBTRACK == nScrollCode) || (TB_LINEDOWN == nScrollCode) || (TB_LINEUP == nScrollCode) || (TB_BOTTOM == nScrollCode) || (TB_TOP == nScrollCode) || (TB_PAGEUP == nScrollCode) || (TB_PAGEDOWN == nScrollCode) ) // its trackbar!
+		{
+			this->OnChange();
+			*result = 0;
+			return true;
+		}
+	}
+
+	return KComponent::EventProc(msg, wParam, lParam, result);
+}
+
+bool KTrackBar::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register TRACKBAR_CLASSW class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register TRACKBAR_CLASSW class!
 
 	if(compHWND)
 	{
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
 		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(rangeMin, rangeMax));	
 		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 
@@ -4192,25 +4519,25 @@ KTrackBar::~KTrackBar()
 // =========== KTrackBarListener.cpp ===========
 
 /*
-    RFC - KTrackBarListener.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KTrackBarListener.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -4223,25 +4550,25 @@ void KTrackBarListener::OnTrackBarChange(KTrackBar *trackBar){}
 // =========== KWindow.cpp ===========
 
 /*
-    RFC - KWindow.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KWindow.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -4253,6 +4580,7 @@ KWindow::KWindow()
 	this->SetStyle(WS_POPUP);
 	this->SetExStyle(WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT);
 	wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+	compCtlID = 0; // control id is zero for top level window
 }
 
 void KWindow::Flash()
@@ -4286,14 +4614,14 @@ void KWindow::CenterScreen()
 	this->SetPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
 }
 
-bool KWindow::AddComponent(KComponent *component)
+bool KWindow::AddComponent(KComponent *component, bool subClassWindowProc)
 {
 	if(component)
 	{
 		if(compHWND)
 		{
 			component->SetParentHWND(compHWND);
-			return component->CreateComponent();
+			return component->CreateComponent(subClassWindowProc);
 		}
 	}
 	return false;
@@ -4347,115 +4675,107 @@ void KWindow::OnResized()
 
 LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	static const wchar_t* RFCPropText_Object = L"RFC";
-	static const wchar_t* RFCPropText_ClsName = L"RFCClsName";
-
 	switch(msg)
 	{
-		case WM_COMMAND:
+		case WM_DRAWITEM: // owner-drawn button, combo box and list box... (menu ignored. use windowProc of parent window if you want to draw menu)
 			{
-				if(HIWORD(wParam) == BN_CLICKED) // button, checkbox, radio button or menu clicked event!
+				if (wParam != 0) // ignore menus
 				{
-					if(lParam)
+					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, InternalDefinitions::RFCPropText_Object);
+					if (component)
 					{
-						KButton *btn = (KButton*)::GetPropW((HWND)lParam, RFCPropText_Object);
-						if(btn) // button, checkbox or radio button!
-						{
-							btn->OnPress();
-							break;
-						}
-					}else // its menu item! unfortunately windows does not send menu handle with clicked event!
-					{
-						KMenuItem *menuItem = KPlatformUtil::GetInstance()->GetMenuItemByID(LOWORD(wParam));
-						if(menuItem)
-						{
-							menuItem->OnPress();
-							break;
-						}
-					}
-				}else if(HIWORD(wParam) == LBN_SELCHANGE) // listbox sel change! (this msg also pops for combo)
-				{
-					wchar_t* clsName = (wchar_t*)::GetPropW((HWND)lParam, RFCPropText_ClsName);
-					if(::_wcsicmp(clsName, L"COMBOBOX") != 0) // ignore combobox (use _wcsicmp instead of wcscmp, coz combo cls name might be ComboBox or COMBOBOX)
-					{
-						KListBox *listBox = (KListBox*)::GetPropW((HWND)lParam, RFCPropText_Object);
-						if(listBox)
-						{
-							listBox->OnItemSelect();
-							break;
-						}
-					}
-				}else if(HIWORD(wParam) == CBN_SELENDOK) // combobox sel change!
-				{
-					KComboBox *comboBox = (KComboBox*)::GetPropW((HWND)lParam, RFCPropText_Object);
-					if(comboBox)
-					{
-						comboBox->OnItemSelect();
-						break;
+						LRESULT result = 0; // just for safe
+						if (component->EventProc(msg, wParam, lParam, &result))
+							return result;
 					}
 				}
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
-			case WM_NOTIFY:
+		case WM_MEASUREITEM: // combo box, list box, list-view control... (menu ignored. use windowProc of parent window if you want to set the size of menu)
 			{
-				if (((LPNMHDR)lParam)->code == NM_CLICK) // List view item click
+				if (wParam != 0) // ignore menus
 				{
-					KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
-					if (gridView)
+					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), InternalDefinitions::RFCPropText_Object);
+					if (component)
 					{
-						gridView->OnItemClick();
-						break;
+						LRESULT result = 0; // just for safe
+						if (component->EventProc(msg, wParam, lParam, &result))
+							return result;
 					}
-				}
-				else if (((LPNMHDR)lParam)->code == LVN_ITEMCHANGED) // List view item selection changed (mouse or keyboard)
+				}			
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_COMPAREITEM: // owner-drawn combo box or list box
+			{
+				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, InternalDefinitions::RFCPropText_Object);
+				if (component)
 				{
-					LPNMLISTVIEW pNMListView = (LPNMLISTVIEW)lParam;
-					if ((pNMListView->uChanged & LVIF_STATE) && (pNMListView->uNewState & LVIS_SELECTED))
-					{
-						KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
-						if (gridView)
-						{
-							gridView->OnItemSelected();
-							break;
-						}
-					}
-				}
-				else if (((LPNMHDR)lParam)->code == NM_RCLICK) // List view item right click
-				{
-					KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
-					if (gridView)
-					{
-						gridView->OnItemRightClick();
-						break;
-					}
-				}
-				else if (((LPNMHDR)lParam)->code == NM_DBLCLK) // List view item double click
-				{
-					KGridView *gridView = (KGridView*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, RFCPropText_Object);
-					if (gridView)
-					{
-						gridView->OnItemDoubleClick();
-						break;
-					}
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
 				}
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
-		case WM_HSCROLL:
-		case WM_VSCROLL:
+		case WM_CTLCOLORBTN: // buttons 
 			{
-				int nScrollCode = (int)LOWORD(wParam);
-
-				if( (TB_THUMBTRACK == nScrollCode) || (TB_LINEDOWN == nScrollCode) || (TB_LINEUP == nScrollCode) || (TB_BOTTOM == nScrollCode) || (TB_TOP == nScrollCode) || (TB_PAGEUP == nScrollCode) || (TB_PAGEDOWN == nScrollCode) ) // its trackbar!
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
 				{
-					KTrackBar *trackBar = (KTrackBar*)::GetPropW((HWND)lParam, RFCPropText_Object);
-					if(trackBar)
-					{
-						trackBar->OnChange();
-						break;
-					}
-				}
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CTLCOLOREDIT: // edit controls 
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CTLCOLORLISTBOX: // listbox controls 
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CTLCOLORSTATIC: // static controls
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
@@ -4467,18 +4787,6 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					timer->OnTimer();
 					break;
 				}
-			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
-
-		case WM_MOVE: // window has been moved! we can't use lparam since it's giving client area pos instead of window...
-			{
-				RECT rect;
-				::GetWindowRect(compHWND, &rect);
-
-				this->compX = rect.left;
-				this->compY = rect.top;
-
-				this->OnMoved();
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
@@ -4494,12 +4802,73 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
+		case WM_MOVE: // window has been moved! we can't use lparam since it's giving client area pos instead of window...
+			{
+				RECT rect;
+				::GetWindowRect(compHWND, &rect);
+
+				this->compX = rect.left;
+				this->compY = rect.top;
+
+				this->OnMoved();
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_HSCROLL: // trackbar
+		case WM_VSCROLL:
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_COMMAND: // button, checkbox, radio button, listbox, combobox or menu-item
+			{
+				if( (HIWORD(wParam) == BN_CLICKED) && (lParam == 0) ) // its menu item! unfortunately windows does not send menu handle with clicked event!
+				{
+					KMenuItem *menuItem = KPlatformUtil::GetInstance()->GetMenuItemByID(LOWORD(wParam));
+					if(menuItem)
+					{
+						menuItem->OnPress();
+						break;
+					}
+				}
+				else // send to appropriate component
+				{
+					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+					if (component)
+					{
+						LRESULT result = 0; // just for safe
+						if (component->EventProc(msg, wParam, lParam, &result))
+							return result;
+					}
+				}
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_NOTIFY: // GridView etc...
+			{
+				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
 		case WM_CLOSE:
-			OnClose();
+			this->OnClose();
 			break;
 
 		case WM_DESTROY:
-			OnDestroy();
+			this->OnDestroy();
 			break;
 
 		default:
@@ -4517,25 +4886,25 @@ KWindow::~KWindow()
 // =========== KWindowTypes.cpp ===========
 
 /*
-RFC - KWindowTypes.cpp
-Copyright (C) 2013-2017 CrownSoft
+	RFC - KWindowTypes.cpp
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-This software is provided 'as-is', without any express or implied
-warranty.  In no event will the authors be held liable for any damages
-arising from the use of this software.
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not
-claim that you wrote the original software. If you use this software
-in a product, an acknowledgment in the product documentation would be
-appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be
-misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -4595,25 +4964,25 @@ KToolWindow::~KToolWindow(){}
 // =========== KBitmap.cpp ===========
 
 /*
-    RFC - KBitmap.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KBitmap.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -4663,25 +5032,25 @@ KBitmap::~KBitmap()
 // =========== KCursor.cpp ===========
 
 /*
-    RFC - KCursor.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KCursor.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -4721,25 +5090,25 @@ KCursor::~KCursor()
 // =========== KFont.cpp ===========
 
 /*
-    RFC - KFont.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KFont.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -4790,25 +5159,25 @@ KFont::~KFont()
 // =========== KIcon.cpp ===========
 
 /*
-    RFC - KIcon.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KIcon.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 

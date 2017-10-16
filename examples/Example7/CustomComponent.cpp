@@ -78,7 +78,7 @@ public:
 
 		customComp.SetPosition(50, 50);
 
-		this->AddComponent(&customComp);
+		this->AddComponent(&customComp, true);
 	}
 
 };

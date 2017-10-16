@@ -17,9 +17,7 @@ Tips for HotPlugging/Subclassing:
 
 			(*) use KHotPluggedDialog to HotPlug dialog box.
 			(*) use OnHotPlug(act as a constructor and you will not recieve WM_INITDIALOG msg!) method to 
-			    initialize and HotPlug child components. First statement of OnHotPlug method must be call 
-			    to OnHotPlug method of parent class. Otherwise your component properties will not update 
-			    to current state of GUI control.
+			    initialize and HotPlug child components.
 			(*) no need to call DoMessageLoop function, because HotPlugAndRunDialogBox runs message loop internally.
 			    
 Send your bug reports/suggestions to support@crownsoft.net

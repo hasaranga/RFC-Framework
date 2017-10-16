@@ -1,24 +1,24 @@
 
 /*
-    RFC - KComponent.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KComponent.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 
@@ -30,7 +30,9 @@ KComponent::KComponent()
 {
 	isRegistered = false;
 
-	compClassName = KPlatformUtil::GetInstance()->GenerateClassName();
+	KPlatformUtil *platformUtil = KPlatformUtil::GetInstance();
+	compClassName = platformUtil->GenerateClassName();
+	compCtlID = platformUtil->GenerateControlID();
 
 	compHWND = 0;
 	compParentHWND = 0;
@@ -53,7 +55,7 @@ KComponent::KComponent()
 	wc.cbWndExtra = 0;
 	wc.hIconSm = 0;
 	wc.style = 0;
-	wc.hInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
+	wc.hInstance = platformUtil->GetAppHInstance();
 	wc.lpszClassName = (const wchar_t*)compClassName;
 
 	wc.lpfnWndProc = ::GlobalWnd_Proc;
@@ -63,50 +65,61 @@ KComponent::KComponent()
 
 void KComponent::OnHotPlug()
 {
-	RECT rect;
-	::GetWindowRect(compHWND, &rect);
-	compWidth = rect.right - rect.left;
-	compHeight = rect.bottom - rect.top;
-	compX = rect.left;
-	compY = rect.top;
 
-	compVisible = ::IsWindowVisible(compHWND) ? true : false;
-	compEnabled = ::IsWindowEnabled(compHWND) ? true : false;
-
-	compDwStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_STYLE);
-	compDwExStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_EXSTYLE);
-
-	compParentHWND = ::GetParent(compHWND);
-
-	wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t)); // assume 256 is enough
-	buff[0] = 0;
-	::GetWindowTextW(compHWND, buff, 256);
-	compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 }
 
-void KComponent::HotPlugInto(HWND component)
+void KComponent::HotPlugInto(HWND component, bool fetchInfo, bool subClassWindowProc)
 {
-	static const wchar_t* RFCPropText_Object = L"RFC";
-	static const wchar_t* RFCPropText_OldProc = L"RFCOldProc";
-	static const wchar_t* RFCPropText_ClsName = L"RFCClsName";
-
 	compHWND = component;
-	::SetPropW(compHWND, RFCPropText_Object, (HANDLE)this);
-	FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(compHWND, GWLP_WNDPROC);
-	::SetPropW(compHWND, RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
 
-	wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));
-	clsName[0] = 0;
-	::GetClassNameW(compHWND, clsName, 256);
-	compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
+	if (fetchInfo)
+	{
+		wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));
+		clsName[0] = 0;
+		::GetClassNameW(compHWND, clsName, 256);
+		compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
 
-	::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(), compClassName, &wc);
+		::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(), compClassName, &wc);
 
-	::SetPropW(compHWND, RFCPropText_ClsName, (HANDLE)(const wchar_t*)compClassName);
+		compCtlID = (UINT)::GetWindowLongPtrW(compHWND, GWL_ID);
 
-	::SetWindowLongPtrW(compHWND, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+		RECT rect;
+		::GetWindowRect(compHWND, &rect);
+		compWidth = rect.right - rect.left;
+		compHeight = rect.bottom - rect.top;
+		compX = rect.left;
+		compY = rect.top;
+
+		compVisible = ::IsWindowVisible(compHWND) ? true : false;
+		compEnabled = ::IsWindowEnabled(compHWND) ? true : false;
+
+		compDwStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_STYLE);
+		compDwExStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_EXSTYLE);
+
+		compParentHWND = ::GetParent(compHWND);
+
+		wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t)); // assume 256 is enough
+		buff[0] = 0;
+		::GetWindowTextW(compHWND, buff, 256);
+		compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
+	}
+
+	::SetPropW(compHWND, InternalDefinitions::RFCPropText_Object, (HANDLE)(KComponent*)this);
+
+	if (subClassWindowProc)
+	{
+		FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(compHWND, GWLP_WNDPROC);
+		::SetPropW(compHWND, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
+
+		::SetWindowLongPtrW(compHWND, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+	}	
 
 	this->OnHotPlug();
+}
+
+UINT KComponent::GetControlID()
+{
+	return compCtlID;
 }
 
 void KComponent::SetMouseCursor(KCursor *cursor)
@@ -121,21 +134,23 @@ KString KComponent::GetComponentClassName()
 	return compClassName;
 }
 
-bool KComponent::CreateComponent()
+bool KComponent::CreateComponent(bool subClassWindowProc)
 {
 	if(!::RegisterClassExW(&wc))
 		return false;
 
 	isRegistered=true;
 
-	::CreateRFCComponent(this);
+	::CreateRFCComponent(this, subClassWindowProc);
 
 	if(compHWND)
 	{
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::EnableWindow(compHWND, compEnabled);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
 
 		if(cursor)
 			::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->GetHandle());
@@ -147,13 +162,16 @@ bool KComponent::CreateComponent()
 
 LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	static const wchar_t* RFCPropText_OldProc = L"RFCOldProc";
-
-	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, RFCPropText_OldProc);
+	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
 	if(lpfnOldWndProc)
 		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed standard-control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
+}
+
+bool KComponent::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+{
+	return false;
 }
 
 void KComponent::SetFont(KFont *compFont)

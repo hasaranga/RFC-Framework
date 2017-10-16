@@ -1,24 +1,24 @@
 
 /*
-    RFC - KComboBox.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KComboBox.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #include "../rfc.h"
@@ -109,7 +109,7 @@ int KComboBox::GetSelectedItemIndex()
 KString KComboBox::GetSelectedItem()
 {
 	int itemIndex = this->GetSelectedItemIndex();
-	if(itemIndex>-1)
+	if(itemIndex > -1)
 		return *stringList->GetPointer(itemIndex);
 	return KString();
 }
@@ -132,21 +132,33 @@ void KComboBox::SelectItem(int index)
 	}
 }
 
-bool KComboBox::CreateComponent()
+bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+{
+	if ((msg == WM_COMMAND) && (HIWORD(wParam) == CBN_SELENDOK))
+	{
+		this->OnItemSelect();
+
+		*result = 0;
+		return true;
+	}
+
+	return KComponent::EventProc(msg, wParam, lParam, result);
+}
+
+bool KComboBox::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register COMBOBOX class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register COMBOBOX class!
 
 	if(compHWND)
 	{
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
-		int listSize=stringList->GetSize();
+		int listSize = stringList->GetSize();
 		if(listSize)
 		{
 			for(int i = 0; i < listSize; i++)
@@ -156,9 +168,9 @@ bool KComboBox::CreateComponent()
 		if(selectedItemIndex > -1)
 			::SendMessageW(compHWND, CB_SETCURSEL, selectedItemIndex, 0);
 
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
 		return true;
 	}
 

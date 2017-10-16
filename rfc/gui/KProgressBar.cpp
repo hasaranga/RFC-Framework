@@ -1,24 +1,24 @@
 
 /*
-    RFC - KProgressBar.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KProgressBar.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #include "KProgressBar.h"
@@ -55,12 +55,12 @@ void KProgressBar::SetValue(int value)
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
-bool KProgressBar::CreateComponent()
+bool KProgressBar::CreateComponent(bool subClassWindowProc)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register PROGRESS_CLASSW class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register PROGRESS_CLASSW class!
 
 	if(compHWND)
 	{
@@ -69,8 +69,9 @@ bool KProgressBar::CreateComponent()
 
 		::EnableWindow(compHWND, compEnabled);
 
-		if(this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 	return false;	

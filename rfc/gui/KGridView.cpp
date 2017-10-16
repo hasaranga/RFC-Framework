@@ -1,24 +1,24 @@
 
 /*
-    RFC - KGridView.cpp
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KGridView.cpp
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #include "KGridView.h"
@@ -160,36 +160,61 @@ void KGridView::CreateColumn(const KString& text, int columnWidth)
 	colCount++;
 }
 
-bool KGridView::CreateComponent()
+bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+{
+	if (msg == WM_NOTIFY)
+	{
+		if (((LPNMHDR)lParam)->code == LVN_ITEMCHANGED) // List view item selection changed (mouse or keyboard)
+		{
+			LPNMLISTVIEW pNMListView = (LPNMLISTVIEW)lParam;
+			if ((pNMListView->uChanged & LVIF_STATE) && (pNMListView->uNewState & LVIS_SELECTED))
+			{
+				this->OnItemSelect();
+				*result = 0;
+				return true;
+			}
+		}
+		else if (((LPNMHDR)lParam)->code == NM_RCLICK) // List view item right click
+		{
+			this->OnItemRightClick();
+			*result = 0;
+			return true;
+		}
+		else if (((LPNMHDR)lParam)->code == NM_DBLCLK) // List view item double click
+		{
+			this->OnItemDoubleClick();
+			*result = 0;
+			return true;
+		}
+	}
+
+	return KComponent::EventProc(msg, wParam, lParam, result);
+}
+
+bool KGridView::CreateComponent(bool subClassWindowProc)
 {
 	if (!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this); // we dont need to register WC_LISTVIEWW class!
+	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register WC_LISTVIEWW class!
 
 	if (compHWND)
 	{
 		ListView_SetExtendedListViewStyle(compHWND, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
-		if (compFont != KFont::GetDefaultFont())
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
-		if (this->IsVisible())
-			this->SetVisible(true);
+		if(compVisible)
+			::ShowWindow(compHWND, SW_SHOW);
+
 		return true;
 	}
 	return false;
 }
 
-void KGridView::OnItemClick()
-{
-	if (listener)
-		listener->OnGridViewItemClick(this);
-}
-
-void KGridView::OnItemSelected()
+void KGridView::OnItemSelect()
 {
 	if (listener)
 		listener->OnGridViewItemSelect(this);

@@ -12,11 +12,8 @@ protected:
 	KIcon icon;
 
 public:
-
 	void OnHotPlug()
 	{
-		KHotPluggedDialog::OnHotPlug(); // you must call this method. it will update width, height, styles etc...
-
 		btn1.HotPlugInto(GetDlgItem(compHWND, IDOK));
 		btn1.SetListener(this);
 

@@ -1,24 +1,24 @@
 
 /*
-    RFC Framework v0.2.6
-    Copyright (C) 2013-2017 CrownSoft
+	RFC Framework v0.2.6
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_H_
@@ -77,6 +77,7 @@
 #include "io/KDirectory.h"
 #include "io/KSettingsWriter.h"
 #include "io/KSettingsReader.h"
+#include "io/KLogger.h"
 #include "security/KMD5.h"
 #include "security/KSHA1.h"
 
@@ -85,8 +86,11 @@ RFC_API LRESULT CALLBACK GlobalWnd_Proc(HWND,UINT,WPARAM,LPARAM);
 RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
 RFC_API DWORD WINAPI GlobalThread_Proc(LPVOID);
 
-RFC_API HWND CreateRFCComponent(KComponent*);
-RFC_API bool CreateRFCThread(KThread*);
+/**
+	top level windows & owner-drawn controls must set subClassWindowProc to true.
+*/
+RFC_API HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc);
+RFC_API bool CreateRFCThread(KThread* thread);
 
 RFC_API void DoMessagePump(bool handleTabKey=true);
 
@@ -163,5 +167,12 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	(((DWORD)(ch4)& 0xFF00) << 8) | \
 	(((DWORD)(ch4)& 0xFF0000) >> 8) | \
 	(((DWORD)(ch4)& 0xFF000000) >> 24))
+
+class RFC_API InternalDefinitions
+{
+public:
+	static const wchar_t* RFCPropText_Object;
+	static const wchar_t* RFCPropText_OldProc;
+};
 
 #endif

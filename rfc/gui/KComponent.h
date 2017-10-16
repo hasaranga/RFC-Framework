@@ -1,24 +1,24 @@
 
 /*
-    RFC - KComponent.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KComponent.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KCOMPONENT_H_
@@ -42,6 +42,7 @@ protected:
 	HWND compParentHWND;
 	DWORD compDwStyle;
 	DWORD compDwExStyle;
+	UINT compCtlID;
 	int compX;
 	int compY;
 	int compWidth;
@@ -58,16 +59,16 @@ public:
 	KComponent();
 
 	/**
-		window messages can arrive before this event.
-		this method does not update compFont and cursor variables.
-		if you override this method, make sure to call parent "OnHotPlug" method first.
+		Called after hotplugged into a given HWND.
 	*/
 	virtual void OnHotPlug();
 
 	/**
-		HotPlugs any given window
+		HotPlugs given HWND. this method does not update current compFont and cursor variables.
+		Set fetchInfo to true if you want to acquire all the information about this HWND. (width, height, position etc...)
+		Set fetchInfo to false if you only need to receive events. (button click etc...)
 	*/
-	virtual void HotPlugInto(HWND component);
+	virtual void HotPlugInto(HWND component, bool fetchInfo = true, bool subClassWindowProc = false);
 
 	/**
 		Sets mouse cursor of this component.
@@ -81,15 +82,30 @@ public:
 
 	/**
 		Registers the class name and creates the component. 
+		top level windows & owner-drawn controls must set subClassWindowProc to true.
+		Otherwise WindowProc will be disabled & you will not receive WM_MEASUREITEM like messages into the EventProc.
 		@returns false if registration failed or component creation failed.
 	*/
-	virtual bool CreateComponent();
+	virtual bool CreateComponent(bool subClassWindowProc = true);
 
 	/**
-		Handles windows messages. 
+		Handles internal window messages. (subclassed window proc)
 		Important: Pass unprocessed messages to parent if you override this method.
 	*/
 	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	/**
+		Receives messages like WM_COMMAND, WM_NOTIFY, WM_DRAWITEM from the parent window. (if it belongs to this component)
+		Pass unprocessed messages to parent if you override this method.
+		@returns true if msg processed.
+	*/
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+
+	/**
+		Identifier of the child component which can be used with WM_MEASUREITEM like messages.
+		@returns zero for top level windows
+	*/
+	virtual UINT GetControlID();
 
 	/**
 		Sets font of this component

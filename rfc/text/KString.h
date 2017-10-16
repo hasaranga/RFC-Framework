@@ -1,24 +1,24 @@
 
 /*
-    RFC - KString.h
-    Copyright (C) 2013-2017 CrownSoft
+	RFC - KString.h
+	Copyright (C) 2013-2017 CrownSoft
   
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
 
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
 */
 
 #ifndef _RFC_KSTRING_H_
@@ -96,14 +96,14 @@ public:
 	const KString& operator= (const wchar_t* const other);
 
 
-    /** Appends a string at the end of this one.
-        @returns     the concatenated string
-    */
+	/** Appends a string at the end of this one.
+		@returns     the concatenated string
+	*/
 	const KString operator+ (const KString& stringToAppend);
 
-    /** Appends a unicode string at the end of this one.
-        @returns     the concatenated string
-    */
+	/** Appends a unicode string at the end of this one.
+		@returns     the concatenated string
+	*/
 	const KString operator+ (const wchar_t* const textToAppend);
 	/**
 		Returns ansi version of this string
@@ -115,33 +115,33 @@ public:
 	*/
 	operator const wchar_t*()const;
 
-    /** 
+	/** 
 		Returns a character from the string.
 		@returns -1 if index is out of range
-    */
+	*/
 	const char operator[](const int index)const;
 
 	/**
-	    Appends a string at the end of this one.
-        @returns     the concatenated string
+		Appends a string at the end of this one.
+		@returns     the concatenated string
 	*/
 	virtual KString Append(const KString& otherString)const;
 
-    /** 
+	/** 
 		Returns a subsection of the string.
 
-        If the range specified is beyond the limits of the string, empty string
-        will be return.
+		If the range specified is beyond the limits of the string, empty string
+		will be return.
 
-        @param start   the index of the start of the substring needed
-        @param end     all characters from start up to this index are returned
-    */
+		@param start   the index of the start of the substring needed
+		@param end     all characters from start up to this index are returned
+	*/
 	virtual KString SubString(int start, int end)const;
 
-    /** 
+	/** 
 		Case-insensitive comparison with another string.
-        @returns     true if the two strings are identical, false if not
-    */
+		@returns     true if the two strings are identical, false if not
+	*/
 	virtual bool EqualsIgnoreCase(const KString& otherString)const;
 
 	/**
@@ -168,10 +168,10 @@ public:
 	*/
 	virtual bool IsQuotedString()const;
 
-    /** 
+	/** 
 		Returns a character from the string.
 		@returns -1 if index is out of range
-    */
+	*/
 	virtual wchar_t GetCharAt(int index)const;
 
 	/**
