@@ -63,7 +63,7 @@ void KGridView::InsertRecord(KString **columnsData)
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvi;
+		LV_ITEMW lvi = { 0 };
 		lvi.iSubItem = i;
 		lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
 
@@ -84,7 +84,7 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvi;
+		LV_ITEMW lvi= { 0 };
 		lvi.iSubItem = i;
 		lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
 
@@ -99,7 +99,7 @@ KString KGridView::GetRecordAt(int rowIndex, int columnIndex)
 	wchar_t *buffer = (wchar_t*)::malloc(512 * sizeof(wchar_t));
 	buffer[0] = 0;
 
-	LV_ITEMW lvi;
+	LV_ITEMW lvi = { 0 };
 	lvi.iSubItem = columnIndex;
 	lvi.cchTextMax = 512;
 	lvi.pszText = buffer;
@@ -128,7 +128,7 @@ void KGridView::RemoveAll()
 
 void KGridView::UpdateRecordAt(int rowIndex, int columnIndex, const KString& text)
 {
-	LV_ITEMW lvi;
+	LV_ITEMW lvi = { 0 };
 	lvi.iSubItem = columnIndex;
 	lvi.pszText = (wchar_t*)(const wchar_t*)text;
 

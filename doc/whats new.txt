@@ -1,6 +1,6 @@
 v0.2.6:
 	added KRegistry, KSettingsWriter, KSettingsReader, KMD5, KSHA1, KPerformanceCounter classes
-	added KGridView, KLogger classes
+	added KGridView, KLogger, KGraphics, KGlyphButton, KMenuButton classes
 	added KFORMAT_ID, STATIC_TXT & BUFFER_TXT macros
 	added HotPlugAndCreateDialogBox function
 	added SetClientAreaSize, OnMoved, OnResized, Destroy, Flash methods into KWindow class
@@ -11,6 +11,7 @@ v0.2.6:
 	added uSleep method into KThread class
 	added DrawOnHDC method into KBitmap class
 	added SetFilePointerTo method into KFile class
+	added Log Viewer tool
 	changed the implementation of KPlatformUtil::GenerateClassName
 	changed the default code page of KString into UTF-8
 	fixed a bug in KCommonDialogBox::ShowSaveFileDialog
