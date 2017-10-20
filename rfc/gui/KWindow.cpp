@@ -144,6 +144,38 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
+		case WM_NOTIFY: // GridView, Custom drawing etc...
+			{
+				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_VKEYTOITEM:
+		case WM_CHARTOITEM:
+		case WM_HSCROLL: // trackbar
+		case WM_VSCROLL:
+		case WM_CTLCOLORBTN: // buttons 
+		case WM_CTLCOLOREDIT: // edit controls 
+		case WM_CTLCOLORLISTBOX: // listbox controls 
+		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
+		case WM_CTLCOLORSTATIC: // static controls
+			{
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
+				}				
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
 		case WM_MEASUREITEM: // combo box, list box, list-view control... (menu ignored. use windowProc of parent window if you want to set the size of menu)
 			{
 				if (wParam != 0) // ignore menus
@@ -168,66 +200,6 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (component->EventProc(msg, wParam, lParam, &result))
 						return result;
 				}
-			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
-
-		case WM_CTLCOLORBTN: // buttons 
-			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
-				if (component)
-				{
-					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
-						return result;
-				}				
-			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
-
-		case WM_CTLCOLOREDIT: // edit controls 
-			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
-				if (component)
-				{
-					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
-						return result;
-				}				
-			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
-
-		case WM_CTLCOLORLISTBOX: // listbox controls 
-			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
-				if (component)
-				{
-					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
-						return result;
-				}				
-			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
-
-		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
-			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
-				if (component)
-				{
-					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
-						return result;
-				}				
-			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
-
-		case WM_CTLCOLORSTATIC: // static controls
-			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
-				if (component)
-				{
-					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
-						return result;
-				}				
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
@@ -266,19 +238,6 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
-		case WM_HSCROLL: // trackbar
-		case WM_VSCROLL:
-			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
-				if (component)
-				{
-					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
-						return result;
-				}
-			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
-
 		case WM_COMMAND: // button, checkbox, radio button, listbox, combobox or menu-item
 			{
 				if( (HIWORD(wParam) == BN_CLICKED) && (lParam == 0) ) // its menu item! unfortunately windows does not send menu handle with clicked event!
@@ -299,18 +258,6 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (component->EventProc(msg, wParam, lParam, &result))
 							return result;
 					}
-				}
-			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
-
-		case WM_NOTIFY: // GridView etc...
-			{
-				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, InternalDefinitions::RFCPropText_Object);
-				if (component)
-				{
-					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
-						return result;
 				}
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
