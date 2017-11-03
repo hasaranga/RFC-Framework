@@ -72,6 +72,8 @@ public:
 
 	virtual void OnItemSelect();
 
+	virtual void OnItemDoubleClick();
+
 	virtual ~KListBox();
 };
 

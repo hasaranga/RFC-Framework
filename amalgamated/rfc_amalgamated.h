@@ -730,6 +730,8 @@ public:
 	virtual ~KListBoxListener();
 
 	virtual void OnListBoxItemSelect(KListBox *listBox);
+
+	virtual void OnListBoxItemDoubleClick(KListBox *listBox);
 };
 
 #endif
@@ -3635,6 +3637,8 @@ public:
 	virtual bool CreateComponent(bool subClassWindowProc = false);
 
 	virtual void OnItemSelect();
+
+	virtual void OnItemDoubleClick();
 
 	virtual ~KListBox();
 };

@@ -169,12 +169,20 @@ void KListBox::SelectItems(int start, int end)
 
 bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 {
-	if ((msg == WM_COMMAND) && (HIWORD(wParam) == LBN_SELCHANGE)) // listbox sel change!
+	if (msg == WM_COMMAND) 
 	{
-		this->OnItemSelect();
-
-		*result = 0;
-		return true;
+		if (HIWORD(wParam) == LBN_SELCHANGE) // listbox sel change!
+		{
+			this->OnItemSelect();
+			*result = 0;
+			return true;
+		}
+		else if (HIWORD(wParam) == LBN_DBLCLK) // listbox double click
+		{
+			this->OnItemDoubleClick();
+			*result = 0;
+			return true;
+		}
 	}
 
 	return KComponent::EventProc(msg, wParam, lParam, result);
@@ -223,6 +231,12 @@ void KListBox::OnItemSelect()
 {
 	if(listener)
 		listener->OnListBoxItemSelect(this);
+}
+
+void KListBox::OnItemDoubleClick()
+{
+	if(listener)
+		listener->OnListBoxItemDoubleClick(this);
 }
 
 KListBox::~KListBox()
