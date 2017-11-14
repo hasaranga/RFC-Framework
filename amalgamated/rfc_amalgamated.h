@@ -3457,6 +3457,9 @@ public:
 
 class RFC_API KWindow : public KComponent
 {
+protected:
+	HWND lastFocusedChild;
+
 public:
 	KWindow();
 

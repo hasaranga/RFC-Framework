@@ -14,6 +14,7 @@ v0.2.6:
 	added Log Viewer tool
 	changed the implementation of KPlatformUtil::GenerateClassName
 	changed the default code page of KString into UTF-8
+	changed the tab key processing method of DoMessageLoop function
 	fixed a bug in KCommonDialogBox::ShowSaveFileDialog
 	fixed a bug in KPointerList::RemoveAll
 	fixed memory leak in KListBox::RemoveItem

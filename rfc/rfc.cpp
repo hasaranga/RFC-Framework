@@ -124,7 +124,10 @@ void DoMessagePump(bool handleTabKey)
 	{
 		if(handleTabKey)
 		{
-			if(msg.message == WM_KEYDOWN)
+			if (::IsDialogMessage(::GetActiveWindow(), &msg))
+				continue;
+
+			/*if(msg.message == WM_KEYDOWN)
 			{
 				if(VK_TAB == msg.wParam) // looking for TAB key!
 				{
@@ -153,7 +156,7 @@ void DoMessagePump(bool handleTabKey)
 						}
 					}
 				}
-			}
+			}*/
 		}
 		::TranslateMessage(&msg);
 		::DispatchMessageW(&msg);

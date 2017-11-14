@@ -33,6 +33,7 @@ KWindow::KWindow()
 	this->SetExStyle(WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT);
 	wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	compCtlID = 0; // control id is zero for top level window
+	lastFocusedChild = 0;
 }
 
 void KWindow::Flash()
@@ -261,6 +262,19 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_ACTIVATE: // save last focused item when inactive
+			if (wParam != WA_INACTIVE)
+				return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			this->lastFocusedChild = ::GetFocus();
+			break;
+
+		case WM_SETFOCUS:
+			if (this->lastFocusedChild) // set focus to last item
+				::SetFocus(this->lastFocusedChild);
+			else // set focus to first child
+				::SetFocus(::GetNextDlgTabItem(this->compHWND, NULL, FALSE));
+			break;
 
 		case WM_CLOSE:
 			this->OnClose();
