@@ -56,7 +56,7 @@ void KGridView::InsertRecord(KString **columnsData)
 {
 	LVITEMW lvi = { 0 };
 	lvi.mask = LVIF_TEXT;
-	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
+	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = itemCount;
 
 	int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
@@ -65,7 +65,7 @@ void KGridView::InsertRecord(KString **columnsData)
 	{
 		LV_ITEMW lvi = { 0 };
 		lvi.iSubItem = i;
-		lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
+		lvi.pszText = (*columnsData[i]);
 
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
 	}
@@ -77,7 +77,7 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 {
 	LVITEMW lvi = { 0 };
 	lvi.mask = LVIF_TEXT;
-	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
+	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = rowIndex;
 
 	int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
@@ -86,7 +86,7 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 	{
 		LV_ITEMW lvi= { 0 };
 		lvi.iSubItem = i;
-		lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
+		lvi.pszText = (*columnsData[i]);
 
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
 	}
@@ -130,7 +130,7 @@ void KGridView::UpdateRecordAt(int rowIndex, int columnIndex, const KString& tex
 {
 	LV_ITEMW lvi = { 0 };
 	lvi.iSubItem = columnIndex;
-	lvi.pszText = (wchar_t*)(const wchar_t*)text;
+	lvi.pszText = text;
 
 	::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_SetItemText macro. it relies on preprocessor defs.
 }
@@ -152,7 +152,7 @@ void KGridView::CreateColumn(const KString& text, int columnWidth)
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 	lvc.fmt = LVCFMT_LEFT;
 	lvc.cx = columnWidth;
-	lvc.pszText = (wchar_t*)(const wchar_t*)text;
+	lvc.pszText = text;
 	lvc.iSubItem = colCount;
 
 	::SendMessageW(compHWND, LVM_INSERTCOLUMNW, (WPARAM)colCount, (LPARAM)&lvc);

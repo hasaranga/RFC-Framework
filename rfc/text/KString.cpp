@@ -257,6 +257,17 @@ KString::operator const wchar_t*()const
 	}
 }
 
+KString::operator wchar_t*()const
+{
+	if(stringHolder)
+	{
+		return stringHolder->w_text;
+	}else
+	{
+		return L"";
+	}
+}
+
 const char KString::operator[](const int index)const
 {
 	if(stringHolder)

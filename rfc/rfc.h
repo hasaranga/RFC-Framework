@@ -90,14 +90,20 @@ RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
 RFC_API DWORD WINAPI GlobalThread_Proc(LPVOID);
 
 /**
-	top level windows & owner-drawn controls must set subClassWindowProc to true.
+	top level windows & owner-drawn|custom controls must set subClassWindowProc to true.
 */
 RFC_API HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc);
 RFC_API bool CreateRFCThread(KThread* thread);
 
 RFC_API void DoMessagePump(bool handleTabKey=true);
 
-RFC_API void InitRFC(HINSTANCE);
+/**
+	Important: hInstance is current module HINSTANCE.
+	If you are in EXE, then hInstance is HINSTANCE provided by WinMain.
+	If you are in DLL, then hInstance is HINSTANCE provided by DllMain or HMODULE of the DLL.
+	If you are in Console app, then pass zero.
+*/
+RFC_API void InitRFC(HINSTANCE hInstance);
 RFC_API void DeInitRFC();
 
 RFC_API int HotPlugAndRunDialogBox(WORD resourceID,HWND parentHwnd,KComponent* component);
@@ -170,6 +176,9 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	(((DWORD)(ch4)& 0xFF00) << 8) | \
 	(((DWORD)(ch4)& 0xFF0000) >> 8) | \
 	(((DWORD)(ch4)& 0xFF000000) >> 24))
+
+// generates filter text for KFILE_FILTER("Text Files", "txt") as follows: L"Text Files\0*.txt\0"
+#define KFILE_FILTER(desc, ext) L##desc L"\0*." L##ext L"\0"
 
 class RFC_API InternalDefinitions
 {

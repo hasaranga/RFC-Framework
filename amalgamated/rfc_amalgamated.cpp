@@ -141,7 +141,7 @@ HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc)
 		// install hook to get called before WM_CREATE_WINDOW msg!
 		InternalVariables::wnd_hook = ::SetWindowsHookExW(WH_CBT, &RFCCTL_CBTProc, 0, ::GetCurrentThreadId());
 
-		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), (const wchar_t*)component->GetComponentClassName(), (const wchar_t*)component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
 
 		::UnhookWindowsHookEx(InternalVariables::wnd_hook);
 
@@ -151,7 +151,7 @@ HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc)
 	}
 	else
 	{
-		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), (const wchar_t*)component->GetComponentClassName(), (const wchar_t*)component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
 
 		::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)component);
 
@@ -1154,6 +1154,17 @@ KString::operator const wchar_t*()const
 	}
 }
 
+KString::operator wchar_t*()const
+{
+	if(stringHolder)
+	{
+		return stringHolder->w_text;
+	}else
+	{
+		return L"";
+	}
+}
+
 const char KString::operator[](const int index)const
 {
 	if(stringHolder)
@@ -1604,19 +1615,19 @@ KDirectory::~KDirectory(){}
 
 bool KDirectory::IsDirExists(const KString& dirName)
 {
-	DWORD dwAttrib = ::GetFileAttributesW((const wchar_t*)dirName);
+	DWORD dwAttrib = ::GetFileAttributesW(dirName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 bool KDirectory::CreateDir(const KString& dirName)
 {
-	return ::CreateDirectoryW((const wchar_t*)dirName, NULL) == 0 ? false : true;
+	return ::CreateDirectoryW(dirName, NULL) == 0 ? false : true;
 }
 
 bool KDirectory::RemoveDir(const KString& dirName)
 {
-	return ::RemoveDirectoryW((const wchar_t*)dirName) == 0 ? false : true;
+	return ::RemoveDirectoryW(dirName) == 0 ? false : true;
 }
 
 KString KDirectory::GetModuleDir(HMODULE hModule)
@@ -1691,7 +1702,7 @@ KFile::KFile(const KString& fileName, DWORD desiredAccess, bool autoCloseHandle)
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
-	fileHandle = ::CreateFileW((const wchar_t*)fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 }
 
 bool KFile::OpenFile(const KString& fileName, DWORD desiredAccess, bool autoCloseHandle)
@@ -1703,7 +1714,7 @@ bool KFile::OpenFile(const KString& fileName, DWORD desiredAccess, bool autoClos
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
-	fileHandle = ::CreateFileW((const wchar_t*)fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	
 	return (fileHandle == INVALID_HANDLE_VALUE) ? false : true;
 }
@@ -1825,17 +1836,17 @@ KString KFile::ReadAsString(bool isUnicode)
 
 bool KFile::DeleteFile(const KString& fileName)
 {
-	return ::DeleteFileW((const wchar_t*)fileName) == 0 ? false : true;
+	return ::DeleteFileW(fileName) == 0 ? false : true;
 }
 
 bool KFile::CopyFile(const KString& sourceFileName, const KString& destFileName)
 {
-	return ::CopyFileW((const wchar_t*)sourceFileName, (const wchar_t*)destFileName, FALSE) == 0 ? false : true;
+	return ::CopyFileW(sourceFileName, destFileName, FALSE) == 0 ? false : true;
 }
 
 bool KFile::IsFileExists(const KString& fileName)
 {
-	DWORD dwAttrib = ::GetFileAttributesW((const wchar_t*)fileName);
+	DWORD dwAttrib = ::GetFileAttributesW(fileName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
@@ -2216,7 +2227,7 @@ void KSettingsWriter::WriteString(const KString& text)
 		size = (size + 1) * sizeof(wchar_t);
 		settingsFile.WriteFile(&size, sizeof(int));
 
-		settingsFile.WriteFile((wchar_t*)(const wchar_t*)text, size);
+		settingsFile.WriteFile((wchar_t*)text, size);
 	}
 	else // write only empty size
 	{
@@ -2724,7 +2735,7 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title,
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
 	ofn.Flags =  OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-	ofn.lpstrTitle = (const wchar_t*)title;
+	ofn.lpstrTitle = title;
 
 	if(::GetOpenFileNameW(&ofn))
 	{
@@ -2752,7 +2763,7 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
 	ofn.Flags =  OFN_HIDEREADONLY;
-	ofn.lpstrTitle = (const wchar_t*)title;
+	ofn.lpstrTitle = title;
 
 	if(::GetSaveFileNameW(&ofn))
 	{
@@ -2822,7 +2833,7 @@ KComponent::KComponent()
 	wc.hIconSm = 0;
 	wc.style = 0;
 	wc.hInstance = platformUtil->GetAppHInstance();
-	wc.lpszClassName = (const wchar_t*)compClassName;
+	wc.lpszClassName = compClassName;
 
 	wc.lpfnWndProc = ::GlobalWnd_Proc;
 
@@ -2961,7 +2972,7 @@ void KComponent::SetText(const KString& compText)
 {
 	this->compText = compText;
 	if(compHWND)
-		::SetWindowTextW(compHWND, (const wchar_t*)this->compText);
+		::SetWindowTextW(compHWND, this->compText);
 }
 
 void KComponent::SetHWND(HWND compHWND)
@@ -3094,7 +3105,7 @@ void KComponent::Repaint()
 KComponent::~KComponent()
 {
 	if(isRegistered)
-		::UnregisterClassW((const wchar_t*)compClassName, KPlatformUtil::GetInstance()->GetAppHInstance());
+		::UnregisterClassW(compClassName, KPlatformUtil::GetInstance()->GetAppHInstance());
 }
 
 // =========== KGlyphButton.cpp ===========
@@ -3243,7 +3254,7 @@ void KGridView::InsertRecord(KString **columnsData)
 {
 	LVITEMW lvi = { 0 };
 	lvi.mask = LVIF_TEXT;
-	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
+	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = itemCount;
 
 	int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
@@ -3252,7 +3263,7 @@ void KGridView::InsertRecord(KString **columnsData)
 	{
 		LV_ITEMW lvi = { 0 };
 		lvi.iSubItem = i;
-		lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
+		lvi.pszText = (*columnsData[i]);
 
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
 	}
@@ -3264,7 +3275,7 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 {
 	LVITEMW lvi = { 0 };
 	lvi.mask = LVIF_TEXT;
-	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
+	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = rowIndex;
 
 	int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
@@ -3273,7 +3284,7 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 	{
 		LV_ITEMW lvi= { 0 };
 		lvi.iSubItem = i;
-		lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
+		lvi.pszText = (*columnsData[i]);
 
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
 	}
@@ -3317,7 +3328,7 @@ void KGridView::UpdateRecordAt(int rowIndex, int columnIndex, const KString& tex
 {
 	LV_ITEMW lvi = { 0 };
 	lvi.iSubItem = columnIndex;
-	lvi.pszText = (wchar_t*)(const wchar_t*)text;
+	lvi.pszText = text;
 
 	::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_SetItemText macro. it relies on preprocessor defs.
 }
@@ -3339,7 +3350,7 @@ void KGridView::CreateColumn(const KString& text, int columnWidth)
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 	lvc.fmt = LVCFMT_LEFT;
 	lvc.cx = columnWidth;
-	lvc.pszText = (wchar_t*)(const wchar_t*)text;
+	lvc.pszText = text;
 	lvc.iSubItem = colCount;
 
 	::SendMessageW(compHWND, LVM_INSERTCOLUMNW, (WPARAM)colCount, (LPARAM)&lvc);
@@ -3868,7 +3879,7 @@ void KMenu::AddMenuItem(KMenuItem *menuItem)
 
 void KMenu::AddSubMenu(const KString& text, KMenu *menu)
 {
-	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), (const wchar_t*)text);
+	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), text);
 }
 
 void KMenu::AddSeperator()
@@ -3936,7 +3947,7 @@ KMenuBar::KMenuBar()
 
 void KMenuBar::AddMenu(const KString& text, KMenu *menu)
 {
-	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), (const wchar_t*)text);
+	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), text);
 }
 
 void KMenuBar::AddToWindow(KWindow *window)
@@ -5189,7 +5200,7 @@ bool KBitmap::LoadFromResource(WORD resourceID)
 
 bool KBitmap::LoadFromFile(const KString& filePath)
 {
-	hBitmap = (HBITMAP)::LoadImageW(appHInstance, (const wchar_t*)(KString)filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hBitmap = (HBITMAP)::LoadImageW(appHInstance, filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
 		return true;	
 	return false;
@@ -5257,7 +5268,7 @@ bool KCursor::LoadFromResource(WORD resourceID)
 
 bool KCursor::LoadFromFile(const KString& filePath)
 {
-	hCursor = (HCURSOR)::LoadImageW(appHInstance, (const wchar_t*)filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hCursor = (HCURSOR)::LoadImageW(appHInstance, filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
 		return true;	
 	return false;
@@ -5309,7 +5320,7 @@ KFont::KFont()
 
 KFont::KFont(const KString& face, int size, bool bold, bool italic, bool antiAliased)
 {
-	hFont = ::CreateFontW(size, 0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic ? TRUE : FALSE, 0, 0, DEFAULT_CHARSET, 0, 0, antiAliased ? DEFAULT_QUALITY : NONANTIALIASED_QUALITY, VARIABLE_PITCH | FF_DONTCARE, (const wchar_t*)face);
+	hFont = ::CreateFontW(size, 0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic ? TRUE : FALSE, 0, 0, DEFAULT_CHARSET, 0, 0, antiAliased ? DEFAULT_QUALITY : NONANTIALIASED_QUALITY, VARIABLE_PITCH | FF_DONTCARE, face);
 	if(hFont)
 		customFont = true;
 }
@@ -5450,7 +5461,7 @@ bool KIcon::LoadFromResource(WORD resourceID)
 
 bool KIcon::LoadFromFile(const KString& filePath)
 {
-	hIcon = (HICON)::LoadImageW(appHInstance, (const wchar_t*)filePath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hIcon = (HICON)::LoadImageW(appHInstance, filePath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hIcon)
 		return true;	
 	return false;

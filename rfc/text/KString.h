@@ -111,9 +111,14 @@ public:
 	operator const char*()const;
 
 	/**
-		Returns unicode version of this string
+		Returns const unicode version of this string
 	*/
 	operator const wchar_t*()const;
+
+	/**
+		Returns unicode version of this string
+	*/
+	operator wchar_t*()const;
 
 	/** 
 		Returns a character from the string.

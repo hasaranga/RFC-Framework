@@ -56,7 +56,7 @@ KComponent::KComponent()
 	wc.hIconSm = 0;
 	wc.style = 0;
 	wc.hInstance = platformUtil->GetAppHInstance();
-	wc.lpszClassName = (const wchar_t*)compClassName;
+	wc.lpszClassName = compClassName;
 
 	wc.lpfnWndProc = ::GlobalWnd_Proc;
 
@@ -195,7 +195,7 @@ void KComponent::SetText(const KString& compText)
 {
 	this->compText = compText;
 	if(compHWND)
-		::SetWindowTextW(compHWND, (const wchar_t*)this->compText);
+		::SetWindowTextW(compHWND, this->compText);
 }
 
 void KComponent::SetHWND(HWND compHWND)
@@ -328,5 +328,5 @@ void KComponent::Repaint()
 KComponent::~KComponent()
 {
 	if(isRegistered)
-		::UnregisterClassW((const wchar_t*)compClassName, KPlatformUtil::GetInstance()->GetAppHInstance());
+		::UnregisterClassW(compClassName, KPlatformUtil::GetInstance()->GetAppHInstance());
 }

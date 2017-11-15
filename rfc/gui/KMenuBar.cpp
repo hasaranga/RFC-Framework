@@ -31,7 +31,7 @@ KMenuBar::KMenuBar()
 
 void KMenuBar::AddMenu(const KString& text, KMenu *menu)
 {
-	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), (const wchar_t*)text);
+	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), text);
 }
 
 void KMenuBar::AddToWindow(KWindow *window)

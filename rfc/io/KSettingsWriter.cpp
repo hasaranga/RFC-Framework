@@ -56,7 +56,7 @@ void KSettingsWriter::WriteString(const KString& text)
 		size = (size + 1) * sizeof(wchar_t);
 		settingsFile.WriteFile(&size, sizeof(int));
 
-		settingsFile.WriteFile((wchar_t*)(const wchar_t*)text, size);
+		settingsFile.WriteFile((wchar_t*)text, size);
 	}
 	else // write only empty size
 	{

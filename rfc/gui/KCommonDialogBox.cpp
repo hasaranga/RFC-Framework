@@ -38,7 +38,7 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title,
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
 	ofn.Flags =  OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-	ofn.lpstrTitle = (const wchar_t*)title;
+	ofn.lpstrTitle = title;
 
 	if(::GetOpenFileNameW(&ofn))
 	{
@@ -66,7 +66,7 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
 	ofn.Flags =  OFN_HIDEREADONLY;
-	ofn.lpstrTitle = (const wchar_t*)title;
+	ofn.lpstrTitle = title;
 
 	if(::GetSaveFileNameW(&ofn))
 	{

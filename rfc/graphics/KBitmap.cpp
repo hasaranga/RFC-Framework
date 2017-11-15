@@ -40,7 +40,7 @@ bool KBitmap::LoadFromResource(WORD resourceID)
 
 bool KBitmap::LoadFromFile(const KString& filePath)
 {
-	hBitmap = (HBITMAP)::LoadImageW(appHInstance, (const wchar_t*)(KString)filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hBitmap = (HBITMAP)::LoadImageW(appHInstance, filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
 		return true;	
 	return false;

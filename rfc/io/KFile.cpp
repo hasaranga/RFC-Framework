@@ -36,7 +36,7 @@ KFile::KFile(const KString& fileName, DWORD desiredAccess, bool autoCloseHandle)
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
-	fileHandle = ::CreateFileW((const wchar_t*)fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 }
 
 bool KFile::OpenFile(const KString& fileName, DWORD desiredAccess, bool autoCloseHandle)
@@ -48,7 +48,7 @@ bool KFile::OpenFile(const KString& fileName, DWORD desiredAccess, bool autoClos
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
-	fileHandle = ::CreateFileW((const wchar_t*)fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	
 	return (fileHandle == INVALID_HANDLE_VALUE) ? false : true;
 }
@@ -170,17 +170,17 @@ KString KFile::ReadAsString(bool isUnicode)
 
 bool KFile::DeleteFile(const KString& fileName)
 {
-	return ::DeleteFileW((const wchar_t*)fileName) == 0 ? false : true;
+	return ::DeleteFileW(fileName) == 0 ? false : true;
 }
 
 bool KFile::CopyFile(const KString& sourceFileName, const KString& destFileName)
 {
-	return ::CopyFileW((const wchar_t*)sourceFileName, (const wchar_t*)destFileName, FALSE) == 0 ? false : true;
+	return ::CopyFileW(sourceFileName, destFileName, FALSE) == 0 ? false : true;
 }
 
 bool KFile::IsFileExists(const KString& fileName)
 {
-	DWORD dwAttrib = ::GetFileAttributesW((const wchar_t*)fileName);
+	DWORD dwAttrib = ::GetFileAttributesW(fileName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }

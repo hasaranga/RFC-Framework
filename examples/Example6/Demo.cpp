@@ -170,7 +170,7 @@ public:
 		}else if(button==&btn2)
 		{
 			KString fileName;
-			if(KCommonDialogBox::ShowOpenFileDialog(this,L"title",L"Text Files (*.txt)\0*.txt\0",&fileName))
+			if(KCommonDialogBox::ShowOpenFileDialog(this, L"title", KFILE_FILTER("Text Files", "txt"),&fileName))
 			{
 				::MessageBoxW(compHWND,fileName,fileName,0);
 			}

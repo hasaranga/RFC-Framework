@@ -40,7 +40,7 @@ bool KCursor::LoadFromResource(WORD resourceID)
 
 bool KCursor::LoadFromFile(const KString& filePath)
 {
-	hCursor = (HCURSOR)::LoadImageW(appHInstance, (const wchar_t*)filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hCursor = (HCURSOR)::LoadImageW(appHInstance, filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
 		return true;	
 	return false;

@@ -40,7 +40,7 @@ bool KIcon::LoadFromResource(WORD resourceID)
 
 bool KIcon::LoadFromFile(const KString& filePath)
 {
-	hIcon = (HICON)::LoadImageW(appHInstance, (const wchar_t*)filePath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hIcon = (HICON)::LoadImageW(appHInstance, filePath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hIcon)
 		return true;	
 	return false;

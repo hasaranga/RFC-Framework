@@ -30,19 +30,19 @@ KDirectory::~KDirectory(){}
 
 bool KDirectory::IsDirExists(const KString& dirName)
 {
-	DWORD dwAttrib = ::GetFileAttributesW((const wchar_t*)dirName);
+	DWORD dwAttrib = ::GetFileAttributesW(dirName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 bool KDirectory::CreateDir(const KString& dirName)
 {
-	return ::CreateDirectoryW((const wchar_t*)dirName, NULL) == 0 ? false : true;
+	return ::CreateDirectoryW(dirName, NULL) == 0 ? false : true;
 }
 
 bool KDirectory::RemoveDir(const KString& dirName)
 {
-	return ::RemoveDirectoryW((const wchar_t*)dirName) == 0 ? false : true;
+	return ::RemoveDirectoryW(dirName) == 0 ? false : true;
 }
 
 KString KDirectory::GetModuleDir(HMODULE hModule)
