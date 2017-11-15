@@ -73,6 +73,7 @@
 #include "gui/KGridView.h"
 #include "gui/KGlyphButton.h"
 #include "gui/KMenuButton.h"
+#include "gui/KToolTip.h"
 #include "threads/KThread.h"
 #include "threads/KTimer.h"
 #include "threads/KTimerListener.h"

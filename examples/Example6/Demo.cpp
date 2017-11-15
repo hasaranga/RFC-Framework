@@ -24,6 +24,7 @@ protected:
 	KMenuButton menuButton;
 	KGlyphButton glyphButton;
 	KGridView gridView;
+	KToolTip trackBarToolTip;
 	KFont *fontWebdings24;
 	bool isStarted;
 
@@ -136,6 +137,9 @@ public:
 		menuBar.AddMenu(L"File", &fileMenu);
 
 		menuBar.AddToWindow(this);
+
+		trackBarToolTip.SetText(L"This is a Slider...");
+		trackBarToolTip.AttachToComponent(this, &trackBar);
 	}
 
 	~TestGUI()

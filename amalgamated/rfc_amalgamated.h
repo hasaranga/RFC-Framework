@@ -1387,6 +1387,48 @@ public:
 
 #endif
 
+// =========== KComboBoxListener.h ===========
+
+/*
+	RFC - KComboBoxListener.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KCOMBOBOXLISTENER_H_
+#define _RFC_KCOMBOBOXLISTENER_H_
+
+
+class KComboBox;
+
+class RFC_API KComboBoxListener
+{
+public:
+	KComboBoxListener();
+
+	virtual ~KComboBoxListener();
+
+	virtual void OnComboBoxItemSelect(KComboBox *comboBox);
+};
+
+#endif
+
 // =========== KPerformanceCounter.h ===========
 
 /*
@@ -1434,48 +1476,6 @@ public:
 
 	virtual ~KPerformanceCounter();
 
-};
-
-#endif
-
-// =========== KComboBoxListener.h ===========
-
-/*
-	RFC - KComboBoxListener.h
-	Copyright (C) 2013-2017 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KCOMBOBOXLISTENER_H_
-#define _RFC_KCOMBOBOXLISTENER_H_
-
-
-class KComboBox;
-
-class RFC_API KComboBoxListener
-{
-public:
-	KComboBoxListener();
-
-	virtual ~KComboBoxListener();
-
-	virtual void OnComboBoxItemSelect(KComboBox *comboBox);
 };
 
 #endif
@@ -2885,88 +2885,6 @@ public:
 
 #endif
 
-// =========== KGridView.h ===========
-
-/*
-	RFC - KGridView.h
-	Copyright (C) 2013-2017 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KGRIDVIEW_H_
-#define _RFC_KGRIDVIEW_H_
-
-
-class KGridViewListener;
-
-class RFC_API KGridView : public KComponent
-{
-protected:
-	int colCount;
-	int itemCount;
-	KGridViewListener *listener;
-
-public:
-	KGridView(bool sortItems = false);
-
-	virtual void SetListener(KGridViewListener *listener);
-
-	virtual KGridViewListener* GetListener();
-
-	virtual void InsertRecord(KString **columnsData);
-
-	virtual void InsertRecordTo(int rowIndex, KString **columnsData);
-
-	virtual KString GetRecordAt(int rowIndex, int columnIndex);
-
-	/**
-		returns -1 if nothing selected.
-	*/
-	virtual int GetSelectedRow();
-
-	virtual void RemoveRecordAt(int rowIndex);
-
-	virtual void RemoveAll();
-
-	virtual void UpdateRecordAt(int rowIndex, int columnIndex, const KString& text);
-
-	virtual void SetColumnWidth(int columnIndex, int columnWidth);
-
-	virtual int GetColumnWidth(int columnIndex);
-
-	virtual void CreateColumn(const KString& text, int columnWidth = 100);
-
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-
-	virtual bool CreateComponent(bool subClassWindowProc = false);
-
-	virtual void OnItemSelect();
-
-	virtual void OnItemRightClick();
-
-	virtual void OnItemDoubleClick();
-
-	virtual ~KGridView();
-};
-
-#endif
-
 // =========== KLabel.h ===========
 
 /*
@@ -3049,45 +2967,6 @@ public:
 
 #endif
 
-// =========== KTextArea.h ===========
-
-/*
-	RFC - KTextArea.h
-	Copyright (C) 2013-2017 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KTEXTAREA_H_
-#define _RFC_KTEXTAREA_H_
-
-
-class RFC_API KTextArea : public KTextBox
-{
-public:
-	KTextArea(bool autoScroll = false, bool readOnly = false);
-
-	virtual ~KTextArea();
-};
-
-
-#endif
-
 // =========== KTrackBar.h ===========
 
 /*
@@ -3150,6 +3029,88 @@ public:
 
 #endif
 
+
+// =========== KGridView.h ===========
+
+/*
+	RFC - KGridView.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KGRIDVIEW_H_
+#define _RFC_KGRIDVIEW_H_
+
+
+class KGridViewListener;
+
+class RFC_API KGridView : public KComponent
+{
+protected:
+	int colCount;
+	int itemCount;
+	KGridViewListener *listener;
+
+public:
+	KGridView(bool sortItems = false);
+
+	virtual void SetListener(KGridViewListener *listener);
+
+	virtual KGridViewListener* GetListener();
+
+	virtual void InsertRecord(KString **columnsData);
+
+	virtual void InsertRecordTo(int rowIndex, KString **columnsData);
+
+	virtual KString GetRecordAt(int rowIndex, int columnIndex);
+
+	/**
+		returns -1 if nothing selected.
+	*/
+	virtual int GetSelectedRow();
+
+	virtual void RemoveRecordAt(int rowIndex);
+
+	virtual void RemoveAll();
+
+	virtual void UpdateRecordAt(int rowIndex, int columnIndex, const KString& text);
+
+	virtual void SetColumnWidth(int columnIndex, int columnWidth);
+
+	virtual int GetColumnWidth(int columnIndex);
+
+	virtual void CreateColumn(const KString& text, int columnWidth = 100);
+
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+
+	virtual bool CreateComponent(bool subClassWindowProc = false);
+
+	virtual void OnItemSelect();
+
+	virtual void OnItemRightClick();
+
+	virtual void OnItemDoubleClick();
+
+	virtual ~KGridView();
+};
+
+#endif
 
 // =========== KSettingsWriter.h ===========
 
@@ -3501,10 +3462,10 @@ public:
 
 #endif
 
-// =========== KComboBox.h ===========
+// =========== KMenu.h ===========
 
 /*
-	RFC - KComboBox.h
+	RFC - KMenu.h
 	Copyright (C) 2013-2017 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
@@ -3525,50 +3486,29 @@ public:
 	  
 */
 
-#ifndef _RFC_KCOMBOBOX_H_
-#define _RFC_KCOMBOBOX_H_
+#ifndef _RFC_KMENU_H_
+#define _RFC_KMENU_H_
 
 
-
-class KComboBoxListener;
-
-class RFC_API KComboBox : public KComponent
+class RFC_API KMenu
 {
 protected:
-	KPointerList<KString*> *stringList;
-	int selectedItemIndex;
-	KComboBoxListener *listener;
+	HMENU hMenu;
 
 public:
-	KComboBox(bool sort=false);
+	KMenu();
 
-	virtual void AddItem(const KString& text);
+	virtual void AddMenuItem(KMenuItem *menuItem);
 
-	virtual void RemoveItem(int index);
+	virtual void AddSubMenu(const KString& text, KMenu *menu);
 
-	virtual void RemoveItem(const KString& text);
+	virtual void AddSeperator();
 
-	virtual int GetItemIndex(const KString& text);
+	virtual HMENU GetMenuHandle();
 
-	virtual int GetItemCount();
+	virtual void PopUpMenu(KWindow *window);
 
-	virtual int GetSelectedItemIndex();
-
-	virtual KString GetSelectedItem();
-
-	virtual void ClearList();
-
-	virtual void SelectItem(int index);
-
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-
-	virtual bool CreateComponent(bool subClassWindowProc = false);
-
-	virtual void SetListener(KComboBoxListener *listener);
-
-	virtual void OnItemSelect();
-
-	virtual ~KComboBox();
+	virtual ~KMenu();
 };
 
 #endif
@@ -3699,10 +3639,10 @@ public:
 
 #endif
 
-// =========== KMenu.h ===========
+// =========== KMenuBar.h ===========
 
 /*
-	RFC - KMenu.h
+	RFC - KMenuBar.h
 	Copyright (C) 2013-2017 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
@@ -3723,29 +3663,96 @@ public:
 	  
 */
 
-#ifndef _RFC_KMENU_H_
-#define _RFC_KMENU_H_
+#ifndef _RFC_KMENUBAR_H_
+#define _RFC_KMENUBAR_H_
 
 
-class RFC_API KMenu
+class RFC_API KMenuBar
 {
 protected:
 	HMENU hMenu;
 
 public:
-	KMenu();
+	KMenuBar();
 
-	virtual void AddMenuItem(KMenuItem *menuItem);
+	virtual void AddMenu(const KString& text, KMenu *menu);
 
-	virtual void AddSubMenu(const KString& text, KMenu *menu);
+	virtual void AddToWindow(KWindow *window);
 
-	virtual void AddSeperator();
+	virtual ~KMenuBar();
+};
 
-	virtual HMENU GetMenuHandle();
 
-	virtual void PopUpMenu(KWindow *window);
+#endif
 
-	virtual ~KMenu();
+// =========== KComboBox.h ===========
+
+/*
+	RFC - KComboBox.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KCOMBOBOX_H_
+#define _RFC_KCOMBOBOX_H_
+
+
+
+class KComboBoxListener;
+
+class RFC_API KComboBox : public KComponent
+{
+protected:
+	KPointerList<KString*> *stringList;
+	int selectedItemIndex;
+	KComboBoxListener *listener;
+
+public:
+	KComboBox(bool sort=false);
+
+	virtual void AddItem(const KString& text);
+
+	virtual void RemoveItem(int index);
+
+	virtual void RemoveItem(const KString& text);
+
+	virtual int GetItemIndex(const KString& text);
+
+	virtual int GetItemCount();
+
+	virtual int GetSelectedItemIndex();
+
+	virtual KString GetSelectedItem();
+
+	virtual void ClearList();
+
+	virtual void SelectItem(int index);
+
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+
+	virtual bool CreateComponent(bool subClassWindowProc = false);
+
+	virtual void SetListener(KComboBoxListener *listener);
+
+	virtual void OnItemSelect();
+
+	virtual ~KComboBox();
 };
 
 #endif
@@ -3810,90 +3817,6 @@ public:
 
 #endif
 
-// =========== KMenuBar.h ===========
-
-/*
-	RFC - KMenuBar.h
-	Copyright (C) 2013-2017 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KMENUBAR_H_
-#define _RFC_KMENUBAR_H_
-
-
-class RFC_API KMenuBar
-{
-protected:
-	HMENU hMenu;
-
-public:
-	KMenuBar();
-
-	virtual void AddMenu(const KString& text, KMenu *menu);
-
-	virtual void AddToWindow(KWindow *window);
-
-	virtual ~KMenuBar();
-};
-
-
-#endif
-
-// =========== KNumericField.h ===========
-
-/*
-	RFC - KNumericField.h
-	Copyright (C) 2013-2017 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KNUMERICFIELD_H_
-#define _RFC_KNUMERICFIELD_H_
-
-
-class RFC_API KNumericField : public KTextBox
-{
-public:
-	KNumericField();
-
-	virtual ~KNumericField();
-};
-
-#endif
-
 // =========== KPasswordBox.h ===========
 
 /*
@@ -3937,6 +3860,82 @@ public:
 	virtual bool CreateComponent();
 
 	virtual ~KPasswordBox();
+};
+
+#endif
+
+// =========== KNumericField.h ===========
+
+/*
+	RFC - KNumericField.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KNUMERICFIELD_H_
+#define _RFC_KNUMERICFIELD_H_
+
+
+class RFC_API KNumericField : public KTextBox
+{
+public:
+	KNumericField();
+
+	virtual ~KNumericField();
+};
+
+#endif
+
+// =========== KRadioButton.h ===========
+
+/*
+	RFC - KRadioButton.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KRADIOBUTTON_H_
+#define _RFC_KRADIOBUTTON_H_
+
+
+class RFC_API KRadioButton : public KCheckBox
+{
+public:
+	KRadioButton();
+
+	virtual ~KRadioButton();
 };
 
 #endif
@@ -4017,10 +4016,10 @@ public:
 
 #endif
 
-// =========== KRadioButton.h ===========
+// =========== KTextArea.h ===========
 
 /*
-	RFC - KRadioButton.h
+	RFC - KTextArea.h
 	Copyright (C) 2013-2017 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
@@ -4041,19 +4040,76 @@ public:
 	  
 */
 
-#ifndef _RFC_KRADIOBUTTON_H_
-#define _RFC_KRADIOBUTTON_H_
+#ifndef _RFC_KTEXTAREA_H_
+#define _RFC_KTEXTAREA_H_
 
 
-class RFC_API KRadioButton : public KCheckBox
+class RFC_API KTextArea : public KTextBox
 {
 public:
-	KRadioButton();
+	KTextArea(bool autoScroll = false, bool readOnly = false);
 
-	virtual ~KRadioButton();
+	virtual ~KTextArea();
+};
+
+
+#endif
+
+// =========== KToolTip.h ===========
+
+/*
+	RFC - KToolTip.h
+	Copyright (C) 2013-2017 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KTOOLTIP_H_
+#define _RFC_KTOOLTIP_H_
+
+
+class RFC_API KToolTip : public KComponent
+{
+protected:
+	HWND attachedCompHWND;
+
+public:
+	KToolTip();
+
+	virtual ~KToolTip();
+
+	/**
+		parentWindow must be created before you call this method.
+		attachedComponent must be added to a window before you call this method.
+		do not attach same tooltip into multiple components.
+	*/
+	virtual void AttachToComponent(KWindow *parentWindow, KComponent *attachedComponent);
+
+	/**
+		calling this method has no effect.
+	*/
+	virtual bool CreateComponent(bool subClassWindowProc);
+
+	virtual void SetText(const KString& compText);
 };
 
 #endif
+
 
 // =========== KWindowTypes.h ===========
 

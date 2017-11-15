@@ -264,7 +264,7 @@ KString::operator wchar_t*()const
 		return stringHolder->w_text;
 	}else
 	{
-		return L"";
+		return (wchar_t*)L"";
 	}
 }
 
