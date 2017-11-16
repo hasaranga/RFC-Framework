@@ -33,7 +33,7 @@ KGridView::KGridView(bool sortItems)
 
 	this->SetPosition(0, 0);
 	this->SetSize(300, 200);
-	this->SetStyle(WS_CHILD | WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL);
+	this->SetStyle(WS_CHILD | WS_TABSTOP| WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL);
 	this->SetExStyle(WS_EX_WINDOWEDGE);
 
 	if (sortItems)

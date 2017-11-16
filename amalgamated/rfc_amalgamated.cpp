@@ -3231,7 +3231,7 @@ KGridView::KGridView(bool sortItems)
 
 	this->SetPosition(0, 0);
 	this->SetSize(300, 200);
-	this->SetStyle(WS_CHILD | WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL);
+	this->SetStyle(WS_CHILD | WS_TABSTOP| WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL);
 	this->SetExStyle(WS_EX_WINDOWEDGE);
 
 	if (sortItems)
@@ -4532,12 +4532,24 @@ KRadioButton::~KRadioButton()
 KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
 {
 	this->SetSize(200, 100);
-	this->SetStyle(compDwStyle | ES_MULTILINE);
+	this->SetStyle(compDwStyle | ES_MULTILINE | ES_WANTRETURN);
 
 	if(autoScroll)
 		this->SetStyle(compDwStyle | ES_AUTOHSCROLL | ES_AUTOVSCROLL);
 	else
 		this->SetStyle(compDwStyle | WS_HSCROLL | WS_VSCROLL);
+}
+
+bool KTextArea::CreateComponent(bool subClassWindowProc)
+{
+	return KTextBox::CreateComponent(true); // explicity sublcass windowproc to catch tab key.
+}
+
+LRESULT KTextArea::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	if(msg == WM_GETDLGCODE)
+		return DLGC_WANTALLKEYS; // to catch TAB key
+	return KTextBox::WindowProc(hwnd, msg, wParam, lParam);
 }
 
 KTextArea::~KTextArea()
@@ -5108,7 +5120,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_COMMAND: // button, checkbox, radio button, listbox, combobox or menu-item
 			{
-				if( (HIWORD(wParam) == BN_CLICKED) && (lParam == 0) ) // its menu item! unfortunately windows does not send menu handle with clicked event!
+				if( (HIWORD(wParam) == 0) && (lParam == 0) ) // its menu item! unfortunately windows does not send menu handle with clicked event!
 				{
 					KMenuItem *menuItem = KPlatformUtil::GetInstance()->GetMenuItemByID(LOWORD(wParam));
 					if(menuItem)
@@ -5117,7 +5129,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						break;
 					}
 				}
-				else // send to appropriate component
+				else if(lParam)// send to appropriate component
 				{
 					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
 					if (component)
@@ -5126,6 +5138,28 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						if (component->EventProc(msg, wParam, lParam, &result))
 							return result;
 					}
+				}
+				else if (LOWORD(wParam) == IDOK) // enter key pressed. (lParam does not contain current comp hwnd)
+				{
+					HWND currentComponent = ::GetFocus();
+
+					// simulate enter key pressed event into current component. (might be a window)
+					::SendMessageW(currentComponent, WM_KEYDOWN, VK_RETURN, 0);
+					::SendMessageW(currentComponent, WM_KEYUP, VK_RETURN, 0);
+					::SendMessageW(currentComponent, WM_CHAR, VK_RETURN, 0); 
+
+					return 0;
+				}
+				else if (LOWORD(wParam) == IDCANCEL) // Esc key pressed. (lParam does not contain current comp hwnd)
+				{
+					HWND currentComponent = ::GetFocus();
+
+					// simulate esc key pressed event into current component. (might be a window)
+					::SendMessageW(currentComponent, WM_KEYDOWN, VK_ESCAPE, 0);
+					::SendMessageW(currentComponent, WM_KEYUP, VK_ESCAPE, 0);
+					::SendMessageW(currentComponent, WM_CHAR, VK_ESCAPE, 0); 
+
+					return 0;
 				}
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);

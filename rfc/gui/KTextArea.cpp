@@ -26,12 +26,24 @@
 KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
 {
 	this->SetSize(200, 100);
-	this->SetStyle(compDwStyle | ES_MULTILINE);
+	this->SetStyle(compDwStyle | ES_MULTILINE | ES_WANTRETURN);
 
 	if(autoScroll)
 		this->SetStyle(compDwStyle | ES_AUTOHSCROLL | ES_AUTOVSCROLL);
 	else
 		this->SetStyle(compDwStyle | WS_HSCROLL | WS_VSCROLL);
+}
+
+bool KTextArea::CreateComponent(bool subClassWindowProc)
+{
+	return KTextBox::CreateComponent(true); // explicity sublcass windowproc to catch tab key.
+}
+
+LRESULT KTextArea::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	if(msg == WM_GETDLGCODE)
+		return DLGC_WANTALLKEYS; // to catch TAB key
+	return KTextBox::WindowProc(hwnd, msg, wParam, lParam);
 }
 
 KTextArea::~KTextArea()

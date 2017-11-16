@@ -4049,6 +4049,10 @@ class RFC_API KTextArea : public KTextBox
 public:
 	KTextArea(bool autoScroll = false, bool readOnly = false);
 
+	virtual bool CreateComponent(bool subClassWindowProc = true);
+
+	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 	virtual ~KTextArea();
 };
 
