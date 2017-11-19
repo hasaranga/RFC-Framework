@@ -92,11 +92,31 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 
 	if(nCode==HCBT_CREATEWND){
 		HWND hwnd=(HWND)wParam;
-		::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)InternalVariables::currentComponent);
-		FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
-		::SetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
+		LPCBT_CREATEWNDW cbtCreateWnd = (LPCBT_CREATEWNDW)lParam;
+		if (cbtCreateWnd)
+		{
+			if (cbtCreateWnd->lpcs)
+			{
+				if (cbtCreateWnd->lpcs->lpCreateParams == InternalVariables::currentComponent) // only catch what we created. ignore unknown windows.
+				{
+					::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)InternalVariables::currentComponent);
 
-		::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+					FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
+					::SetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
+
+					if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // only sublcass if window proc is not GlobalWnd_Proc
+						::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+
+					// Call the next hook, if there is one
+					LRESULT result = ::CallNextHookEx(InternalVariables::wnd_hook, nCode, wParam, lParam);
+
+					// we subclassed what we created. so remove the hook.
+					::UnhookWindowsHookEx(InternalVariables::wnd_hook); // unhooking at here will also allow child creation at WM_CREATE
+
+					return result;
+				}
+			}
+		}
 	}
 
 	// Call the next hook, if there is one
@@ -119,11 +139,15 @@ LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 		::RemovePropW(hwnd, InternalDefinitions::RFCPropText_Object);
 
 		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
-		if (lpfnOldWndProc)
-		{
-			::RemovePropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
+		::RemovePropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
+
+		if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // common control or dialog
+		{	
 			::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc); // restore default wnd proc!
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
+		}
+		else{ // window or custom control
+			return ::DefWindowProcW( hwnd, msg, wParam, lParam );
 		}
 	}
 
@@ -141,9 +165,11 @@ HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc)
 		// install hook to get called before WM_CREATE_WINDOW msg!
 		InternalVariables::wnd_hook = ::SetWindowsHookExW(WH_CBT, &RFCCTL_CBTProc, 0, ::GetCurrentThreadId());
 
-		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
+		// pass current component as lpParam. so CBT proc can ignore other unknown windows.
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), (LPVOID)component);
 
-		::UnhookWindowsHookEx(InternalVariables::wnd_hook);
+		// unhook at here will cause catching childs which are created at WM_CREATE. so, unhook at CBT proc.
+		//::UnhookWindowsHookEx(InternalVariables::wnd_hook);
 
 		::LeaveCriticalSection(&InternalVariables::g_csComponent);
 
@@ -4670,7 +4696,7 @@ KToolTip::KToolTip()
 	attachedCompHWND = 0;
 	compClassName = KString(TOOLTIPS_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
 
-	this->SetStyle(WS_POPUP | TTS_ALWAYSTIP);
+	this->SetStyle(WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX);
 }
 
 KToolTip::~KToolTip()
@@ -4686,6 +4712,8 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 
 	if (compHWND)
 	{
+		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
 		::SetPropW(compHWND, InternalDefinitions::RFCPropText_Object, (HANDLE)(KComponent*)this);
 
 		TOOLINFOW toolInfo = { 0 };

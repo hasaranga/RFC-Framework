@@ -29,7 +29,7 @@ KToolTip::KToolTip()
 	attachedCompHWND = 0;
 	compClassName = KString(TOOLTIPS_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
 
-	this->SetStyle(WS_POPUP | TTS_ALWAYSTIP);
+	this->SetStyle(WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX);
 }
 
 KToolTip::~KToolTip()
@@ -45,6 +45,8 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 
 	if (compHWND)
 	{
+		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
 		::SetPropW(compHWND, InternalDefinitions::RFCPropText_Object, (HANDLE)(KComponent*)this);
 
 		TOOLINFOW toolInfo = { 0 };
