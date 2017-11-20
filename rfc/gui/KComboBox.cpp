@@ -145,12 +145,12 @@ bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KComboBox::CreateComponent(bool subClassWindowProc)
+bool KComboBox::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register COMBOBOX class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register COMBOBOX class!
 
 	if(compHWND)
 	{

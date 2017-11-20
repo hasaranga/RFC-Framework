@@ -47,7 +47,7 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 	{
 		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
-		::SetPropW(compHWND, InternalDefinitions::RFCPropText_Object, (HANDLE)(KComponent*)this);
+		::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);
 
 		TOOLINFOW toolInfo = { 0 };
 		toolInfo.cbSize = sizeof(TOOLINFOW);
@@ -60,7 +60,7 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 	}
 }
 
-bool KToolTip::CreateComponent(bool subClassWindowProc)
+bool KToolTip::CreateComponent(bool requireInitialMessages)
 {
 	return false;
 }

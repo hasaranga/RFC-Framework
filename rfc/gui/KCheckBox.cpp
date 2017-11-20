@@ -32,12 +32,12 @@ KCheckBox::KCheckBox()
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP);
 }
 
-bool KCheckBox::CreateComponent(bool subClassWindowProc)
+bool KCheckBox::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register BUTTON class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{

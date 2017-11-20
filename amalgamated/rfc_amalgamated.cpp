@@ -82,8 +82,19 @@ HHOOK InternalVariables::wnd_hook = 0;
 volatile int InternalVariables::rfcRefCount = 0;
 CRITICAL_SECTION InternalVariables::g_csComponent;
 
-const wchar_t* InternalDefinitions::RFCPropText_Object = L"RFC";
-const wchar_t* InternalDefinitions::RFCPropText_OldProc = L"RFCOldProc";
+ATOM InternalDefinitions::RFCPropAtom_Component;
+ATOM InternalDefinitions::RFCPropAtom_OldProc;
+
+void AttachRFCPropertiesToHWND(HWND hwnd, KComponent* component)
+{
+	::SetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component), (HANDLE)component);
+
+	FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
+	::SetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc), (HANDLE)lpfnOldWndProc);
+
+	if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // sublcass only if window proc is not GlobalWnd_Proc (common control or dialog)
+		::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+}
 
 LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 {
@@ -99,13 +110,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 			{
 				if (cbtCreateWnd->lpcs->lpCreateParams == InternalVariables::currentComponent) // only catch what we created. ignore unknown windows.
 				{
-					::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)InternalVariables::currentComponent);
-
-					FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
-					::SetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
-
-					if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // only sublcass if window proc is not GlobalWnd_Proc
-						::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+					::AttachRFCPropertiesToHWND(hwnd, InternalVariables::currentComponent);
 
 					// Call the next hook, if there is one
 					LRESULT result = ::CallNextHookEx(InternalVariables::wnd_hook, nCode, wParam, lParam);
@@ -125,38 +130,39 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 
 LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
+	KComponent *component = (KComponent*)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 
-	KComponent *component = (KComponent*)::GetPropW(hwnd, InternalDefinitions::RFCPropText_Object);
-
-	if(!component){ // just for safe!
+	if(!component){ // for safe!
 		return ::DefWindowProcW( hwnd, msg, wParam, lParam );
 	}
 
 	if(!component->GetHWND()) // window recieve msg for the first time!
 		component->SetHWND(hwnd);
 
-	if(msg==WM_NCDESTROY){
-		::RemovePropW(hwnd, InternalDefinitions::RFCPropText_Object);
+	if(msg == WM_NCDESTROY){
+		::RemovePropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 
-		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
-		::RemovePropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
+		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc));
+		::RemovePropW(hwnd,  MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc));
 
-		if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // common control or dialog
-		{	
-			::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc); // restore default wnd proc!
-			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
+		if (lpfnOldWndProc)
+		{
+			if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // common control or dialog
+			{
+				::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc); // restore default wnd proc!
+				return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
+			}
 		}
-		else{ // window or custom control
-			return ::DefWindowProcW( hwnd, msg, wParam, lParam );
-		}
+		 // lpfnOldWndProc is not set or window or custom control
+		return ::DefWindowProcW( hwnd, msg, wParam, lParam );		
 	}
 
 	return component->WindowProc(hwnd, msg, wParam, lParam);
 }
 
-HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc)
+HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 {	
-	if (subClassWindowProc)
+	if (requireInitialMessages)
 	{
 		::EnterCriticalSection(&InternalVariables::g_csComponent);
 
@@ -179,7 +185,7 @@ HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc)
 	{
 		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
 
-		::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)component);
+		::AttachRFCPropertiesToHWND(hwnd, component);
 
 		component->SetHWND(hwnd);
 
@@ -274,7 +280,7 @@ INT_PTR CALLBACK GlobalDlg_Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 		KComponent* comp = (KComponent*)lParam;
 		if(comp)
 		{
-			comp->HotPlugInto(hwndDlg, true, true);
+			comp->HotPlugInto(hwndDlg, true);
 		}
 		return FALSE;
 	}
@@ -298,6 +304,9 @@ void InitRFC(HINSTANCE hInstance)
 		::CoInitialize(NULL); //Initializes COM as STA.
 
 		::InitializeCriticalSection(&InternalVariables::g_csComponent);
+
+		InternalDefinitions::RFCPropAtom_Component = ::GlobalAddAtomW(L"RFCComponent");
+		InternalDefinitions::RFCPropAtom_OldProc = ::GlobalAddAtomW(L"RFCOldProc");
 	}
 	++InternalVariables::rfcRefCount;
 }
@@ -310,6 +319,9 @@ void DeInitRFC()
 		::CoUninitialize();
 
 		::DeleteCriticalSection(&InternalVariables::g_csComponent);
+
+		::GlobalDeleteAtom(InternalDefinitions::RFCPropAtom_Component);
+		::GlobalDeleteAtom(InternalDefinitions::RFCPropAtom_OldProc);
 
 		// delete all singletons!
 		delete KFont::GetDefaultFont();
@@ -2353,12 +2365,12 @@ bool KButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KButton::CreateComponent(bool subClassWindowProc)
+bool KButton::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register BUTTON class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{
@@ -2442,12 +2454,12 @@ KCheckBox::KCheckBox()
 	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP);
 }
 
-bool KCheckBox::CreateComponent(bool subClassWindowProc)
+bool KCheckBox::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register BUTTON class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{
@@ -2639,12 +2651,12 @@ bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KComboBox::CreateComponent(bool subClassWindowProc)
+bool KComboBox::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register COMBOBOX class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register COMBOBOX class!
 
 	if(compHWND)
 	{
@@ -2871,7 +2883,7 @@ void KComponent::OnHotPlug()
 
 }
 
-void KComponent::HotPlugInto(HWND component, bool fetchInfo, bool subClassWindowProc)
+void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 {
 	compHWND = component;
 
@@ -2907,15 +2919,7 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo, bool subClassWindow
 		compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 	}
 
-	::SetPropW(compHWND, InternalDefinitions::RFCPropText_Object, (HANDLE)(KComponent*)this);
-
-	if (subClassWindowProc)
-	{
-		FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(compHWND, GWLP_WNDPROC);
-		::SetPropW(compHWND, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
-
-		::SetWindowLongPtrW(compHWND, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
-	}	
+	::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);	
 
 	this->OnHotPlug();
 }
@@ -2937,14 +2941,14 @@ KString KComponent::GetComponentClassName()
 	return compClassName;
 }
 
-bool KComponent::CreateComponent(bool subClassWindowProc)
+bool KComponent::CreateComponent(bool requireInitialMessages)
 {
 	if(!::RegisterClassExW(&wc))
 		return false;
 
 	isRegistered=true;
 
-	::CreateRFCComponent(this, subClassWindowProc);
+	::CreateRFCComponent(this, requireInitialMessages);
 
 	if(compHWND)
 	{
@@ -2965,9 +2969,9 @@ bool KComponent::CreateComponent(bool subClassWindowProc)
 
 LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
+	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc));
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed standard-control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
+		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed common control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }
@@ -3415,12 +3419,12 @@ bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KGridView::CreateComponent(bool subClassWindowProc)
+bool KGridView::CreateComponent(bool requireInitialMessages)
 {
 	if (!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register WC_LISTVIEWW class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register WC_LISTVIEWW class!
 
 	if (compHWND)
 	{
@@ -3564,12 +3568,12 @@ KLabel::KLabel()
 	this->SetExStyle(WS_EX_WINDOWEDGE);
 }
 
-bool KLabel::CreateComponent(bool subClassWindowProc)
+bool KLabel::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register Label class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register Label class!
 
 	if(compHWND)
 	{
@@ -3778,12 +3782,12 @@ bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KListBox::CreateComponent(bool subClassWindowProc)
+bool KListBox::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register LISTBOX class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register LISTBOX class!
 
 	if(compHWND)
 	{
@@ -4434,12 +4438,12 @@ void KProgressBar::SetValue(int value)
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
-bool KProgressBar::CreateComponent(bool subClassWindowProc)
+bool KProgressBar::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register PROGRESS_CLASSW class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register PROGRESS_CLASSW class!
 
 	if(compHWND)
 	{
@@ -4566,11 +4570,6 @@ KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
 		this->SetStyle(compDwStyle | WS_HSCROLL | WS_VSCROLL);
 }
 
-bool KTextArea::CreateComponent(bool subClassWindowProc)
-{
-	return KTextBox::CreateComponent(true); // explicity sublcass windowproc to catch tab key.
-}
-
 LRESULT KTextArea::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if(msg == WM_GETDLGCODE)
@@ -4641,12 +4640,12 @@ KString KTextBox::GetText()
 }
 
 
-bool KTextBox::CreateComponent(bool subClassWindowProc)
+bool KTextBox::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register EDIT class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register EDIT class!
 
 	if(compHWND)
 	{
@@ -4714,7 +4713,7 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 	{
 		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
-		::SetPropW(compHWND, InternalDefinitions::RFCPropText_Object, (HANDLE)(KComponent*)this);
+		::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);
 
 		TOOLINFOW toolInfo = { 0 };
 		toolInfo.cbSize = sizeof(TOOLINFOW);
@@ -4727,7 +4726,7 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 	}
 }
 
-bool KToolTip::CreateComponent(bool subClassWindowProc)
+bool KToolTip::CreateComponent(bool requireInitialMessages)
 {
 	return false;
 }
@@ -4845,12 +4844,12 @@ bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KTrackBar::CreateComponent(bool subClassWindowProc)
+bool KTrackBar::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register TRACKBAR_CLASSW class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register TRACKBAR_CLASSW class!
 
 	if(compHWND)
 	{
@@ -4974,14 +4973,14 @@ void KWindow::CenterScreen()
 	this->SetPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
 }
 
-bool KWindow::AddComponent(KComponent *component, bool subClassWindowProc)
+bool KWindow::AddComponent(KComponent *component, bool requireInitialMessages)
 {
 	if(component)
 	{
 		if(compHWND)
 		{
 			component->SetParentHWND(compHWND);
-			return component->CreateComponent(subClassWindowProc);
+			return component->CreateComponent(requireInitialMessages);
 		}
 	}
 	return false;
@@ -5041,7 +5040,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, InternalDefinitions::RFCPropText_Object);
+					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -5054,7 +5053,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, InternalDefinitions::RFCPropText_Object);
+				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -5074,7 +5073,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
 		case WM_CTLCOLORSTATIC: // static controls
 			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -5088,7 +5087,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), InternalDefinitions::RFCPropText_Object);
+					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -5101,7 +5100,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, InternalDefinitions::RFCPropText_Object);
+				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -5159,7 +5158,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				else if(lParam)// send to appropriate component
 				{
-					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe

@@ -55,12 +55,12 @@ void KProgressBar::SetValue(int value)
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
-bool KProgressBar::CreateComponent(bool subClassWindowProc)
+bool KProgressBar::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register PROGRESS_CLASSW class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register PROGRESS_CLASSW class!
 
 	if(compHWND)
 	{

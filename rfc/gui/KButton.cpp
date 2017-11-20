@@ -66,12 +66,12 @@ bool KButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KButton::CreateComponent(bool subClassWindowProc)
+bool KButton::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register BUTTON class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{

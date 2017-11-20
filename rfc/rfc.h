@@ -91,12 +91,12 @@ RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
 RFC_API DWORD WINAPI GlobalThread_Proc(LPVOID);
 
 /**
-	top level windows & owner-drawn|custom controls must set subClassWindowProc to true.
+	set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 */
-RFC_API HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc);
+RFC_API HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages);
 RFC_API bool CreateRFCThread(KThread* thread);
 
-RFC_API void DoMessagePump(bool handleTabKey=true);
+RFC_API void DoMessagePump(bool handleTabKey = true);
 
 /**
 	Important: hInstance is current module HINSTANCE.
@@ -106,6 +106,12 @@ RFC_API void DoMessagePump(bool handleTabKey=true);
 */
 RFC_API void InitRFC(HINSTANCE hInstance);
 RFC_API void DeInitRFC();
+
+/** 
+	hwnd can be window, custom control, dialog or common control.
+	hwnd will be subclassed if it common control or dialog.
+*/
+RFC_API void AttachRFCPropertiesToHWND(HWND hwnd, KComponent* component);
 
 RFC_API int HotPlugAndRunDialogBox(WORD resourceID,HWND parentHwnd,KComponent* component);
 RFC_API HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
@@ -184,8 +190,8 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 class RFC_API InternalDefinitions
 {
 public:
-	static const wchar_t* RFCPropText_Object;
-	static const wchar_t* RFCPropText_OldProc;
+	static ATOM RFCPropAtom_Component;
+	static ATOM RFCPropAtom_OldProc;
 };
 
 #endif

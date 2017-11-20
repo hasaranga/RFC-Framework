@@ -44,7 +44,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual ~KButton();
 };

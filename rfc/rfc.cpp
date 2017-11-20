@@ -37,8 +37,19 @@ HHOOK InternalVariables::wnd_hook = 0;
 volatile int InternalVariables::rfcRefCount = 0;
 CRITICAL_SECTION InternalVariables::g_csComponent;
 
-const wchar_t* InternalDefinitions::RFCPropText_Object = L"RFC";
-const wchar_t* InternalDefinitions::RFCPropText_OldProc = L"RFCOldProc";
+ATOM InternalDefinitions::RFCPropAtom_Component;
+ATOM InternalDefinitions::RFCPropAtom_OldProc;
+
+void AttachRFCPropertiesToHWND(HWND hwnd, KComponent* component)
+{
+	::SetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component), (HANDLE)component);
+
+	FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
+	::SetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc), (HANDLE)lpfnOldWndProc);
+
+	if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // sublcass only if window proc is not GlobalWnd_Proc (common control or dialog)
+		::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+}
 
 LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 {
@@ -54,13 +65,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 			{
 				if (cbtCreateWnd->lpcs->lpCreateParams == InternalVariables::currentComponent) // only catch what we created. ignore unknown windows.
 				{
-					::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)InternalVariables::currentComponent);
-
-					FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
-					::SetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
-
-					if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // only sublcass if window proc is not GlobalWnd_Proc
-						::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
+					::AttachRFCPropertiesToHWND(hwnd, InternalVariables::currentComponent);
 
 					// Call the next hook, if there is one
 					LRESULT result = ::CallNextHookEx(InternalVariables::wnd_hook, nCode, wParam, lParam);
@@ -80,38 +85,39 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 
 LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
+	KComponent *component = (KComponent*)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 
-	KComponent *component = (KComponent*)::GetPropW(hwnd, InternalDefinitions::RFCPropText_Object);
-
-	if(!component){ // just for safe!
+	if(!component){ // for safe!
 		return ::DefWindowProcW( hwnd, msg, wParam, lParam );
 	}
 
 	if(!component->GetHWND()) // window recieve msg for the first time!
 		component->SetHWND(hwnd);
 
-	if(msg==WM_NCDESTROY){
-		::RemovePropW(hwnd, InternalDefinitions::RFCPropText_Object);
+	if(msg == WM_NCDESTROY){
+		::RemovePropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 
-		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
-		::RemovePropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
+		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc));
+		::RemovePropW(hwnd,  MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc));
 
-		if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // common control or dialog
-		{	
-			::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc); // restore default wnd proc!
-			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
+		if (lpfnOldWndProc)
+		{
+			if (lpfnOldWndProc != (void*)GlobalWnd_Proc) // common control or dialog
+			{
+				::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc); // restore default wnd proc!
+				return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
+			}
 		}
-		else{ // window or custom control
-			return ::DefWindowProcW( hwnd, msg, wParam, lParam );
-		}
+		 // lpfnOldWndProc is not set or window or custom control
+		return ::DefWindowProcW( hwnd, msg, wParam, lParam );		
 	}
 
 	return component->WindowProc(hwnd, msg, wParam, lParam);
 }
 
-HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc)
+HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 {	
-	if (subClassWindowProc)
+	if (requireInitialMessages)
 	{
 		::EnterCriticalSection(&InternalVariables::g_csComponent);
 
@@ -134,7 +140,7 @@ HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc)
 	{
 		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
 
-		::SetPropW(hwnd, InternalDefinitions::RFCPropText_Object, (HANDLE)component);
+		::AttachRFCPropertiesToHWND(hwnd, component);
 
 		component->SetHWND(hwnd);
 
@@ -229,7 +235,7 @@ INT_PTR CALLBACK GlobalDlg_Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 		KComponent* comp = (KComponent*)lParam;
 		if(comp)
 		{
-			comp->HotPlugInto(hwndDlg, true, true);
+			comp->HotPlugInto(hwndDlg, true);
 		}
 		return FALSE;
 	}
@@ -253,6 +259,9 @@ void InitRFC(HINSTANCE hInstance)
 		::CoInitialize(NULL); //Initializes COM as STA.
 
 		::InitializeCriticalSection(&InternalVariables::g_csComponent);
+
+		InternalDefinitions::RFCPropAtom_Component = ::GlobalAddAtomW(L"RFCComponent");
+		InternalDefinitions::RFCPropAtom_OldProc = ::GlobalAddAtomW(L"RFCOldProc");
 	}
 	++InternalVariables::rfcRefCount;
 }
@@ -265,6 +274,9 @@ void DeInitRFC()
 		::CoUninitialize();
 
 		::DeleteCriticalSection(&InternalVariables::g_csComponent);
+
+		::GlobalDeleteAtom(InternalDefinitions::RFCPropAtom_Component);
+		::GlobalDeleteAtom(InternalDefinitions::RFCPropAtom_OldProc);
 
 		// delete all singletons!
 		delete KFont::GetDefaultFont();

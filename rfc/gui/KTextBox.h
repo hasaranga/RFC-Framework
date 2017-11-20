@@ -33,7 +33,7 @@ public:
 
 	virtual KString GetText();
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual ~KTextBox();
 };

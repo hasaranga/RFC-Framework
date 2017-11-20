@@ -34,11 +34,6 @@ KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
 		this->SetStyle(compDwStyle | WS_HSCROLL | WS_VSCROLL);
 }
 
-bool KTextArea::CreateComponent(bool subClassWindowProc)
-{
-	return KTextBox::CreateComponent(true); // explicity sublcass windowproc to catch tab key.
-}
-
 LRESULT KTextArea::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if(msg == WM_GETDLGCODE)

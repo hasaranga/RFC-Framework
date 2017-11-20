@@ -48,10 +48,9 @@ public:
 	virtual void CenterScreen();
 
 	/**
-		set subClassWindowProc value to true if component is owner-drawn.
-		Otherwise WindowProc will be disabled & you will not receive WM_MEASUREITEM like messages into the EventProc.
+		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 	*/
-	virtual bool AddComponent(KComponent *component, bool subClassWindowProc = false);
+	virtual bool AddComponent(KComponent *component, bool requireInitialMessages = false);
 
 	virtual bool SetClientAreaSize(int width, int height);
 

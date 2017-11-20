@@ -66,9 +66,9 @@ public:
 	/**
 		HotPlugs given HWND. this method does not update current compFont and cursor variables.
 		Set fetchInfo to true if you want to acquire all the information about this HWND. (width, height, position etc...)
-		Set fetchInfo to false if you only need to receive events. (button click etc...)
+		Set fetchInfo to false if you just need to receive events. (button click etc...)
 	*/
-	virtual void HotPlugInto(HWND component, bool fetchInfo = true, bool subClassWindowProc = false);
+	virtual void HotPlugInto(HWND component, bool fetchInfo = true);
 
 	/**
 		Sets mouse cursor of this component.
@@ -82,11 +82,10 @@ public:
 
 	/**
 		Registers the class name and creates the component. 
-		top level windows & owner-drawn controls must set subClassWindowProc to true.
-		Otherwise WindowProc will be disabled & you will not receive WM_MEASUREITEM like messages into the EventProc.
+		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 		@returns false if registration failed or component creation failed.
 	*/
-	virtual bool CreateComponent(bool subClassWindowProc = true);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	/**
 		Handles internal window messages. (subclassed window proc)

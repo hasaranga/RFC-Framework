@@ -31,7 +31,7 @@ class RFC_API KLabel : public KComponent
 public:
 	KLabel();
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual ~KLabel();
 };

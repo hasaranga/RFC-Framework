@@ -58,12 +58,12 @@ KString KTextBox::GetText()
 }
 
 
-bool KTextBox::CreateComponent(bool subClassWindowProc)
+bool KTextBox::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register EDIT class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register EDIT class!
 
 	if(compHWND)
 	{

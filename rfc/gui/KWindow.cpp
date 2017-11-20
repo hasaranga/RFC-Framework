@@ -67,14 +67,14 @@ void KWindow::CenterScreen()
 	this->SetPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
 }
 
-bool KWindow::AddComponent(KComponent *component, bool subClassWindowProc)
+bool KWindow::AddComponent(KComponent *component, bool requireInitialMessages)
 {
 	if(component)
 	{
 		if(compHWND)
 		{
 			component->SetParentHWND(compHWND);
-			return component->CreateComponent(subClassWindowProc);
+			return component->CreateComponent(requireInitialMessages);
 		}
 	}
 	return false;
@@ -134,7 +134,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, InternalDefinitions::RFCPropText_Object);
+					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -147,7 +147,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, InternalDefinitions::RFCPropText_Object);
+				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -167,7 +167,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
 		case WM_CTLCOLORSTATIC: // static controls
 			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -181,7 +181,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), InternalDefinitions::RFCPropText_Object);
+					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -194,7 +194,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, InternalDefinitions::RFCPropText_Object);
+				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -252,7 +252,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				else if(lParam)// send to appropriate component
 				{
-					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, InternalDefinitions::RFCPropText_Object);
+					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe

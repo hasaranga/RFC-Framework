@@ -188,12 +188,12 @@ bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KListBox::CreateComponent(bool subClassWindowProc)
+bool KListBox::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register LISTBOX class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register LISTBOX class!
 
 	if(compHWND)
 	{

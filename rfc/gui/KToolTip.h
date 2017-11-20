@@ -46,7 +46,7 @@ public:
 	/**
 		calling this method has no effect.
 	*/
-	virtual bool CreateComponent(bool subClassWindowProc);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual void SetText(const KString& compText);
 };

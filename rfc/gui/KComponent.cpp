@@ -68,7 +68,7 @@ void KComponent::OnHotPlug()
 
 }
 
-void KComponent::HotPlugInto(HWND component, bool fetchInfo, bool subClassWindowProc)
+void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 {
 	compHWND = component;
 
@@ -104,15 +104,7 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo, bool subClassWindow
 		compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 	}
 
-	::SetPropW(compHWND, InternalDefinitions::RFCPropText_Object, (HANDLE)(KComponent*)this);
-
-	if (subClassWindowProc)
-	{
-		FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(compHWND, GWLP_WNDPROC);
-		::SetPropW(compHWND, InternalDefinitions::RFCPropText_OldProc, (HANDLE)lpfnOldWndProc);
-
-		::SetWindowLongPtrW(compHWND, GWLP_WNDPROC, (LONG_PTR)::GlobalWnd_Proc); // subclassing...
-	}	
+	::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);	
 
 	this->OnHotPlug();
 }
@@ -134,14 +126,14 @@ KString KComponent::GetComponentClassName()
 	return compClassName;
 }
 
-bool KComponent::CreateComponent(bool subClassWindowProc)
+bool KComponent::CreateComponent(bool requireInitialMessages)
 {
 	if(!::RegisterClassExW(&wc))
 		return false;
 
 	isRegistered=true;
 
-	::CreateRFCComponent(this, subClassWindowProc);
+	::CreateRFCComponent(this, requireInitialMessages);
 
 	if(compHWND)
 	{
@@ -162,9 +154,9 @@ bool KComponent::CreateComponent(bool subClassWindowProc)
 
 LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, InternalDefinitions::RFCPropText_OldProc);
+	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc));
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed standard-control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
+		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed common control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }

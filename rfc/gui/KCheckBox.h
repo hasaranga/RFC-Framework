@@ -34,7 +34,7 @@ protected:
 public:
 	KCheckBox();
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual void OnPress();
 

@@ -2668,9 +2668,9 @@ public:
 	/**
 		HotPlugs given HWND. this method does not update current compFont and cursor variables.
 		Set fetchInfo to true if you want to acquire all the information about this HWND. (width, height, position etc...)
-		Set fetchInfo to false if you only need to receive events. (button click etc...)
+		Set fetchInfo to false if you just need to receive events. (button click etc...)
 	*/
-	virtual void HotPlugInto(HWND component, bool fetchInfo = true, bool subClassWindowProc = false);
+	virtual void HotPlugInto(HWND component, bool fetchInfo = true);
 
 	/**
 		Sets mouse cursor of this component.
@@ -2684,11 +2684,10 @@ public:
 
 	/**
 		Registers the class name and creates the component. 
-		top level windows & owner-drawn controls must set subClassWindowProc to true.
-		Otherwise WindowProc will be disabled & you will not receive WM_MEASUREITEM like messages into the EventProc.
+		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 		@returns false if registration failed or component creation failed.
 	*/
-	virtual bool CreateComponent(bool subClassWindowProc = true);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	/**
 		Handles internal window messages. (subclassed window proc)
@@ -2877,7 +2876,7 @@ public:
 
 	virtual void SetValue(int value);
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual ~KProgressBar();
 };
@@ -2918,7 +2917,7 @@ class RFC_API KLabel : public KComponent
 public:
 	KLabel();
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual ~KLabel();
 };
@@ -2960,7 +2959,7 @@ public:
 
 	virtual KString GetText();
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual ~KTextBox();
 };
@@ -3021,7 +3020,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual ~KTrackBar();
 };
@@ -3099,7 +3098,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual void OnItemSelect();
 
@@ -3282,7 +3281,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual ~KButton();
 };
@@ -3325,7 +3324,7 @@ protected:
 public:
 	KCheckBox();
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual void OnPress();
 
@@ -3442,10 +3441,9 @@ public:
 	virtual void CenterScreen();
 
 	/**
-		set subClassWindowProc value to true if component is owner-drawn.
-		Otherwise WindowProc will be disabled & you will not receive WM_MEASUREITEM like messages into the EventProc.
+		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 	*/
-	virtual bool AddComponent(KComponent *component, bool subClassWindowProc = false);
+	virtual bool AddComponent(KComponent *component, bool requireInitialMessages = false);
 
 	virtual bool SetClientAreaSize(int width, int height);
 
@@ -3582,7 +3580,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual void OnItemSelect();
 
@@ -3746,7 +3744,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual void SetListener(KComboBoxListener *listener);
 
@@ -4049,8 +4047,6 @@ class RFC_API KTextArea : public KTextBox
 public:
 	KTextArea(bool autoScroll = false, bool readOnly = false);
 
-	virtual bool CreateComponent(bool subClassWindowProc = true);
-
 	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	virtual ~KTextArea();
@@ -4107,7 +4103,7 @@ public:
 	/**
 		calling this method has no effect.
 	*/
-	virtual bool CreateComponent(bool subClassWindowProc);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual void SetText(const KString& compText);
 };
@@ -4399,12 +4395,12 @@ RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
 RFC_API DWORD WINAPI GlobalThread_Proc(LPVOID);
 
 /**
-	top level windows & owner-drawn|custom controls must set subClassWindowProc to true.
+	set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 */
-RFC_API HWND CreateRFCComponent(KComponent* component, bool subClassWindowProc);
+RFC_API HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages);
 RFC_API bool CreateRFCThread(KThread* thread);
 
-RFC_API void DoMessagePump(bool handleTabKey=true);
+RFC_API void DoMessagePump(bool handleTabKey = true);
 
 /**
 	Important: hInstance is current module HINSTANCE.
@@ -4414,6 +4410,12 @@ RFC_API void DoMessagePump(bool handleTabKey=true);
 */
 RFC_API void InitRFC(HINSTANCE hInstance);
 RFC_API void DeInitRFC();
+
+/** 
+	hwnd can be window, custom control, dialog or common control.
+	hwnd will be subclassed if it common control or dialog.
+*/
+RFC_API void AttachRFCPropertiesToHWND(HWND hwnd, KComponent* component);
 
 RFC_API int HotPlugAndRunDialogBox(WORD resourceID,HWND parentHwnd,KComponent* component);
 RFC_API HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
@@ -4492,8 +4494,8 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 class RFC_API InternalDefinitions
 {
 public:
-	static const wchar_t* RFCPropText_Object;
-	static const wchar_t* RFCPropText_OldProc;
+	static ATOM RFCPropAtom_Component;
+	static ATOM RFCPropAtom_OldProc;
 };
 
 #endif

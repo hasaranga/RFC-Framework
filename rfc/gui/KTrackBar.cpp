@@ -94,12 +94,12 @@ bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KTrackBar::CreateComponent(bool subClassWindowProc)
+bool KTrackBar::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register TRACKBAR_CLASSW class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register TRACKBAR_CLASSW class!
 
 	if(compHWND)
 	{

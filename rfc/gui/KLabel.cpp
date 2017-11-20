@@ -35,12 +35,12 @@ KLabel::KLabel()
 	this->SetExStyle(WS_EX_WINDOWEDGE);
 }
 
-bool KLabel::CreateComponent(bool subClassWindowProc)
+bool KLabel::CreateComponent(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register Label class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register Label class!
 
 	if(compHWND)
 	{

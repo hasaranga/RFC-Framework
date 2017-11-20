@@ -191,12 +191,12 @@ bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KGridView::CreateComponent(bool subClassWindowProc)
+bool KGridView::CreateComponent(bool requireInitialMessages)
 {
 	if (!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, subClassWindowProc); // we dont need to register WC_LISTVIEWW class!
+	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register WC_LISTVIEWW class!
 
 	if (compHWND)
 	{

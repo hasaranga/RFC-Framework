@@ -38,7 +38,7 @@ public:
 
 	virtual void SetValue(int value);
 
-	virtual bool CreateComponent(bool subClassWindowProc = false);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
 	virtual ~KProgressBar();
 };
