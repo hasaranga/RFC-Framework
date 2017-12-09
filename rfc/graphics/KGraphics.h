@@ -45,6 +45,8 @@ public:
 	static void FillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color);
 
 	static void FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
+
+	static RECT CalculateTextSize(wchar_t *text, HFONT hFont);
 };
 
 #endif

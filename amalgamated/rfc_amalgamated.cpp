@@ -2954,10 +2954,9 @@ bool KComponent::CreateComponent(bool requireInitialMessages)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
-		::EnableWindow(compHWND, compEnabled);
+		::EnableWindow(compHWND, compEnabled ? TRUE : FALSE);
 
-		if(compVisible)
-			::ShowWindow(compHWND, SW_SHOW);
+		::ShowWindow(compHWND, compVisible ? SW_SHOW : SW_HIDE);
 
 		if(cursor)
 			::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->GetHandle());
@@ -3128,8 +3127,11 @@ void KComponent::SetKeyboardFocus()
 
 void KComponent::Repaint()
 {
-	if(compHWND)
+	if (compHWND)
+	{
 		::InvalidateRect(compHWND, NULL, TRUE);
+		::UpdateWindow(compHWND); // instant update
+	}
 }
 
 KComponent::~KComponent()
@@ -5561,6 +5563,19 @@ void KGraphics::FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
 
 	::ExtTextOut(hdc, 0, 0, ETO_OPAQUE, lpRect, NULL, 0, NULL);
 	::SetBkColor(hdc, clrOld);
+}
+
+RECT KGraphics::CalculateTextSize(wchar_t *text, HFONT hFont)
+{
+	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
+	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
+	RECT sz = {0, 0, 0, 0};
+
+	::DrawText(hDC, text, ::lstrlenW(text), &sz, DT_CALCRECT | DT_NOPREFIX);
+	::SelectObject(hDC, hOldFont);
+
+	::DeleteDC(hDC);
+	return sz;
 }
 
 // =========== KIcon.cpp ===========

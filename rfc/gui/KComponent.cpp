@@ -139,10 +139,9 @@ bool KComponent::CreateComponent(bool requireInitialMessages)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 
-		::EnableWindow(compHWND, compEnabled);
+		::EnableWindow(compHWND, compEnabled ? TRUE : FALSE);
 
-		if(compVisible)
-			::ShowWindow(compHWND, SW_SHOW);
+		::ShowWindow(compHWND, compVisible ? SW_SHOW : SW_HIDE);
 
 		if(cursor)
 			::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->GetHandle());
@@ -313,8 +312,11 @@ void KComponent::SetKeyboardFocus()
 
 void KComponent::Repaint()
 {
-	if(compHWND)
+	if (compHWND)
+	{
 		::InvalidateRect(compHWND, NULL, TRUE);
+		::UpdateWindow(compHWND); // instant update
+	}
 }
 
 KComponent::~KComponent()

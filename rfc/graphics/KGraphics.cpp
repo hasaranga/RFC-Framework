@@ -63,3 +63,16 @@ void KGraphics::FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
 	::ExtTextOut(hdc, 0, 0, ETO_OPAQUE, lpRect, NULL, 0, NULL);
 	::SetBkColor(hdc, clrOld);
 }
+
+RECT KGraphics::CalculateTextSize(wchar_t *text, HFONT hFont)
+{
+	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
+	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
+	RECT sz = {0, 0, 0, 0};
+
+	::DrawText(hDC, text, ::lstrlenW(text), &sz, DT_CALCRECT | DT_NOPREFIX);
+	::SelectObject(hDC, hOldFont);
+
+	::DeleteDC(hDC);
+	return sz;
+}
