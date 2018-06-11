@@ -1,7 +1,7 @@
 
 /*
 	RFC Framework v0.2.6
-	Copyright (C) 2013-2017 CrownSoft
+	Copyright (C) 2013-2018 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -84,7 +84,10 @@
 #include "io/KLogger.h"
 #include "security/KMD5.h"
 #include "security/KSHA1.h"
-
+#include "containers/KPointerList.h"
+#include "containers/KScopedClassPointer.h"
+#include "containers/KScopedMemoryBlock.h"
+#include "containers/KScopedCriticalSection.h"
 
 RFC_API LRESULT CALLBACK GlobalWnd_Proc(HWND,UINT,WPARAM,LPARAM);
 RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);

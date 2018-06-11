@@ -1,8 +1,8 @@
 
 /*
-	RFC - KTextArea.h
+	RFC - KScopedCriticalSection.h
 	Copyright (C) 2013-2018 CrownSoft
-  
+
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
 	arising from the use of this software.
@@ -18,23 +18,47 @@
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
 	3. This notice may not be removed or altered from any source distribution.
-	  
+
 */
 
-#ifndef _RFC_KTEXTAREA_H_
-#define _RFC_KTEXTAREA_H_
+#ifndef _RFC_KSCOPED_CRITICAL_SECTION_H_
+#define _RFC_KSCOPED_CRITICAL_SECTION_H_
 
-#include "KTextBox.h"
+#include "../config.h"
+#include <windows.h>
 
-class RFC_API KTextArea : public KTextBox
+/**
+	This class holds a pointer to CRITICAL_SECTION which is automatically released when this object goes
+	out of scope.
+*/
+class KScopedCriticalSection
 {
+private:
+	CRITICAL_SECTION *criticalSection;
+
 public:
-	KTextArea(bool autoScroll = false, bool readOnly = false);
+	KScopedCriticalSection(CRITICAL_SECTION *criticalSection)
+	{
+		this->criticalSection = criticalSection;
+		::EnterCriticalSection(criticalSection);
+	}
 
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	// does not call LeaveCriticalSection
+	CRITICAL_SECTION* Release()
+	{ 
+		CRITICAL_SECTION *c = criticalSection;
+		criticalSection = 0;
+		return c; 
+	}
 
-	virtual ~KTextArea();
+	~KScopedCriticalSection()
+	{
+		if (criticalSection)
+			::LeaveCriticalSection(criticalSection);
+	}
+
+	inline operator CRITICAL_SECTION*() const { return criticalSection; }
+
 };
-
 
 #endif
