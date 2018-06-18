@@ -22,12 +22,12 @@
 */
 
 #include"KMenuItem.h"
-#include"../utils/KPlatformUtil.h"
-
 #include"KMenuItemListener.h"
+#include "../rfc.h"
 
 KMenuItem::KMenuItem()
 {
+	RFC_INIT_VERIFIER;
 	hMenu = 0;
 	listener = 0;
 	enabled = true;

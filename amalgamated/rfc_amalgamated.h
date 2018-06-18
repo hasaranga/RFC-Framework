@@ -1279,6 +1279,12 @@ class KScopedClassPointer
 private:
 	T* object;
 
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
 public:
 	inline KScopedClassPointer()
 	{
@@ -1386,6 +1392,12 @@ class KScopedCriticalSection
 private:
 	CRITICAL_SECTION *criticalSection;
 
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
 public:
 	KScopedCriticalSection(CRITICAL_SECTION *criticalSection)
 	{
@@ -1469,6 +1481,12 @@ class KScopedMemoryBlock
 {
 private:
 	T memoryBlock;
+
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
 
 public:
 	inline KScopedMemoryBlock()
@@ -2076,6 +2094,7 @@ RFC_API const KString operator+ (const KString& string1, const KString& string2)
 #ifndef _RFC_KAPPLICATION_H_
 #define _RFC_KAPPLICATION_H_
 
+#include <windows.h>
 
 /**
 	Derive your application object from this class!
@@ -2089,7 +2108,7 @@ RFC_API const KString operator+ (const KString& string1, const KString& string2)
 			MyApp(){}
 			~MyApp(){}
 
-			virtual int Main(KString **argv,int argc)
+			int Main(KString **argv,int argc)
 			{
 				// your app code goes here...
 				return 0;
@@ -2102,6 +2121,12 @@ RFC_API const KString operator+ (const KString& string1, const KString& string2)
 class RFC_API KApplication
 {
 public:
+
+	/**
+		Use this field to get HINSTANCE of your application.
+		(This field will set when calling InitRFC function.)
+	*/
+	static HINSTANCE hInstance;
 
 	/** 
 		Constructs an KApplication object.
@@ -2500,7 +2525,6 @@ class RFC_API KBitmap
 {
 protected:
 	HBITMAP hBitmap;
-	HINSTANCE appHInstance;
 
 public:
 	KBitmap();
@@ -2568,7 +2592,6 @@ class RFC_API KCursor
 {
 protected:
 	HCURSOR hCursor;
-	HINSTANCE appHInstance;
 
 public:
 	KCursor();
@@ -2780,7 +2803,6 @@ class RFC_API KIcon
 {
 protected:
 	HICON hIcon;
-	HINSTANCE appHInstance;
 
 public:
 	KIcon();
@@ -4623,10 +4645,8 @@ public:
 #include <stdio.h>
 
 /**
-	Singleton class which can be use to get HINSTANCE of your application.
-	e.g. @code
-	HINSTANCE hInstance=PlatformUtil::GetInstance()->GetAppInstance();
-	@endcode
+	Singleton class which can be use to generate class names, timer ids etc...
+	(for internal use)
 */
 class RFC_API KPlatformUtil
 {
@@ -4637,7 +4657,6 @@ private:
 	KPlatformUtil();
 
 protected:
-	HINSTANCE hInstance;
 	CRITICAL_SECTION g_csCount;
 	int classCount;
 	int timerCount;
@@ -4651,13 +4670,11 @@ public:
 
 	static KPlatformUtil* GetInstance();
 
-	void SetAppHInstance(HINSTANCE hInstance);
-
-	HINSTANCE GetAppHInstance();
-
 	UINT GenerateControlID();
 
+	// KApplication:hInstance must be valid before calling this method
 	KString GenerateClassName();
+
 	UINT GenerateMenuItemID(KMenuItem *menuItem);
 	KMenuItem* GetMenuItemByID(UINT id);
 
@@ -4702,7 +4719,13 @@ public:
 #include <commctrl.h>
 
 #ifdef _MSC_VER
-#pragma comment(lib, "Comctl32.lib")
+	#include <crtdbg.h>
+#else
+	#include <assert.h>
+#endif
+
+#ifdef _MSC_VER
+	#pragma comment(lib, "Comctl32.lib")
 #endif
 
 
@@ -4814,6 +4837,12 @@ public:
 	static ATOM RFCPropAtom_Component;
 	static ATOM RFCPropAtom_OldProc;
 };
+
+#ifdef _MSC_VER
+	#define RFC_INIT_VERIFIER _ASSERT_EXPR((KApplication::hInstance != 0), L"##### RFC Framework used before being initialized! Did you forget to call the InitRFC function? Or did you declared RFC class as a global variable? #####")
+#else
+	#define RFC_INIT_VERIFIER assert((KApplication::hInstance != 0) && "##### RFC Framework used before being initialized! Did you forget to call the InitRFC function? Or did you declared RFC class as a global variable? #####")
+#endif
 
 #endif
 

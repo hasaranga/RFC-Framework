@@ -21,18 +21,18 @@
 	  
 */
 
-#include "../utils/KPlatformUtil.h"
 #include "../graphics/KBitmap.h"
+#include "../rfc.h"
 
 KBitmap::KBitmap()
 {
+	RFC_INIT_VERIFIER;
 	hBitmap = 0;
-	appHInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
 }
 
 bool KBitmap::LoadFromResource(WORD resourceID)
 {
-	hBitmap = (HBITMAP)::LoadImageW(appHInstance, MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
 		return true;	
 	return false;
@@ -40,7 +40,7 @@ bool KBitmap::LoadFromResource(WORD resourceID)
 
 bool KBitmap::LoadFromFile(const KString& filePath)
 {
-	hBitmap = (HBITMAP)::LoadImageW(appHInstance, filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
 		return true;	
 	return false;

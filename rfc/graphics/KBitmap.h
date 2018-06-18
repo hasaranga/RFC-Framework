@@ -34,7 +34,6 @@ class RFC_API KBitmap
 {
 protected:
 	HBITMAP hBitmap;
-	HINSTANCE appHInstance;
 
 public:
 	KBitmap();

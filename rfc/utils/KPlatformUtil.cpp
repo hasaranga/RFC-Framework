@@ -22,17 +22,17 @@
 */
 
 #include "KPlatformUtil.h"
-#include "../gui/KMenuItem.h"
+#include "../rfc.h"
 
 KPlatformUtil* KPlatformUtil::_instance=0;
 
 KPlatformUtil::KPlatformUtil()
 {
+	RFC_INIT_VERIFIER;
 	timerCount = 0;
 	menuItemCount = 0;
 	classCount = 0;
 	controlCount = 0;
-	hInstance = 0;
 	::InitializeCriticalSection(&g_csCount);
 	menuItemList = new KPointerList<KMenuItem*>();
 	timerList = new KPointerList<KTimer*>();
@@ -44,16 +44,6 @@ KPlatformUtil* KPlatformUtil::GetInstance()
 		return _instance;
 	_instance = new KPlatformUtil();
 	return _instance;
-}
-
-void KPlatformUtil::SetAppHInstance(HINSTANCE hInstance)
-{
-	this->hInstance = hInstance;
-}
-
-HINSTANCE KPlatformUtil::GetAppHInstance()
-{
-	return hInstance;
 }
 
 UINT KPlatformUtil::GenerateControlID()
@@ -91,7 +81,7 @@ KString KPlatformUtil::GenerateClassName()
 	className[2] = L'C';
 	className[3] = L'_';
 
-	::_itow((int)hInstance, &className[4], 10);
+	::_itow((int)KApplication::hInstance, &className[4], 10);
 
 	int lastPos = (int)::wcslen(className);
 	className[lastPos] = L'_';

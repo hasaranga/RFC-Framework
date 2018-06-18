@@ -22,11 +22,13 @@
 */
 
 #include "KFont.h"
+#include "../rfc.h"
 
 KFont* KFont::defaultInstance=0;
 
 KFont::KFont()
 {
+	RFC_INIT_VERIFIER;
 	hFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
 	customFont = false;
 }

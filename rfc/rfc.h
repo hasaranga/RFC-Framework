@@ -28,7 +28,13 @@
 #include <commctrl.h>
 
 #ifdef _MSC_VER
-#pragma comment(lib, "Comctl32.lib")
+	#include <crtdbg.h>
+#else
+	#include <assert.h>
+#endif
+
+#ifdef _MSC_VER
+	#pragma comment(lib, "Comctl32.lib")
 #endif
 
 #include "config.h"
@@ -196,5 +202,11 @@ public:
 	static ATOM RFCPropAtom_Component;
 	static ATOM RFCPropAtom_OldProc;
 };
+
+#ifdef _MSC_VER
+	#define RFC_INIT_VERIFIER _ASSERT_EXPR((KApplication::hInstance != 0), L"##### RFC Framework used before being initialized! Did you forget to call the InitRFC function? Or did you declared RFC class as a global variable? #####")
+#else
+	#define RFC_INIT_VERIFIER assert((KApplication::hInstance != 0) && "##### RFC Framework used before being initialized! Did you forget to call the InitRFC function? Or did you declared RFC class as a global variable? #####")
+#endif
 
 #endif

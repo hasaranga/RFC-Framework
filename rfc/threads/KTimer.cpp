@@ -21,12 +21,12 @@
 	  
 */
 
-#include "../rfc.h"
-#include "../utils/KPlatformUtil.h"
 #include "KTimer.h"
+#include "../rfc.h"
 
 KTimer::KTimer()
 {
+	RFC_INIT_VERIFIER;
 	resolution = 1000;
 	started = false;
 	listener = 0;

@@ -41,7 +41,7 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 	compParentHWND = parentWindow->GetHWND();
 	attachedCompHWND = attachedComponent->GetHWND();
 
-	compHWND = ::CreateWindowExW(0, compClassName, NULL, compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, compParentHWND, NULL, KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
+	compHWND = ::CreateWindowExW(0, compClassName, NULL, compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, compParentHWND, NULL, KApplication::hInstance, 0);
 
 	if (compHWND)
 	{
@@ -76,7 +76,7 @@ void KToolTip::SetText(const KString& compText)
 		toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 		toolInfo.uId = (UINT_PTR)attachedCompHWND;
 		toolInfo.lpszText = compText;
-		toolInfo.hinst = KPlatformUtil::GetInstance()->GetAppHInstance();
+		toolInfo.hinst = KApplication::hInstance;
 
 		SendMessageW(compHWND, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolInfo);
 	}

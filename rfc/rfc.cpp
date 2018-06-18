@@ -127,7 +127,7 @@ HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 		InternalVariables::wnd_hook = ::SetWindowsHookExW(WH_CBT, &RFCCTL_CBTProc, 0, ::GetCurrentThreadId());
 
 		// pass current component as lpParam. so CBT proc can ignore other unknown windows.
-		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), (LPVOID)component);
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KApplication::hInstance, (LPVOID)component);
 
 		// unhook at here will cause catching childs which are created at WM_CREATE. so, unhook at CBT proc.
 		//::UnhookWindowsHookEx(InternalVariables::wnd_hook);
@@ -138,7 +138,7 @@ HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 	}
 	else
 	{
-		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KApplication::hInstance, 0);
 
 		::AttachRFCPropertiesToHWND(hwnd, component);
 
@@ -220,12 +220,12 @@ bool CreateRFCThread(KThread* thread)
 
 int HotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
 {
-	return (int)::DialogBoxParamW(KPlatformUtil::GetInstance()->GetAppHInstance(), MAKEINTRESOURCEW(resourceID), parentHwnd, ::GlobalDlg_Proc, (LPARAM)component);
+	return (int)::DialogBoxParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, ::GlobalDlg_Proc, (LPARAM)component);
 }
 
 HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
 {
-	return ::CreateDialogParamW(KPlatformUtil::GetInstance()->GetAppHInstance(), MAKEINTRESOURCEW(resourceID), parentHwnd, ::GlobalDlg_Proc, (LPARAM)component);
+	return ::CreateDialogParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, ::GlobalDlg_Proc, (LPARAM)component);
 }
 
 INT_PTR CALLBACK GlobalDlg_Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -247,9 +247,14 @@ void InitRFC(HINSTANCE hInstance)
 	if (!InternalVariables::rfcRefCount)
 	{
 		if (!hInstance)
-			hInstance = ::GetModuleHandleW(NULL);
+		{
+			//hInstance = ::GetModuleHandleW(NULL); // not work for dll
+			::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&InitRFC, &hInstance);
+		}
 
-		KPlatformUtil::GetInstance()->SetAppHInstance(hInstance); // create instance for first time & initialize Utility class!
+		KApplication::hInstance = hInstance;
+
+		KPlatformUtil::GetInstance(); // create instance for first time
 		
 		INITCOMMONCONTROLSEX icx;
 		icx.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -268,6 +273,8 @@ void InitRFC(HINSTANCE hInstance)
 
 void DeInitRFC()
 {
+	RFC_INIT_VERIFIER;
+
 	--InternalVariables::rfcRefCount;
 	if (!InternalVariables::rfcRefCount)
 	{

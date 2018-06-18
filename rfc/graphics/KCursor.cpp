@@ -21,18 +21,18 @@
 	  
 */
 
-#include "../utils/KPlatformUtil.h"
 #include "../graphics/KCursor.h"
+#include "../rfc.h"
 
 KCursor::KCursor()
 {
+	RFC_INIT_VERIFIER;
 	hCursor = 0;
-	appHInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
 }
 
 bool KCursor::LoadFromResource(WORD resourceID)
 {
-	hCursor = (HCURSOR)::LoadImageW(appHInstance, MAKEINTRESOURCEW(resourceID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
 		return true;	
 	return false;
@@ -40,7 +40,7 @@ bool KCursor::LoadFromResource(WORD resourceID)
 
 bool KCursor::LoadFromFile(const KString& filePath)
 {
-	hCursor = (HCURSOR)::LoadImageW(appHInstance, filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
 		return true;	
 	return false;

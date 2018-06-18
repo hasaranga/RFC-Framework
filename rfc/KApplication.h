@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include "text/KString.h"
+#include <windows.h>
 
 /**
 	Derive your application object from this class!
@@ -39,7 +40,7 @@
 			MyApp(){}
 			~MyApp(){}
 
-			virtual int Main(KString **argv,int argc)
+			int Main(KString **argv,int argc)
 			{
 				// your app code goes here...
 				return 0;
@@ -52,6 +53,12 @@
 class RFC_API KApplication
 {
 public:
+
+	/**
+		Use this field to get HINSTANCE of your application.
+		(This field will set when calling InitRFC function.)
+	*/
+	static HINSTANCE hInstance;
 
 	/** 
 		Constructs an KApplication object.

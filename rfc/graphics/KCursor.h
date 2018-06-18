@@ -34,7 +34,6 @@ class RFC_API KCursor
 {
 protected:
 	HCURSOR hCursor;
-	HINSTANCE appHInstance;
 
 public:
 	KCursor();

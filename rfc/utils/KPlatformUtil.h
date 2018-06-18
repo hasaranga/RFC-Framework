@@ -32,10 +32,8 @@
 #include "../threads/KTimer.h"
 
 /**
-	Singleton class which can be use to get HINSTANCE of your application.
-	e.g. @code
-	HINSTANCE hInstance=PlatformUtil::GetInstance()->GetAppInstance();
-	@endcode
+	Singleton class which can be use to generate class names, timer ids etc...
+	(for internal use)
 */
 class RFC_API KPlatformUtil
 {
@@ -46,7 +44,6 @@ private:
 	KPlatformUtil();
 
 protected:
-	HINSTANCE hInstance;
 	CRITICAL_SECTION g_csCount;
 	int classCount;
 	int timerCount;
@@ -60,13 +57,11 @@ public:
 
 	static KPlatformUtil* GetInstance();
 
-	void SetAppHInstance(HINSTANCE hInstance);
-
-	HINSTANCE GetAppHInstance();
-
 	UINT GenerateControlID();
 
+	// KApplication:hInstance must be valid before calling this method
 	KString GenerateClassName();
+
 	UINT GenerateMenuItemID(KMenuItem *menuItem);
 	KMenuItem* GetMenuItemByID(UINT id);
 

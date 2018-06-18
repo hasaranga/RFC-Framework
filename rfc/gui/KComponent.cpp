@@ -28,6 +28,7 @@
 
 KComponent::KComponent()
 {
+	RFC_INIT_VERIFIER;
 	isRegistered = false;
 
 	KPlatformUtil *platformUtil = KPlatformUtil::GetInstance();
@@ -55,7 +56,7 @@ KComponent::KComponent()
 	wc.cbWndExtra = 0;
 	wc.hIconSm = 0;
 	wc.style = 0;
-	wc.hInstance = platformUtil->GetAppHInstance();
+	wc.hInstance = KApplication::hInstance;
 	wc.lpszClassName = compClassName;
 
 	wc.lpfnWndProc = ::GlobalWnd_Proc;
@@ -79,7 +80,7 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 		::GetClassNameW(compHWND, clsName, 256);
 		compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
 
-		::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(), compClassName, &wc);
+		::GetClassInfoExW(KApplication::hInstance, compClassName, &wc);
 
 		compCtlID = (UINT)::GetWindowLongPtrW(compHWND, GWL_ID);
 
@@ -322,5 +323,5 @@ void KComponent::Repaint()
 KComponent::~KComponent()
 {
 	if(isRegistered)
-		::UnregisterClassW(compClassName, KPlatformUtil::GetInstance()->GetAppHInstance());
+		::UnregisterClassW(compClassName, KApplication::hInstance);
 }

@@ -30,6 +30,8 @@
 */
 
 
+HINSTANCE KApplication::hInstance = 0;
+
 KApplication::KApplication()
 {
 }
@@ -172,7 +174,7 @@ HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 		InternalVariables::wnd_hook = ::SetWindowsHookExW(WH_CBT, &RFCCTL_CBTProc, 0, ::GetCurrentThreadId());
 
 		// pass current component as lpParam. so CBT proc can ignore other unknown windows.
-		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), (LPVOID)component);
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KApplication::hInstance, (LPVOID)component);
 
 		// unhook at here will cause catching childs which are created at WM_CREATE. so, unhook at CBT proc.
 		//::UnhookWindowsHookEx(InternalVariables::wnd_hook);
@@ -183,7 +185,7 @@ HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 	}
 	else
 	{
-		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
+		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KApplication::hInstance, 0);
 
 		::AttachRFCPropertiesToHWND(hwnd, component);
 
@@ -265,12 +267,12 @@ bool CreateRFCThread(KThread* thread)
 
 int HotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
 {
-	return (int)::DialogBoxParamW(KPlatformUtil::GetInstance()->GetAppHInstance(), MAKEINTRESOURCEW(resourceID), parentHwnd, ::GlobalDlg_Proc, (LPARAM)component);
+	return (int)::DialogBoxParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, ::GlobalDlg_Proc, (LPARAM)component);
 }
 
 HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
 {
-	return ::CreateDialogParamW(KPlatformUtil::GetInstance()->GetAppHInstance(), MAKEINTRESOURCEW(resourceID), parentHwnd, ::GlobalDlg_Proc, (LPARAM)component);
+	return ::CreateDialogParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, ::GlobalDlg_Proc, (LPARAM)component);
 }
 
 INT_PTR CALLBACK GlobalDlg_Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -292,9 +294,14 @@ void InitRFC(HINSTANCE hInstance)
 	if (!InternalVariables::rfcRefCount)
 	{
 		if (!hInstance)
-			hInstance = ::GetModuleHandleW(NULL);
+		{
+			//hInstance = ::GetModuleHandleW(NULL); // not work for dll
+			::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&InitRFC, &hInstance);
+		}
 
-		KPlatformUtil::GetInstance()->SetAppHInstance(hInstance); // create instance for first time & initialize Utility class!
+		KApplication::hInstance = hInstance;
+
+		KPlatformUtil::GetInstance(); // create instance for first time
 		
 		INITCOMMONCONTROLSEX icx;
 		icx.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -313,6 +320,8 @@ void InitRFC(HINSTANCE hInstance)
 
 void DeInitRFC()
 {
+	RFC_INIT_VERIFIER;
+
 	--InternalVariables::rfcRefCount;
 	if (!InternalVariables::rfcRefCount)
 	{
@@ -641,13 +650,13 @@ void CSHA1::GetHash(UINT_8* puDest) const
 
 KBitmap::KBitmap()
 {
+	RFC_INIT_VERIFIER;
 	hBitmap = 0;
-	appHInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
 }
 
 bool KBitmap::LoadFromResource(WORD resourceID)
 {
-	hBitmap = (HBITMAP)::LoadImageW(appHInstance, MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
 		return true;	
 	return false;
@@ -655,7 +664,7 @@ bool KBitmap::LoadFromResource(WORD resourceID)
 
 bool KBitmap::LoadFromFile(const KString& filePath)
 {
-	hBitmap = (HBITMAP)::LoadImageW(appHInstance, filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
 		return true;	
 	return false;
@@ -709,13 +718,13 @@ KBitmap::~KBitmap()
 
 KCursor::KCursor()
 {
+	RFC_INIT_VERIFIER;
 	hCursor = 0;
-	appHInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
 }
 
 bool KCursor::LoadFromResource(WORD resourceID)
 {
-	hCursor = (HCURSOR)::LoadImageW(appHInstance, MAKEINTRESOURCEW(resourceID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
 		return true;	
 	return false;
@@ -723,7 +732,7 @@ bool KCursor::LoadFromResource(WORD resourceID)
 
 bool KCursor::LoadFromFile(const KString& filePath)
 {
-	hCursor = (HCURSOR)::LoadImageW(appHInstance, filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
 		return true;	
 	return false;
@@ -769,6 +778,7 @@ KFont* KFont::defaultInstance=0;
 
 KFont::KFont()
 {
+	RFC_INIT_VERIFIER;
 	hFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
 	customFont = false;
 }
@@ -915,13 +925,13 @@ RECT KGraphics::CalculateTextSize(wchar_t *text, HFONT hFont)
 
 KIcon::KIcon()
 {
+	RFC_INIT_VERIFIER;
 	hIcon = 0;
-	appHInstance = KPlatformUtil::GetInstance()->GetAppHInstance();
 }
 
 bool KIcon::LoadFromResource(WORD resourceID)
 {
-	hIcon = (HICON)::LoadImageW(appHInstance, MAKEINTRESOURCEW(resourceID), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hIcon = (HICON)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hIcon)
 		return true;	
 	return false;
@@ -929,7 +939,7 @@ bool KIcon::LoadFromResource(WORD resourceID)
 
 bool KIcon::LoadFromFile(const KString& filePath)
 {
-	hIcon = (HICON)::LoadImageW(appHInstance, filePath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hIcon = (HICON)::LoadImageW(KApplication::hInstance, filePath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hIcon)
 		return true;	
 	return false;
@@ -1491,6 +1501,7 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 
 KComponent::KComponent()
 {
+	RFC_INIT_VERIFIER;
 	isRegistered = false;
 
 	KPlatformUtil *platformUtil = KPlatformUtil::GetInstance();
@@ -1518,7 +1529,7 @@ KComponent::KComponent()
 	wc.cbWndExtra = 0;
 	wc.hIconSm = 0;
 	wc.style = 0;
-	wc.hInstance = platformUtil->GetAppHInstance();
+	wc.hInstance = KApplication::hInstance;
 	wc.lpszClassName = compClassName;
 
 	wc.lpfnWndProc = ::GlobalWnd_Proc;
@@ -1542,7 +1553,7 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 		::GetClassNameW(compHWND, clsName, 256);
 		compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
 
-		::GetClassInfoExW(KPlatformUtil::GetInstance()->GetAppHInstance(), compClassName, &wc);
+		::GetClassInfoExW(KApplication::hInstance, compClassName, &wc);
 
 		compCtlID = (UINT)::GetWindowLongPtrW(compHWND, GWL_ID);
 
@@ -1785,7 +1796,7 @@ void KComponent::Repaint()
 KComponent::~KComponent()
 {
 	if(isRegistered)
-		::UnregisterClassW(compClassName, KPlatformUtil::GetInstance()->GetAppHInstance());
+		::UnregisterClassW(compClassName, KApplication::hInstance);
 }
 
 // =========== KGlyphButton.cpp ===========
@@ -2783,9 +2794,9 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 */
 
 
-
 KMenuItem::KMenuItem()
 {
+	RFC_INIT_VERIFIER;
 	hMenu = 0;
 	listener = 0;
 	enabled = true;
@@ -3357,7 +3368,7 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 	compParentHWND = parentWindow->GetHWND();
 	attachedCompHWND = attachedComponent->GetHWND();
 
-	compHWND = ::CreateWindowExW(0, compClassName, NULL, compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, compParentHWND, NULL, KPlatformUtil::GetInstance()->GetAppHInstance(), 0);
+	compHWND = ::CreateWindowExW(0, compClassName, NULL, compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, compParentHWND, NULL, KApplication::hInstance, 0);
 
 	if (compHWND)
 	{
@@ -3392,7 +3403,7 @@ void KToolTip::SetText(const KString& compText)
 		toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 		toolInfo.uId = (UINT_PTR)attachedCompHWND;
 		toolInfo.lpszText = compText;
-		toolInfo.hinst = KPlatformUtil::GetInstance()->GetAppHInstance();
+		toolInfo.hinst = KApplication::hInstance;
 
 		SendMessageW(compHWND, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolInfo);
 	}
@@ -5441,6 +5452,7 @@ KThread::~KThread()
 
 KTimer::KTimer()
 {
+	RFC_INIT_VERIFIER;
 	resolution = 1000;
 	started = false;
 	listener = 0;
@@ -5642,11 +5654,11 @@ KPlatformUtil* KPlatformUtil::_instance=0;
 
 KPlatformUtil::KPlatformUtil()
 {
+	RFC_INIT_VERIFIER;
 	timerCount = 0;
 	menuItemCount = 0;
 	classCount = 0;
 	controlCount = 0;
-	hInstance = 0;
 	::InitializeCriticalSection(&g_csCount);
 	menuItemList = new KPointerList<KMenuItem*>();
 	timerList = new KPointerList<KTimer*>();
@@ -5658,16 +5670,6 @@ KPlatformUtil* KPlatformUtil::GetInstance()
 		return _instance;
 	_instance = new KPlatformUtil();
 	return _instance;
-}
-
-void KPlatformUtil::SetAppHInstance(HINSTANCE hInstance)
-{
-	this->hInstance = hInstance;
-}
-
-HINSTANCE KPlatformUtil::GetAppHInstance()
-{
-	return hInstance;
 }
 
 UINT KPlatformUtil::GenerateControlID()
@@ -5705,7 +5707,7 @@ KString KPlatformUtil::GenerateClassName()
 	className[2] = L'C';
 	className[3] = L'_';
 
-	::_itow((int)hInstance, &className[4], 10);
+	::_itow((int)KApplication::hInstance, &className[4], 10);
 
 	int lastPos = (int)::wcslen(className);
 	className[lastPos] = L'_';

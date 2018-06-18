@@ -34,7 +34,6 @@ class RFC_API KIcon
 {
 protected:
 	HICON hIcon;
-	HINSTANCE appHInstance;
 
 public:
 	KIcon();

@@ -23,6 +23,8 @@
 
 #include "KApplication.h"
 
+HINSTANCE KApplication::hInstance = 0;
+
 KApplication::KApplication()
 {
 }
