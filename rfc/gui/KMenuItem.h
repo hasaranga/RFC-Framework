@@ -26,6 +26,7 @@
 
 #include "../text/KString.h"
 #include <windows.h>
+#include "../containers/KLeakDetector.h"
 
 class KMenuItemListener;
 
@@ -67,6 +68,9 @@ public:
 	virtual void OnPress();
 
 	virtual ~KMenuItem();
+
+private:
+	RFC_LEAK_DETECTOR(KMenuItem)
 };
 
 #endif

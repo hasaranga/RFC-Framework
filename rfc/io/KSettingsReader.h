@@ -26,6 +26,7 @@
 
 #include <windows.h>
 #include "KFile.h"
+#include "../containers/KLeakDetector.h"
 
 /**
 	High performance configuration reading class.
@@ -56,6 +57,9 @@ public:
 	virtual bool ReadBool();
 
 	virtual ~KSettingsReader();
+
+private:
+	RFC_LEAK_DETECTOR(KSettingsReader)
 };
 
 #endif

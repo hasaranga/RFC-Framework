@@ -29,6 +29,7 @@
 #include "../graphics/KFont.h"
 #include "../graphics/KCursor.h"
 #include "../text/KString.h"
+#include "../containers/KLeakDetector.h"
 
 /**
 	Base class of all W32 gui objects.
@@ -230,6 +231,8 @@ public:
 
 	virtual ~KComponent();
 
+private:
+	RFC_LEAK_DETECTOR(KComponent)
 };
 
 #endif

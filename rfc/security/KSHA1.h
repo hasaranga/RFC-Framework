@@ -25,6 +25,7 @@
 #define _RFC_KSHA1_H_
 
 #include "../text/KString.h"
+#include "../containers/KLeakDetector.h"
 
 class RFC_API KSHA1
 {
@@ -36,6 +37,9 @@ public:
 	static KString GenerateFromFile(const KString& fileName);
 
 	virtual ~KSHA1();
+
+private:
+	RFC_LEAK_DETECTOR(KSHA1)
 };
 
 #endif

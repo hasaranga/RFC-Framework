@@ -30,6 +30,7 @@
 
 #include "../config.h"
 #include "KStringHolder.h"
+#include "../containers/KLeakDetector.h"
 
 #include <windows.h>
 #include <string.h>
@@ -195,6 +196,9 @@ public:
 	virtual int GetIntValue()const;
 
 	virtual ~KString();
+
+private:
+	RFC_LEAK_DETECTOR(KString)
 };
 
 RFC_API const KString operator+ (const char* const string1, const KString& string2);

@@ -24,7 +24,6 @@
 #ifndef _RFC_KSCOPED_MEMORY_BLOCK_H_
 #define _RFC_KSCOPED_MEMORY_BLOCK_H_
 
-#include "../config.h"
 #include <malloc.h>
 
 /**
@@ -43,7 +42,7 @@
 	If you need to get a memory block out of a KScopedClassPointer without it being freed, you
 	can use the Release() method.
 
-	(Inspired from JUCE ScopedPointer class)
+	(ref: ScopedPointer class of JUCE)
 
 	e.g. @code
 	KScopedMemoryBlock<float*> a = (float*)malloc(512 * sizeof(float));

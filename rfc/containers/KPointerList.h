@@ -28,6 +28,7 @@
 #include <malloc.h>
 #include <windows.h>
 #include "../config.h"
+#include "KLeakDetector.h"
 
 #if defined(_MSC_VER) && _MSC_VER > 1000
 	#pragma warning(disable:4311)
@@ -340,6 +341,8 @@ public:
 		}
 	}
 
+private:
+	RFC_LEAK_DETECTOR(KPointerList)
 };
 
 #endif

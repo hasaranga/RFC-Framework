@@ -26,6 +26,7 @@
 
 #include "../text/KString.h"
 #include <windows.h>
+#include "../containers/KLeakDetector.h"
 
 /**
 	Can be use to load bitmap image from file or resource.
@@ -60,6 +61,9 @@ public:
 	HBITMAP GetHandle();
 
 	virtual ~KBitmap();
+
+private:
+	RFC_LEAK_DETECTOR(KBitmap)
 };
 
 #endif

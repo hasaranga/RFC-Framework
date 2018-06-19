@@ -26,6 +26,7 @@
 
 #include "../text/KString.h"
 #include <windows.h>
+#include "../containers/KLeakDetector.h"
 
 /**
 	Can be use to load icon from file or resource.
@@ -58,6 +59,9 @@ public:
 	HICON GetHandle();
 
 	virtual ~KIcon();
+
+private:
+	RFC_LEAK_DETECTOR(KIcon)
 };
 
 #endif

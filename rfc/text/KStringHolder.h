@@ -26,7 +26,7 @@
 
 #include "../config.h"
 #include <windows.h>
-
+#include "../containers/KLeakDetector.h"
 
 /**
 	This class holds reference counted string.
@@ -60,6 +60,9 @@ public:
 		ANSI version available only when needed.
 	*/
 	const char* GetAnsiVersion(UINT codePage = CP_UTF8);
+
+private:
+	RFC_LEAK_DETECTOR(KStringHolder)
 };
 
 #endif

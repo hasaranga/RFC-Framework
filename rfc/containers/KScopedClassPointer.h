@@ -24,8 +24,6 @@
 #ifndef _RFC_KSCOPED_CLASS_POINTER_H_
 #define _RFC_KSCOPED_CLASS_POINTER_H_
 
-#include "../config.h"
-
 /**
 	This class holds a pointer which is automatically deleted when this object goes
 	out of scope.
@@ -45,7 +43,7 @@
 	If you need to get a pointer out of a KScopedClassPointer without it being deleted, you
 	can use the Release() method.
 
-	(Inspired from JUCE ScopedPointer class)
+	(ref: ScopedPointer class of JUCE)
 
 	e.g. @code
 	KScopedClassPointer<MyClass> a = new MyClass();

@@ -94,6 +94,7 @@
 #include "containers/KScopedClassPointer.h"
 #include "containers/KScopedMemoryBlock.h"
 #include "containers/KScopedCriticalSection.h"
+#include "containers/KLeakDetector.h"
 
 RFC_API LRESULT CALLBACK GlobalWnd_Proc(HWND,UINT,WPARAM,LPARAM);
 RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
@@ -136,8 +137,8 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	AppClass* application = new AppClass();\
 	int retVal = application->Main(str_argv, argc);\
 	delete application;\
-	::DeInitRFC();\
 	for(int i = 0; i < argc; i++){delete str_argv[i];}\
+	::DeInitRFC();\
 	::free((void*)str_argv);\
 	::GlobalFree(args);\
 	return retVal;\
@@ -203,10 +204,14 @@ public:
 	static ATOM RFCPropAtom_OldProc;
 };
 
-#ifdef _MSC_VER
-	#define RFC_INIT_VERIFIER _ASSERT_EXPR((KApplication::hInstance != 0), L"##### RFC Framework used before being initialized! Did you forget to call the InitRFC function? Or did you declared RFC class as a global variable? #####")
+#ifdef _DEBUG
+	#ifdef _MSC_VER
+		#define RFC_INIT_VERIFIER _ASSERT_EXPR((KApplication::hInstance != 0), L"##### RFC Framework used before being initialized! Did you forget to call the InitRFC function? Or did you declared RFC class as a global variable? #####")
+	#else
+		#define RFC_INIT_VERIFIER assert((KApplication::hInstance != 0) && "##### RFC Framework used before being initialized! Did you forget to call the InitRFC function? Or did you declared RFC class as a global variable? #####")
+	#endif
 #else
-	#define RFC_INIT_VERIFIER assert((KApplication::hInstance != 0) && "##### RFC Framework used before being initialized! Did you forget to call the InitRFC function? Or did you declared RFC class as a global variable? #####")
+	#define RFC_INIT_VERIFIER
 #endif
 
 #endif

@@ -27,6 +27,7 @@
 #include "KTimerListener.h"
 #include "../gui/KWindow.h"
 #include <windows.h>
+#include "../containers/KLeakDetector.h"
 
 /**
 	Encapsulates a timer.
@@ -84,6 +85,9 @@ public:
 	virtual void OnTimer();
 
 	virtual ~KTimer();
+
+private:
+	RFC_LEAK_DETECTOR(KTimer)
 };
 
 #endif

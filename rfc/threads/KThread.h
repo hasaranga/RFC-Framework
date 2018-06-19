@@ -26,6 +26,7 @@
 
 #include "../config.h"
 #include <windows.h>
+#include "../containers/KLeakDetector.h"
 
 /**
 	Encapsulates a thread.
@@ -98,6 +99,9 @@ public:
 	static void uSleep(int waitTime);
 
 	virtual ~KThread();
+
+private:
+	RFC_LEAK_DETECTOR(KThread)
 };
 
 #endif

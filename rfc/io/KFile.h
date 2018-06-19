@@ -26,6 +26,7 @@
 
 #include <windows.h>
 #include "../text/KString.h"
+#include "../containers/KLeakDetector.h"
 
 /**
 	Can be use to read/write data from a file easily.
@@ -105,6 +106,9 @@ public:
 	static bool CopyFile(const KString& sourceFileName, const KString& destFileName);
 
 	virtual ~KFile();
+
+private:
+	RFC_LEAK_DETECTOR(KFile)
 };
 
 #endif

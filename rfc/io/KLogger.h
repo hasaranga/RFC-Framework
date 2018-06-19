@@ -27,6 +27,7 @@
 #include <windows.h>
 #include "../text/KString.h"
 #include "../utils/KPerformanceCounter.h"
+#include "../containers/KLeakDetector.h"
 
 /**
 	Super fast logging class for logging within a (audio)loop. (not thread safe)
@@ -103,6 +104,9 @@ public:
 	virtual bool WriteToFile(const KString &filePath);
 
 	virtual ~KLogger();
+
+private:
+	RFC_LEAK_DETECTOR(KLogger)
 };
 
 #endif

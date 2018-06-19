@@ -26,6 +26,7 @@
 
 #include <windows.h>
 #include "KFile.h"
+#include "../containers/KLeakDetector.h"
 
 /**
 	High performance configuration writing class.
@@ -56,6 +57,9 @@ public:
 	virtual void WriteBool(bool value);
 
 	virtual ~KSettingsWriter();
+
+private:
+	RFC_LEAK_DETECTOR(KSettingsWriter)
 };
 
 #endif

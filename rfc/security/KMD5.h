@@ -25,6 +25,7 @@
 #define _RFC_KMD5_H_
 
 #include "../text/KString.h"
+#include "../containers/KLeakDetector.h"
 
 class RFC_API KMD5
 {
@@ -36,6 +37,9 @@ public:
 	static KString GenerateFromFile(const KString& fileName);
 
 	virtual ~KMD5();
+
+private:
+	RFC_LEAK_DETECTOR(KMD5)
 };
 
 #endif

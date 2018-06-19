@@ -26,6 +26,7 @@
 
 #include <windows.h>
 #include "../text/KString.h"
+#include "../containers/KLeakDetector.h"
 
 /**
 	Can be use to create system default font or custom font. Once created, you cannot change font properties.
@@ -68,6 +69,9 @@ public:
 	virtual HFONT GetFontHandle();
 
 	virtual ~KFont();
+
+private:
+	RFC_LEAK_DETECTOR(KFont)
 };
 
 #endif

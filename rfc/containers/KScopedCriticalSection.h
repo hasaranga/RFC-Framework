@@ -24,7 +24,6 @@
 #ifndef _RFC_KSCOPED_CRITICAL_SECTION_H_
 #define _RFC_KSCOPED_CRITICAL_SECTION_H_
 
-#include "../config.h"
 #include <windows.h>
 
 /**

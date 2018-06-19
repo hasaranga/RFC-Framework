@@ -26,6 +26,7 @@
 
 #include "../config.h"
 #include <windows.h>
+#include "../containers/KLeakDetector.h"
 
 class RFC_API KPerformanceCounter
 {
@@ -45,6 +46,8 @@ public:
 
 	virtual ~KPerformanceCounter();
 
+private:
+	RFC_LEAK_DETECTOR(KPerformanceCounter)
 };
 
 #endif

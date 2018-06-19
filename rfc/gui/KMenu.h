@@ -26,6 +26,7 @@
 
 #include "KMenuItem.h"
 #include "KWindow.h"
+#include "../containers/KLeakDetector.h"
 
 class RFC_API KMenu
 {
@@ -46,6 +47,9 @@ public:
 	virtual void PopUpMenu(KWindow *window);
 
 	virtual ~KMenu();
+
+private:
+	RFC_LEAK_DETECTOR(KMenu)
 };
 
 #endif
