@@ -95,6 +95,7 @@
 #include "containers/KScopedMemoryBlock.h"
 #include "containers/KScopedCriticalSection.h"
 #include "containers/KLeakDetector.h"
+#include "containers/KScopedGdiObject.h"
 
 RFC_API LRESULT CALLBACK GlobalWnd_Proc(HWND,UINT,WPARAM,LPARAM);
 RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);

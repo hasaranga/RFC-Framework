@@ -46,9 +46,10 @@
 	(ref: ScopedPointer class of JUCE)
 
 	e.g. @code
-	KScopedClassPointer<MyClass> a = new MyClass();
+	KScopedClassPointer<MyClass> a = new MyClass(); // slow
 	a->myMethod();
 	a = new MyClass(); // old object will be deleted
+	KScopedClassPointer<MyClass> b( new MyClass() ); // fast
 	@endcode
 
 */

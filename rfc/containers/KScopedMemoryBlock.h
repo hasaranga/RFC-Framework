@@ -45,7 +45,8 @@
 	(ref: ScopedPointer class of JUCE)
 
 	e.g. @code
-	KScopedMemoryBlock<float*> a = (float*)malloc(512 * sizeof(float));
+	KScopedMemoryBlock<float*> a = (float*)malloc(512 * sizeof(float)); // slow
+	KScopedMemoryBlock<float*> b( (float*)malloc(512 * sizeof(float)) ); // fast
 	@endcode
 */
 template<class T>

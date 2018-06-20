@@ -226,9 +226,10 @@ private:
 	(ref: ScopedPointer class of JUCE)
 
 	e.g. @code
-	KScopedClassPointer<MyClass> a = new MyClass();
+	KScopedClassPointer<MyClass> a = new MyClass(); // slow
 	a->myMethod();
 	a = new MyClass(); // old object will be deleted
+	KScopedClassPointer<MyClass> b( new MyClass() ); // fast
 	@endcode
 
 */
@@ -384,6 +385,124 @@ public:
 
 #endif
 
+// =========== KScopedGdiObject.h ===========
+
+/*
+	RFC - KScopedGdiObject.h
+	Copyright (C) 2013-2018 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+
+*/
+
+#ifndef _RFC_KSCOPED_GDI_OBJECT_H_
+#define _RFC_KSCOPED_GDI_OBJECT_H_
+
+#include <windows.h>
+
+/**
+	This class holds a gdi object which is automatically freed when this object goes
+	out of scope.
+
+	If you need to get a gdi object out of a KScopedGdiObject without it being freed, you
+	can use the Release() method.
+
+	(ref: ScopedPointer class of JUCE)
+
+	e.g. @code
+	KScopedGdiObject<HBRUSH> a = ::CreateSolidBrush(RGB(255, 255, 255)); // slow
+	KScopedGdiObject<HBRUSH> b(::CreateSolidBrush(RGB(255, 0, 0))); // fast
+	@endcode,
+*/
+template<class T>
+class KScopedGdiObject
+{
+private:
+	T gdiObject;
+
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
+public:
+	inline KScopedGdiObject()
+	{
+		gdiObject = 0;
+	}
+
+	inline KScopedGdiObject(T gdiObject)
+	{
+		this->gdiObject = gdiObject;
+	}
+
+	KScopedGdiObject(KScopedGdiObject& gdiObjectToTransferFrom)
+	{
+		this->gdiObject = gdiObjectToTransferFrom.gdiObject;
+		gdiObjectToTransferFrom.gdiObject = 0;
+	}
+
+	/** 
+		Removes the current gdi object from this KScopedGdiObject without freeing it.
+		This will return the current gdi object, and set the KScopedGdiObject to a null value.
+	*/
+	T Release()
+	{ 
+		T g = gdiObject;
+		gdiObject = 0;
+		return g; 
+	}
+
+	~KScopedGdiObject()
+	{
+		if (gdiObject)
+			::DeleteObject(gdiObject);
+	}
+
+	/** 
+		Changes this KScopedGdiObject to point to a new gdi object.
+
+		If this KScopedGdiObject already points to a gdi object, that object
+		will first be freed.
+
+		The object that you pass in may be a zero.
+	*/
+	KScopedGdiObject& operator= (T const newGdiObject)
+	{
+		if (gdiObject != newGdiObject)
+		{
+			T const oldgdiObject = gdiObject;
+			gdiObject = newGdiObject;
+
+			if (oldgdiObject)
+				::DeleteObject(oldgdiObject);
+		}
+
+		return *this;
+	}
+
+	/** Returns the gdi object that this KScopedGdiObject refers to. */
+	inline operator T() const { return gdiObject; }
+
+};
+
+#endif
+
 // =========== KScopedMemoryBlock.h ===========
 
 /*
@@ -432,7 +551,8 @@ public:
 	(ref: ScopedPointer class of JUCE)
 
 	e.g. @code
-	KScopedMemoryBlock<float*> a = (float*)malloc(512 * sizeof(float));
+	KScopedMemoryBlock<float*> a = (float*)malloc(512 * sizeof(float)); // slow
+	KScopedMemoryBlock<float*> b( (float*)malloc(512 * sizeof(float)) ); // fast
 	@endcode
 */
 template<class T>
@@ -1285,48 +1405,6 @@ public:
 
 #endif
 
-// =========== KButtonListener.h ===========
-
-/*
-	RFC - KButtonListener.h
-	Copyright (C) 2013-2018 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KBUTTONLISTENER_H_
-#define _RFC_KBUTTONLISTENER_H_
-
-
-class KButton;
-
-class RFC_API KButtonListener
-{
-public:
-	KButtonListener();
-
-	virtual ~KButtonListener();
-
-	virtual void OnButtonPress(KButton *button);
-};
-
-#endif
-
 // =========== KTimerListener.h ===========
 
 /*
@@ -1422,10 +1500,10 @@ public:
 
 #endif
 
-// =========== KPerformanceCounter.h ===========
+// =========== KButtonListener.h ===========
 
 /*
-	RFC - KPerformanceCounter.h
+	RFC - KButtonListener.h
 	Copyright (C) 2013-2018 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
@@ -1446,31 +1524,88 @@ public:
 	  
 */
 
-#ifndef _RFC_KPERFORMANCECOUNTER_H_
-#define _RFC_KPERFORMANCECOUNTER_H_
+#ifndef _RFC_KBUTTONLISTENER_H_
+#define _RFC_KBUTTONLISTENER_H_
+
+
+class KButton;
+
+class RFC_API KButtonListener
+{
+public:
+	KButtonListener();
+
+	virtual ~KButtonListener();
+
+	virtual void OnButtonPress(KButton *button);
+};
+
+#endif
+
+// =========== KStringHolder.h ===========
+
+/*
+	RFC - KString.h
+	Copyright (C) 2013-2018 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KSTRINGHOLDER_H_
+#define _RFC_KSTRINGHOLDER_H_
 
 #include <windows.h>
 
-class RFC_API KPerformanceCounter
+/**
+	This class holds reference counted string.
+*/
+class RFC_API KStringHolder
 {
-protected:
-	double pcFreq;
-	__int64 counterStart;
+	volatile LONG refCount;
+	char *a_text; // ansi version
+	CRITICAL_SECTION cs_a_text; // to guard ansi string creation
+	bool isStaticText; // do not free w_text if true
 
 public:
-	KPerformanceCounter();
+	wchar_t *w_text; // unicode version
+	int count; // character count
 
-	virtual void StartCounter();
+	KStringHolder(bool isStaticText = false);
+
+	~KStringHolder();
 
 	/**
-		returns delta time(milliseconds) between StartCounter and EndCounter calls.
+		Make sure to call this method if you contruct new KStringHolder or keep reference to another KStringHolder object.
 	*/
-	virtual double EndCounter();
+	void AddReference();
 
-	virtual ~KPerformanceCounter();
+	/**
+		Make sure to call this method if you clear reference to KStringHolder object. it will release allocated memory for string.
+	*/
+	void ReleaseReference();
+
+	/**
+		ANSI version available only when needed.
+	*/
+	const char* GetAnsiVersion(UINT codePage = CP_UTF8);
 
 private:
-	RFC_LEAK_DETECTOR(KPerformanceCounter)
+	RFC_LEAK_DETECTOR(KStringHolder)
 };
 
 #endif
@@ -1582,10 +1717,10 @@ private:
 
 #endif
 
-// =========== KStringHolder.h ===========
+// =========== KPerformanceCounter.h ===========
 
 /*
-	RFC - KString.h
+	RFC - KPerformanceCounter.h
 	Copyright (C) 2013-2018 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
@@ -1606,46 +1741,31 @@ private:
 	  
 */
 
-#ifndef _RFC_KSTRINGHOLDER_H_
-#define _RFC_KSTRINGHOLDER_H_
+#ifndef _RFC_KPERFORMANCECOUNTER_H_
+#define _RFC_KPERFORMANCECOUNTER_H_
 
 #include <windows.h>
 
-/**
-	This class holds reference counted string.
-*/
-class RFC_API KStringHolder
+class RFC_API KPerformanceCounter
 {
-	volatile LONG refCount;
-	char *a_text; // ansi version
-	CRITICAL_SECTION cs_a_text; // to guard ansi string creation
-	bool isStaticText; // do not free w_text if true
+protected:
+	double pcFreq;
+	__int64 counterStart;
 
 public:
-	wchar_t *w_text; // unicode version
-	int count; // character count
+	KPerformanceCounter();
 
-	KStringHolder(bool isStaticText = false);
-
-	~KStringHolder();
+	virtual void StartCounter();
 
 	/**
-		Make sure to call this method if you contruct new KStringHolder or keep reference to another KStringHolder object.
+		returns delta time(milliseconds) between StartCounter and EndCounter calls.
 	*/
-	void AddReference();
+	virtual double EndCounter();
 
-	/**
-		Make sure to call this method if you clear reference to KStringHolder object. it will release allocated memory for string.
-	*/
-	void ReleaseReference();
-
-	/**
-		ANSI version available only when needed.
-	*/
-	const char* GetAnsiVersion(UINT codePage = CP_UTF8);
+	virtual ~KPerformanceCounter();
 
 private:
-	RFC_LEAK_DETECTOR(KStringHolder)
+	RFC_LEAK_DETECTOR(KPerformanceCounter)
 };
 
 #endif
@@ -2483,6 +2603,71 @@ public:
 
 private:
 	RFC_LEAK_DETECTOR(KFile)
+};
+
+#endif
+
+// =========== KSettingsWriter.h ===========
+
+/*
+	RFC - KSettingsWriter.h
+	Copyright (C) 2013-2018 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KSETTINGSWRITER_H_
+#define _RFC_KSETTINGSWRITER_H_
+
+#include <windows.h>
+
+/**
+	High performance configuration writing class.
+*/
+class RFC_API KSettingsWriter
+{
+protected:
+	KFile settingsFile;
+
+public:
+	KSettingsWriter();
+
+	virtual bool OpenFile(const KString& fileName, int formatID);
+
+	/**
+		save struct, array or whatever...
+	*/
+	virtual void WriteData(DWORD size, void *buffer);
+
+	virtual void WriteString(const KString& text);
+
+	virtual void WriteInt(int value);
+
+	virtual void WriteFloat(float value);
+
+	virtual void WriteDouble(double value);
+
+	virtual void WriteBool(bool value);
+
+	virtual ~KSettingsWriter();
+
+private:
+	RFC_LEAK_DETECTOR(KSettingsWriter)
 };
 
 #endif
@@ -3581,89 +3766,6 @@ public:
 
 #endif
 
-// =========== KTextBox.h ===========
-
-/*
-	RFC - KTextBox.h
-	Copyright (C) 2013-2018 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KTEXTBOX_H_
-#define _RFC_KTEXTBOX_H_
-
-
-class RFC_API KTextBox : public KComponent
-{
-public:
-	KTextBox(bool readOnly = false);
-
-	virtual KString GetText();
-
-	virtual bool CreateComponent(bool requireInitialMessages = false);
-
-	virtual ~KTextBox();
-};
-
-#endif
-
-// =========== KTextArea.h ===========
-
-/*
-	RFC - KTextArea.h
-	Copyright (C) 2013-2018 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KTEXTAREA_H_
-#define _RFC_KTEXTAREA_H_
-
-
-class RFC_API KTextArea : public KTextBox
-{
-public:
-	KTextArea(bool autoScroll = false, bool readOnly = false);
-
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-	virtual ~KTextArea();
-};
-
-
-#endif
-
 // =========== KButton.h ===========
 
 /*
@@ -3717,10 +3819,10 @@ public:
 
 #endif
 
-// =========== KGlyphButton.h ===========
+// =========== KTextBox.h ===========
 
 /*
-	RFC - KGlyphButton.h
+	RFC - KTextBox.h
 	Copyright (C) 2013-2018 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
@@ -3741,41 +3843,28 @@ public:
 	  
 */
 
-#ifndef _RFC_KGLYPHBUTTON_H_
-#define _RFC_KGLYPHBUTTON_H_
+#ifndef _RFC_KTEXTBOX_H_
+#define _RFC_KTEXTBOX_H_
 
 
-class RFC_API KGlyphButton : public KButton
+class RFC_API KTextBox : public KComponent
 {
-protected:
-	KFont *glyphFont;
-	const wchar_t *glyphChar;
-	COLORREF glyphColor;
-	int glyphLeft;
-
 public:
-	KGlyphButton();
+	KTextBox(bool readOnly = false);
 
-	virtual ~KGlyphButton();
+	virtual KString GetText();
 
-	/**
-		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
-		You can use "Character Map" tool get character codes.
-		Default text color will be used if glyphColor not specified.
-	*/
-	virtual void SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-
+	virtual ~KTextBox();
 };
-
 
 #endif
 
-// =========== KSettingsWriter.h ===========
+// =========== KCheckBox.h ===========
 
 /*
-	RFC - KSettingsWriter.h
+	RFC - KCheckBox.h
 	Copyright (C) 2013-2018 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
@@ -3796,44 +3885,69 @@ public:
 	  
 */
 
-#ifndef _RFC_KSETTINGSWRITER_H_
-#define _RFC_KSETTINGSWRITER_H_
+#ifndef _RFC_KCHECKBOX_H_
+#define _RFC_KCHECKBOX_H_
 
-#include <windows.h>
 
-/**
-	High performance configuration writing class.
-*/
-class RFC_API KSettingsWriter
+class RFC_API KCheckBox : public KButton
 {
 protected:
-	KFile settingsFile;
+	bool checked;
 
 public:
-	KSettingsWriter();
+	KCheckBox();
 
-	virtual bool OpenFile(const KString& fileName, int formatID);
+	virtual bool CreateComponent(bool requireInitialMessages = false);
 
-	/**
-		save struct, array or whatever...
-	*/
-	virtual void WriteData(DWORD size, void *buffer);
+	virtual void OnPress();
 
-	virtual void WriteString(const KString& text);
+	virtual bool IsChecked();
 
-	virtual void WriteInt(int value);
+	virtual void SetCheckedState(bool state);
 
-	virtual void WriteFloat(float value);
-
-	virtual void WriteDouble(double value);
-
-	virtual void WriteBool(bool value);
-
-	virtual ~KSettingsWriter();
-
-private:
-	RFC_LEAK_DETECTOR(KSettingsWriter)
+	virtual ~KCheckBox();
 };
+
+#endif
+
+// =========== KTextArea.h ===========
+
+/*
+	RFC - KTextArea.h
+	Copyright (C) 2013-2018 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KTEXTAREA_H_
+#define _RFC_KTEXTAREA_H_
+
+
+class RFC_API KTextArea : public KTextBox
+{
+public:
+	KTextArea(bool autoScroll = false, bool readOnly = false);
+
+	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	virtual ~KTextArea();
+};
+
 
 #endif
 
@@ -4168,60 +4282,6 @@ public:
 
 #endif
 
-// =========== KMenu.h ===========
-
-/*
-	RFC - KMenu.h
-	Copyright (C) 2013-2018 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KMENU_H_
-#define _RFC_KMENU_H_
-
-
-class RFC_API KMenu
-{
-protected:
-	HMENU hMenu;
-
-public:
-	KMenu();
-
-	virtual void AddMenuItem(KMenuItem *menuItem);
-
-	virtual void AddSubMenu(const KString& text, KMenu *menu);
-
-	virtual void AddSeperator();
-
-	virtual HMENU GetMenuHandle();
-
-	virtual void PopUpMenu(KWindow *window);
-
-	virtual ~KMenu();
-
-private:
-	RFC_LEAK_DETECTOR(KMenu)
-};
-
-#endif
-
 // =========== KTimer.h ===========
 
 /*
@@ -4314,10 +4374,10 @@ private:
 
 #endif
 
-// =========== KMenuBar.h ===========
+// =========== KMenu.h ===========
 
 /*
-	RFC - KMenuBar.h
+	RFC - KMenu.h
 	Copyright (C) 2013-2018 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
@@ -4338,28 +4398,33 @@ private:
 	  
 */
 
-#ifndef _RFC_KMENUBAR_H_
-#define _RFC_KMENUBAR_H_
+#ifndef _RFC_KMENU_H_
+#define _RFC_KMENU_H_
 
 
-class RFC_API KMenuBar
+class RFC_API KMenu
 {
 protected:
 	HMENU hMenu;
 
 public:
-	KMenuBar();
+	KMenu();
 
-	virtual void AddMenu(const KString& text, KMenu *menu);
+	virtual void AddMenuItem(KMenuItem *menuItem);
 
-	virtual void AddToWindow(KWindow *window);
+	virtual void AddSubMenu(const KString& text, KMenu *menu);
 
-	virtual ~KMenuBar();
+	virtual void AddSeperator();
+
+	virtual HMENU GetMenuHandle();
+
+	virtual void PopUpMenu(KWindow *window);
+
+	virtual ~KMenu();
 
 private:
-	RFC_LEAK_DETECTOR(KMenuBar)
+	RFC_LEAK_DETECTOR(KMenu)
 };
-
 
 #endif
 
@@ -4634,171 +4699,6 @@ public:
 
 #endif
 
-// =========== KToolTip.h ===========
-
-/*
-	RFC - KToolTip.h
-	Copyright (C) 2013-2018 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KTOOLTIP_H_
-#define _RFC_KTOOLTIP_H_
-
-
-class RFC_API KToolTip : public KComponent
-{
-protected:
-	HWND attachedCompHWND;
-
-public:
-	KToolTip();
-
-	virtual ~KToolTip();
-
-	/**
-		parentWindow must be created before you call this method.
-		attachedComponent must be added to a window before you call this method.
-		do not attach same tooltip into multiple components.
-	*/
-	virtual void AttachToComponent(KWindow *parentWindow, KComponent *attachedComponent);
-
-	/**
-		calling this method has no effect.
-	*/
-	virtual bool CreateComponent(bool requireInitialMessages = false);
-
-	virtual void SetText(const KString& compText);
-};
-
-#endif
-
-
-// =========== KCheckBox.h ===========
-
-/*
-	RFC - KCheckBox.h
-	Copyright (C) 2013-2018 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KCHECKBOX_H_
-#define _RFC_KCHECKBOX_H_
-
-
-class RFC_API KCheckBox : public KButton
-{
-protected:
-	bool checked;
-
-public:
-	KCheckBox();
-
-	virtual bool CreateComponent(bool requireInitialMessages = false);
-
-	virtual void OnPress();
-
-	virtual bool IsChecked();
-
-	virtual void SetCheckedState(bool state);
-
-	virtual ~KCheckBox();
-};
-
-#endif
-
-// =========== KMenuButton.h ===========
-
-/*
-	RFC - KMenuButton.h
-	Copyright (C) 2013-2018 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KMENUBUTTON_H_
-#define _RFC_KMENUBUTTON_H_
-
-
-class RFC_API KMenuButton : public KButton
-{
-protected:
-	KFont *arrowFont;
-	KFont *glyphFont;
-	KMenu *buttonMenu;
-	const wchar_t *glyphChar;
-	COLORREF glyphColor;
-	int glyphLeft;
-
-public:
-	KMenuButton();
-
-	virtual ~KMenuButton();
-
-	virtual void SetMenu(KMenu *buttonMenu);
-
-	/**
-		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
-		You can use "Character Map" tool get character codes.
-		Default text color will be used if glyphColor not specified.
-	*/
-	virtual void SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
-
-	virtual void OnPress();
-
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-};
-
-
-#endif
-
 // =========== KPushButton.h ===========
 
 /*
@@ -4872,6 +4772,226 @@ public:
 
 	virtual ~KRadioButton();
 };
+
+#endif
+
+// =========== KToolTip.h ===========
+
+/*
+	RFC - KToolTip.h
+	Copyright (C) 2013-2018 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KTOOLTIP_H_
+#define _RFC_KTOOLTIP_H_
+
+
+class RFC_API KToolTip : public KComponent
+{
+protected:
+	HWND attachedCompHWND;
+
+public:
+	KToolTip();
+
+	virtual ~KToolTip();
+
+	/**
+		parentWindow must be created before you call this method.
+		attachedComponent must be added to a window before you call this method.
+		do not attach same tooltip into multiple components.
+	*/
+	virtual void AttachToComponent(KWindow *parentWindow, KComponent *attachedComponent);
+
+	/**
+		calling this method has no effect.
+	*/
+	virtual bool CreateComponent(bool requireInitialMessages = false);
+
+	virtual void SetText(const KString& compText);
+};
+
+#endif
+
+
+// =========== KGlyphButton.h ===========
+
+/*
+	RFC - KGlyphButton.h
+	Copyright (C) 2013-2018 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KGLYPHBUTTON_H_
+#define _RFC_KGLYPHBUTTON_H_
+
+
+class RFC_API KGlyphButton : public KButton
+{
+protected:
+	KFont *glyphFont;
+	const wchar_t *glyphChar;
+	COLORREF glyphColor;
+	int glyphLeft;
+
+public:
+	KGlyphButton();
+
+	virtual ~KGlyphButton();
+
+	/**
+		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
+		You can use "Character Map" tool get character codes.
+		Default text color will be used if glyphColor not specified.
+	*/
+	virtual void SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
+
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+
+};
+
+
+#endif
+
+// =========== KMenuButton.h ===========
+
+/*
+	RFC - KMenuButton.h
+	Copyright (C) 2013-2018 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KMENUBUTTON_H_
+#define _RFC_KMENUBUTTON_H_
+
+
+class RFC_API KMenuButton : public KButton
+{
+protected:
+	KFont *arrowFont;
+	KFont *glyphFont;
+	KMenu *buttonMenu;
+	const wchar_t *glyphChar;
+	COLORREF glyphColor;
+	int glyphLeft;
+
+public:
+	KMenuButton();
+
+	virtual ~KMenuButton();
+
+	virtual void SetMenu(KMenu *buttonMenu);
+
+	/**
+		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
+		You can use "Character Map" tool get character codes.
+		Default text color will be used if glyphColor not specified.
+	*/
+	virtual void SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
+
+	virtual void OnPress();
+
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+};
+
+
+#endif
+
+// =========== KMenuBar.h ===========
+
+/*
+	RFC - KMenuBar.h
+	Copyright (C) 2013-2018 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KMENUBAR_H_
+#define _RFC_KMENUBAR_H_
+
+
+class RFC_API KMenuBar
+{
+protected:
+	HMENU hMenu;
+
+public:
+	KMenuBar();
+
+	virtual void AddMenu(const KString& text, KMenu *menu);
+
+	virtual void AddToWindow(KWindow *window);
+
+	virtual ~KMenuBar();
+
+private:
+	RFC_LEAK_DETECTOR(KMenuBar)
+};
+
 
 #endif
 
