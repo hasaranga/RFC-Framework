@@ -37,12 +37,12 @@ bool KDirectory::IsDirExists(const KString& dirName)
 
 bool KDirectory::CreateDir(const KString& dirName)
 {
-	return ::CreateDirectoryW(dirName, NULL) == 0 ? false : true;
+	return (::CreateDirectoryW(dirName, NULL) == 0 ? false : true);
 }
 
 bool KDirectory::RemoveDir(const KString& dirName)
 {
-	return ::RemoveDirectoryW(dirName) == 0 ? false : true;
+	return (::RemoveDirectoryW(dirName) == 0 ? false : true);
 }
 
 KString KDirectory::GetModuleDir(HMODULE hModule)

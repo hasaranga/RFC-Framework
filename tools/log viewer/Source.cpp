@@ -103,13 +103,13 @@ public:
 	MainWindow()
 	{
 		this->SetSize(800, 600);
-		this->SetText(STATIC_TXT("Log Viewer"));
+		this->SetText(CONST_TXT("Log Viewer"));
 		this->CreateComponent();
 		this->CenterScreen();
 
 		// create menu
-		miOpenFile.SetText(STATIC_TXT("Open Log File..."));
-		miExit.SetText(STATIC_TXT("Exit"));
+		miOpenFile.SetText(CONST_TXT("Open Log File..."));
+		miExit.SetText(CONST_TXT("Exit"));
 	
 		miOpenFile.SetListener(this);
 		miExit.SetListener(this);
@@ -118,7 +118,7 @@ public:
 		fileMenu.AddSeperator();
 		fileMenu.AddMenuItem(&miExit);
 		
-		menuBar.AddMenu(STATIC_TXT("File"),&fileMenu);
+		menuBar.AddMenu(CONST_TXT("File"), &fileMenu);
 		menuBar.AddToWindow(this);
 
 		this->AddComponent(&gridView);
@@ -129,9 +129,9 @@ public:
 		this->GetClientAreaSize(&clientWidth, &clientHeight);
 
 		gridView.SetSize(clientWidth, clientHeight);		
-		gridView.CreateColumn(STATIC_TXT("Time (sec : mills)"));
-		gridView.CreateColumn(STATIC_TXT("Type"));
-		gridView.CreateColumn(STATIC_TXT("Details"), clientWidth - (gridView.GetColumnWidth(0) + gridView.GetColumnWidth(1) + 40));	
+		gridView.CreateColumn(CONST_TXT("Time (sec : mills)"));
+		gridView.CreateColumn(CONST_TXT("Type"));
+		gridView.CreateColumn(CONST_TXT("Details"), clientWidth - (gridView.GetColumnWidth(0) + gridView.GetColumnWidth(1) + 40));
 	}
 
 	void OnMenuItemPress(KMenuItem *menuItem)
@@ -141,7 +141,7 @@ public:
 			if (KCommonDialogBox::ShowOpenFileDialog(this, L"Open Log File...", L"Log Files (*.rlog)\0*.rlog\0", &logFilePath))
 			{
 				gridView.RemoveAll();
-				this->SetText(STATIC_TXT("Log Viewer"));
+				this->SetText(CONST_TXT("Log Viewer"));
 				StartThread();
 			}
 		}
@@ -246,12 +246,12 @@ public:
 					char strMills[5];
 					sprintf(strMills, "%03d", (int)mills); // zero padded mills
 					
-					AddRecord(KString((int)secs) + STATIC_TXT(" : ") + KString(strMills, KString::USE_COPY_OF_TEXT), eventType, details);
+					AddRecord(KString((int)secs) + CONST_TXT(" : ") + KString(strMills, KString::USE_COPY_OF_TEXT), eventType, details);
 
 					if (threadShouldStop)
 						break;
 				}
-				this->SetText(STATIC_TXT("Log Viewer - ") + KString(totalEvents) + STATIC_TXT(" Events , ") + KString(errorEventsCount) + STATIC_TXT(" Errors , ") + KString(warningEventsCount) + STATIC_TXT(" Warnings"));
+				this->SetText(CONST_TXT("Log Viewer - ") + KString(totalEvents) + CONST_TXT(" Events , ") + KString(errorEventsCount) + CONST_TXT(" Errors , ") + KString(warningEventsCount) + CONST_TXT(" Warnings"));
 			}
 			else{
 				MessageBoxW(this->GetHWND(), L"Invalid log file!", L"Error", MB_ICONERROR);

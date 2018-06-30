@@ -50,7 +50,7 @@ KFont* KFont::GetDefaultFont()
 
 bool KFont::LoadFont(const KString& path)
 {
-	return AddFontResourceExW(path, FR_PRIVATE, 0) == 0 ? false : true;
+	return (AddFontResourceExW(path, FR_PRIVATE, 0) == 0) ? false : true;
 }
 
 void KFont::RemoveFont(const KString& path)

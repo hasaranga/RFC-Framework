@@ -24,17 +24,22 @@
 #include "KGridView.h"
 #include "../rfc.h"
 
-KGridView::KGridView(bool sortItems)
+KGridView::KGridView(bool sortItems) : KComponent(false)
 {
 	itemCount = 0;
 	colCount = 0;
 	listener = 0;
-	compClassName = WC_LISTVIEWW;
 
-	this->SetPosition(0, 0);
-	this->SetSize(300, 200);
-	this->SetStyle(WS_CHILD | WS_TABSTOP| WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compClassName.AssignStaticText(TXT_WITH_LEN("SysListView32"));
+
+	compWidth = 300;
+	compHeight = 200;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_TABSTOP | WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 
 	if (sortItems)
 		compDwStyle |= LVS_SORTASCENDING;
@@ -70,7 +75,7 @@ void KGridView::InsertRecord(KString **columnsData)
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
 	}
 
-	itemCount++;
+	++itemCount;
 }
 
 void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
@@ -91,7 +96,7 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
 	}
 
-	itemCount++;
+	++itemCount;
 }
 
 KString KGridView::GetRecordAt(int rowIndex, int columnIndex)
@@ -117,7 +122,7 @@ int KGridView::GetSelectedRow()
 void KGridView::RemoveRecordAt(int rowIndex)
 {
 	if (ListView_DeleteItem(compHWND, rowIndex))
-		itemCount--;
+		--itemCount;
 }
 
 void KGridView::RemoveAll()
@@ -157,7 +162,7 @@ void KGridView::CreateColumn(const KString& text, int columnWidth)
 
 	::SendMessageW(compHWND, LVM_INSERTCOLUMNW, (WPARAM)colCount, (LPARAM)&lvc);
 
-	colCount++;
+	++colCount;
 }
 
 bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
@@ -201,9 +206,7 @@ bool KGridView::CreateComponent(bool requireInitialMessages)
 	if (compHWND)
 	{
 		ListView_SetExtendedListViewStyle(compHWND, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)

@@ -24,31 +24,33 @@
 #include "../rfc.h"
 #include "KListBox.h"
 
-KListBox::KListBox(bool multipleSelection,bool sort,bool vscroll)
+KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent(false)
 {
-	this->multipleSelection=multipleSelection;
+	this->multipleSelection = multipleSelection;
 	listener = 0;
 
 	selectedItemIndex = -1;
 	selectedItemEnd = -1;
 
-	compClassName = STATIC_TXT("LISTBOX");
+	compClassName.AssignStaticText(TXT_WITH_LEN("LISTBOX"));
 
-	this->SetSize(100, 100);
-	this->SetPosition(0, 0);
+	compWidth = 100;
+	compHeight = 100;
 
-	this->SetStyle(LBS_NOTIFY | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP);
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = LBS_NOTIFY | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP;
+	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
 
 	if(multipleSelection)
-		this->SetStyle(compDwStyle | LBS_MULTIPLESEL);
+		compDwStyle = compDwStyle | LBS_MULTIPLESEL;
 	if(sort)
-		this->SetStyle(compDwStyle | LBS_SORT);
+		compDwStyle = compDwStyle | LBS_SORT;
 	if(vscroll)
-		this->SetStyle(compDwStyle | WS_VSCROLL);
+		compDwStyle = compDwStyle | WS_VSCROLL;
 
-	this->SetExStyle(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
-
-	stringList = new KPointerList<KString*>;
+	stringList = new KPointerList<KString*>(100);
 }
 
 void KListBox::SetListener(KListBoxListener *listener)
@@ -80,7 +82,7 @@ void KListBox::RemoveItem(int index)
 void KListBox::RemoveItem(const KString& text)
 {
 	int itemIndex = this->GetItemIndex(text);
-	if(itemIndex>-1)
+	if(itemIndex > -1)
 		this->RemoveItem(itemIndex);
 }
 
@@ -91,7 +93,7 @@ int KListBox::GetItemIndex(const KString& text)
 	{
 		for(int i = 0; i < listSize; i++)
 		{
-			if(stringList->GetPointer(i)->EqualsIgnoreCase(text))
+			if (stringList->GetPointer(i)->Compare(text))
 				return i;
 		}
 	}
@@ -110,11 +112,8 @@ int KListBox::GetSelectedItemIndex()
 		int index = (int)::SendMessageW(compHWND, LB_GETCURSEL, 0, 0);
 		if(index != LB_ERR)
 			return index;
-		return -1;
-	}else
-	{
-		return -1;
-	}	
+	}
+	return -1;	
 }
 
 KString KListBox::GetSelectedItem()
@@ -132,11 +131,8 @@ int KListBox::GetSelectedItems(int* itemArray, int itemCountInArray)
 		int items = (int)::SendMessageW(compHWND, LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
 		if(items != LB_ERR)
 			return items;
-		return -1;
-	}else
-	{
-		return -1;
 	}
+	return -1;
 }
 
 void KListBox::ClearList()
@@ -198,10 +194,9 @@ bool KListBox::CreateComponent(bool requireInitialMessages)
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
-		int listSize=stringList->GetSize();
+		int listSize = stringList->GetSize();
 		if(listSize)
 		{
 			for(int i = 0; i < listSize; i++)

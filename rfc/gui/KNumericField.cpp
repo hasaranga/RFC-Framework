@@ -23,9 +23,9 @@
 
 #include "KNumericField.h"
 
-KNumericField::KNumericField():KTextBox(false)
+KNumericField::KNumericField() : KTextBox(false)
 {
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_AUTOHSCROLL | ES_NUMBER);
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_AUTOHSCROLL | ES_NUMBER;
 }
 
 KNumericField::~KNumericField(){}

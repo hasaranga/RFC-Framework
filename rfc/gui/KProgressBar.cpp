@@ -24,22 +24,26 @@
 #include "KProgressBar.h"
 #include "../rfc.h"
 
-KProgressBar::KProgressBar(bool smooth, bool vertical)
+KProgressBar::KProgressBar(bool smooth, bool vertical) : KComponent(false)
 {
 	value = 0;
 
-	compClassName = KString(PROGRESS_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
+	compClassName.AssignStaticText(TXT_WITH_LEN("msctls_progress32"));
 
-	this->SetPosition(0, 0);
-	this->SetSize(100, 20);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compWidth = 100;
+	compHeight = 20;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 
 	if(smooth)
-		this->SetStyle(compDwStyle | PBS_SMOOTH);
+		compDwStyle = compDwStyle | PBS_SMOOTH;
 
 	if(vertical)
-		this->SetStyle(compDwStyle | PBS_VERTICAL);
+		compDwStyle = compDwStyle | PBS_VERTICAL;
 }
 
 int KProgressBar::GetValue()
@@ -66,7 +70,6 @@ bool KProgressBar::CreateComponent(bool requireInitialMessages)
 	{
 		::SendMessageW(compHWND, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); // set range between 0-100
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0); // set current value!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)

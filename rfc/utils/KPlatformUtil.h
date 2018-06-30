@@ -33,25 +33,30 @@
 
 /**
 	Singleton class which can be use to generate class names, timer ids etc...
-	(for internal use)
+	define "RFC_SINGLE_THREAD_COMP_CREATION" if your app does not creating components/menu items/timers
+	within multiple threads.
+	(this class is for internal use)
 */
 class RFC_API KPlatformUtil
 {
 private:
+	RFC_LEAK_DETECTOR(KPlatformUtil)
 
 	static KPlatformUtil *_instance;
-
 	KPlatformUtil();
 
 protected:
-	CRITICAL_SECTION g_csCount;
-	int classCount;
-	int timerCount;
-	int controlCount;
-	UINT menuItemCount;
+	volatile int classCount;
+	volatile int timerCount;
+	volatile int controlCount;
+	volatile UINT menuItemCount;
 
 	KPointerList<KMenuItem*> *menuItemList;
 	KPointerList<KTimer*> *timerList;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	CRITICAL_SECTION criticalSectionForCount;
+	#endif
 
 public:
 

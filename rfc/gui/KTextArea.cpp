@@ -25,13 +25,15 @@
 
 KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
 {
-	this->SetSize(200, 100);
-	this->SetStyle(compDwStyle | ES_MULTILINE | ES_WANTRETURN);
+	compWidth = 200;
+	compHeight = 100;
+
+	compDwStyle = compDwStyle | ES_MULTILINE | ES_WANTRETURN;
 
 	if(autoScroll)
-		this->SetStyle(compDwStyle | ES_AUTOHSCROLL | ES_AUTOVSCROLL);
+		compDwStyle = compDwStyle | ES_AUTOHSCROLL | ES_AUTOVSCROLL;
 	else
-		this->SetStyle(compDwStyle | WS_HSCROLL | WS_VSCROLL);
+		compDwStyle = compDwStyle | WS_HSCROLL | WS_VSCROLL;
 }
 
 LRESULT KTextArea::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)

@@ -24,18 +24,28 @@
 #include "KPlatformUtil.h"
 #include "../rfc.h"
 
-KPlatformUtil* KPlatformUtil::_instance=0;
+static const int rfc_InitialMenuItemCount	= 400;
+static const int rfc_InitialTimerCount		= 40;
+static const int rfc_InitialControlID		= 100;
+static const int rfc_InitialMenuItemID		= 30000;
+static const int rfc_InitialTimerID			= 1000;
+
+KPlatformUtil* KPlatformUtil::_instance = 0;
 
 KPlatformUtil::KPlatformUtil()
 {
 	RFC_INIT_VERIFIER;
+
 	timerCount = 0;
 	menuItemCount = 0;
 	classCount = 0;
 	controlCount = 0;
-	::InitializeCriticalSection(&g_csCount);
-	menuItemList = new KPointerList<KMenuItem*>();
-	timerList = new KPointerList<KTimer*>();
+	menuItemList = 0;
+	timerList = 0;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::InitializeCriticalSection(&criticalSectionForCount);
+	#endif
 }
 
 KPlatformUtil* KPlatformUtil::GetInstance()
@@ -48,31 +58,50 @@ KPlatformUtil* KPlatformUtil::GetInstance()
 
 UINT KPlatformUtil::GenerateControlID()
 {
-	::EnterCriticalSection(&g_csCount);
-	controlCount++;
-	::LeaveCriticalSection(&g_csCount);
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::EnterCriticalSection(&criticalSectionForCount);
+	#endif
 
-	return controlCount + 100;
+	++controlCount;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::LeaveCriticalSection(&criticalSectionForCount);
+	#endif
+
+	return controlCount + rfc_InitialControlID;
 }
 
 UINT KPlatformUtil::GenerateMenuItemID(KMenuItem *menuItem)
 {
-	::EnterCriticalSection(&g_csCount);
-	menuItemCount++;
-	menuItemList->AddPointer(menuItem);
-	::LeaveCriticalSection(&g_csCount);
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::EnterCriticalSection(&criticalSectionForCount);
+	#endif
 
-	return menuItemCount + 30000;
+	if (menuItemList == 0) // generate on first call
+		menuItemList = new KPointerList<KMenuItem*>(rfc_InitialMenuItemCount);
+
+	++menuItemCount;
+	menuItemList->AddPointer(menuItem);
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::LeaveCriticalSection(&criticalSectionForCount);
+	#endif
+
+	return menuItemCount + rfc_InitialMenuItemID;
 }
 
 KMenuItem* KPlatformUtil::GetMenuItemByID(UINT id)
 {
-	return menuItemList->GetPointer(id - 30001);
+	if (menuItemList)
+		return menuItemList->GetPointer(id - (rfc_InitialMenuItemID + 1));
+	return 0;
 }
 
 KString KPlatformUtil::GenerateClassName()
-{
-	::EnterCriticalSection(&g_csCount);
+{ 
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::EnterCriticalSection(&criticalSectionForCount);
+	#endif
 
 	wchar_t *className = (wchar_t*)::malloc(32 * sizeof(wchar_t));
 
@@ -95,29 +124,50 @@ KString KPlatformUtil::GenerateClassName()
 		::swprintf(className,L"RFC_%d_%d", (int)hInstance, classCount);
 	#endif */
 
-	classCount++;
-	::LeaveCriticalSection(&g_csCount);
+	++classCount;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::LeaveCriticalSection(&criticalSectionForCount);
+	#endif
+
 	return KString(className, KString::FREE_TEXT_WHEN_DONE);
 }
 
 UINT KPlatformUtil::GenerateTimerID(KTimer *timer)
 {
-	::EnterCriticalSection(&g_csCount);
-	timerCount++;
-	timerList->AddPointer(timer);
-	::LeaveCriticalSection(&g_csCount);
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::EnterCriticalSection(&criticalSectionForCount);
+	#endif
 
-	return timerCount + 1000;
+	if (timerList == 0) // generate on first call
+		timerList = new KPointerList<KTimer*>(rfc_InitialTimerCount);
+
+	++timerCount;
+	timerList->AddPointer(timer);
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::LeaveCriticalSection(&criticalSectionForCount);
+	#endif
+
+	return timerCount + rfc_InitialTimerID;
 }
 
 KTimer* KPlatformUtil::GetTimerByID(UINT id)
 {
-	return timerList->GetPointer(id - 1001);
+	if (timerList)
+		return timerList->GetPointer(id - (rfc_InitialTimerID + 1));
+	return 0;
 }
 
 KPlatformUtil::~KPlatformUtil()
 {
-	delete menuItemList;
-	delete timerList;
-	::DeleteCriticalSection(&g_csCount);
+	if (menuItemList)
+		delete menuItemList;
+
+	if (timerList)
+		delete timerList;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::DeleteCriticalSection(&criticalSectionForCount);
+	#endif
 }

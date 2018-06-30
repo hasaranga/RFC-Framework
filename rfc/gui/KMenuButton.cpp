@@ -30,7 +30,7 @@ KMenuButton::KMenuButton()
 	glyphFont = 0;
 	glyphChar = 0;
 	glyphLeft = 6;
-	arrowFont = new KFont(STATIC_TXT("Webdings"), 18);
+	arrowFont = new KFont(CONST_TXT("Webdings"), 18);
 }	
 
 KMenuButton::~KMenuButton()

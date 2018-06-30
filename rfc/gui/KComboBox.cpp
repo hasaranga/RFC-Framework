@@ -25,24 +25,27 @@
 #include "KComboBox.h"
 
 
-KComboBox::KComboBox(bool sort)
+KComboBox::KComboBox(bool sort) : KComponent(false)
 {
 	listener = 0;
 	selectedItemIndex = -1;
 
-	compClassName = STATIC_TXT("COMBOBOX");
+	compClassName.AssignStaticText(TXT_WITH_LEN("COMBOBOX"));
 
-	this->SetSize(100, 100);
-	this->SetPosition(0, 0);
+	compWidth = 100;
+	compHeight = 100;
 
-	this->SetStyle(WS_VSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP);
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_VSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP;
 
 	if(sort)
-		this->SetStyle(compDwStyle | CBS_SORT);
+		compDwStyle = compDwStyle | CBS_SORT;
 
-	this->SetExStyle(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
+	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
 
-	stringList = new KPointerList<KString*>;
+	stringList = new KPointerList<KString*>(50);
 }
 
 void KComboBox::AddItem(const KString& text)
@@ -69,7 +72,7 @@ void KComboBox::RemoveItem(int index)
 void KComboBox::RemoveItem(const KString& text)
 {
 	int itemIndex = this->GetItemIndex(text);
-	if(itemIndex>-1)
+	if(itemIndex > -1)
 		this->RemoveItem(itemIndex);
 }
 
@@ -80,7 +83,7 @@ int KComboBox::GetItemIndex(const KString& text)
 	{
 		for(int i = 0; i < listSize; i++)
 		{
-			if(stringList->GetPointer(i)->EqualsIgnoreCase(text))
+			if(stringList->GetPointer(i)->Compare(text))
 				return i;
 		}
 	}
@@ -99,11 +102,8 @@ int KComboBox::GetSelectedItemIndex()
 		int index = (int)::SendMessageW(compHWND, CB_GETCURSEL, 0, 0);
 		if(index != CB_ERR)
 			return index;
-		return -1;
-	}else
-	{
-		return -1;
-	}	
+	}
+	return -1;		
 }
 
 KString KComboBox::GetSelectedItem()
@@ -118,18 +118,14 @@ void KComboBox::ClearList()
 {
 	stringList->DeleteAll(true);
 	if(compHWND)
-	{
 		::SendMessageW(compHWND, CB_RESETCONTENT, 0, 0);
-	}
 }
 
 void KComboBox::SelectItem(int index)
 {
 	selectedItemIndex = index;
 	if(compHWND)
-	{
 		::SendMessageW(compHWND, CB_SETCURSEL, index, 0);
-	}
 }
 
 bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
@@ -155,7 +151,6 @@ bool KComboBox::CreateComponent(bool requireInitialMessages)
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		int listSize = stringList->GetSize();

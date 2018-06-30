@@ -10,7 +10,7 @@ protected:
 	KFont* font1;
 
 public:
-	CustomComponent()
+	CustomComponent() : KComponent(true)
 	{
 		this->SetStyle(WS_CHILD); // don't forget this!
 		this->SetSize(100, 25);

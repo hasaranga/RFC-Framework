@@ -24,13 +24,16 @@
 #include "KWindow.h"
 #include "../rfc.h"
 
-KWindow::KWindow()
+KWindow::KWindow() : KComponent(true)
 {
-	this->SetText(STATIC_TXT("KWindow"));
-	this->SetSize(400, 200);
-	this->SetVisible(false);
-	this->SetStyle(WS_POPUP);
-	this->SetExStyle(WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT);
+	compText.AssignStaticText(TXT_WITH_LEN("KWindow"));
+
+	compWidth = 400;
+	compHeight = 200;
+
+	compVisible = false;
+	compDwStyle = WS_POPUP;
+	compDwExStyle = WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT;
 	wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	compCtlID = 0; // control id is zero for top level window
 	lastFocusedChild = 0;

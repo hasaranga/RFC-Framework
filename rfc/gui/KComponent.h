@@ -33,6 +33,7 @@
 
 /**
 	Base class of all W32 gui objects.
+	define "RFC_SINGLE_THREAD_COMP_CREATION" if your app does not create components within multiple threads.
 */
 class RFC_API KComponent
 {
@@ -57,7 +58,11 @@ protected:
 public:
 	WNDCLASSEXW wc;
 
-	KComponent();
+	/**
+		Constructs a standard win32 component.
+		@param generateWindowClassDetails	set to false if you are using standard class name like BUTTON, STATIC etc...
+	*/
+	KComponent(bool generateWindowClassDetails);
 
 	/**
 		Called after hotplugged into a given HWND.

@@ -70,8 +70,7 @@ HANDLE KFile::GetFileHandle()
 
 DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
 {
-	DWORD numberOfBytesRead=0;
-
+	DWORD numberOfBytesRead = 0;
 	::ReadFile(fileHandle, buffer, numberOfBytesToRead, &numberOfBytesRead, NULL);
 
 	return numberOfBytesRead;
@@ -79,8 +78,7 @@ DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
 
 DWORD KFile::WriteFile(void* buffer, DWORD numberOfBytesToWrite)
 {
-	DWORD numberOfBytesWritten=0;
-
+	DWORD numberOfBytesWritten = 0;
 	::WriteFile(fileHandle, buffer, numberOfBytesToWrite, &numberOfBytesWritten, NULL);
 
 	return numberOfBytesWritten;
@@ -88,23 +86,23 @@ DWORD KFile::WriteFile(void* buffer, DWORD numberOfBytesToWrite)
 
 bool KFile::SetFilePointerToStart()
 {
-	return ::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER ? false : true;
+	return (::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
 bool KFile::SetFilePointerTo(DWORD distance)
 {
-	return ::SetFilePointer(fileHandle, distance, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER ? false : true;
+	return (::SetFilePointer(fileHandle, distance, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
 bool KFile::SetFilePointerToEnd()
 {
-	return ::SetFilePointer(fileHandle, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER ? false : true;
+	return (::SetFilePointer(fileHandle, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
 DWORD KFile::GetFileSize()
 {
 	DWORD fileSize = ::GetFileSize(fileHandle, NULL);
-	return fileSize == INVALID_FILE_SIZE ? 0 : fileSize;
+	return (fileSize == INVALID_FILE_SIZE) ? 0 : fileSize;
 }
 
 void* KFile::ReadAsData()
@@ -132,10 +130,7 @@ bool KFile::WriteString(const KString& text, bool isUnicode)
 
 	DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
 
-	if (numberOfBytesWritten == numberOfBytesToWrite)
-		return true;
-
-	return false;
+	return (numberOfBytesWritten == numberOfBytesToWrite);
 }
 
 KString KFile::ReadAsString(bool isUnicode)
@@ -144,7 +139,7 @@ KString KFile::ReadAsString(bool isUnicode)
 
 	if (fileSize)
 	{
-		char* buffer = (char*)::malloc(fileSize+1); // +1 is for null
+		char* buffer = (char*)::malloc(fileSize + 1); // +1 is for null
 		DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
@@ -170,12 +165,12 @@ KString KFile::ReadAsString(bool isUnicode)
 
 bool KFile::DeleteFile(const KString& fileName)
 {
-	return ::DeleteFileW(fileName) == 0 ? false : true;
+	return (::DeleteFileW(fileName) == 0) ? false : true;
 }
 
 bool KFile::CopyFile(const KString& sourceFileName, const KString& destFileName)
 {
-	return ::CopyFileW(sourceFileName, destFileName, FALSE) == 0 ? false : true;
+	return (::CopyFileW(sourceFileName, destFileName, FALSE) == 0) ? false : true;
 }
 
 bool KFile::IsFileExists(const KString& fileName)

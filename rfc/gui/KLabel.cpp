@@ -24,15 +24,19 @@
 #include "KLabel.h"
 #include "../rfc.h"
 
-KLabel::KLabel()
+KLabel::KLabel() : KComponent(false)
 {
-	compClassName = STATIC_TXT("STATIC");
+	compClassName.AssignStaticText(TXT_WITH_LEN("STATIC"));
+	compText.AssignStaticText(TXT_WITH_LEN("Label"));
 
-	this->SetText(STATIC_TXT("Label"));
-	this->SetSize(100, 25);
-	this->SetPosition(0, 0);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compWidth = 100;
+	compHeight = 25;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
 bool KLabel::CreateComponent(bool requireInitialMessages)
@@ -45,7 +49,6 @@ bool KLabel::CreateComponent(bool requireInitialMessages)
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)

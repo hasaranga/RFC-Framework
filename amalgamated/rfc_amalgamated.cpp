@@ -75,14 +75,20 @@ class InternalVariables
 public:
 	static KComponent *currentComponent;
 	static HHOOK wnd_hook;
-	static CRITICAL_SECTION g_csComponent; // guard currentComponent!
 	static volatile int rfcRefCount;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	static CRITICAL_SECTION csForCurrentComponent; // guard currentComponent!
+	#endif
 };
 
-KComponent* InternalVariables::currentComponent = 0;
+KComponent*	InternalVariables::currentComponent = 0;
 HHOOK InternalVariables::wnd_hook = 0;
 volatile int InternalVariables::rfcRefCount = 0;
-CRITICAL_SECTION InternalVariables::g_csComponent;
+
+#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+CRITICAL_SECTION InternalVariables::csForCurrentComponent;
+#endif
 
 ATOM InternalDefinitions::RFCPropAtom_Component;
 ATOM InternalDefinitions::RFCPropAtom_OldProc;
@@ -118,7 +124,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 					LRESULT result = ::CallNextHookEx(InternalVariables::wnd_hook, nCode, wParam, lParam);
 
 					// we subclassed what we created. so remove the hook.
-					::UnhookWindowsHookEx(InternalVariables::wnd_hook); // unhooking at here will also allow child creation at WM_CREATE
+					::UnhookWindowsHookEx(InternalVariables::wnd_hook); // unhooking at here will allow child creation at WM_CREATE. otherwise this will hook child also!
 
 					return result;
 				}
@@ -134,9 +140,8 @@ LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
 	KComponent *component = (KComponent*)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 
-	if(!component){ // for safe!
+	if(!component) // for safe!
 		return ::DefWindowProcW( hwnd, msg, wParam, lParam );
-	}
 
 	if(!component->GetHWND()) // window recieve msg for the first time!
 		component->SetHWND(hwnd);
@@ -166,7 +171,9 @@ HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 {	
 	if (requireInitialMessages)
 	{
-		::EnterCriticalSection(&InternalVariables::g_csComponent);
+		#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+		::EnterCriticalSection(&InternalVariables::csForCurrentComponent);
+		#endif
 
 		InternalVariables::currentComponent = component;
 
@@ -179,16 +186,16 @@ HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 		// unhook at here will cause catching childs which are created at WM_CREATE. so, unhook at CBT proc.
 		//::UnhookWindowsHookEx(InternalVariables::wnd_hook);
 
-		::LeaveCriticalSection(&InternalVariables::g_csComponent);
+		#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+		::LeaveCriticalSection(&InternalVariables::csForCurrentComponent);
+		#endif
 
 		return hwnd;
 	}
 	else
 	{
 		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KApplication::hInstance, 0);
-
 		::AttachRFCPropertiesToHWND(hwnd, component);
-
 		component->SetHWND(hwnd);
 
 		return hwnd;
@@ -205,37 +212,6 @@ void DoMessagePump(bool handleTabKey)
 		{
 			if (::IsDialogMessage(::GetActiveWindow(), &msg))
 				continue;
-
-			/*if(msg.message == WM_KEYDOWN)
-			{
-				if(VK_TAB == msg.wParam) // looking for TAB key!
-				{
-					if(msg.hwnd)
-					{
-						HWND parentHWND = ::GetParent(msg.hwnd);
-						if(!parentHWND) // nothing selected! (top-level window)
-						{
-							HWND nextControl = ::GetNextDlgTabItem(msg.hwnd, NULL, FALSE);
-							if(nextControl)
-							{
-								::SetFocus(nextControl);
-								continue; // don't pass this message!
-							}
-						}else // user has already selected component!
-						{
-							HWND nextControl = ::GetNextDlgTabItem(parentHWND, msg.hwnd, FALSE);
-							if(nextControl)
-							{
-								if((::GetKeyState(VK_CONTROL) & 0x8000) == 0) // user is not hold ctrl key!
-								{
-									::SetFocus(nextControl);
-									continue; // don't pass this message!
-								}
-							}
-						}
-					}
-				}
-			}*/
 		}
 		::TranslateMessage(&msg);
 		::DispatchMessageW(&msg);
@@ -281,9 +257,8 @@ INT_PTR CALLBACK GlobalDlg_Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 	{
 		KComponent* comp = (KComponent*)lParam;
 		if(comp)
-		{
 			comp->HotPlugInto(hwndDlg, true);
-		}
+
 		return FALSE;
 	}
 	return FALSE;
@@ -310,7 +285,9 @@ void InitRFC(HINSTANCE hInstance)
 
 		::CoInitialize(NULL); //Initializes COM as STA.
 
-		::InitializeCriticalSection(&InternalVariables::g_csComponent);
+		#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+		::InitializeCriticalSection(&InternalVariables::csForCurrentComponent);
+		#endif
 
 		InternalDefinitions::RFCPropAtom_Component = ::GlobalAddAtomW(L"RFCComponent");
 		InternalDefinitions::RFCPropAtom_OldProc = ::GlobalAddAtomW(L"RFCOldProc");
@@ -327,7 +304,9 @@ void DeInitRFC()
 	{
 		::CoUninitialize();
 
-		::DeleteCriticalSection(&InternalVariables::g_csComponent);
+		#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+		::DeleteCriticalSection(&InternalVariables::csForCurrentComponent);
+		#endif
 
 		::GlobalDeleteAtom(InternalDefinitions::RFCPropAtom_Component);
 		::GlobalDeleteAtom(InternalDefinitions::RFCPropAtom_OldProc);
@@ -800,7 +779,7 @@ KFont* KFont::GetDefaultFont()
 
 bool KFont::LoadFont(const KString& path)
 {
-	return AddFontResourceExW(path, FR_PRIVATE, 0) == 0 ? false : true;
+	return (AddFontResourceExW(path, FR_PRIVATE, 0) == 0) ? false : true;
 }
 
 void KFont::RemoveFont(const KString& path)
@@ -981,17 +960,21 @@ KIcon::~KIcon()
 */
 
 
-KButton::KButton()
+KButton::KButton() : KComponent(false)
 {
 	listener = 0;
 
-	compClassName = STATIC_TXT("BUTTON");
+	compClassName.AssignStaticText(TXT_WITH_LEN("BUTTON"));
+	compText.AssignStaticText(TXT_WITH_LEN("Button"));
 
-	this->SetText(STATIC_TXT("Button"));
-	this->SetSize(100, 30);
-	this->SetPosition(0, 0);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY | WS_TABSTOP);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compWidth = 100;
+	compHeight = 30;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY | WS_TABSTOP;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
 void KButton::SetListener(KButtonListener *listener)
@@ -1107,9 +1090,8 @@ void KButtonListener::OnButtonPress(KButton *button){}
 KCheckBox::KCheckBox()
 {
 	checked = false;
-
-	this->SetText(STATIC_TXT("CheckBox"));
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP);
+	compText.AssignStaticText(TXT_WITH_LEN("CheckBox"));
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP;
 }
 
 bool KCheckBox::CreateComponent(bool requireInitialMessages)
@@ -1122,9 +1104,7 @@ bool KCheckBox::CreateComponent(bool requireInitialMessages)
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::SendMessageW(compHWND, BM_SETCHECK, checked, 0);
-
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)
@@ -1189,24 +1169,27 @@ KCheckBox::~KCheckBox()
 
 
 
-KComboBox::KComboBox(bool sort)
+KComboBox::KComboBox(bool sort) : KComponent(false)
 {
 	listener = 0;
 	selectedItemIndex = -1;
 
-	compClassName = STATIC_TXT("COMBOBOX");
+	compClassName.AssignStaticText(TXT_WITH_LEN("COMBOBOX"));
 
-	this->SetSize(100, 100);
-	this->SetPosition(0, 0);
+	compWidth = 100;
+	compHeight = 100;
 
-	this->SetStyle(WS_VSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP);
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_VSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP;
 
 	if(sort)
-		this->SetStyle(compDwStyle | CBS_SORT);
+		compDwStyle = compDwStyle | CBS_SORT;
 
-	this->SetExStyle(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
+	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
 
-	stringList = new KPointerList<KString*>;
+	stringList = new KPointerList<KString*>(50);
 }
 
 void KComboBox::AddItem(const KString& text)
@@ -1233,7 +1216,7 @@ void KComboBox::RemoveItem(int index)
 void KComboBox::RemoveItem(const KString& text)
 {
 	int itemIndex = this->GetItemIndex(text);
-	if(itemIndex>-1)
+	if(itemIndex > -1)
 		this->RemoveItem(itemIndex);
 }
 
@@ -1244,7 +1227,7 @@ int KComboBox::GetItemIndex(const KString& text)
 	{
 		for(int i = 0; i < listSize; i++)
 		{
-			if(stringList->GetPointer(i)->EqualsIgnoreCase(text))
+			if(stringList->GetPointer(i)->Compare(text))
 				return i;
 		}
 	}
@@ -1263,11 +1246,8 @@ int KComboBox::GetSelectedItemIndex()
 		int index = (int)::SendMessageW(compHWND, CB_GETCURSEL, 0, 0);
 		if(index != CB_ERR)
 			return index;
-		return -1;
-	}else
-	{
-		return -1;
-	}	
+	}
+	return -1;		
 }
 
 KString KComboBox::GetSelectedItem()
@@ -1282,18 +1262,14 @@ void KComboBox::ClearList()
 {
 	stringList->DeleteAll(true);
 	if(compHWND)
-	{
 		::SendMessageW(compHWND, CB_RESETCONTENT, 0, 0);
-	}
 }
 
 void KComboBox::SelectItem(int index)
 {
 	selectedItemIndex = index;
 	if(compHWND)
-	{
 		::SendMessageW(compHWND, CB_SETCURSEL, index, 0);
-	}
 }
 
 bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
@@ -1319,7 +1295,6 @@ bool KComboBox::CreateComponent(bool requireInitialMessages)
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		int listSize = stringList->GetSize();
@@ -1499,13 +1474,12 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 
 
 
-KComponent::KComponent()
+KComponent::KComponent(bool generateWindowClassDetails)
 {
 	RFC_INIT_VERIFIER;
 	isRegistered = false;
 
 	KPlatformUtil *platformUtil = KPlatformUtil::GetInstance();
-	compClassName = platformUtil->GenerateClassName();
 	compCtlID = platformUtil->GenerateControlID();
 
 	compHWND = 0;
@@ -1520,19 +1494,23 @@ KComponent::KComponent()
 	compVisible = true;
 	compEnabled = true;
 
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-	wc.hIcon = 0;
-	wc.lpszMenuName = 0;
-	wc.hbrBackground = (HBRUSH)::GetSysColorBrush(COLOR_BTNFACE);
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hIconSm = 0;
-	wc.style = 0;
-	wc.hInstance = KApplication::hInstance;
-	wc.lpszClassName = compClassName;
+	if (generateWindowClassDetails)
+	{
+		compClassName = platformUtil->GenerateClassName();
+		wc.cbSize = sizeof(WNDCLASSEX);
+		wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
+		wc.hIcon = 0;
+		wc.lpszMenuName = 0;
+		wc.hbrBackground = (HBRUSH)::GetSysColorBrush(COLOR_BTNFACE);
+		wc.cbClsExtra = 0;
+		wc.cbWndExtra = 0;
+		wc.hIconSm = 0;
+		wc.style = 0;
+		wc.hInstance = KApplication::hInstance;
+		wc.lpszClassName = compClassName;
 
-	wc.lpfnWndProc = ::GlobalWnd_Proc;
+		wc.lpfnWndProc = ::GlobalWnd_Proc;
+	}
 
 	compFont = KFont::GetDefaultFont();
 }
@@ -1548,7 +1526,7 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 
 	if (fetchInfo)
 	{
-		wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));
+		wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));  // assume 256 is enough
 		clsName[0] = 0;
 		::GetClassNameW(compHWND, clsName, 256);
 		compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
@@ -1564,8 +1542,8 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 		compX = rect.left;
 		compY = rect.top;
 
-		compVisible = ::IsWindowVisible(compHWND) ? true : false;
-		compEnabled = ::IsWindowEnabled(compHWND) ? true : false;
+		compVisible = (::IsWindowVisible(compHWND) ? true : false);
+		compEnabled = (::IsWindowEnabled(compHWND) ? true : false);
 
 		compDwStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_STYLE);
 		compDwExStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_EXSTYLE);
@@ -1605,16 +1583,14 @@ bool KComponent::CreateComponent(bool requireInitialMessages)
 	if(!::RegisterClassExW(&wc))
 		return false;
 
-	isRegistered=true;
+	isRegistered = true;
 
 	::CreateRFCComponent(this, requireInitialMessages);
 
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled ? TRUE : FALSE);
-
 		::ShowWindow(compHWND, compVisible ? SW_SHOW : SW_HIDE);
 
 		if(cursor)
@@ -1629,7 +1605,7 @@ LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 {
 	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc));
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed common control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
+		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's a subclassed common control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }
@@ -1913,17 +1889,22 @@ bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *re
 */
 
 
-KGridView::KGridView(bool sortItems)
+KGridView::KGridView(bool sortItems) : KComponent(false)
 {
 	itemCount = 0;
 	colCount = 0;
 	listener = 0;
-	compClassName = WC_LISTVIEWW;
 
-	this->SetPosition(0, 0);
-	this->SetSize(300, 200);
-	this->SetStyle(WS_CHILD | WS_TABSTOP| WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compClassName.AssignStaticText(TXT_WITH_LEN("SysListView32"));
+
+	compWidth = 300;
+	compHeight = 200;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_TABSTOP | WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 
 	if (sortItems)
 		compDwStyle |= LVS_SORTASCENDING;
@@ -1959,7 +1940,7 @@ void KGridView::InsertRecord(KString **columnsData)
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
 	}
 
-	itemCount++;
+	++itemCount;
 }
 
 void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
@@ -1980,7 +1961,7 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
 	}
 
-	itemCount++;
+	++itemCount;
 }
 
 KString KGridView::GetRecordAt(int rowIndex, int columnIndex)
@@ -2006,7 +1987,7 @@ int KGridView::GetSelectedRow()
 void KGridView::RemoveRecordAt(int rowIndex)
 {
 	if (ListView_DeleteItem(compHWND, rowIndex))
-		itemCount--;
+		--itemCount;
 }
 
 void KGridView::RemoveAll()
@@ -2046,7 +2027,7 @@ void KGridView::CreateColumn(const KString& text, int columnWidth)
 
 	::SendMessageW(compHWND, LVM_INSERTCOLUMNW, (WPARAM)colCount, (LPARAM)&lvc);
 
-	colCount++;
+	++colCount;
 }
 
 bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
@@ -2090,9 +2071,7 @@ bool KGridView::CreateComponent(bool requireInitialMessages)
 	if (compHWND)
 	{
 		ListView_SetExtendedListViewStyle(compHWND, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)
@@ -2184,9 +2163,11 @@ void KGridViewListener::OnGridViewItemDoubleClick(KGridView *gridView){}
 
 KGroupBox::KGroupBox()
 {
-	this->SetText(STATIC_TXT("GroupBox"));
-	this->SetSize(100, 100);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_GROUPBOX);
+	compText.AssignStaticText(TXT_WITH_LEN("GroupBox"));
+	compWidth = 100;
+	compHeight = 100;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_GROUPBOX;
 }
 
 KGroupBox::~KGroupBox()
@@ -2218,15 +2199,19 @@ KGroupBox::~KGroupBox()
 */
 
 
-KLabel::KLabel()
+KLabel::KLabel() : KComponent(false)
 {
-	compClassName = STATIC_TXT("STATIC");
+	compClassName.AssignStaticText(TXT_WITH_LEN("STATIC"));
+	compText.AssignStaticText(TXT_WITH_LEN("Label"));
 
-	this->SetText(STATIC_TXT("Label"));
-	this->SetSize(100, 25);
-	this->SetPosition(0, 0);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compWidth = 100;
+	compHeight = 25;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
 bool KLabel::CreateComponent(bool requireInitialMessages)
@@ -2239,7 +2224,6 @@ bool KLabel::CreateComponent(bool requireInitialMessages)
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)
@@ -2279,31 +2263,33 @@ KLabel::~KLabel()
 */
 
 
-KListBox::KListBox(bool multipleSelection,bool sort,bool vscroll)
+KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent(false)
 {
-	this->multipleSelection=multipleSelection;
+	this->multipleSelection = multipleSelection;
 	listener = 0;
 
 	selectedItemIndex = -1;
 	selectedItemEnd = -1;
 
-	compClassName = STATIC_TXT("LISTBOX");
+	compClassName.AssignStaticText(TXT_WITH_LEN("LISTBOX"));
 
-	this->SetSize(100, 100);
-	this->SetPosition(0, 0);
+	compWidth = 100;
+	compHeight = 100;
 
-	this->SetStyle(LBS_NOTIFY | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP);
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = LBS_NOTIFY | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP;
+	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
 
 	if(multipleSelection)
-		this->SetStyle(compDwStyle | LBS_MULTIPLESEL);
+		compDwStyle = compDwStyle | LBS_MULTIPLESEL;
 	if(sort)
-		this->SetStyle(compDwStyle | LBS_SORT);
+		compDwStyle = compDwStyle | LBS_SORT;
 	if(vscroll)
-		this->SetStyle(compDwStyle | WS_VSCROLL);
+		compDwStyle = compDwStyle | WS_VSCROLL;
 
-	this->SetExStyle(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
-
-	stringList = new KPointerList<KString*>;
+	stringList = new KPointerList<KString*>(100);
 }
 
 void KListBox::SetListener(KListBoxListener *listener)
@@ -2335,7 +2321,7 @@ void KListBox::RemoveItem(int index)
 void KListBox::RemoveItem(const KString& text)
 {
 	int itemIndex = this->GetItemIndex(text);
-	if(itemIndex>-1)
+	if(itemIndex > -1)
 		this->RemoveItem(itemIndex);
 }
 
@@ -2346,7 +2332,7 @@ int KListBox::GetItemIndex(const KString& text)
 	{
 		for(int i = 0; i < listSize; i++)
 		{
-			if(stringList->GetPointer(i)->EqualsIgnoreCase(text))
+			if (stringList->GetPointer(i)->Compare(text))
 				return i;
 		}
 	}
@@ -2365,11 +2351,8 @@ int KListBox::GetSelectedItemIndex()
 		int index = (int)::SendMessageW(compHWND, LB_GETCURSEL, 0, 0);
 		if(index != LB_ERR)
 			return index;
-		return -1;
-	}else
-	{
-		return -1;
-	}	
+	}
+	return -1;	
 }
 
 KString KListBox::GetSelectedItem()
@@ -2387,11 +2370,8 @@ int KListBox::GetSelectedItems(int* itemArray, int itemCountInArray)
 		int items = (int)::SendMessageW(compHWND, LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
 		if(items != LB_ERR)
 			return items;
-		return -1;
-	}else
-	{
-		return -1;
 	}
+	return -1;
 }
 
 void KListBox::ClearList()
@@ -2453,10 +2433,9 @@ bool KListBox::CreateComponent(bool requireInitialMessages)
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
-		int listSize=stringList->GetSize();
+		int listSize = stringList->GetSize();
 		if(listSize)
 		{
 			for(int i = 0; i < listSize; i++)
@@ -2560,7 +2539,7 @@ void KListBoxListener::OnListBoxItemDoubleClick(KListBox *listBox){}
 
 KMenu::KMenu()
 {
-	hMenu=::CreatePopupMenu();
+	hMenu = ::CreatePopupMenu();
 }
 
 void KMenu::AddMenuItem(KMenuItem *menuItem)
@@ -2684,7 +2663,7 @@ KMenuButton::KMenuButton()
 	glyphFont = 0;
 	glyphChar = 0;
 	glyphLeft = 6;
-	arrowFont = new KFont(STATIC_TXT("Webdings"), 18);
+	arrowFont = new KFont(CONST_TXT("Webdings"), 18);
 }	
 
 KMenuButton::~KMenuButton()
@@ -2976,9 +2955,9 @@ void KMenuItemListener::OnMenuItemPress(KMenuItem *menuItem){}
 */
 
 
-KNumericField::KNumericField():KTextBox(false)
+KNumericField::KNumericField() : KTextBox(false)
 {
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_AUTOHSCROLL | ES_NUMBER);
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_AUTOHSCROLL | ES_NUMBER;
 }
 
 KNumericField::~KNumericField(){}
@@ -3011,7 +2990,7 @@ KNumericField::~KNumericField(){}
 KPasswordBox::KPasswordBox(bool readOnly):KTextBox(readOnly)
 {
 	pwdChar = '*';
-	this->SetStyle(compDwStyle | ES_PASSWORD);
+	compDwStyle = compDwStyle | ES_PASSWORD;
 }
 
 void KPasswordBox::SetPasswordChar(const char pwdChar)
@@ -3068,22 +3047,26 @@ KPasswordBox::~KPasswordBox()
 */
 
 
-KProgressBar::KProgressBar(bool smooth, bool vertical)
+KProgressBar::KProgressBar(bool smooth, bool vertical) : KComponent(false)
 {
 	value = 0;
 
-	compClassName = KString(PROGRESS_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
+	compClassName.AssignStaticText(TXT_WITH_LEN("msctls_progress32"));
 
-	this->SetPosition(0, 0);
-	this->SetSize(100, 20);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compWidth = 100;
+	compHeight = 20;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 
 	if(smooth)
-		this->SetStyle(compDwStyle | PBS_SMOOTH);
+		compDwStyle = compDwStyle | PBS_SMOOTH;
 
 	if(vertical)
-		this->SetStyle(compDwStyle | PBS_VERTICAL);
+		compDwStyle = compDwStyle | PBS_VERTICAL;
 }
 
 int KProgressBar::GetValue()
@@ -3110,7 +3093,6 @@ bool KProgressBar::CreateComponent(bool requireInitialMessages)
 	{
 		::SendMessageW(compHWND, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); // set range between 0-100
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0); // set current value!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)
@@ -3152,8 +3134,8 @@ KProgressBar::~KProgressBar()
 
 KPushButton::KPushButton()
 {
-	this->SetText(STATIC_TXT("Push Button"));
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP);
+	compText.AssignStaticText(TXT_WITH_LEN("Push Button"));
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP;
 }
 
 KPushButton::~KPushButton()
@@ -3187,8 +3169,8 @@ KPushButton::~KPushButton()
 
 KRadioButton::KRadioButton()
 {
-	this->SetText(STATIC_TXT("RadioButton"));
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_RADIOBUTTON | BS_NOTIFY | WS_TABSTOP);
+	compText.AssignStaticText(TXT_WITH_LEN("RadioButton"));
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_RADIOBUTTON | BS_NOTIFY | WS_TABSTOP;
 }
 
 KRadioButton::~KRadioButton()
@@ -3222,13 +3204,15 @@ KRadioButton::~KRadioButton()
 
 KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
 {
-	this->SetSize(200, 100);
-	this->SetStyle(compDwStyle | ES_MULTILINE | ES_WANTRETURN);
+	compWidth = 200;
+	compHeight = 100;
+
+	compDwStyle = compDwStyle | ES_MULTILINE | ES_WANTRETURN;
 
 	if(autoScroll)
-		this->SetStyle(compDwStyle | ES_AUTOHSCROLL | ES_AUTOVSCROLL);
+		compDwStyle = compDwStyle | ES_AUTOHSCROLL | ES_AUTOVSCROLL;
 	else
-		this->SetStyle(compDwStyle | WS_HSCROLL | WS_VSCROLL);
+		compDwStyle = compDwStyle | WS_HSCROLL | WS_VSCROLL;
 }
 
 LRESULT KTextArea::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -3267,17 +3251,22 @@ KTextArea::~KTextArea()
 */
 
 
-KTextBox::KTextBox(bool readOnly)
+KTextBox::KTextBox(bool readOnly) : KComponent(false)
 {
-	compClassName = STATIC_TXT("EDIT");
+	compClassName.AssignStaticText(TXT_WITH_LEN("EDIT"));
 
-	this->SetSize(100, 20);
-	this->SetPosition(0, 0);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_AUTOHSCROLL);
+	compWidth = 100;
+	compHeight = 20;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_AUTOHSCROLL;
+
 	if(readOnly)
-		this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_READONLY | ES_AUTOHSCROLL);
+		compDwStyle = compDwStyle | ES_READONLY;
 
-	this->SetExStyle(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
+	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
 }
 
 KString KTextBox::GetText()
@@ -3311,7 +3300,6 @@ bool KTextBox::CreateComponent(bool requireInitialMessages)
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)
@@ -3351,12 +3339,12 @@ KTextBox::~KTextBox()
 */
 
 
-KToolTip::KToolTip()
+KToolTip::KToolTip() : KComponent(false)
 {
 	attachedCompHWND = 0;
-	compClassName = KString(TOOLTIPS_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
+	compClassName.AssignStaticText(TXT_WITH_LEN("tooltips_class32"));
 
-	this->SetStyle(WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX);
+	compDwStyle = WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX;
 }
 
 KToolTip::~KToolTip()
@@ -3436,22 +3424,23 @@ void KToolTip::SetText(const KString& compText)
 
 
 
-KTrackBar::KTrackBar(bool showTicks, bool vertical)
+KTrackBar::KTrackBar(bool showTicks, bool vertical) : KComponent(false)
 {
 	listener = 0;
 	rangeMin = 0;
 	rangeMax = 100;
 	value = 0;
 
-	this->SetSize(100, 25);
-	this->SetPosition(0, 0);
-	this->SetStyle(WS_TABSTOP | WS_CHILD | WS_CLIPSIBLINGS);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compWidth = 100;
+	compHeight = 25;
 
-	this->SetStyle(compDwStyle | (showTicks ? TBS_AUTOTICKS : TBS_NOTICKS));
-	this->SetStyle(compDwStyle | (vertical ? TBS_VERT : TBS_HORZ));
+	compX = 0;
+	compY = 0;
 
-	compClassName = KString(TRACKBAR_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
+	compDwStyle = (WS_TABSTOP | WS_CHILD | WS_CLIPSIBLINGS) | (showTicks ? TBS_AUTOTICKS : TBS_NOTICKS) | (vertical ? TBS_VERT : TBS_HORZ);
+	compDwExStyle = WS_EX_WINDOWEDGE;
+
+	compClassName.AssignStaticText(TXT_WITH_LEN("msctls_trackbar32"));
 }
 
 void KTrackBar::SetRange(int min, int max)
@@ -3514,10 +3503,8 @@ bool KTrackBar::CreateComponent(bool requireInitialMessages)
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
-
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!	
 		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(rangeMin, rangeMax));	
 		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
 
@@ -3591,13 +3578,16 @@ void KTrackBarListener::OnTrackBarChange(KTrackBar *trackBar){}
 */
 
 
-KWindow::KWindow()
+KWindow::KWindow() : KComponent(true)
 {
-	this->SetText(STATIC_TXT("KWindow"));
-	this->SetSize(400, 200);
-	this->SetVisible(false);
-	this->SetStyle(WS_POPUP);
-	this->SetExStyle(WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT);
+	compText.AssignStaticText(TXT_WITH_LEN("KWindow"));
+
+	compWidth = 400;
+	compHeight = 200;
+
+	compVisible = false;
+	compDwStyle = WS_POPUP;
+	compDwExStyle = WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT;
 	wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	compCtlID = 0; // control id is zero for top level window
 	lastFocusedChild = 0;
@@ -3926,8 +3916,8 @@ KHotPluggedDialog::~KHotPluggedDialog(){}
 
 KOverlappedWindow::KOverlappedWindow()
 {
-	this->SetText(STATIC_TXT("KOverlapped Window"));
-	this->SetStyle(WS_OVERLAPPEDWINDOW);
+	compText.AssignStaticText(TXT_WITH_LEN("KOverlapped Window"));
+	compDwStyle = WS_OVERLAPPEDWINDOW;
 }
 
 KOverlappedWindow::~KOverlappedWindow(){}
@@ -3935,8 +3925,8 @@ KOverlappedWindow::~KOverlappedWindow(){}
 
 KFrame::KFrame()
 {
-	this->SetText(STATIC_TXT("KFrame"));
-	this->SetStyle(WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
+	compText.AssignStaticText(TXT_WITH_LEN("KFrame"));
+	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 }
 
 KFrame::~KFrame(){}
@@ -3945,8 +3935,8 @@ KFrame::~KFrame(){}
 
 KDialog::KDialog()
 {
-	this->SetText(STATIC_TXT("KDialog"));
-	this->SetStyle(WS_POPUP | WS_CAPTION | WS_SYSMENU);
+	compText.AssignStaticText(TXT_WITH_LEN("KDialog"));
+	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU;
 }
 
 KDialog::~KDialog(){}
@@ -3955,9 +3945,9 @@ KDialog::~KDialog(){}
 
 KToolWindow::KToolWindow()
 {
-	this->SetText(STATIC_TXT("KTool Window"));
-	this->SetStyle(WS_OVERLAPPED | WS_SYSMENU);
-	this->SetExStyle(WS_EX_TOOLWINDOW);
+	compText.AssignStaticText(TXT_WITH_LEN("KTool Window"));
+	compDwStyle = WS_OVERLAPPED | WS_SYSMENU;
+	compDwExStyle = WS_EX_TOOLWINDOW;
 }
 
 KToolWindow::~KToolWindow(){}
@@ -4002,12 +3992,12 @@ bool KDirectory::IsDirExists(const KString& dirName)
 
 bool KDirectory::CreateDir(const KString& dirName)
 {
-	return ::CreateDirectoryW(dirName, NULL) == 0 ? false : true;
+	return (::CreateDirectoryW(dirName, NULL) == 0 ? false : true);
 }
 
 bool KDirectory::RemoveDir(const KString& dirName)
 {
-	return ::RemoveDirectoryW(dirName) == 0 ? false : true;
+	return (::RemoveDirectoryW(dirName) == 0 ? false : true);
 }
 
 KString KDirectory::GetModuleDir(HMODULE hModule)
@@ -4116,8 +4106,7 @@ HANDLE KFile::GetFileHandle()
 
 DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
 {
-	DWORD numberOfBytesRead=0;
-
+	DWORD numberOfBytesRead = 0;
 	::ReadFile(fileHandle, buffer, numberOfBytesToRead, &numberOfBytesRead, NULL);
 
 	return numberOfBytesRead;
@@ -4125,8 +4114,7 @@ DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
 
 DWORD KFile::WriteFile(void* buffer, DWORD numberOfBytesToWrite)
 {
-	DWORD numberOfBytesWritten=0;
-
+	DWORD numberOfBytesWritten = 0;
 	::WriteFile(fileHandle, buffer, numberOfBytesToWrite, &numberOfBytesWritten, NULL);
 
 	return numberOfBytesWritten;
@@ -4134,23 +4122,23 @@ DWORD KFile::WriteFile(void* buffer, DWORD numberOfBytesToWrite)
 
 bool KFile::SetFilePointerToStart()
 {
-	return ::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER ? false : true;
+	return (::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
 bool KFile::SetFilePointerTo(DWORD distance)
 {
-	return ::SetFilePointer(fileHandle, distance, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER ? false : true;
+	return (::SetFilePointer(fileHandle, distance, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
 bool KFile::SetFilePointerToEnd()
 {
-	return ::SetFilePointer(fileHandle, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER ? false : true;
+	return (::SetFilePointer(fileHandle, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
 DWORD KFile::GetFileSize()
 {
 	DWORD fileSize = ::GetFileSize(fileHandle, NULL);
-	return fileSize == INVALID_FILE_SIZE ? 0 : fileSize;
+	return (fileSize == INVALID_FILE_SIZE) ? 0 : fileSize;
 }
 
 void* KFile::ReadAsData()
@@ -4178,10 +4166,7 @@ bool KFile::WriteString(const KString& text, bool isUnicode)
 
 	DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
 
-	if (numberOfBytesWritten == numberOfBytesToWrite)
-		return true;
-
-	return false;
+	return (numberOfBytesWritten == numberOfBytesToWrite);
 }
 
 KString KFile::ReadAsString(bool isUnicode)
@@ -4190,7 +4175,7 @@ KString KFile::ReadAsString(bool isUnicode)
 
 	if (fileSize)
 	{
-		char* buffer = (char*)::malloc(fileSize+1); // +1 is for null
+		char* buffer = (char*)::malloc(fileSize + 1); // +1 is for null
 		DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
@@ -4216,12 +4201,12 @@ KString KFile::ReadAsString(bool isUnicode)
 
 bool KFile::DeleteFile(const KString& fileName)
 {
-	return ::DeleteFileW(fileName) == 0 ? false : true;
+	return (::DeleteFileW(fileName) == 0) ? false : true;
 }
 
 bool KFile::CopyFile(const KString& sourceFileName, const KString& destFileName)
 {
-	return ::CopyFileW(sourceFileName, destFileName, FALSE) == 0 ? false : true;
+	return (::CopyFileW(sourceFileName, destFileName, FALSE) == 0) ? false : true;
 }
 
 bool KFile::IsFileExists(const KString& fileName)
@@ -4422,7 +4407,7 @@ bool KLogger::WriteToFile(const KString &filePath)
 	if (KFile::IsFileExists(filePath))
 		KFile::DeleteFile(filePath);
 
-	if (file.OpenFile(filePath,KFile::KWRITE))
+	if (file.OpenFile(filePath, KFile::KWRITE))
 	{
 		file.WriteFile((void*)"RLOG", 4);
 		file.WriteFile(&totalEvents, 4);
@@ -4817,43 +4802,57 @@ KSHA1::~KSHA1()
 const KString operator+ (const char* const string1, const KString& string2)
 {
 	KString s(string1);
-	s = s + string2;
-	return s;
+	return s.Append(string2);
 }
 
 const KString operator+ (const wchar_t* const string1, const KString& string2)
 {
 	KString s(string1);
-	s = s + string2;
-	return s;
+	return s.Append(string2);
 }
 
 const KString operator+ (const KString& string1, const KString& string2)
 {
-	KString s(string1);
-	s = s + string2;
-	return s;
+	return string1.Append(string2);
 }
 
 KString::KString()
 {
+	isZeroLength = true;
 	stringHolder = 0;
+	isStaticText = false;
 }
 
 KString::KString(const KString& other)
 {
-	if(other.stringHolder)
+	isZeroLength = other.isZeroLength;
+
+	if (other.isStaticText)
+	{
+		stringHolder = 0;
+
+		isStaticText = true;
+		staticText = other.staticText;
+		staticTextLength = other.staticTextLength;
+	}
+	else if (other.stringHolder)
 	{
 		other.stringHolder->AddReference();
 		stringHolder = other.stringHolder;
-	}else
+
+		isStaticText = false;
+	}
+	else
 	{
 		stringHolder = 0;
+		isStaticText = false;
 	}
 }
 
 KString::KString(const char* const text, UINT codePage)
 {
+	isStaticText = false;
+
 	if (text != 0)
 	{
 		int count = ::MultiByteToWideChar(codePage, 0, text, -1, 0, 0); // get char count with null character
@@ -4864,58 +4863,55 @@ KString::KString(const char* const text, UINT codePage)
 			{
 				count--; // ignore null character
 
-				stringHolder = new KStringHolder();
-				stringHolder->AddReference();
-
-				stringHolder->w_text = w_text;
-				stringHolder->count = count;
+				stringHolder = new KStringHolder(w_text, count);
+				isZeroLength = (count == 0);
 				return;
-			}else
+			}
+			else
 			{
 				::free(w_text);
 			}
 		}
 	}
 
-	stringHolder=0;		
+	isZeroLength = true;
+	stringHolder = 0;
 }
 
-KString::KString(const wchar_t* const text, unsigned char behaviour)
+KString::KString(const wchar_t* const text, unsigned char behaviour, int length)
 {
 	if (text != 0)
 	{
-		int count = (int)::wcslen(text);
-		if(count)
+		staticTextLength = ((length == -1) ? (int)::wcslen(text) : length);
+		if (staticTextLength)
 		{
-			stringHolder = new KStringHolder(behaviour == STATIC_TEXT_DO_NOT_FREE);
-			stringHolder->AddReference();
+			isZeroLength = false;
+			isStaticText = (behaviour == STATIC_TEXT_DO_NOT_FREE);
 
-			if( (behaviour == STATIC_TEXT_DO_NOT_FREE) || (behaviour == FREE_TEXT_WHEN_DONE) )
+			if (isStaticText)
 			{
-				stringHolder->w_text = (wchar_t*)text;
-			}
-			else{ // USE_COPY_OF_TEXT or invalid option
-				stringHolder->w_text = (wchar_t*)::malloc((count + 1) * sizeof(wchar_t));
-				::wcscpy(stringHolder->w_text, text);
+				staticText = (wchar_t*)text;
+				stringHolder = 0;
+				return;
 			}
 
-			stringHolder->count = count;
+			stringHolder = new KStringHolder(((behaviour == FREE_TEXT_WHEN_DONE) ? (wchar_t*)text : _wcsdup(text)), staticTextLength);
 			return;
 		}
 	}
 
-	stringHolder = 0;	
+	isZeroLength = true;
+	isStaticText = false;
+	stringHolder = 0;
 }
 
-KString::KString(const int value,const int radix)
+KString::KString(const int value, const int radix)
 {
-	stringHolder = new KStringHolder();
-	stringHolder->AddReference();
-
-	stringHolder->w_text = (wchar_t *)::malloc(33 * sizeof(wchar_t)); // max 32 digits
+	stringHolder = new KStringHolder((wchar_t *)::malloc(33 * sizeof(wchar_t)), 0); // max 32 digits
 	::_itow(value, stringHolder->w_text, radix);
 
 	stringHolder->count = (int)::wcslen(stringHolder->w_text);
+	isZeroLength = (stringHolder->count == 0);
 }
 
 KString::KString(const float value, const int numDecimals, bool compact)
@@ -4952,11 +4948,8 @@ KString::KString(const float value, const int numDecimals, bool compact)
 		{
 			count--; // ignore null character
 
-			stringHolder = new KStringHolder();
-			stringHolder->AddReference();
-
-			stringHolder->w_text = w_text;
-			stringHolder->count = count;
+			stringHolder = new KStringHolder(w_text, count);
+			isZeroLength = (count == 0);
 
 			::free(str_buf);
 			::free(str_fmtp);
@@ -4970,48 +4963,59 @@ KString::KString(const float value, const int numDecimals, bool compact)
 
 	::free(str_buf);
 	::free(str_fmtp);
+
+	isZeroLength = true;
+	isStaticText = false;
+	stringHolder = 0;
 }
 
 const KString& KString::operator= (const KString& other)
 {
-	if(stringHolder)
-	{
+	if (stringHolder)
 		stringHolder->ReleaseReference();
-	}
 
-	if(other.stringHolder)
+	if (other.isStaticText)
+	{
+		isStaticText = true;
+		staticText = other.staticText;
+		staticTextLength = other.staticTextLength;
+	}
+	else if (other.stringHolder)
 	{
 		other.stringHolder->AddReference();
+		isStaticText = false;
 	}
-	
+	else // other is empty
+	{
+		isStaticText = false;
+	}
+
 	stringHolder = other.stringHolder;
+	isZeroLength = other.isZeroLength;
 
 	return *this;
 }
 
 const KString& KString::operator= (const wchar_t* const other)
 {
-	if(stringHolder)
-	{
+	isStaticText = false;
+
+	if (stringHolder)
 		stringHolder->ReleaseReference();
-	}
 
 	if (other != 0)
 	{
 		int count = (int)::wcslen(other);
-		if(count)
+		if (count)
 		{
-			stringHolder = new KStringHolder();
-			stringHolder->AddReference();
-
-			stringHolder->w_text = (wchar_t*)::malloc((count + 1) * sizeof(wchar_t));
-			::wcscpy(stringHolder->w_text, other);
-			stringHolder->count = count;
+			stringHolder = new KStringHolder(::_wcsdup(other), count);
+			isZeroLength = false;
 			return *this;
 		}
 	}
 
-	stringHolder = 0;	
+	isZeroLength = true;
+	stringHolder = 0;
 	return *this;
 }
 
@@ -5022,26 +5026,39 @@ const KString KString::operator+ (const KString& stringToAppend)
 
 const KString KString::operator+ (const wchar_t* const textToAppend)
 {
-	return Append(KString(textToAppend));
+	return Append(KString(textToAppend, USE_COPY_OF_TEXT, -1));
+}
+
+void KString::ConvertToRefCountedStringIfStatic()const
+{
+	if (isStaticText)
+	{
+		isStaticText = false;
+		stringHolder = new KStringHolder(::_wcsdup(staticText), staticTextLength);
+	}
 }
 
 KString::operator const char*()const
 {
-	if(stringHolder)
+	if (!isZeroLength)
 	{
+		this->ConvertToRefCountedStringIfStatic();
 		return stringHolder->GetAnsiVersion();
-	}else
-	{
-		return "";
 	}
+	return "";
 }
 
 KString::operator const wchar_t*()const
 {
-	if(stringHolder)
+	if (isStaticText)
+	{
+		return staticText;
+	}
+	else if (stringHolder)
 	{
 		return stringHolder->w_text;
-	}else
+	}
+	else
 	{
 		return L"";
 	}
@@ -5049,10 +5066,15 @@ KString::operator const wchar_t*()const
 
 KString::operator wchar_t*()const
 {
-	if(stringHolder)
+	if (isStaticText)
+	{
+		return staticText;
+	}
+	else if (stringHolder)
 	{
 		return stringHolder->w_text;
-	}else
+	}
+	else
 	{
 		return (wchar_t*)L"";
 	}
@@ -5060,9 +5082,11 @@ KString::operator wchar_t*()const
 
 const char KString::operator[](const int index)const
 {
-	if(stringHolder)
+	if (!isZeroLength)
 	{
-		if((0 <= index) && (index <= (stringHolder->count - 1)))
+		this->ConvertToRefCountedStringIfStatic();
+
+		if ((0 <= index) && (index <= (stringHolder->count - 1)))
 		{
 			return stringHolder->GetAnsiVersion()[index];
 		}
@@ -5072,169 +5096,185 @@ const char KString::operator[](const int index)const
 
 KString KString::Append(const KString& otherString)const
 {
-	if( (otherString.stringHolder != 0) && (otherString.stringHolder->count != 0) )
+	if (!otherString.isZeroLength)
 	{
-		KString result;
-		result.stringHolder = new KStringHolder();
-		result.stringHolder->AddReference();
-
-		int length = otherString.stringHolder->count;
-		int count = stringHolder ? stringHolder->count : 0;
-
-		result.stringHolder->w_text = (wchar_t*)::malloc((length + count + 1) * sizeof(wchar_t));
-		if(count) // this string is not empty!
+		if (!this->isZeroLength)
 		{
-			::wcscpy(result.stringHolder->w_text, stringHolder->w_text);
-			::wcsncat(result.stringHolder->w_text, otherString.stringHolder->w_text, length);
-		}else
-		{
-			::wcscpy(result.stringHolder->w_text, otherString.stringHolder->w_text);
+			int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + (otherString.isStaticText ? otherString.staticTextLength : otherString.stringHolder->count);
+			wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
+
+			::wcscpy(destText, isStaticText ? staticText : stringHolder->w_text);
+			::wcscat(destText, otherString.isStaticText ? otherString.staticText : otherString.stringHolder->w_text);
+
+			return KString(destText, FREE_TEXT_WHEN_DONE, totalCount);
 		}
-
-		result.stringHolder->count = length + count;
-		return result;
-	}else
+		else // this string is empty
+		{
+			return otherString;
+		}
+	}
+	else // other string is empty
 	{
 		return *this;
 	}
 }
 
+KString KString::AppendStaticText(const wchar_t* const text, int length, bool appendToEnd)const
+{
+	if (!this->isZeroLength)
+	{
+		int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + length;
+		wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
+
+		::wcscpy(destText, appendToEnd ? (isStaticText ? staticText : stringHolder->w_text) : text);
+		::wcscat(destText, appendToEnd ? text : (isStaticText ? staticText : stringHolder->w_text));
+
+		return KString(destText, FREE_TEXT_WHEN_DONE, totalCount);
+	}
+	else // this string is empty
+	{
+		return KString(text, KString::STATIC_TEXT_DO_NOT_FREE, length);
+	}
+}
+
+void KString::AssignStaticText(const wchar_t* const text, int length)
+{
+	if (stringHolder)
+		stringHolder->ReleaseReference();
+	
+	stringHolder = 0;
+	isZeroLength = false;
+	isStaticText = true;
+	staticText = (wchar_t*)text;
+	staticTextLength = length;
+}
+
 KString KString::SubString(int start, int end)const
 {
-	int count = stringHolder ? stringHolder->count : 0;
+	int count = this->GetLength();
 
-	if((0 <= start) && (start <= (count - 1)))
+	if ((0 <= start) && (start <= (count - 1)))
 	{
-		if((start < end) && (end <= (count - 1)))
+		if ((start < end) && (end <= (count - 1)))
 		{
 			int size = (end - start) + 1;
 			wchar_t* buf = (wchar_t*)::malloc((size + 1) * sizeof(wchar_t));
-			::wcsncpy(buf, &stringHolder->w_text[start], size);
+			wchar_t* src = (isStaticText ? staticText : stringHolder->w_text);
+			::wcsncpy(buf, &src[start], size);
 			buf[size] = 0;
 
-			KString result(buf);
-			::free(buf);
-			return result;
+			return KString(buf, FREE_TEXT_WHEN_DONE, size);
 		}
 	}
 	return KString();
 }
 
-bool KString::EqualsIgnoreCase(const KString& otherString)const
+bool KString::CompareIgnoreCase(const KString& otherString)const
 {
-	if( (otherString.stringHolder != 0) && (otherString.stringHolder->count != 0) )
-	{
-		if( (stringHolder != 0) && (stringHolder->count != 0) )
-		{
-			if(::wcscmp(stringHolder->w_text, otherString.stringHolder->w_text) == 0)
-			{
-				return true;
-			}
-		}
-	}
+	if ((!otherString.isZeroLength) && (!this->isZeroLength))
+		return (::_wcsicmp((isStaticText ? staticText : stringHolder->w_text), (otherString.isStaticText ? otherString.staticText : otherString.stringHolder->w_text)) == 0);
+
+	return false;
+}
+
+bool KString::Compare(const KString& otherString)const
+{
+	if ((!otherString.isZeroLength) && (!this->isZeroLength))
+		return (::wcscmp((isStaticText ? staticText : stringHolder->w_text), (otherString.isStaticText ? otherString.staticText : otherString.stringHolder->w_text)) == 0);
+
+	return false;
+}
+
+bool KString::CompareWithStaticText(const wchar_t* const text)const
+{
+	if (!this->isZeroLength)
+		return (::wcscmp((isStaticText ? staticText : stringHolder->w_text), text) == 0);
+
 	return false;
 }
 
 bool KString::StartsWithChar(wchar_t character)const
 {
-	if( (stringHolder != 0) && (stringHolder->count != 0) )
-	{
-		if(stringHolder->w_text[0] == character)
-		{
-			return true;
-		}
-	}
+	if (!this->isZeroLength)
+		return (isStaticText ? (staticText[0] == character) : (stringHolder->w_text[0] == character));
+
 	return false;
 }
 
 bool KString::StartsWithChar(char character)const
 {
-	if( (stringHolder != 0) && (stringHolder->count != 0) )
+	if (!this->isZeroLength)
 	{
-		if(stringHolder->GetAnsiVersion()[0] == character)
-		{
-			return true;
-		}
+		this->ConvertToRefCountedStringIfStatic();
+		return (stringHolder->GetAnsiVersion()[0] == character);
 	}
 	return false;
 }
 
 bool KString::EndsWithChar(wchar_t character)const
 {
-	if( (stringHolder != 0) && (stringHolder->count != 0) )
-	{
-		if(stringHolder->w_text[stringHolder->count - 1] == character)
-		{
-			return true;
-		}
-	}
+	if (!this->isZeroLength)
+		return (isStaticText ? (staticText[staticTextLength - 1] == character) : (stringHolder->w_text[stringHolder->count - 1] == character));
+
 	return false;
 }
 
 bool KString::EndsWithChar(char character)const
 {
-	if( (stringHolder != 0) && (stringHolder->count != 0) )
+	if (!this->isZeroLength)
 	{
-		if(stringHolder->GetAnsiVersion()[stringHolder->count - 1] == character)
-		{
-			return true;
-		}
+		this->ConvertToRefCountedStringIfStatic();
+		return (stringHolder->GetAnsiVersion()[stringHolder->count - 1] == character);
 	}
 	return false;
 }
 
 bool KString::IsQuotedString()const
 {
-	if( (stringHolder != 0) && (stringHolder->count > 1) )
-	{
-		if(StartsWithChar(L'\"') && EndsWithChar(L'\"'))
-		{
-			return true;
-		}
-	}
+	if ((isStaticText && (staticTextLength > 1)) || ((stringHolder != 0) && (stringHolder->count > 1))) // not empty + count greater than 1
+		return (StartsWithChar(L'\"') && EndsWithChar(L'\"'));
+
 	return false;
 }
 
 wchar_t KString::GetCharAt(int index)const
 {
-	int count = stringHolder ? stringHolder->count : 0;
+	int count = this->GetLength();
 
-	if((0 <= index) && (index <= (count - 1)))
-		return stringHolder->w_text[index];
+	if ((0 <= index) && (index <= (count - 1)))
+		return (isStaticText ? staticText[index] : stringHolder->w_text[index]);
+
 	return -1;
 }
 
 int KString::GetLength()const
 {
-	return stringHolder ? stringHolder->count : 0;
+	return (isStaticText ? staticTextLength : ((stringHolder != 0) ? stringHolder->count : 0));
 }
 
 bool KString::IsEmpty()const
 {
-	if(stringHolder ? stringHolder->count : 0)
-	{
-		return false;
-	}
-	return true;
+	return isZeroLength;
+}
+
+bool KString::IsNotEmpty()const
+{
+	return !isZeroLength;
 }
 
 int KString::GetIntValue()const
 {
-	if(IsEmpty())
-	{
+	if (isZeroLength)
 		return 0;
-	}
-	return ::_wtoi(stringHolder->w_text);
+
+	return ::_wtoi(isStaticText ? staticText : stringHolder->w_text);
 }
 
 KString::~KString()
 {
-	if(stringHolder)
-	{
+	if (stringHolder)
 		stringHolder->ReleaseReference();
-	}
 }
-
 
 // =========== KStringHolder.cpp ===========
 
@@ -5262,19 +5302,23 @@ KString::~KString()
 
 
 
-KStringHolder::KStringHolder(bool isStaticText)
+KStringHolder::KStringHolder(wchar_t *w_text, int count)
 {
-	this->isStaticText = isStaticText;
-	refCount = 0;
+	refCount = 1;
 	a_text = 0;
-	w_text = 0;
-	count = 0;
+	this->w_text = w_text;
+	this->count = count;
+
+	#ifndef RFC_NO_SAFE_ANSI_STR
 	::InitializeCriticalSection(&cs_a_text);
+	#endif
 }
 
 KStringHolder::~KStringHolder()
 {
+	#ifndef RFC_NO_SAFE_ANSI_STR
 	::DeleteCriticalSection(&cs_a_text);
+	#endif
 }
 
 void KStringHolder::AddReference()
@@ -5288,25 +5332,26 @@ void KStringHolder::ReleaseReference()
 	if(res == 0)
 	{
 		if(a_text)
-		{
 			::free(a_text);
-		}
+
 		if(w_text)
-		{
-			if (!isStaticText)
-				::free(w_text);
-		}
+			::free(w_text);
+
 		delete this;
 	}
 }
 
 const char* KStringHolder::GetAnsiVersion(UINT codePage)
 {
+	#ifndef RFC_NO_SAFE_ANSI_STR
 	::EnterCriticalSection(&cs_a_text);
+	#endif
 
 	if(a_text)
 	{
+		#ifndef RFC_NO_SAFE_ANSI_STR
 		::LeaveCriticalSection(&cs_a_text);
+		#endif
 		return a_text;
 	}else
 	{
@@ -5316,14 +5361,18 @@ const char* KStringHolder::GetAnsiVersion(UINT codePage)
 			a_text = (char*)::malloc(length);
 			if (::WideCharToMultiByte(codePage, 0, w_text, -1, a_text, length, 0, 0))
 			{
+				#ifndef RFC_NO_SAFE_ANSI_STR
 				::LeaveCriticalSection(&cs_a_text);
+				#endif
 				return a_text;
 			}
 			::free(a_text);
 			a_text = 0;
 		}
 
+		#ifndef RFC_NO_SAFE_ANSI_STR
 		::LeaveCriticalSection(&cs_a_text);
+		#endif
 		return 0; // conversion error
 	}
 }
@@ -5650,18 +5699,28 @@ KPerformanceCounter::~KPerformanceCounter()
 */
 
 
-KPlatformUtil* KPlatformUtil::_instance=0;
+static const int rfc_InitialMenuItemCount	= 400;
+static const int rfc_InitialTimerCount		= 40;
+static const int rfc_InitialControlID		= 100;
+static const int rfc_InitialMenuItemID		= 30000;
+static const int rfc_InitialTimerID			= 1000;
+
+KPlatformUtil* KPlatformUtil::_instance = 0;
 
 KPlatformUtil::KPlatformUtil()
 {
 	RFC_INIT_VERIFIER;
+
 	timerCount = 0;
 	menuItemCount = 0;
 	classCount = 0;
 	controlCount = 0;
-	::InitializeCriticalSection(&g_csCount);
-	menuItemList = new KPointerList<KMenuItem*>();
-	timerList = new KPointerList<KTimer*>();
+	menuItemList = 0;
+	timerList = 0;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::InitializeCriticalSection(&criticalSectionForCount);
+	#endif
 }
 
 KPlatformUtil* KPlatformUtil::GetInstance()
@@ -5674,31 +5733,50 @@ KPlatformUtil* KPlatformUtil::GetInstance()
 
 UINT KPlatformUtil::GenerateControlID()
 {
-	::EnterCriticalSection(&g_csCount);
-	controlCount++;
-	::LeaveCriticalSection(&g_csCount);
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::EnterCriticalSection(&criticalSectionForCount);
+	#endif
 
-	return controlCount + 100;
+	++controlCount;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::LeaveCriticalSection(&criticalSectionForCount);
+	#endif
+
+	return controlCount + rfc_InitialControlID;
 }
 
 UINT KPlatformUtil::GenerateMenuItemID(KMenuItem *menuItem)
 {
-	::EnterCriticalSection(&g_csCount);
-	menuItemCount++;
-	menuItemList->AddPointer(menuItem);
-	::LeaveCriticalSection(&g_csCount);
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::EnterCriticalSection(&criticalSectionForCount);
+	#endif
 
-	return menuItemCount + 30000;
+	if (menuItemList == 0) // generate on first call
+		menuItemList = new KPointerList<KMenuItem*>(rfc_InitialMenuItemCount);
+
+	++menuItemCount;
+	menuItemList->AddPointer(menuItem);
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::LeaveCriticalSection(&criticalSectionForCount);
+	#endif
+
+	return menuItemCount + rfc_InitialMenuItemID;
 }
 
 KMenuItem* KPlatformUtil::GetMenuItemByID(UINT id)
 {
-	return menuItemList->GetPointer(id - 30001);
+	if (menuItemList)
+		return menuItemList->GetPointer(id - (rfc_InitialMenuItemID + 1));
+	return 0;
 }
 
 KString KPlatformUtil::GenerateClassName()
-{
-	::EnterCriticalSection(&g_csCount);
+{ 
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::EnterCriticalSection(&criticalSectionForCount);
+	#endif
 
 	wchar_t *className = (wchar_t*)::malloc(32 * sizeof(wchar_t));
 
@@ -5721,31 +5799,52 @@ KString KPlatformUtil::GenerateClassName()
 		::swprintf(className,L"RFC_%d_%d", (int)hInstance, classCount);
 	#endif */
 
-	classCount++;
-	::LeaveCriticalSection(&g_csCount);
+	++classCount;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::LeaveCriticalSection(&criticalSectionForCount);
+	#endif
+
 	return KString(className, KString::FREE_TEXT_WHEN_DONE);
 }
 
 UINT KPlatformUtil::GenerateTimerID(KTimer *timer)
 {
-	::EnterCriticalSection(&g_csCount);
-	timerCount++;
-	timerList->AddPointer(timer);
-	::LeaveCriticalSection(&g_csCount);
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::EnterCriticalSection(&criticalSectionForCount);
+	#endif
 
-	return timerCount + 1000;
+	if (timerList == 0) // generate on first call
+		timerList = new KPointerList<KTimer*>(rfc_InitialTimerCount);
+
+	++timerCount;
+	timerList->AddPointer(timer);
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::LeaveCriticalSection(&criticalSectionForCount);
+	#endif
+
+	return timerCount + rfc_InitialTimerID;
 }
 
 KTimer* KPlatformUtil::GetTimerByID(UINT id)
 {
-	return timerList->GetPointer(id - 1001);
+	if (timerList)
+		return timerList->GetPointer(id - (rfc_InitialTimerID + 1));
+	return 0;
 }
 
 KPlatformUtil::~KPlatformUtil()
 {
-	delete menuItemList;
-	delete timerList;
-	::DeleteCriticalSection(&g_csCount);
+	if (menuItemList)
+		delete menuItemList;
+
+	if (timerList)
+		delete timerList;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	::DeleteCriticalSection(&criticalSectionForCount);
+	#endif
 }
 
 // =========== KRegistry.cpp ===========

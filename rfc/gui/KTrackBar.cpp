@@ -25,22 +25,23 @@
 #include "KTrackBar.h"
 
 
-KTrackBar::KTrackBar(bool showTicks, bool vertical)
+KTrackBar::KTrackBar(bool showTicks, bool vertical) : KComponent(false)
 {
 	listener = 0;
 	rangeMin = 0;
 	rangeMax = 100;
 	value = 0;
 
-	this->SetSize(100, 25);
-	this->SetPosition(0, 0);
-	this->SetStyle(WS_TABSTOP | WS_CHILD | WS_CLIPSIBLINGS);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compWidth = 100;
+	compHeight = 25;
 
-	this->SetStyle(compDwStyle | (showTicks ? TBS_AUTOTICKS : TBS_NOTICKS));
-	this->SetStyle(compDwStyle | (vertical ? TBS_VERT : TBS_HORZ));
+	compX = 0;
+	compY = 0;
 
-	compClassName = KString(TRACKBAR_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
+	compDwStyle = (WS_TABSTOP | WS_CHILD | WS_CLIPSIBLINGS) | (showTicks ? TBS_AUTOTICKS : TBS_NOTICKS) | (vertical ? TBS_VERT : TBS_HORZ);
+	compDwExStyle = WS_EX_WINDOWEDGE;
+
+	compClassName.AssignStaticText(TXT_WITH_LEN("msctls_trackbar32"));
 }
 
 void KTrackBar::SetRange(int min, int max)
@@ -103,10 +104,8 @@ bool KTrackBar::CreateComponent(bool requireInitialMessages)
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
-
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!	
 		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(rangeMin, rangeMax));	
 		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
 

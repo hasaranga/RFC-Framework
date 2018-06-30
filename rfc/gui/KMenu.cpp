@@ -26,7 +26,7 @@
 
 KMenu::KMenu()
 {
-	hMenu=::CreatePopupMenu();
+	hMenu = ::CreatePopupMenu();
 }
 
 void KMenu::AddMenuItem(KMenuItem *menuItem)

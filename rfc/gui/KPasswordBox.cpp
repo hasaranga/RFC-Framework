@@ -26,7 +26,7 @@
 KPasswordBox::KPasswordBox(bool readOnly):KTextBox(readOnly)
 {
 	pwdChar = '*';
-	this->SetStyle(compDwStyle | ES_PASSWORD);
+	compDwStyle = compDwStyle | ES_PASSWORD;
 }
 
 void KPasswordBox::SetPasswordChar(const char pwdChar)

@@ -24,17 +24,22 @@
 #include "../rfc.h"
 #include "KTextBox.h"
 
-KTextBox::KTextBox(bool readOnly)
+KTextBox::KTextBox(bool readOnly) : KComponent(false)
 {
-	compClassName = STATIC_TXT("EDIT");
+	compClassName.AssignStaticText(TXT_WITH_LEN("EDIT"));
 
-	this->SetSize(100, 20);
-	this->SetPosition(0, 0);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_AUTOHSCROLL);
+	compWidth = 100;
+	compHeight = 20;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_AUTOHSCROLL;
+
 	if(readOnly)
-		this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_READONLY | ES_AUTOHSCROLL);
+		compDwStyle = compDwStyle | ES_READONLY;
 
-	this->SetExStyle(WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE);
+	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
 }
 
 KString KTextBox::GetText()
@@ -68,7 +73,6 @@ bool KTextBox::CreateComponent(bool requireInitialMessages)
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)

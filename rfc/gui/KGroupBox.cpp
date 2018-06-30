@@ -25,9 +25,11 @@
 
 KGroupBox::KGroupBox()
 {
-	this->SetText(STATIC_TXT("GroupBox"));
-	this->SetSize(100, 100);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_GROUPBOX);
+	compText.AssignStaticText(TXT_WITH_LEN("GroupBox"));
+	compWidth = 100;
+	compHeight = 100;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_GROUPBOX;
 }
 
 KGroupBox::~KGroupBox()

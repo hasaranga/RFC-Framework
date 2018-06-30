@@ -24,17 +24,21 @@
 #include "KButton.h"
 #include "../rfc.h"
 
-KButton::KButton()
+KButton::KButton() : KComponent(false)
 {
 	listener = 0;
 
-	compClassName = STATIC_TXT("BUTTON");
+	compClassName.AssignStaticText(TXT_WITH_LEN("BUTTON"));
+	compText.AssignStaticText(TXT_WITH_LEN("Button"));
 
-	this->SetText(STATIC_TXT("Button"));
-	this->SetSize(100, 30);
-	this->SetPosition(0, 0);
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY | WS_TABSTOP);
-	this->SetExStyle(WS_EX_WINDOWEDGE);
+	compWidth = 100;
+	compHeight = 30;
+
+	compX = 0;
+	compY = 0;
+
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY | WS_TABSTOP;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
 void KButton::SetListener(KButtonListener *listener)

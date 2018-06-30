@@ -24,12 +24,12 @@
 #include "../rfc.h"
 #include "KToolTip.h"
 
-KToolTip::KToolTip()
+KToolTip::KToolTip() : KComponent(false)
 {
 	attachedCompHWND = 0;
-	compClassName = KString(TOOLTIPS_CLASSW, KString::STATIC_TEXT_DO_NOT_FREE);
+	compClassName.AssignStaticText(TXT_WITH_LEN("tooltips_class32"));
 
-	this->SetStyle(WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX);
+	compDwStyle = WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX;
 }
 
 KToolTip::~KToolTip()

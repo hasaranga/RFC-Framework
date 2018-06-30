@@ -26,13 +26,12 @@
 #include "../rfc.h"
 
 
-KComponent::KComponent()
+KComponent::KComponent(bool generateWindowClassDetails)
 {
 	RFC_INIT_VERIFIER;
 	isRegistered = false;
 
 	KPlatformUtil *platformUtil = KPlatformUtil::GetInstance();
-	compClassName = platformUtil->GenerateClassName();
 	compCtlID = platformUtil->GenerateControlID();
 
 	compHWND = 0;
@@ -47,19 +46,23 @@ KComponent::KComponent()
 	compVisible = true;
 	compEnabled = true;
 
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-	wc.hIcon = 0;
-	wc.lpszMenuName = 0;
-	wc.hbrBackground = (HBRUSH)::GetSysColorBrush(COLOR_BTNFACE);
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hIconSm = 0;
-	wc.style = 0;
-	wc.hInstance = KApplication::hInstance;
-	wc.lpszClassName = compClassName;
+	if (generateWindowClassDetails)
+	{
+		compClassName = platformUtil->GenerateClassName();
+		wc.cbSize = sizeof(WNDCLASSEX);
+		wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
+		wc.hIcon = 0;
+		wc.lpszMenuName = 0;
+		wc.hbrBackground = (HBRUSH)::GetSysColorBrush(COLOR_BTNFACE);
+		wc.cbClsExtra = 0;
+		wc.cbWndExtra = 0;
+		wc.hIconSm = 0;
+		wc.style = 0;
+		wc.hInstance = KApplication::hInstance;
+		wc.lpszClassName = compClassName;
 
-	wc.lpfnWndProc = ::GlobalWnd_Proc;
+		wc.lpfnWndProc = ::GlobalWnd_Proc;
+	}
 
 	compFont = KFont::GetDefaultFont();
 }
@@ -75,7 +78,7 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 
 	if (fetchInfo)
 	{
-		wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));
+		wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));  // assume 256 is enough
 		clsName[0] = 0;
 		::GetClassNameW(compHWND, clsName, 256);
 		compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
@@ -91,8 +94,8 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 		compX = rect.left;
 		compY = rect.top;
 
-		compVisible = ::IsWindowVisible(compHWND) ? true : false;
-		compEnabled = ::IsWindowEnabled(compHWND) ? true : false;
+		compVisible = (::IsWindowVisible(compHWND) ? true : false);
+		compEnabled = (::IsWindowEnabled(compHWND) ? true : false);
 
 		compDwStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_STYLE);
 		compDwExStyle = (DWORD)::GetWindowLongPtrW(compHWND, GWL_EXSTYLE);
@@ -132,16 +135,14 @@ bool KComponent::CreateComponent(bool requireInitialMessages)
 	if(!::RegisterClassExW(&wc))
 		return false;
 
-	isRegistered=true;
+	isRegistered = true;
 
 	::CreateRFCComponent(this, requireInitialMessages);
 
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
 		::EnableWindow(compHWND, compEnabled ? TRUE : FALSE);
-
 		::ShowWindow(compHWND, compVisible ? SW_SHOW : SW_HIDE);
 
 		if(cursor)
@@ -156,7 +157,7 @@ LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 {
 	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc));
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's subclassed common control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
+		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's a subclassed common control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }

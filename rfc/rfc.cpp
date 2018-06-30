@@ -28,14 +28,20 @@ class InternalVariables
 public:
 	static KComponent *currentComponent;
 	static HHOOK wnd_hook;
-	static CRITICAL_SECTION g_csComponent; // guard currentComponent!
 	static volatile int rfcRefCount;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	static CRITICAL_SECTION csForCurrentComponent; // guard currentComponent!
+	#endif
 };
 
-KComponent* InternalVariables::currentComponent = 0;
+KComponent*	InternalVariables::currentComponent = 0;
 HHOOK InternalVariables::wnd_hook = 0;
 volatile int InternalVariables::rfcRefCount = 0;
-CRITICAL_SECTION InternalVariables::g_csComponent;
+
+#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+CRITICAL_SECTION InternalVariables::csForCurrentComponent;
+#endif
 
 ATOM InternalDefinitions::RFCPropAtom_Component;
 ATOM InternalDefinitions::RFCPropAtom_OldProc;
@@ -71,7 +77,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 					LRESULT result = ::CallNextHookEx(InternalVariables::wnd_hook, nCode, wParam, lParam);
 
 					// we subclassed what we created. so remove the hook.
-					::UnhookWindowsHookEx(InternalVariables::wnd_hook); // unhooking at here will also allow child creation at WM_CREATE
+					::UnhookWindowsHookEx(InternalVariables::wnd_hook); // unhooking at here will allow child creation at WM_CREATE. otherwise this will hook child also!
 
 					return result;
 				}
@@ -87,9 +93,8 @@ LRESULT CALLBACK GlobalWnd_Proc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
 	KComponent *component = (KComponent*)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
 
-	if(!component){ // for safe!
+	if(!component) // for safe!
 		return ::DefWindowProcW( hwnd, msg, wParam, lParam );
-	}
 
 	if(!component->GetHWND()) // window recieve msg for the first time!
 		component->SetHWND(hwnd);
@@ -119,7 +124,9 @@ HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 {	
 	if (requireInitialMessages)
 	{
-		::EnterCriticalSection(&InternalVariables::g_csComponent);
+		#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+		::EnterCriticalSection(&InternalVariables::csForCurrentComponent);
+		#endif
 
 		InternalVariables::currentComponent = component;
 
@@ -132,16 +139,16 @@ HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages)
 		// unhook at here will cause catching childs which are created at WM_CREATE. so, unhook at CBT proc.
 		//::UnhookWindowsHookEx(InternalVariables::wnd_hook);
 
-		::LeaveCriticalSection(&InternalVariables::g_csComponent);
+		#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+		::LeaveCriticalSection(&InternalVariables::csForCurrentComponent);
+		#endif
 
 		return hwnd;
 	}
 	else
 	{
 		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(), component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(), component->GetParentHWND(), (HMENU)component->GetControlID(), KApplication::hInstance, 0);
-
 		::AttachRFCPropertiesToHWND(hwnd, component);
-
 		component->SetHWND(hwnd);
 
 		return hwnd;
@@ -158,37 +165,6 @@ void DoMessagePump(bool handleTabKey)
 		{
 			if (::IsDialogMessage(::GetActiveWindow(), &msg))
 				continue;
-
-			/*if(msg.message == WM_KEYDOWN)
-			{
-				if(VK_TAB == msg.wParam) // looking for TAB key!
-				{
-					if(msg.hwnd)
-					{
-						HWND parentHWND = ::GetParent(msg.hwnd);
-						if(!parentHWND) // nothing selected! (top-level window)
-						{
-							HWND nextControl = ::GetNextDlgTabItem(msg.hwnd, NULL, FALSE);
-							if(nextControl)
-							{
-								::SetFocus(nextControl);
-								continue; // don't pass this message!
-							}
-						}else // user has already selected component!
-						{
-							HWND nextControl = ::GetNextDlgTabItem(parentHWND, msg.hwnd, FALSE);
-							if(nextControl)
-							{
-								if((::GetKeyState(VK_CONTROL) & 0x8000) == 0) // user is not hold ctrl key!
-								{
-									::SetFocus(nextControl);
-									continue; // don't pass this message!
-								}
-							}
-						}
-					}
-				}
-			}*/
 		}
 		::TranslateMessage(&msg);
 		::DispatchMessageW(&msg);
@@ -234,9 +210,8 @@ INT_PTR CALLBACK GlobalDlg_Proc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM l
 	{
 		KComponent* comp = (KComponent*)lParam;
 		if(comp)
-		{
 			comp->HotPlugInto(hwndDlg, true);
-		}
+
 		return FALSE;
 	}
 	return FALSE;
@@ -263,7 +238,9 @@ void InitRFC(HINSTANCE hInstance)
 
 		::CoInitialize(NULL); //Initializes COM as STA.
 
-		::InitializeCriticalSection(&InternalVariables::g_csComponent);
+		#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+		::InitializeCriticalSection(&InternalVariables::csForCurrentComponent);
+		#endif
 
 		InternalDefinitions::RFCPropAtom_Component = ::GlobalAddAtomW(L"RFCComponent");
 		InternalDefinitions::RFCPropAtom_OldProc = ::GlobalAddAtomW(L"RFCOldProc");
@@ -280,7 +257,9 @@ void DeInitRFC()
 	{
 		::CoUninitialize();
 
-		::DeleteCriticalSection(&InternalVariables::g_csComponent);
+		#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+		::DeleteCriticalSection(&InternalVariables::csForCurrentComponent);
+		#endif
 
 		::GlobalDeleteAtom(InternalDefinitions::RFCPropAtom_Component);
 		::GlobalDeleteAtom(InternalDefinitions::RFCPropAtom_OldProc);

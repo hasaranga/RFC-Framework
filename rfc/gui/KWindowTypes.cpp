@@ -39,8 +39,8 @@ KHotPluggedDialog::~KHotPluggedDialog(){}
 
 KOverlappedWindow::KOverlappedWindow()
 {
-	this->SetText(STATIC_TXT("KOverlapped Window"));
-	this->SetStyle(WS_OVERLAPPEDWINDOW);
+	compText.AssignStaticText(TXT_WITH_LEN("KOverlapped Window"));
+	compDwStyle = WS_OVERLAPPEDWINDOW;
 }
 
 KOverlappedWindow::~KOverlappedWindow(){}
@@ -48,8 +48,8 @@ KOverlappedWindow::~KOverlappedWindow(){}
 
 KFrame::KFrame()
 {
-	this->SetText(STATIC_TXT("KFrame"));
-	this->SetStyle(WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
+	compText.AssignStaticText(TXT_WITH_LEN("KFrame"));
+	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 }
 
 KFrame::~KFrame(){}
@@ -58,8 +58,8 @@ KFrame::~KFrame(){}
 
 KDialog::KDialog()
 {
-	this->SetText(STATIC_TXT("KDialog"));
-	this->SetStyle(WS_POPUP | WS_CAPTION | WS_SYSMENU);
+	compText.AssignStaticText(TXT_WITH_LEN("KDialog"));
+	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU;
 }
 
 KDialog::~KDialog(){}
@@ -68,9 +68,9 @@ KDialog::~KDialog(){}
 
 KToolWindow::KToolWindow()
 {
-	this->SetText(STATIC_TXT("KTool Window"));
-	this->SetStyle(WS_OVERLAPPED | WS_SYSMENU);
-	this->SetExStyle(WS_EX_TOOLWINDOW);
+	compText.AssignStaticText(TXT_WITH_LEN("KTool Window"));
+	compDwStyle = WS_OVERLAPPED | WS_SYSMENU;
+	compDwExStyle = WS_EX_TOOLWINDOW;
 }
 
 KToolWindow::~KToolWindow(){}

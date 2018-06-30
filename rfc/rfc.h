@@ -102,7 +102,8 @@ RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
 RFC_API DWORD WINAPI GlobalThread_Proc(LPVOID);
 
 /**
-	set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
+	set requireInitialMessages to true to receive initial messages lke WM_CREATE... (installs a hook)
+	define "RFC_SINGLE_THREAD_COMP_CREATION" if your app does not create components within multiple threads.
 */
 RFC_API HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages);
 RFC_API bool CreateRFCThread(KThread* thread);

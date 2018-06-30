@@ -5,7 +5,10 @@
 #define _RFC_AMALGAMATED_H_ 
 
 #define AMALGAMATED_VERSION
-#define _CRT_SECURE_NO_WARNINGS
+
+#ifndef _CRT_SECURE_NO_WARNINGS 
+#define _CRT_SECURE_NO_WARNINGS 
+#endif
 
 // =========== config.h ===========
 
@@ -1578,14 +1581,16 @@ class RFC_API KStringHolder
 {
 	volatile LONG refCount;
 	char *a_text; // ansi version
+
+	#ifndef RFC_NO_SAFE_ANSI_STR
 	CRITICAL_SECTION cs_a_text; // to guard ansi string creation
-	bool isStaticText; // do not free w_text if true
+	#endif
 
 public:
 	wchar_t *w_text; // unicode version
 	int count; // character count
 
-	KStringHolder(bool isStaticText = false);
+	KStringHolder(wchar_t *w_text, int count);
 
 	~KStringHolder();
 
@@ -2146,7 +2151,9 @@ private:
 #define _RFC_KSTRING_H_
 
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_DEPRECATE
+	#ifndef _CRT_SECURE_NO_DEPRECATE
+		#define _CRT_SECURE_NO_DEPRECATE
+	#endif
 #endif
 
 
@@ -2158,11 +2165,33 @@ private:
 	Using a reference-counted internal representation, these strings are fast and efficient.
 	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi.
 	KString does not support for multiple zero terminated strings.
+
+	optimization tips:
+	use "CONST_TXT" macro when using statically typed text.
+	use constructor instead of assignment (if can).
+	use "Append" method instead of "+" operator.
+	use "AppendStaticText" method instead of "Append" if you are using statically typed text.
+	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text.
+	define "RFC_NO_SAFE_ANSI_STR" if your app is not casting KString to ansi string within multiple threads.
+
+	@code
+	KString result1 = str1 + L"1234"; // slow
+	KString result2 = str1 + CONST_TXT("1234"); // fast
+	KString result3( str1 + CONST_TXT("1234") ); // more fast
+	KString result4( str1.Append(CONST_TXT("1234")) ); // bit more fast
+	KString result5( str1.AppendStaticText(TXT_WITH_LEN("1234")) ); // that's all you can have ;-)
+	@endcode
 */
 class RFC_API KString
 {
 protected:
-	KStringHolder *stringHolder;
+	mutable KStringHolder *stringHolder; // for empty string: stringHolder=0 && isStaticText=false
+	bool isZeroLength; // true if empty string or staticText, stringHolder are zero length
+	mutable bool isStaticText; // staticText & staticTextLength are valid only if this field is true. stringHolder can be zero even this filed is false.
+	wchar_t *staticText;
+	int staticTextLength;
+
+	void ConvertToRefCountedStringIfStatic()const; // generates StringHolder object from static text
 
 public:
 
@@ -2191,7 +2220,7 @@ public:
 	/**
 		Constructs String object using unicode string
 	*/
-	KString(const wchar_t* const text, unsigned char behaviour = USE_COPY_OF_TEXT);
+	KString(const wchar_t* const text, unsigned char behaviour = USE_COPY_OF_TEXT, int length = -1);
 
 	/**
 		Constructs String object using integer
@@ -2215,12 +2244,14 @@ public:
 	const KString& operator= (const wchar_t* const other);
 
 
-	/** Appends a string at the end of this one.
+	/** 
+		Appends a string at the end of this one.
 		@returns     the concatenated string
 	*/
 	const KString operator+ (const KString& stringToAppend);
 
-	/** Appends a unicode string at the end of this one.
+	/** 
+		Appends a unicode string at the end of this one.
 		@returns     the concatenated string
 	*/
 	const KString operator+ (const wchar_t* const textToAppend);
@@ -2251,6 +2282,22 @@ public:
 	*/
 	virtual KString Append(const KString& otherString)const;
 
+	/**
+		Appends a statically typed string to begining or end of this one.
+		@param text			statically typed text
+		@param length		text length. should not be zero.
+		@param appendToEnd	appends to begining if false
+		@returns			the concatenated string
+	*/
+	virtual KString AppendStaticText(const wchar_t* const text, int length, bool appendToEnd = true)const;
+
+	/**
+		Assigns a statically typed string.
+		@param text			statically typed text
+		@param length		text length. should not be zero.
+	*/
+	virtual void AssignStaticText(const wchar_t* const text, int length);
+
 	/** 
 		Returns a subsection of the string.
 
@@ -2262,11 +2309,24 @@ public:
 	*/
 	virtual KString SubString(int start, int end)const;
 
-	/** 
-		Case-insensitive comparison with another string.
+	/**
+		Case-insensitive comparison with another string. Slower than "Compare" method.
 		@returns     true if the two strings are identical, false if not
 	*/
-	virtual bool EqualsIgnoreCase(const KString& otherString)const;
+	virtual bool CompareIgnoreCase(const KString& otherString)const;
+
+	/** 
+		Case-sensitive comparison with another string.
+		@returns     true if the two strings are identical, false if not
+	*/
+	virtual bool Compare(const KString& otherString)const;
+
+	/** 
+		Case-sensitive comparison with statically typed string.
+		@param text		statically typed text.
+		@returns		true if the two strings are identical, false if not
+	*/
+	virtual bool CompareWithStaticText(const wchar_t* const text)const;
 
 	/**
 		Compare first character with given unicode character
@@ -2308,6 +2368,8 @@ public:
 	*/
 	virtual bool IsEmpty()const;
 
+	virtual bool IsNotEmpty()const;
+
 	/**
 		Returns value of string
 	*/
@@ -2325,8 +2387,23 @@ RFC_API const KString operator+ (const wchar_t* const string1, const KString& st
 
 RFC_API const KString operator+ (const KString& string1, const KString& string2);
 
-#define STATIC_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE)
-#define BUFFER_TXT(X) KString(X, KString::FREE_TEXT_WHEN_DONE)
+#define LEN_UNI_STR(X) (sizeof(X) / sizeof(wchar_t)) - 1
+
+#define LEN_ANSI_STR(X) (sizeof(X) / sizeof(char)) - 1
+
+// do not make a copy + do not free + do not calculate length
+#define CONST_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE, LEN_UNI_STR(L##X))
+
+// do not make a copy + do not free + calculate length
+#define STATIC_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE, -1)
+
+// do not make a copy + free when done + calculate length
+#define BUFFER_TXT(X) KString(X, KString::FREE_TEXT_WHEN_DONE, -1)
+
+// can be use like this: KString str(CONST_TXT_PARAMS("Hello World"));
+#define CONST_TXT_PARAMS(X) L##X, KString::STATIC_TEXT_DO_NOT_FREE, LEN_UNI_STR(L##X)
+
+#define TXT_WITH_LEN(X) L##X, LEN_UNI_STR(L##X)
 
 #endif
 
@@ -3329,6 +3406,7 @@ private:
 
 /**
 	Base class of all W32 gui objects.
+	define "RFC_SINGLE_THREAD_COMP_CREATION" if your app does not create components within multiple threads.
 */
 class RFC_API KComponent
 {
@@ -3353,7 +3431,11 @@ protected:
 public:
 	WNDCLASSEXW wc;
 
-	KComponent();
+	/**
+		Constructs a standard win32 component.
+		@param generateWindowClassDetails	set to false if you are using standard class name like BUTTON, STATIC etc...
+	*/
+	KComponent(bool generateWindowClassDetails);
 
 	/**
 		Called after hotplugged into a given HWND.
@@ -4460,25 +4542,30 @@ private:
 
 /**
 	Singleton class which can be use to generate class names, timer ids etc...
-	(for internal use)
+	define "RFC_SINGLE_THREAD_COMP_CREATION" if your app does not creating components/menu items/timers
+	within multiple threads.
+	(this class is for internal use)
 */
 class RFC_API KPlatformUtil
 {
 private:
+	RFC_LEAK_DETECTOR(KPlatformUtil)
 
 	static KPlatformUtil *_instance;
-
 	KPlatformUtil();
 
 protected:
-	CRITICAL_SECTION g_csCount;
-	int classCount;
-	int timerCount;
-	int controlCount;
-	UINT menuItemCount;
+	volatile int classCount;
+	volatile int timerCount;
+	volatile int controlCount;
+	volatile UINT menuItemCount;
 
 	KPointerList<KMenuItem*> *menuItemList;
 	KPointerList<KTimer*> *timerList;
+
+	#ifndef RFC_SINGLE_THREAD_COMP_CREATION
+	CRITICAL_SECTION criticalSectionForCount;
+	#endif
 
 public:
 
@@ -5042,7 +5129,8 @@ RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
 RFC_API DWORD WINAPI GlobalThread_Proc(LPVOID);
 
 /**
-	set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
+	set requireInitialMessages to true to receive initial messages lke WM_CREATE... (installs a hook)
+	define "RFC_SINGLE_THREAD_COMP_CREATION" if your app does not create components within multiple threads.
 */
 RFC_API HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages);
 RFC_API bool CreateRFCThread(KThread* thread);

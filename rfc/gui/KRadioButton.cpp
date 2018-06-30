@@ -25,8 +25,8 @@
 
 KRadioButton::KRadioButton()
 {
-	this->SetText(STATIC_TXT("RadioButton"));
-	this->SetStyle(WS_CHILD | WS_CLIPSIBLINGS | BS_RADIOBUTTON | BS_NOTIFY | WS_TABSTOP);
+	compText.AssignStaticText(TXT_WITH_LEN("RadioButton"));
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_RADIOBUTTON | BS_NOTIFY | WS_TABSTOP;
 }
 
 KRadioButton::~KRadioButton()

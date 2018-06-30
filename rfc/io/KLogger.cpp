@@ -184,7 +184,7 @@ bool KLogger::WriteToFile(const KString &filePath)
 	if (KFile::IsFileExists(filePath))
 		KFile::DeleteFile(filePath);
 
-	if (file.OpenFile(filePath,KFile::KWRITE))
+	if (file.OpenFile(filePath, KFile::KWRITE))
 	{
 		file.WriteFile((void*)"RLOG", 4);
 		file.WriteFile(&totalEvents, 4);

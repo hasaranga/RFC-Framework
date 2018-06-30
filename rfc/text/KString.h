@@ -25,7 +25,9 @@
 #define _RFC_KSTRING_H_
 
 #ifdef _MSC_VER
-#define _CRT_SECURE_NO_DEPRECATE
+	#ifndef _CRT_SECURE_NO_DEPRECATE
+		#define _CRT_SECURE_NO_DEPRECATE
+	#endif
 #endif
 
 #include "../config.h"
@@ -37,14 +39,36 @@
 #include <malloc.h>
 
 /**
-	Using a reference-counted internal representation, these strings are fast and efficient.
-	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi.
-	KString does not support for multiple zero terminated strings.
+	Using a reference-counted internal representation, these strings are fast and efficient. <BR>
+	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi. <BR>
+	KString does not support for multiple zero terminated strings. <BR>
+
+	Optimization tips: <BR>
+	use CONST_TXT macro when using statically typed text. <BR>
+	use constructor instead of assignment (if can). <BR>
+	use "Append" method instead of "+" operator. <BR>
+	use "AppendStaticText" method instead of "Append" if you are using statically typed text. <BR>
+	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text. <BR>
+	define RFC_NO_SAFE_ANSI_STR if your app is not casting KString to ansi string within multiple threads. <BR>
+
+	@code
+	KString result1 = str1 + L"1234"; // slow
+	KString result2 = str1 + CONST_TXT("1234"); // fast
+	KString result3( str1 + CONST_TXT("1234") ); // more fast
+	KString result4( str1.Append(CONST_TXT("1234")) ); // bit more fast
+	KString result5( str1.AppendStaticText(TXT_WITH_LEN("1234")) ); // that's all you can have ;-)
+	@endcode
 */
 class RFC_API KString
 {
 protected:
-	KStringHolder *stringHolder;
+	mutable KStringHolder *stringHolder; // for empty string: stringHolder=0 && isStaticText=false
+	bool isZeroLength; // true if empty string or staticText, stringHolder are zero length
+	mutable bool isStaticText; // staticText & staticTextLength are valid only if this field is true. stringHolder can be zero even this filed is false.
+	wchar_t *staticText;
+	int staticTextLength;
+
+	void ConvertToRefCountedStringIfStatic()const; // generates StringHolder object from static text
 
 public:
 
@@ -73,7 +97,7 @@ public:
 	/**
 		Constructs String object using unicode string
 	*/
-	KString(const wchar_t* const text, unsigned char behaviour = USE_COPY_OF_TEXT);
+	KString(const wchar_t* const text, unsigned char behaviour = USE_COPY_OF_TEXT, int length = -1);
 
 	/**
 		Constructs String object using integer
@@ -97,12 +121,14 @@ public:
 	const KString& operator= (const wchar_t* const other);
 
 
-	/** Appends a string at the end of this one.
+	/** 
+		Appends a string at the end of this one.
 		@returns     the concatenated string
 	*/
 	const KString operator+ (const KString& stringToAppend);
 
-	/** Appends a unicode string at the end of this one.
+	/** 
+		Appends a unicode string at the end of this one.
 		@returns     the concatenated string
 	*/
 	const KString operator+ (const wchar_t* const textToAppend);
@@ -133,6 +159,22 @@ public:
 	*/
 	virtual KString Append(const KString& otherString)const;
 
+	/**
+		Appends a statically typed string to begining or end of this one.
+		@param text			statically typed text
+		@param length		text length. should not be zero.
+		@param appendToEnd	appends to begining if false
+		@returns			the concatenated string
+	*/
+	virtual KString AppendStaticText(const wchar_t* const text, int length, bool appendToEnd = true)const;
+
+	/**
+		Assigns a statically typed string.
+		@param text			statically typed text
+		@param length		text length. should not be zero.
+	*/
+	virtual void AssignStaticText(const wchar_t* const text, int length);
+
 	/** 
 		Returns a subsection of the string.
 
@@ -144,11 +186,24 @@ public:
 	*/
 	virtual KString SubString(int start, int end)const;
 
-	/** 
-		Case-insensitive comparison with another string.
+	/**
+		Case-insensitive comparison with another string. Slower than "Compare" method.
 		@returns     true if the two strings are identical, false if not
 	*/
-	virtual bool EqualsIgnoreCase(const KString& otherString)const;
+	virtual bool CompareIgnoreCase(const KString& otherString)const;
+
+	/** 
+		Case-sensitive comparison with another string.
+		@returns     true if the two strings are identical, false if not
+	*/
+	virtual bool Compare(const KString& otherString)const;
+
+	/** 
+		Case-sensitive comparison with statically typed string.
+		@param text		statically typed text.
+		@returns		true if the two strings are identical, false if not
+	*/
+	virtual bool CompareWithStaticText(const wchar_t* const text)const;
 
 	/**
 		Compare first character with given unicode character
@@ -190,6 +245,8 @@ public:
 	*/
 	virtual bool IsEmpty()const;
 
+	virtual bool IsNotEmpty()const;
+
 	/**
 		Returns value of string
 	*/
@@ -207,7 +264,22 @@ RFC_API const KString operator+ (const wchar_t* const string1, const KString& st
 
 RFC_API const KString operator+ (const KString& string1, const KString& string2);
 
-#define STATIC_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE)
-#define BUFFER_TXT(X) KString(X, KString::FREE_TEXT_WHEN_DONE)
+#define LEN_UNI_STR(X) (sizeof(X) / sizeof(wchar_t)) - 1
+
+#define LEN_ANSI_STR(X) (sizeof(X) / sizeof(char)) - 1
+
+// do not make a copy + do not free + do not calculate length
+#define CONST_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE, LEN_UNI_STR(L##X))
+
+// do not make a copy + do not free + calculate length
+#define STATIC_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE, -1)
+
+// do not make a copy + free when done + calculate length
+#define BUFFER_TXT(X) KString(X, KString::FREE_TEXT_WHEN_DONE, -1)
+
+// can be use like this: KString str(CONST_TXT_PARAMS("Hello World"));
+#define CONST_TXT_PARAMS(X) L##X, KString::STATIC_TEXT_DO_NOT_FREE, LEN_UNI_STR(L##X)
+
+#define TXT_WITH_LEN(X) L##X, LEN_UNI_STR(L##X)
 
 #endif
