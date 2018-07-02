@@ -4912,10 +4912,13 @@ KString::KString(const int value, const int radix)
 
 	stringHolder->count = (int)::wcslen(stringHolder->w_text);
 	isZeroLength = (stringHolder->count == 0);
+	isStaticText = false;
 }
 
 KString::KString(const float value, const int numDecimals, bool compact)
 {
+	isStaticText = false;
+
 	// round it to given digits
 	char *str_fmtp = (char*)malloc(32);
 	char *str_buf = (char*)malloc(64);
@@ -4965,7 +4968,6 @@ KString::KString(const float value, const int numDecimals, bool compact)
 	::free(str_fmtp);
 
 	isZeroLength = true;
-	isStaticText = false;
 	stringHolder = 0;
 }
 

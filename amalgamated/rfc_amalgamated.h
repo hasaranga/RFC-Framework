@@ -2162,17 +2162,17 @@ private:
 #include <malloc.h>
 
 /**
-	Using a reference-counted internal representation, these strings are fast and efficient.
-	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi.
-	KString does not support for multiple zero terminated strings.
+	Using a reference-counted internal representation, these strings are fast and efficient. <BR>
+	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi. <BR>
+	KString does not support for multiple zero terminated strings. <BR>
 
-	optimization tips:
-	use "CONST_TXT" macro when using statically typed text.
-	use constructor instead of assignment (if can).
-	use "Append" method instead of "+" operator.
-	use "AppendStaticText" method instead of "Append" if you are using statically typed text.
-	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text.
-	define "RFC_NO_SAFE_ANSI_STR" if your app is not casting KString to ansi string within multiple threads.
+	Optimization tips: <BR>
+	use CONST_TXT macro when using statically typed text. <BR>
+	use constructor instead of assignment (if can). <BR>
+	use "Append" method instead of "+" operator. <BR>
+	use "AppendStaticText" method instead of "Append" if you are using statically typed text. <BR>
+	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text. <BR>
+	define RFC_NO_SAFE_ANSI_STR if your app is not casting KString to ansi string within multiple threads. <BR>
 
 	@code
 	KString result1 = str1 + L"1234"; // slow
