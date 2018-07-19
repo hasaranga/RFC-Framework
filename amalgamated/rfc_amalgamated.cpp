@@ -1725,24 +1725,33 @@ void KComponent::SetPosition(int compX, int compY)
 
 void KComponent::SetVisible(bool state)
 {
-	this->compVisible = state;
+	compVisible = state;
 	if(compHWND)
 		::ShowWindow(compHWND, state ? SW_SHOW : SW_HIDE);
 }
 
 bool KComponent::IsVisible()
 {
-	return compHWND ? this->compVisible : false;
+	if (compHWND)
+	{
+		compVisible = (::IsWindowVisible(compHWND) == TRUE);
+		return compVisible;
+	}
+
+	return false;
 }
 
 bool KComponent::IsEnabled()
 {
+	if (compHWND)
+		compEnabled = (::IsWindowEnabled(compHWND) == TRUE);
+
 	return compEnabled;
 }
 
 void KComponent::SetEnabled(bool state)
 {
-	compEnabled=state;
+	compEnabled = state;
 
 	if(compHWND)
 		::EnableWindow(compHWND, compEnabled);
