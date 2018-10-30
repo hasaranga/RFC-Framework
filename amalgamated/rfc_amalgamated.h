@@ -7,7 +7,7 @@
 #define AMALGAMATED_VERSION
 
 #ifndef _CRT_SECURE_NO_WARNINGS 
-#define _CRT_SECURE_NO_WARNINGS 
+	#define _CRT_SECURE_NO_WARNINGS 
 #endif
 
 // =========== config.h ===========

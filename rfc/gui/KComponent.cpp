@@ -263,7 +263,7 @@ void KComponent::SetSize(int compWidth, int compHeight)
 	this->compHeight = compHeight;
 
 	if(compHWND)
-		::SetWindowPos(compHWND, 0, 0, 0, compWidth, compHeight, SWP_NOMOVE | SWP_NOREPOSITION);
+		::SetWindowPos(compHWND, 0, 0, 0, compWidth, compHeight, SWP_NOMOVE | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 void KComponent::SetPosition(int compX, int compY)
@@ -272,7 +272,7 @@ void KComponent::SetPosition(int compX, int compY)
 	this->compY = compY;
 
 	if(compHWND)
-		::SetWindowPos(compHWND, 0, compX, compY, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION);
+		::SetWindowPos(compHWND, 0, compX, compY, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 void KComponent::SetVisible(bool state)
