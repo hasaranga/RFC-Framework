@@ -1,7 +1,7 @@
 
 /*
 	RFC - KSettingsWriter.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages

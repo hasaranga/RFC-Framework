@@ -1,7 +1,7 @@
 
 /*
 	RFC - KThread.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,10 +27,12 @@
 #include "../config.h"
 #include <windows.h>
 #include "../containers/KLeakDetector.h"
+#include "KRunnable.h"
 
 /**
 	Encapsulates a thread.
 
+	Method1:
 	Subclasses derive from KThread and implement the Run() method, in which they
 	do their business. The thread can then be started with the StartThread() method
 	and controlled with various other methods.
@@ -47,6 +49,19 @@
 	}
 	@endcode
 
+	Method2:
+	Subclasses derive from KRunnable and implement the Run method. 
+
+	Run method implementation might be like this
+	@code
+	virtual void Run(KThread *thread)
+	{
+		while(thread->ShouldRun())
+		{
+			// your code goes here...
+		}
+	}
+	@endcode
 */
 class RFC_API KThread
 {
@@ -54,6 +69,7 @@ protected:
 	HANDLE handle;
 	volatile bool isThreadRunning;
 	volatile bool threadShouldStop;
+	KRunnable *runnable;
 
 public:
 	KThread();
@@ -62,6 +78,11 @@ public:
 		Sets thread handle.
 	*/
 	virtual void SetHandle(HANDLE handle);
+
+	/**
+		Sets runnable object for this thread.
+	*/
+	virtual void SetRunnable(KRunnable *runnable);
 
 	/**
 		Returns handle of the thread
@@ -82,6 +103,11 @@ public:
 		Another thread can signal this thread should stop. 
 	*/
 	virtual void ThreadShouldStop();
+
+	/**
+		@returns true if thread should run
+	*/
+	virtual bool ShouldRun();
 
 	/**
 		@returns true if thread is still running

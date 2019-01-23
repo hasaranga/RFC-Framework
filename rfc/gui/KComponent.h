@@ -1,7 +1,7 @@
 
 /*
 	RFC - KComponent.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -60,7 +60,7 @@ public:
 
 	/**
 		Constructs a standard win32 component.
-		@param generateWindowClassDetails	set to false if you are using standard class name like BUTTON, STATIC etc...
+		@param generateWindowClassDetails	set to false if you are not registering window class and using standard class name like BUTTON, STATIC etc... wc member is invalid if generateWindowClassDetails is false.
 	*/
 	KComponent(bool generateWindowClassDetails);
 

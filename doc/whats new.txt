@@ -2,7 +2,7 @@ v0.2.6:
 	added KRegistry, KSettingsWriter, KSettingsReader, KMD5, KSHA1, KPerformanceCounter classes
 	added KGridView, KLogger, KGraphics, KGlyphButton, KMenuButton, KToolTip classes
 	added KScopedClassPointer, KScopedMemoryBlock, KScopedCriticalSection, KLeakDetector classes
-	added KScopedGdiObject class
+	added KScopedGdiObject, KRunnable classes
 	added KFORMAT_ID, STATIC_TXT, KFILE_FILTER, RFC_INIT_VERIFIER, BUFFER_TXT macros
 	added CONST_TXT, TXT_WITH_LEN, CONST_TXT_PARAMS, LEN_UNI_STR, LEN_ANSI_STR macros
 	added HotPlugAndCreateDialogBox function

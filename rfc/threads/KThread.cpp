@@ -1,7 +1,7 @@
 
 /*
 	RFC - KThread.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,8 @@
 
 KThread::KThread()
 {
-	handle = 0;
+	handle = 0; 
+	runnable = NULL;
 	isThreadRunning = false;
 	threadShouldStop = false;
 }
@@ -37,22 +38,27 @@ void KThread::SetHandle(HANDLE handle)
 	this->handle = handle;
 }
 
+void KThread::SetRunnable(KRunnable *runnable)
+{
+	this->runnable = runnable;
+}
+
 HANDLE KThread::GetHandle()
 {
 	return handle;
 }
 
+bool KThread::ShouldRun()
+{
+	return !threadShouldStop;
+}
+
 void KThread::Run()
 {
-	/*
+	if (runnable)
+		runnable->Run(this);
 
-	while(!threadShouldStop)
-	{
-		// your code goes here...
-	}
-	isThreadRunning=false;
-
-	*/
+	isThreadRunning = false;
 }
 
 bool KThread::IsThreadRunning()
