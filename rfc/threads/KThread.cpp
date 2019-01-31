@@ -29,7 +29,6 @@ KThread::KThread()
 {
 	handle = 0; 
 	runnable = NULL;
-	isThreadRunning = false;
 	threadShouldStop = false;
 }
 
@@ -57,13 +56,17 @@ void KThread::Run()
 {
 	if (runnable)
 		runnable->Run(this);
-
-	isThreadRunning = false;
 }
 
 bool KThread::IsThreadRunning()
 {
-	return isThreadRunning;
+	if (handle)
+	{
+		const DWORD result = ::WaitForSingleObject(handle, 0);
+		return (result != WAIT_OBJECT_0);
+	}
+
+	return false;
 }
 
 void KThread::ThreadShouldStop()
@@ -73,16 +76,19 @@ void KThread::ThreadShouldStop()
 
 void KThread::WaitUntilThreadFinish()
 {
-	while(isThreadRunning) // wait until thread stop!
-	{
-		::Sleep(10);
-	}
+	::WaitForSingleObject(handle, INFINITE);
 }
 
 bool KThread::StartThread()
 {
 	threadShouldStop = false;
-	isThreadRunning = true;
+
+	if (handle) // close old handle
+	{
+		::CloseHandle(handle);
+		handle = 0;
+	}
+
 	return ::CreateRFCThread(this);
 }
 
@@ -95,9 +101,11 @@ void KThread::uSleep(int waitTime)
 
 	do {
 		QueryPerformanceCounter((LARGE_INTEGER *)&time2);
-	} while (time2 - time1 < waitTime * freq / 1000000);
+	} while ((time2 - time1) < ((waitTime * freq) / 1000000));
 }
 
 KThread::~KThread()
 {
+	if (handle)
+		::CloseHandle(handle);
 }

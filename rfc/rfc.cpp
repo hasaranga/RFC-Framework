@@ -177,7 +177,6 @@ DWORD WINAPI GlobalThread_Proc(LPVOID lpParameter)
 		return 0;
 
 	KThread* thread = (KThread*)lpParameter;
-	thread->SetHandle(::GetCurrentThread());
 	thread->Run();
 
 	return 0;	
@@ -187,9 +186,14 @@ bool CreateRFCThread(KThread* thread)
 {
 	if(thread)
 	{
-		HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, 0, NULL);
-		if(handle)
+		HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL); // create thread in suspended state. so we can set the handle field.
+		if (handle)
+		{
+			thread->SetHandle(handle);
+			::ResumeThread(handle);
+
 			return true;
+		}
 	}
 	return false;
 }

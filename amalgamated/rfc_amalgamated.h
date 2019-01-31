@@ -52,7 +52,7 @@
 
 /*
 	RFC - KLeakDetector.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -184,7 +184,7 @@ private:
 
 /*
 	RFC - KScopedClassPointer.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -321,7 +321,7 @@ public:
 
 /*
 	RFC - KScopedCriticalSection.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -392,7 +392,7 @@ public:
 
 /*
 	RFC - KScopedGdiObject.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -510,7 +510,7 @@ public:
 
 /*
 	RFC - KScopedMemoryBlock.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1196,7 +1196,7 @@ namespace ExtLibs{
 
 /*
 	RFC - KListBoxListener.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1240,7 +1240,7 @@ public:
 
 /*
 	RFC - KTrackBarListener.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1282,7 +1282,7 @@ public:
 
 /*
 	RFC - KMenuItemListener.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1324,7 +1324,7 @@ public:
 
 /*
 	RFC - KGridViewListener.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1370,7 +1370,7 @@ public:
 
 /*
 	RFC - KComboBoxListener.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1412,7 +1412,7 @@ public:
 
 /*
 	RFC - KTimerListener.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1496,7 +1496,7 @@ public:
 
 /*
 	RFC -KGraphics.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1549,7 +1549,7 @@ public:
 
 /*
 	RFC - KButtonListener.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1591,7 +1591,7 @@ public:
 
 /*
 	RFC - KString.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1661,7 +1661,7 @@ private:
 
 /*
 	RFC - KPerformanceCounter.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1714,7 +1714,7 @@ private:
 
 /*
 	RFC - KPointerList.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2062,7 +2062,7 @@ private:
 
 /*
 	RFC - KString.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2346,7 +2346,7 @@ RFC_API const KString operator+ (const KString& string1, const KString& string2)
 
 /*
 	RFC - KThread.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2383,11 +2383,10 @@ RFC_API const KString operator+ (const KString& string1, const KString& string2)
 	@code
 	virtual void Run()
 	{
-		while(!threadShouldStop)
+		while(ShouldRun())
 		{
 			// your code goes here...
 		}
-		isThreadRunning=false;	
 	}
 	@endcode
 
@@ -2409,7 +2408,6 @@ class RFC_API KThread
 {
 protected:
 	HANDLE handle;
-	volatile bool isThreadRunning;
 	volatile bool threadShouldStop;
 	KRunnable *runnable;
 
@@ -2478,7 +2476,7 @@ private:
 
 /*
 	RFC - KDirectory.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2551,7 +2549,7 @@ public:
 
 /*
 	RFC - KMD5.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2596,7 +2594,7 @@ private:
 
 /*
 	RFC - KSHA1.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2641,7 +2639,7 @@ private:
 
 /*
 	RFC - KFile.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2755,7 +2753,7 @@ private:
 
 /*
 	RFC - KSettingsWriter.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2893,7 +2891,7 @@ public:
 
 /*
 	RFC - KApplication.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2977,7 +2975,7 @@ public:
 
 /*
 	RFC - KBitmap.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3047,7 +3045,7 @@ private:
 
 /*
 	RFC - KCursor.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3114,7 +3112,7 @@ private:
 
 /*
 	RFC - KMenuItem.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3190,7 +3188,7 @@ private:
 
 /*
 	RFC -KIcon.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3257,7 +3255,7 @@ private:
 
 /*
 	RFC - KFont.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3334,7 +3332,7 @@ private:
 
 /*
 	RFC - KLogger.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3445,7 +3443,7 @@ private:
 
 /*
 	RFC - KComponent.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3686,7 +3684,7 @@ private:
 
 /*
 	RFC - KLabel.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3726,7 +3724,7 @@ public:
 
 /*
 	RFC - KTrackBar.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3789,7 +3787,7 @@ public:
 
 /*
 	RFC - KProgressBar.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3837,7 +3835,7 @@ public:
 
 /*
 	RFC - KGridView.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3919,7 +3917,7 @@ public:
 
 /*
 	RFC - KButton.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3972,7 +3970,7 @@ public:
 
 /*
 	RFC - KTextBox.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4014,7 +4012,7 @@ public:
 
 /*
 	RFC - KCheckBox.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4063,7 +4061,7 @@ public:
 
 /*
 	RFC - KTextArea.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4104,7 +4102,7 @@ public:
 
 /*
 	RFC - KSettingsReader.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4169,7 +4167,7 @@ private:
 
 /*
 	RFC - KWindow.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4237,7 +4235,7 @@ public:
 
 /*
 	RFC - KCommonDialogBox.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4283,7 +4281,7 @@ public:
 
 /*
 	RFC - KListBox.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4363,7 +4361,7 @@ public:
 
 /*
 	RFC - KComboBox.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4435,7 +4433,7 @@ public:
 
 /*
 	RFC - KMenu.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4489,7 +4487,7 @@ private:
 
 /*
 	RFC - KTimer.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4581,7 +4579,7 @@ private:
 
 /*
 	RFC - KMenuBar.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4630,7 +4628,7 @@ private:
 
 /*
 	RFC - KPlatformUtil.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4709,7 +4707,7 @@ public:
 
 /*
 	RFC - KGroupBox.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4747,7 +4745,7 @@ public:
 
 /*
 	RFC - KWindowTypes.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4821,7 +4819,7 @@ public:
 
 /*
 	RFC - KPasswordBox.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4868,7 +4866,7 @@ public:
 
 /*
 	RFC - KNumericField.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4906,7 +4904,7 @@ public:
 
 /*
 	RFC - KPushButton.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4944,7 +4942,7 @@ public:
 
 /*
 	RFC - KRadioButton.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4982,7 +4980,7 @@ public:
 
 /*
 	RFC - KToolTip.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5038,7 +5036,7 @@ public:
 
 /*
 	RFC - KGlyphButton.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5093,7 +5091,7 @@ public:
 
 /*
 	RFC - KMenuButton.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5153,7 +5151,7 @@ public:
 
 /*
 	RFC Framework v0.2.6
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages

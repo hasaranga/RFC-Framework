@@ -9,7 +9,7 @@
 
 /*
 	RFC - KApplication.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -49,7 +49,7 @@ KApplication::~KApplication()
 
 /*
 	RFC - rfc.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -224,7 +224,6 @@ DWORD WINAPI GlobalThread_Proc(LPVOID lpParameter)
 		return 0;
 
 	KThread* thread = (KThread*)lpParameter;
-	thread->SetHandle(::GetCurrentThread());
 	thread->Run();
 
 	return 0;	
@@ -234,9 +233,14 @@ bool CreateRFCThread(KThread* thread)
 {
 	if(thread)
 	{
-		HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, 0, NULL);
-		if(handle)
+		HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL); // create thread in suspended state. so we can set the handle field.
+		if (handle)
+		{
+			thread->SetHandle(handle);
+			::ResumeThread(handle);
+
 			return true;
+		}
 	}
 	return false;
 }
@@ -606,7 +610,7 @@ void CSHA1::GetHash(UINT_8* puDest) const
 
 /*
 	RFC - KBitmap.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -674,7 +678,7 @@ KBitmap::~KBitmap()
 
 /*
 	RFC - KCursor.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -732,7 +736,7 @@ KCursor::~KCursor()
 
 /*
 	RFC - KFont.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -802,7 +806,7 @@ KFont::~KFont()
 
 /*
 	RFC - KGraphics.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -881,7 +885,7 @@ RECT KGraphics::CalculateTextSize(wchar_t *text, HFONT hFont)
 
 /*
 	RFC - KIcon.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -939,7 +943,7 @@ KIcon::~KIcon()
 
 /*
 	RFC - KButton.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1035,7 +1039,7 @@ KButton::~KButton()
 
 /*
 	RFC - KButtonListener.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1066,7 +1070,7 @@ void KButtonListener::OnButtonPress(KButton *button){}
 
 /*
 	RFC - KCheckBox.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1147,7 +1151,7 @@ KCheckBox::~KCheckBox()
 
 /*
 	RFC - KComboBox.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1339,7 +1343,7 @@ KComboBox::~KComboBox()
 
 /*
 	RFC - KComboBoxListener.h
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1370,7 +1374,7 @@ void KComboBoxListener::OnComboBoxItemSelect(KComboBox *comboBox){}
 
 /*
 	RFC - KCommonDialogBox.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1451,7 +1455,7 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 
 /*
 	RFC - KComponent.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1788,7 +1792,7 @@ KComponent::~KComponent()
 
 /*
 	RFC - KGlyphButton.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1877,7 +1881,7 @@ bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *re
 
 /*
 	RFC - KGridView.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2114,7 +2118,7 @@ void KGridView::OnItemDoubleClick()
 
 /*
 	RFC - KGridViewListener.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2149,7 +2153,7 @@ void KGridViewListener::OnGridViewItemDoubleClick(KGridView *gridView){}
 
 /*
 	RFC - KGroupBox.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2187,7 +2191,7 @@ KGroupBox::~KGroupBox()
 
 /*
 	RFC - KLabel.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2251,7 +2255,7 @@ KLabel::~KLabel()
 
 /*
 	RFC - KListBox.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2492,7 +2496,7 @@ KListBox::~KListBox()
 
 /*
 	RFC - KListBoxListener.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2524,7 +2528,7 @@ void KListBoxListener::OnListBoxItemDoubleClick(KListBox *listBox){}
 
 /*
 	RFC - KMenu.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2597,7 +2601,7 @@ KMenu::~KMenu()
 
 /*
 	RFC - KMenuBar.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2645,7 +2649,7 @@ KMenuBar::~KMenuBar()
 
 /*
 RFC - KMenuButton.cpp
-Copyright (C) 2013-2018 CrownSoft
+Copyright (C) 2013-2019 CrownSoft
   
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
@@ -2761,7 +2765,7 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 
 /*
 	RFC - KMenuItem.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2912,7 +2916,7 @@ KMenuItem::~KMenuItem()
 
 /*
 	RFC - KMenuItemListener.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2943,7 +2947,7 @@ void KMenuItemListener::OnMenuItemPress(KMenuItem *menuItem){}
 
 /*
 	RFC - KNumericField.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2975,7 +2979,7 @@ KNumericField::~KNumericField(){}
 
 /*
 	RFC - KPasswordBox.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3035,7 +3039,7 @@ KPasswordBox::~KPasswordBox()
 
 /*
 	RFC - KProgressBar.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3120,7 +3124,7 @@ KProgressBar::~KProgressBar()
 
 /*
 	RFC - KPushButton.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3155,7 +3159,7 @@ KPushButton::~KPushButton()
 
 /*
 	RFC - KRadioButton.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3190,7 +3194,7 @@ KRadioButton::~KRadioButton()
 
 /*
 	RFC - KTextArea.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3239,7 +3243,7 @@ KTextArea::~KTextArea()
 
 /*
 	RFC - KTextBox.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3327,7 +3331,7 @@ KTextBox::~KTextBox()
 
 /*
 	RFC - KToolTip.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3411,7 +3415,7 @@ void KToolTip::SetText(const KString& compText)
 
 /*
 	RFC - KTrackBar.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3535,7 +3539,7 @@ KTrackBar::~KTrackBar()
 
 /*
 	RFC - KTrackBarListener.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3566,7 +3570,7 @@ void KTrackBarListener::OnTrackBarChange(KTrackBar *trackBar){}
 
 /*
 	RFC - KWindow.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3888,7 +3892,7 @@ KWindow::~KWindow()
 
 /*
 	RFC - KWindowTypes.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3966,7 +3970,7 @@ KToolWindow::~KToolWindow(){}
 
 /*
 	RFC - KDirectory.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4047,7 +4051,7 @@ KString KDirectory::GetApplicationDataDir(bool isAllUsers)
 
 /*
 	RFC - KFile.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4235,7 +4239,7 @@ KFile::~KFile()
 
 /*
 	RFC - KLogger.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4437,7 +4441,7 @@ KLogger::~KLogger()
 
 /*
 	RFC - KSettingsReader.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4547,7 +4551,7 @@ KSettingsReader::~KSettingsReader()
 
 /*
 	RFC - KSettingsWriter.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4638,7 +4642,7 @@ KSettingsWriter::~KSettingsWriter()
 
 /*
 	RFC - KMD5.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4707,7 +4711,7 @@ KMD5::~KMD5()
 
 /*
 	RFC - KSHA1.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4786,7 +4790,7 @@ KSHA1::~KSHA1()
 
 /*
 	RFC - KString.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5291,7 +5295,7 @@ KString::~KString()
 
 /*
 	RFC - KStringHolder.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5423,7 +5427,7 @@ void KRunnable::Run(KThread *thread){}
 
 /*
 	RFC - KThread.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5449,7 +5453,6 @@ KThread::KThread()
 {
 	handle = 0; 
 	runnable = NULL;
-	isThreadRunning = false;
 	threadShouldStop = false;
 }
 
@@ -5477,13 +5480,17 @@ void KThread::Run()
 {
 	if (runnable)
 		runnable->Run(this);
-
-	isThreadRunning = false;
 }
 
 bool KThread::IsThreadRunning()
 {
-	return isThreadRunning;
+	if (handle)
+	{
+		const DWORD result = ::WaitForSingleObject(handle, 0);
+		return (result != WAIT_OBJECT_0);
+	}
+
+	return false;
 }
 
 void KThread::ThreadShouldStop()
@@ -5493,16 +5500,19 @@ void KThread::ThreadShouldStop()
 
 void KThread::WaitUntilThreadFinish()
 {
-	while(isThreadRunning) // wait until thread stop!
-	{
-		::Sleep(10);
-	}
+	::WaitForSingleObject(handle, INFINITE);
 }
 
 bool KThread::StartThread()
 {
 	threadShouldStop = false;
-	isThreadRunning = true;
+
+	if (handle) // close old handle
+	{
+		::CloseHandle(handle);
+		handle = 0;
+	}
+
 	return ::CreateRFCThread(this);
 }
 
@@ -5515,18 +5525,20 @@ void KThread::uSleep(int waitTime)
 
 	do {
 		QueryPerformanceCounter((LARGE_INTEGER *)&time2);
-	} while (time2 - time1 < waitTime * freq / 1000000);
+	} while ((time2 - time1) < ((waitTime * freq) / 1000000));
 }
 
 KThread::~KThread()
 {
+	if (handle)
+		::CloseHandle(handle);
 }
 
 // =========== KTimer.cpp ===========
 
 /*
 	RFC - KTimer.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5638,7 +5650,7 @@ KTimer::~KTimer()
 
 /*
 	RFC - KTimerListener.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5671,7 +5683,7 @@ void KTimerListener::OnTimer(KTimer *timer){}
 
 /*
 	RFC - KPerformanceCounter.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5726,7 +5738,7 @@ KPerformanceCounter::~KPerformanceCounter()
 
 /*
 	RFC - KPlatformUtil.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5899,7 +5911,7 @@ KPlatformUtil::~KPlatformUtil()
 
 /*
 	RFC - KRegistry.cpp
-	Copyright (C) 2013-2018 CrownSoft
+	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages

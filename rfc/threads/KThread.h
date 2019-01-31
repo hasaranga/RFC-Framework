@@ -41,11 +41,10 @@
 	@code
 	virtual void Run()
 	{
-		while(!threadShouldStop)
+		while(ShouldRun())
 		{
 			// your code goes here...
 		}
-		isThreadRunning=false;	
 	}
 	@endcode
 
@@ -67,7 +66,6 @@ class RFC_API KThread
 {
 protected:
 	HANDLE handle;
-	volatile bool isThreadRunning;
 	volatile bool threadShouldStop;
 	KRunnable *runnable;
 
