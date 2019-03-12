@@ -31,7 +31,7 @@
 /**
 	Can be use to read/write data from a file easily.
 */
-class RFC_API KFile
+class KFile
 {
 protected:
 	KString fileName;
@@ -88,9 +88,13 @@ public:
 	virtual bool SetFilePointerToStart();
 
 	/**
-		moves file pointer to given distance from start.
+		moves file pointer to given distance from "startingPoint".
+		"startingPoint" can be FILE_BEGIN, FILE_CURRENT or FILE_END
+		"distance" can be negative.
 	*/
-	virtual bool SetFilePointerTo(DWORD distance);
+	virtual bool SetFilePointerTo(long distance, DWORD startingPoint = FILE_BEGIN);
+
+	virtual DWORD GetFilePointerPosition();
 
 	virtual bool SetFilePointerToEnd();
 

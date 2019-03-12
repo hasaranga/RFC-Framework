@@ -26,7 +26,7 @@
 
 #include "KTextBox.h"
 
-class RFC_API KNumericField : public KTextBox
+class KNumericField : public KTextBox
 {
 public:
 	KNumericField();

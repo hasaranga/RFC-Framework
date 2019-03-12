@@ -28,7 +28,7 @@
 
 class KGridView;
 
-class RFC_API KGridViewListener
+class KGridViewListener
 {
 public:
 	KGridViewListener();

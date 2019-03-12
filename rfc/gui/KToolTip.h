@@ -26,7 +26,7 @@
 
 #include "KWindow.h"
 
-class RFC_API KToolTip : public KComponent
+class KToolTip : public KComponent
 {
 protected:
 	HWND attachedCompHWND;

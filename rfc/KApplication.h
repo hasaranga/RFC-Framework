@@ -50,7 +50,7 @@
 	START_RFC_APPLICATION(MyApp)
 	@endcode
 */
-class RFC_API KApplication
+class KApplication
 {
 public:
 
@@ -79,6 +79,9 @@ public:
 		Destructs an Application object.
 	*/
 	virtual ~KApplication();
+
+private:
+	RFC_LEAK_DETECTOR(KApplication)
 };
 
 #endif

@@ -89,9 +89,14 @@ bool KFile::SetFilePointerToStart()
 	return (::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
-bool KFile::SetFilePointerTo(DWORD distance)
+bool KFile::SetFilePointerTo(long distance, DWORD startingPoint)
 {
-	return (::SetFilePointer(fileHandle, distance, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
+	return (::SetFilePointer(fileHandle, distance, NULL, startingPoint) == INVALID_SET_FILE_POINTER) ? false : true;
+}
+
+DWORD KFile::GetFilePointerPosition()
+{
+	return ::SetFilePointer(fileHandle, 0, NULL, FILE_CURRENT);
 }
 
 bool KFile::SetFilePointerToEnd()

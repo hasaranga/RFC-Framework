@@ -28,7 +28,7 @@
 
 class KListBox;
 
-class RFC_API KListBoxListener
+class KListBoxListener
 {
 public:
 	KListBoxListener();

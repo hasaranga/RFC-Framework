@@ -28,7 +28,7 @@
 
 class KButton;
 
-class RFC_API KButtonListener
+class KButtonListener
 {
 public:
 	KButtonListener();

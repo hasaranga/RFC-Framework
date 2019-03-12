@@ -27,7 +27,7 @@
 #include "../text/KString.h"
 #include "../containers/KLeakDetector.h"
 
-class RFC_API KMD5
+class KMD5
 {
 public:
 	KMD5();

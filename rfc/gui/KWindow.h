@@ -27,7 +27,7 @@
 #include "KComponent.h"
 #include "../graphics/KIcon.h"
 
-class RFC_API KWindow : public KComponent
+class KWindow : public KComponent
 {
 protected:
 	HWND lastFocusedChild;

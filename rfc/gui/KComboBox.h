@@ -30,7 +30,7 @@
 
 class KComboBoxListener;
 
-class RFC_API KComboBox : public KComponent
+class KComboBox : public KComponent
 {
 protected:
 	KPointerList<KString*> *stringList;

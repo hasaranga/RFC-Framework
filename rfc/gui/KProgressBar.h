@@ -26,7 +26,7 @@
 
 #include "KComponent.h"
 
-class RFC_API KProgressBar : public KComponent
+class KProgressBar : public KComponent
 {
 protected:
 	int value;

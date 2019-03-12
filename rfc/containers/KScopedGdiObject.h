@@ -73,7 +73,7 @@ public:
 		Removes the current gdi object from this KScopedGdiObject without freeing it.
 		This will return the current gdi object, and set the KScopedGdiObject to a null value.
 	*/
-	T Release()
+	T Detach()
 	{ 
 		T g = gdiObject;
 		gdiObject = 0;

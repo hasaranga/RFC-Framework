@@ -28,7 +28,7 @@
 
 class KTrackBar;
 
-class RFC_API KTrackBarListener
+class KTrackBarListener
 {
 public:
 	KTrackBarListener();

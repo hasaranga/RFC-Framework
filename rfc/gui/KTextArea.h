@@ -26,7 +26,7 @@
 
 #include "KTextBox.h"
 
-class RFC_API KTextArea : public KTextBox
+class KTextArea : public KTextBox
 {
 public:
 	KTextArea(bool autoScroll = false, bool readOnly = false);

@@ -36,7 +36,7 @@
 	and controlled with various other methods. Before you start timer, you must set 
 	timer window by calling SetTimerWindow method.
 */
-class RFC_API KTimer
+class KTimer
 {
 protected:
 	UINT timerID;

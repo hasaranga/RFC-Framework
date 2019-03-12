@@ -35,7 +35,7 @@
 	Base class of all W32 gui objects.
 	define "RFC_SINGLE_THREAD_COMP_CREATION" if your app does not create components within multiple threads.
 */
-class RFC_API KComponent
+class KComponent
 {
 protected:
 	KString compClassName;

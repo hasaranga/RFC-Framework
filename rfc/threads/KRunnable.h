@@ -25,10 +25,11 @@ misrepresented as being the original software.
 #define _RFC_KRUNNABLE_H_
 
 #include "../config.h"
+#include "../containers/KLeakDetector.h"
 
 class KThread;
 
-class RFC_API KRunnable
+class KRunnable
 {
 public:
 	KRunnable();
@@ -36,6 +37,9 @@ public:
 	virtual ~KRunnable();
 
 	virtual void Run(KThread *thread);
+
+private:
+	RFC_LEAK_DETECTOR(KRunnable)
 };
 
 #endif

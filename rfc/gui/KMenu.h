@@ -28,7 +28,7 @@
 #include "KWindow.h"
 #include "../containers/KLeakDetector.h"
 
-class RFC_API KMenu
+class KMenu
 {
 protected:
 	HMENU hMenu;

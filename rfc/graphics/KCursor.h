@@ -31,7 +31,7 @@
 /**
 	Can be use to load cursor from file or resource.
 */
-class RFC_API KCursor
+class KCursor
 {
 protected:
 	HCURSOR hCursor;

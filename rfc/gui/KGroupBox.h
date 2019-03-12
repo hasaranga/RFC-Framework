@@ -26,7 +26,7 @@
 
 #include"KButton.h"
 
-class RFC_API KGroupBox : public KButton
+class KGroupBox : public KButton
 {
 public:
 	KGroupBox();

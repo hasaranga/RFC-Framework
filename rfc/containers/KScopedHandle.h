@@ -1,6 +1,6 @@
 
 /*
-	RFC - KScopedCriticalSection.h
+	RFC - KScopedHandle.h
 	Copyright (C) 2013-2019 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
@@ -21,19 +21,19 @@
 
 */
 
-#ifndef _RFC_KSCOPED_CRITICAL_SECTION_H_
-#define _RFC_KSCOPED_CRITICAL_SECTION_H_
+#ifndef _RFC_KSCOPED_HANDLE_H_
+#define _RFC_KSCOPED_HANDLE_H_
 
 #include <windows.h>
 
 /**
-	This class holds a pointer to CRITICAL_SECTION which is automatically released when this object goes
+	This class holds a handle which is automatically closed when this object goes
 	out of scope.
 */
-class KScopedCriticalSection
+class KScopedHandle
 {
 private:
-	CRITICAL_SECTION *criticalSection;
+	HANDLE handle;
 
 	// Prevent heap allocation
 	void* operator new(size_t);
@@ -42,27 +42,51 @@ private:
 	void  operator delete[](void*);
 
 public:
-	KScopedCriticalSection(CRITICAL_SECTION *criticalSection)
+	KScopedHandle()
 	{
-		this->criticalSection = criticalSection;
-		::EnterCriticalSection(criticalSection);
+		handle = 0;
 	}
 
-	// does not call LeaveCriticalSection
-	CRITICAL_SECTION* Detach()
-	{ 
-		CRITICAL_SECTION *c = criticalSection;
-		criticalSection = 0;
-		return c; 
-	}
-
-	~KScopedCriticalSection()
+	KScopedHandle(HANDLE handle)
 	{
-		if (criticalSection)
-			::LeaveCriticalSection(criticalSection);
+		this->handle = handle;
 	}
 
-	inline operator CRITICAL_SECTION*() const { return criticalSection; }
+	HANDLE Detach()
+	{
+		HANDLE h = handle;
+		handle = 0;
+		return h;
+	}
+
+	KScopedHandle& operator= (HANDLE newHandle)
+	{
+		if (handle != newHandle)
+		{
+			HANDLE oldHandle = handle;
+			handle = newHandle;
+
+			if (oldHandle)
+				::CloseHandle(oldHandle);
+		}
+
+		return *this;
+	}
+
+	bool IsNull()
+	{
+		return (handle == 0);
+	}
+
+	~KScopedHandle()
+	{
+		if (handle)
+			::CloseHandle(handle);
+	}
+
+	inline operator HANDLE() const { return handle; }
+
+	inline HANDLE* operator&() { return &handle; }
 
 };
 

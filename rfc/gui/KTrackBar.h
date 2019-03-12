@@ -28,7 +28,7 @@
 
 class KTrackBarListener;
 
-class RFC_API KTrackBar : public KComponent
+class KTrackBar : public KComponent
 {
 protected:
 	int rangeMin,rangeMax,value;

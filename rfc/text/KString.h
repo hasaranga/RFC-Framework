@@ -59,7 +59,7 @@
 	KString result5( str1.AppendStaticText(TXT_WITH_LEN("1234")) ); // that's all you can have ;-)
 	@endcode
 */
-class RFC_API KString
+class KString
 {
 protected:
 	mutable KStringHolder *stringHolder; // for empty string: stringHolder=0 && isStaticText=false
@@ -258,11 +258,11 @@ private:
 	RFC_LEAK_DETECTOR(KString)
 };
 
-RFC_API const KString operator+ (const char* const string1, const KString& string2);
+const KString operator+ (const char* const string1, const KString& string2);
 
-RFC_API const KString operator+ (const wchar_t* const string1, const KString& string2);
+const KString operator+ (const wchar_t* const string1, const KString& string2);
 
-RFC_API const KString operator+ (const KString& string1, const KString& string2);
+const KString operator+ (const KString& string1, const KString& string2);
 
 #define LEN_UNI_STR(X) (sizeof(X) / sizeof(wchar_t)) - 1
 

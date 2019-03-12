@@ -31,7 +31,7 @@
 /**
 	High performance configuration reading class.
 */
-class RFC_API KSettingsReader
+class KSettingsReader
 {
 protected:
 	KFile settingsFile;

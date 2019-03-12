@@ -26,7 +26,7 @@
 
 #include "KCheckBox.h"
 
-class RFC_API KRadioButton : public KCheckBox
+class KRadioButton : public KCheckBox
 {
 public:
 	KRadioButton();

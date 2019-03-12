@@ -31,7 +31,7 @@
 /**
 Can be use to manipulate dirs.
 */
-class RFC_API KDirectory
+class KDirectory
 {
 public:
 	KDirectory();
@@ -67,6 +67,9 @@ public:
 	static KString GetApplicationDataDir(bool isAllUsers = false);
 
 	virtual ~KDirectory();
+
+private:
+	RFC_LEAK_DETECTOR(KDirectory)
 };
 
 #endif

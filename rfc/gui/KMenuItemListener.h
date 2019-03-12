@@ -28,7 +28,7 @@
 
 class KMenuItem;
 
-class RFC_API KMenuItemListener
+class KMenuItemListener
 {
 public:
 	KMenuItemListener();

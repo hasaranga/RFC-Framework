@@ -26,7 +26,7 @@
 
 #include "KTextBox.h"
 
-class RFC_API KPasswordBox : public KTextBox
+class KPasswordBox : public KTextBox
 {
 protected:
 	char pwdChar;

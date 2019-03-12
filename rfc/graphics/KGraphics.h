@@ -24,10 +24,11 @@
 #ifndef _RFC_KGRAPHICS_H_
 #define _RFC_KGRAPHICS_H_
 
-#include <windows.h>
 #include "../config.h"
+#include "../containers/KLeakDetector.h"
+#include <windows.h>
 
-class RFC_API KGraphics
+class KGraphics
 {
 public:
 	KGraphics();
@@ -47,6 +48,9 @@ public:
 	static void FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
 
 	static RECT CalculateTextSize(wchar_t *text, HFONT hFont);
+
+private:
+	RFC_LEAK_DETECTOR(KGraphics)
 };
 
 #endif

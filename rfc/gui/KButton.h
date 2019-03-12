@@ -28,7 +28,7 @@
 
 class KButtonListener;
 
-class RFC_API KButton : public KComponent
+class KButton : public KComponent
 {
 protected:
 	KButtonListener *listener;

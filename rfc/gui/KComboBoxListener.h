@@ -28,7 +28,7 @@
 
 class KComboBox;
 
-class RFC_API KComboBoxListener
+class KComboBoxListener
 {
 public:
 	KComboBoxListener();

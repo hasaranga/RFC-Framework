@@ -26,7 +26,7 @@
 
 #include "KComponent.h"
 
-class RFC_API KTextBox : public KComponent
+class KTextBox : public KComponent
 {
 public:
 	KTextBox(bool readOnly = false);

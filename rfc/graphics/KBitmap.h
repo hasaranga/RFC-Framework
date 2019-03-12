@@ -31,7 +31,7 @@
 /**
 	Can be use to load bitmap image from file or resource.
 */
-class RFC_API KBitmap
+class KBitmap
 {
 protected:
 	HBITMAP hBitmap;

@@ -27,7 +27,7 @@
 #include "../text/KString.h"
 #include "../containers/KLeakDetector.h"
 
-class RFC_API KSHA1
+class KSHA1
 {
 public:
 	KSHA1();

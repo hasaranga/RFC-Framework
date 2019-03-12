@@ -27,7 +27,7 @@
 #include "KWindow.h"
 #include "../text/KString.h"
 
-class RFC_API KCommonDialogBox
+class KCommonDialogBox
 {
 public:
 	/**

@@ -31,7 +31,7 @@
 /**
 	Can be use to create system default font or custom font. Once created, you cannot change font properties.
 */
-class RFC_API KFont
+class KFont
 {
 private:
 	static KFont* defaultInstance;

@@ -30,7 +30,7 @@
 
 class KMenuItemListener;
 
-class RFC_API KMenuItem
+class KMenuItem
 {
 protected:
 	HMENU hMenu;

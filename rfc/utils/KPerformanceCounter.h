@@ -28,7 +28,7 @@
 #include <windows.h>
 #include "../containers/KLeakDetector.h"
 
-class RFC_API KPerformanceCounter
+class KPerformanceCounter
 {
 protected:
 	double pcFreq;

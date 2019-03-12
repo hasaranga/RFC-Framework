@@ -31,7 +31,7 @@
 /**
 	This class holds reference counted string.
 */
-class RFC_API KStringHolder
+class KStringHolder
 {
 	volatile LONG refCount;
 	char *a_text; // ansi version

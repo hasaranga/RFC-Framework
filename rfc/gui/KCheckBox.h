@@ -26,7 +26,7 @@
 
 #include "KButton.h"
 
-class RFC_API KCheckBox : public KButton
+class KCheckBox : public KButton
 {
 protected:
 	bool checked;

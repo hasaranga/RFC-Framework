@@ -97,19 +97,21 @@
 #include "containers/KScopedCriticalSection.h"
 #include "containers/KLeakDetector.h"
 #include "containers/KScopedGdiObject.h"
+#include "containers/KScopedComPointer.h"
+#include "containers/KScopedStructPointer.h"
 
-RFC_API LRESULT CALLBACK GlobalWnd_Proc(HWND,UINT,WPARAM,LPARAM);
-RFC_API INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
-RFC_API DWORD WINAPI GlobalThread_Proc(LPVOID);
+LRESULT CALLBACK GlobalWnd_Proc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);
+unsigned __stdcall GlobalThread_Proc(void*);
 
 /**
 	set requireInitialMessages to true to receive initial messages lke WM_CREATE... (installs a hook)
 	define "RFC_SINGLE_THREAD_COMP_CREATION" if your app does not create components within multiple threads.
 */
-RFC_API HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages);
-RFC_API bool CreateRFCThread(KThread* thread);
+HWND CreateRFCComponent(KComponent* component, bool requireInitialMessages);
+bool CreateRFCThread(KThread* thread);
 
-RFC_API void DoMessagePump(bool handleTabKey = true);
+void DoMessagePump(bool handleTabKey = true);
 
 /**
 	Important: hInstance is current module HINSTANCE.
@@ -117,17 +119,17 @@ RFC_API void DoMessagePump(bool handleTabKey = true);
 	If you are in DLL, then hInstance is HINSTANCE provided by DllMain or HMODULE of the DLL.
 	If you are in Console app, then pass zero.
 */
-RFC_API void InitRFC(HINSTANCE hInstance);
-RFC_API void DeInitRFC();
+void InitRFC(HINSTANCE hInstance);
+void DeInitRFC();
 
 /** 
 	hwnd can be window, custom control, dialog or common control.
 	hwnd will be subclassed if it common control or dialog.
 */
-RFC_API void AttachRFCPropertiesToHWND(HWND hwnd, KComponent* component);
+void AttachRFCPropertiesToHWND(HWND hwnd, KComponent* component);
 
-RFC_API int HotPlugAndRunDialogBox(WORD resourceID,HWND parentHwnd,KComponent* component);
-RFC_API HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
+int HotPlugAndRunDialogBox(WORD resourceID,HWND parentHwnd,KComponent* component);
+HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
 
 #define START_RFC_APPLICATION(AppClass) \
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
@@ -161,13 +163,11 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
 // require to support XP/Vista styles.
 #ifdef _MSC_VER
-	#ifndef RFC_DLL
-		#ifndef RFC_NO_MANIFEST
-			#ifdef RFC64
-				#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
-			#else
-				#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
-			#endif
+	#ifndef RFC_NO_MANIFEST
+		#ifdef RFC64
+			#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+		#else
+			#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
 		#endif
 	#endif
 #endif
@@ -186,12 +186,6 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	}\
 	}
 
-#ifndef RFC_NO_UNICODE_STR
-	#define T(stringLiteral) KString(L##stringLiteral)
-#else
-	#define T(stringLiteral) KString(stringLiteral)
-#endif
-
 #define KFORMAT_ID(ch4) ((((DWORD)(ch4) & 0xFF) << 24) |     \
 	(((DWORD)(ch4)& 0xFF00) << 8) | \
 	(((DWORD)(ch4)& 0xFF0000) >> 8) | \
@@ -200,7 +194,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 // generates filter text for KFILE_FILTER("Text Files", "txt") as follows: L"Text Files\0*.txt\0"
 #define KFILE_FILTER(desc, ext) L##desc L"\0*." L##ext L"\0"
 
-class RFC_API InternalDefinitions
+class InternalDefinitions
 {
 public:
 	static ATOM RFCPropAtom_Component;

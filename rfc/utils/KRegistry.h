@@ -28,7 +28,7 @@
 #include<windows.h>
 #include"../text/KString.h"
 
-class RFC_API KRegistry
+class KRegistry
 {
 
 public:

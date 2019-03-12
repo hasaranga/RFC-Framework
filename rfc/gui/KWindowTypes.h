@@ -26,7 +26,7 @@
 
 #include "KWindow.h"
 
-class RFC_API KHotPluggedDialog : public KWindow
+class KHotPluggedDialog : public KWindow
 {
 public:
 	KHotPluggedDialog();
@@ -38,7 +38,7 @@ public:
 	virtual ~KHotPluggedDialog();
 };
 
-class RFC_API KOverlappedWindow : public KWindow
+class KOverlappedWindow : public KWindow
 {
 public:
 	KOverlappedWindow();
@@ -46,7 +46,7 @@ public:
 	virtual ~KOverlappedWindow();
 };
 
-class RFC_API KFrame : public KWindow
+class KFrame : public KWindow
 {
 public:
 	KFrame();
@@ -54,7 +54,7 @@ public:
 	virtual ~KFrame();
 };
 
-class RFC_API KDialog : public KWindow
+class KDialog : public KWindow
 {
 public:
 	KDialog();
@@ -62,7 +62,7 @@ public:
 	virtual ~KDialog();
 };
 
-class RFC_API KToolWindow : public KWindow
+class KToolWindow : public KWindow
 {
 public:
 	KToolWindow();

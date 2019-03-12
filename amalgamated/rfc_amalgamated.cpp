@@ -69,6 +69,7 @@ KApplication::~KApplication()
 	  
 */
 
+#include <process.h>
 
 class InternalVariables
 {
@@ -218,7 +219,7 @@ void DoMessagePump(bool handleTabKey)
 	} 
 }
 
-DWORD WINAPI GlobalThread_Proc(LPVOID lpParameter)
+unsigned __stdcall GlobalThread_Proc(void* lpParameter)
 {
 	if(lpParameter == 0) // for safe!
 		return 0;
@@ -233,7 +234,10 @@ bool CreateRFCThread(KThread* thread)
 {
 	if(thread)
 	{
-		HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL); // create thread in suspended state. so we can set the handle field.
+		// create thread in suspended state. so we can set the handle field.
+		HANDLE handle = (HANDLE)::_beginthreadex(NULL, 0, GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL);
+		//HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL);
+
 		if (handle)
 		{
 			thread->SetHandle(handle);
@@ -4138,9 +4142,14 @@ bool KFile::SetFilePointerToStart()
 	return (::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
-bool KFile::SetFilePointerTo(DWORD distance)
+bool KFile::SetFilePointerTo(long distance, DWORD startingPoint)
 {
-	return (::SetFilePointer(fileHandle, distance, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
+	return (::SetFilePointer(fileHandle, distance, NULL, startingPoint) == INVALID_SET_FILE_POINTER) ? false : true;
+}
+
+DWORD KFile::GetFilePointerPosition()
+{
+	return ::SetFilePointer(fileHandle, 0, NULL, FILE_CURRENT);
 }
 
 bool KFile::SetFilePointerToEnd()

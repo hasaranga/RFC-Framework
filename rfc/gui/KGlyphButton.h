@@ -26,7 +26,7 @@
 
 #include "KButton.h"
 
-class RFC_API KGlyphButton : public KButton
+class KGlyphButton : public KButton
 {
 protected:
 	KFont *glyphFont;

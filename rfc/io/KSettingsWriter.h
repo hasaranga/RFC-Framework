@@ -31,7 +31,7 @@
 /**
 	High performance configuration writing class.
 */
-class RFC_API KSettingsWriter
+class KSettingsWriter
 {
 protected:
 	KFile settingsFile;

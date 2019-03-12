@@ -62,7 +62,7 @@
 	}
 	@endcode
 */
-class RFC_API KThread
+class KThread
 {
 protected:
 	HANDLE handle;

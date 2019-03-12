@@ -26,7 +26,7 @@
 
 #include "KCheckBox.h"
 
-class RFC_API KPushButton : public KCheckBox
+class KPushButton : public KCheckBox
 {
 public:
 	KPushButton();

@@ -31,7 +31,7 @@
 /**
 	Can be use to load icon from file or resource.
 */
-class RFC_API KIcon
+class KIcon
 {
 protected:
 	HICON hIcon;

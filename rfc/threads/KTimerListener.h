@@ -28,7 +28,7 @@
 
 class KTimer;
 
-class RFC_API KTimerListener
+class KTimerListener
 {
 public:
 	KTimerListener();

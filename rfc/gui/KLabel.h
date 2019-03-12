@@ -26,7 +26,7 @@
 
 #include "KComponent.h"
 
-class RFC_API KLabel : public KComponent
+class KLabel : public KComponent
 {
 public:
 	KLabel();

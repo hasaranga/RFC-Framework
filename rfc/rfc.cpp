@@ -22,6 +22,7 @@
 */
 
 #include "rfc.h"
+#include <process.h>
 
 class InternalVariables
 {
@@ -171,7 +172,7 @@ void DoMessagePump(bool handleTabKey)
 	} 
 }
 
-DWORD WINAPI GlobalThread_Proc(LPVOID lpParameter)
+unsigned __stdcall GlobalThread_Proc(void* lpParameter)
 {
 	if(lpParameter == 0) // for safe!
 		return 0;
@@ -186,7 +187,10 @@ bool CreateRFCThread(KThread* thread)
 {
 	if(thread)
 	{
-		HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL); // create thread in suspended state. so we can set the handle field.
+		// create thread in suspended state. so we can set the handle field.
+		HANDLE handle = (HANDLE)::_beginthreadex(NULL, 0, GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL);
+		//HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL);
+
 		if (handle)
 		{
 			thread->SetHandle(handle);

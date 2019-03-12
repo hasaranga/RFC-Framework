@@ -29,7 +29,7 @@
 
 class KListBoxListener;
 
-class RFC_API KListBox : public KComponent
+class KListBox : public KComponent
 {
 protected:
 	KPointerList<KString*> *stringList;

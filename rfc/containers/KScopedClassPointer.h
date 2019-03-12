@@ -82,11 +82,16 @@ public:
 		objectToTransferFrom.object = 0;
 	}
 
+	bool IsNull()
+	{
+		return (object == NULL);
+	}
+
 	/** 
 		Removes the current object from this KScopedClassPointer without deleting it.
 		This will return the current object, and set the KScopedClassPointer to a null pointer.
 	*/
-	T* Release()
+	T* Detach()
 	{ 
 		T* o = object; 
 		object = 0; 
@@ -129,7 +134,6 @@ public:
 
 	/** Lets you access methods and properties of the object that this KScopedClassPointer refers to. */
 	inline T* operator->() const { return object; }
-
 };
 
 #endif

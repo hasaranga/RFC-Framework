@@ -27,7 +27,7 @@
 #include "KButton.h"
 #include "KMenu.h"
 
-class RFC_API KMenuButton : public KButton
+class KMenuButton : public KButton
 {
 protected:
 	KFont *arrowFont;

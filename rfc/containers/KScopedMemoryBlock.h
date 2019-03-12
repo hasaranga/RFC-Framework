@@ -64,7 +64,7 @@ private:
 public:
 	inline KScopedMemoryBlock()
 	{
-		memoryBlock = 0;
+		memoryBlock = NULL;
 	}
 
 	inline KScopedMemoryBlock(T memoryBlock)
@@ -75,17 +75,22 @@ public:
 	KScopedMemoryBlock(KScopedMemoryBlock& memoryBlockToTransferFrom)
 	{
 		this->memoryBlock = memoryBlockToTransferFrom.memoryBlock;
-		memoryBlockToTransferFrom.memoryBlock = 0;
+		memoryBlockToTransferFrom.memoryBlock = NULL;
+	}
+
+	bool IsNull()
+	{
+		return (memoryBlock == NULL);
 	}
 
 	/** 
 		Removes the current memory block from this KScopedMemoryBlock without freeing it.
 		This will return the current memory block, and set the KScopedMemoryBlock to a null pointer.
 	*/
-	T Release()
+	T Detach()
 	{ 
 		T m = memoryBlock;
-		memoryBlock = 0;
+		memoryBlock = NULL;
 		return m; 
 	}
 

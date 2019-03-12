@@ -115,14 +115,10 @@ private:
 };
 
 #ifdef _DEBUG
-	#ifdef RFC_DLL
-		#define RFC_LEAK_DETECTOR(Class)
-	#else
-		#define RFC_LEAK_DETECTOR(Class) \
-				friend class KLeakDetector<Class>; \
-				KLeakDetector<Class> rfc_leakDetector; \
-				static const char* rfc_GetLeakedClassName() { return #Class; }
-	#endif
+	#define RFC_LEAK_DETECTOR(Class) \
+			friend class KLeakDetector<Class>; \
+			KLeakDetector<Class> rfc_leakDetector; \
+			static const char* rfc_GetLeakedClassName() { return #Class; }
 #else 
 	#define RFC_LEAK_DETECTOR(Class)
 #endif

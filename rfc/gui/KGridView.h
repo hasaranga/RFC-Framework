@@ -28,7 +28,7 @@
 
 class KGridViewListener;
 
-class RFC_API KGridView : public KComponent
+class KGridView : public KComponent
 {
 protected:
 	int colCount;

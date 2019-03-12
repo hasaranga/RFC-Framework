@@ -37,7 +37,7 @@
 	within multiple threads.
 	(this class is for internal use)
 */
-class RFC_API KPlatformUtil
+class KPlatformUtil
 {
 private:
 	RFC_LEAK_DETECTOR(KPlatformUtil)
