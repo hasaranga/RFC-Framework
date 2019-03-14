@@ -30,6 +30,7 @@ KLogger::KLogger(DWORD bufferSize)
 	this->bufferSize = bufferSize;
 	bufferIndex = 0;
 	totalEvents = 0;
+	totalMills = 0;
 	bufferFull = false;
 	isFirstCall = true;
 }
@@ -54,7 +55,7 @@ bool KLogger::WriteNewEvent(unsigned char eventType)
 			totalMills = 0;
 		}
 		else{
-			double deltaMills = pCounter.EndCounter();
+			const double deltaMills = pCounter.EndCounter();
 			totalMills += (unsigned int)deltaMills;
 
 			secs = (unsigned short)(totalMills/1000);

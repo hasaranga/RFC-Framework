@@ -47,7 +47,7 @@ public:
 
 	static void FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
 
-	static RECT CalculateTextSize(wchar_t *text, HFONT hFont);
+	static RECT CalculateTextSize(const wchar_t *text, HFONT hFont);
 
 private:
 	RFC_LEAK_DETECTOR(KGraphics)

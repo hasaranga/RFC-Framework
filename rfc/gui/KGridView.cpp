@@ -64,15 +64,15 @@ void KGridView::InsertRecord(KString **columnsData)
 	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = itemCount;
 
-	int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
+	const int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvi = { 0 };
-		lvi.iSubItem = i;
-		lvi.pszText = (*columnsData[i]);
+		LV_ITEMW lvItem = { 0 };
+		lvItem.iSubItem = i;
+		lvItem.pszText = (*columnsData[i]);
 
-		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
+		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvItem);
 	}
 
 	++itemCount;
@@ -85,15 +85,15 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = rowIndex;
 
-	int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
+	const int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvi= { 0 };
-		lvi.iSubItem = i;
-		lvi.pszText = (*columnsData[i]);
+		LV_ITEMW lvItem= { 0 };
+		lvItem.iSubItem = i;
+		lvItem.pszText = (*columnsData[i]);
 
-		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
+		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvItem);
 	}
 
 	++itemCount;

@@ -75,7 +75,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 					::AttachRFCPropertiesToHWND(hwnd, InternalVariables::currentComponent);
 
 					// Call the next hook, if there is one
-					LRESULT result = ::CallNextHookEx(InternalVariables::wnd_hook, nCode, wParam, lParam);
+					const LRESULT result = ::CallNextHookEx(InternalVariables::wnd_hook, nCode, wParam, lParam);
 
 					// we subclassed what we created. so remove the hook.
 					::UnhookWindowsHookEx(InternalVariables::wnd_hook); // unhooking at here will allow child creation at WM_CREATE. otherwise this will hook child also!

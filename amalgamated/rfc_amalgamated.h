@@ -17,12 +17,12 @@
 
 #ifdef _WIN64
 	#define RFC64
-	#define PTR_SIZE 8
-	#define NATIVE_INT __int64
+	#define RFC_PTR_SIZE 8
+	#define RFC_NATIVE_INT __int64
 #else
 	#define RFC32
-	#define PTR_SIZE 4
-	#define NATIVE_INT int
+	#define RFC_PTR_SIZE 4
+	#define RFC_NATIVE_INT int
 #endif
 
 
@@ -961,7 +961,7 @@ public:
 	CRITICAL_SECTION* Detach()
 	{ 
 		CRITICAL_SECTION *c = criticalSection;
-		criticalSection = 0;
+		criticalSection = NULL;
 		return c; 
 	}
 
@@ -2043,10 +2043,10 @@ protected:
 	int size;
 	int roomCount;
 	int roomIncrement;
-	void* list;
+	T* list;
 
 	CRITICAL_SECTION criticalSection;
-	bool isThreadSafe;
+	volatile bool isThreadSafe;
 
 public:
 	/**
@@ -2054,18 +2054,16 @@ public:
 		@param roomIncrement initial and reallocation size of internal memory block in DWORDS
 		@param isThreadSafe make all the methods thread-safe
 	*/
-	KPointerList(int roomIncrement = 1024, bool isThreadSafe = false) // 1024*4=4096 = default alignment!
+	KPointerList(const int roomIncrement = 1024, const bool isThreadSafe = false) // 1024*4=4096 = default alignment!
 	{
 		roomCount = roomIncrement;
 		this->roomIncrement = roomIncrement;
 		this->isThreadSafe = isThreadSafe;
 		size = 0;
-		list = ::malloc(roomCount * PTR_SIZE);
+		list = (T*)::malloc(roomCount * RFC_PTR_SIZE);
 		
 		if(isThreadSafe)
-		{
 			::InitializeCriticalSection(&criticalSection);
-		}
 	}
 
 	/**
@@ -2075,42 +2073,38 @@ public:
 	bool AddPointer(T pointer)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection); // thread safe!
-		}
 
 		if(roomCount >= (size + 1) ) // no need reallocation. coz room count is enough!
 		{
-			*(NATIVE_INT*)((NATIVE_INT)list + (size * PTR_SIZE)) = (NATIVE_INT)pointer;
-
+			list[size] = pointer;
 			size++;
+
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return true;
-		}else // require reallocation!
+		}
+		else // require reallocation!
 		{
 			roomCount += roomIncrement;
-			void* retVal = ::realloc(list, roomCount * PTR_SIZE); 
+			void* retVal = ::realloc((void*)list, roomCount * RFC_PTR_SIZE);
 			if(retVal)
 			{
-				list = retVal;
-
-				*(NATIVE_INT*)((NATIVE_INT)list + (size * PTR_SIZE)) = (NATIVE_INT)pointer;
-
+				list = (T*)retVal;
+				list[size] = pointer;
 				size++;
+
 				if(isThreadSafe)
-				{
 					::LeaveCriticalSection(&criticalSection);
-				}
+
 				return true;
-			}else // memory allocation failed!
+			}
+			else // memory allocation failed!
 			{
 				if(isThreadSafe)
-				{
 					::LeaveCriticalSection(&criticalSection);
-				}
+
 				return false;
 			}
 		}
@@ -2120,28 +2114,26 @@ public:
 		Get pointer at id.
 		@returns 0 if id is out of range!
 	*/
-	T GetPointer(int id)
+	T GetPointer(const int id)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
 		if( (0 <= id) & (id < size) ) // checks for valid range!
 		{	
-			T object = (T)(*(NATIVE_INT*)((NATIVE_INT)list + (id * PTR_SIZE)));
+			T object = list[id];
+
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return object;
-		}else // out of range!
+		}
+		else // out of range!
 		{
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
-			return 0;
+
+			return NULL;
 		}
 	}
 
@@ -2158,27 +2150,25 @@ public:
 		Replace pointer of given id with new pointer
 		@returns false if id is out of range!
 	*/
-	bool SetPointer(int id, T pointer)
+	bool SetPointer(const int id, T pointer)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
 		if( (0 <= id) & (id < size) )
-		{			
-			*(NATIVE_INT*)((NATIVE_INT)list + (id * PTR_SIZE)) = (NATIVE_INT)pointer;
+		{	
+			list[id] = pointer;
+
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return true;
-		}else // out of range!
+		}
+		else // out of range!
 		{
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return false;
 		}
 	}
@@ -2187,42 +2177,40 @@ public:
 		Remove pointer of given id
 		@returns false if id is out of range!
 	*/
-	bool RemovePointer(int id)
+	bool RemovePointer(const int id)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
 		if( (0 <= id) & (id < size) )
 		{	
-			int newRoomCount = (((size - 1) / roomIncrement) + 1) * roomIncrement;
-			void* newList = ::malloc(newRoomCount * PTR_SIZE);
+			const int newRoomCount = (((size - 1) / roomIncrement) + 1) * roomIncrement;
+			T* newList = (T*)::malloc(newRoomCount * RFC_PTR_SIZE);
 
-			for(register int i = 0, j = 0; i < size; i++)
+			for(int i = 0, j = 0; i < size; i++)
 			{
 				if(i != id)
 				{
-					*(NATIVE_INT*)((NATIVE_INT)newList + (j*PTR_SIZE)) = *(NATIVE_INT*)((NATIVE_INT)list + (i * PTR_SIZE));
+					newList[j] = list[i];
 					j++;
 				}	
 			}
-			::free(list); // free old list!
+			::free((void*)list); // free old list!
 			list = newList;
 			roomCount = newRoomCount;
 			size--;
+
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return true;
 
-		}else // out of range!
+		}
+		else // out of range!
 		{
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return false;
 		}
 
@@ -2234,19 +2222,15 @@ public:
 	void RemoveAll(bool reallocate = true)// remove all pointers from list!
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
-		::free(list);
+		::free((void*)list);
 		roomCount = roomIncrement;
-		list = reallocate ? ::malloc(roomCount * PTR_SIZE) : 0;
+		list = reallocate ? (T*)::malloc(roomCount * RFC_PTR_SIZE) : NULL;
 		size = 0;
 
 		if(isThreadSafe)
-		{
 			::LeaveCriticalSection(&criticalSection);
-		}
 	}
 
 	/**
@@ -2256,26 +2240,22 @@ public:
 	void DeleteAll(bool reallocate = true)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
 		for(int i = 0; i < size; i++)
 		{
-			T object = (T)(*(NATIVE_INT*)((NATIVE_INT)list + (i * PTR_SIZE)));
+			T object = list[i];
 			delete object;
 		}
 
-		::free(list);
+		::free((void*)list);
 
 		roomCount = roomIncrement;
-		list = reallocate ? ::malloc(roomCount * PTR_SIZE) : 0;
+		list = reallocate ? (T*)::malloc(roomCount * RFC_PTR_SIZE) : NULL;
 		size = 0;
 
 		if(isThreadSafe)
-		{
 			::LeaveCriticalSection(&criticalSection);
-		}
 	}
 
 	/**
@@ -2285,26 +2265,22 @@ public:
 	int GetID(T pointer)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
-		for(register int i = 0; i < size; i++)
+		for(int i = 0; i < size; i++)
 		{
-			if (*(NATIVE_INT*)((NATIVE_INT)list + (i*PTR_SIZE)) == (NATIVE_INT)pointer)
+			if (list[i] == pointer)
 			{
 				if(isThreadSafe)
-				{
 					::LeaveCriticalSection(&criticalSection);
-				}
+
 				return i;
 			}
 		}
 
 		if(isThreadSafe)
-		{
 			::LeaveCriticalSection(&criticalSection);
-		}
+
 		return -1;
 	}
 
@@ -2320,12 +2296,10 @@ public:
 	~KPointerList()
 	{
 		if (list)
-			::free(list);
+			::free((void*)list);
 
 		if(isThreadSafe)
-		{
 			::DeleteCriticalSection(&criticalSection);
-		}
 	}
 
 private:
@@ -2382,7 +2356,7 @@ public:
 
 	static void FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
 
-	static RECT CalculateTextSize(wchar_t *text, HFONT hFont);
+	static RECT CalculateTextSize(const wchar_t *text, HFONT hFont);
 
 private:
 	RFC_LEAK_DETECTOR(KGraphics)
@@ -3229,6 +3203,24 @@ public:
 		@param argc number of arguments
 	*/
 	virtual int Main(KString **argv, int argc);
+
+	/**
+		Return false if your application is single instance only.
+		Single instance applications must implement "GetApplicationID" method.
+	*/
+	virtual bool AllowMultipleInstances();
+
+	/**
+		This method will be called if the application is single instance only and another instance is already running.
+		("Main" method will not be called.)
+	*/
+	virtual int AnotherInstanceIsRunning(KString **argv, int argc);
+
+	/**
+		Unique id of your application which is limited to MAX_PATH characters.
+		Single instance applications must implement this method.
+	*/
+	virtual const wchar_t* GetApplicationID();
 
 	/** 
 		Destructs an Application object.
@@ -5565,31 +5557,57 @@ HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* com
 #define START_RFC_APPLICATION(AppClass) \
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
 { \
-	::InitRFC(hInstance);\
-	int argc = 0;\
-	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc);\
+	::InitRFC(hInstance); \
+	int argc = 0; \
+	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
 	KString **str_argv = (KString**)::malloc(argc * PTR_SIZE); \
-	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);}\
-	AppClass* application = new AppClass();\
-	int retVal = application->Main(str_argv, argc);\
-	delete application;\
-	for(int i = 0; i < argc; i++){delete str_argv[i];}\
-	::DeInitRFC();\
-	::free((void*)str_argv);\
-	::GlobalFree(args);\
-	return retVal;\
+	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);} \
+	AppClass* application = new AppClass(); \
+	int retVal = 0; \
+	if (application->AllowMultipleInstances()){ \
+		retVal = application->Main(str_argv, argc); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
+		}else{ \
+			retVal = application->Main(str_argv, argc); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	delete application; \
+	for(int i = 0; i < argc; i++){delete str_argv[i];} \
+	::DeInitRFC(); \
+	::free((void*)str_argv); \
+	::GlobalFree(args); \
+	return retVal; \
 }
 
 // use this macro if you are not using commandline arguments in your app.
 #define START_RFC_APPLICATION_NO_CMD_ARGS(AppClass) \
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
 { \
-	::InitRFC(hInstance);\
-	AppClass* application = new AppClass();\
-	int retVal = application->Main(0, 0);\
-	delete application;\
-	::DeInitRFC();\
-	return retVal;\
+	::InitRFC(hInstance); \
+	AppClass* application = new AppClass(); \
+	int retVal = 0; \
+	if (application->AllowMultipleInstances()){ \
+		retVal = application->Main(0, 0); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application->AnotherInstanceIsRunning(0, 0); \
+		}else{ \
+			retVal = application->Main(0, 0); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	delete application; \
+	::DeInitRFC(); \
+	return retVal; \
 }
 
 // require to support XP/Vista styles.

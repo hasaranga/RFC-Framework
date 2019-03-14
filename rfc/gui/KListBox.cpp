@@ -81,14 +81,14 @@ void KListBox::RemoveItem(int index)
 
 void KListBox::RemoveItem(const KString& text)
 {
-	int itemIndex = this->GetItemIndex(text);
+	const int itemIndex = this->GetItemIndex(text);
 	if(itemIndex > -1)
 		this->RemoveItem(itemIndex);
 }
 
 int KListBox::GetItemIndex(const KString& text)
 {
-	int listSize = stringList->GetSize();
+	const int listSize = stringList->GetSize();
 	if(listSize)
 	{
 		for(int i = 0; i < listSize; i++)
@@ -109,7 +109,7 @@ int KListBox::GetSelectedItemIndex()
 {
 	if(compHWND)
 	{	 
-		int index = (int)::SendMessageW(compHWND, LB_GETCURSEL, 0, 0);
+		const int index = (int)::SendMessageW(compHWND, LB_GETCURSEL, 0, 0);
 		if(index != LB_ERR)
 			return index;
 	}
@@ -118,7 +118,7 @@ int KListBox::GetSelectedItemIndex()
 
 KString KListBox::GetSelectedItem()
 {
-	int itemIndex = this->GetSelectedItemIndex();
+	const int itemIndex = this->GetSelectedItemIndex();
 	if(itemIndex > -1)
 		return *stringList->GetPointer(itemIndex);
 	return KString();
@@ -128,7 +128,7 @@ int KListBox::GetSelectedItems(int* itemArray, int itemCountInArray)
 {
 	if(compHWND)
 	{	 
-		int items = (int)::SendMessageW(compHWND, LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
+		const int items = (int)::SendMessageW(compHWND, LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
 		if(items != LB_ERR)
 			return items;
 	}
@@ -196,7 +196,7 @@ bool KListBox::CreateComponent(bool requireInitialMessages)
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
-		int listSize = stringList->GetSize();
+		const int listSize = stringList->GetSize();
 		if(listSize)
 		{
 			for(int i = 0; i < listSize; i++)

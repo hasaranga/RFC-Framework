@@ -34,6 +34,21 @@ int KApplication::Main(KString **argv, int argc)
 	return 0;
 }
 
+bool KApplication::AllowMultipleInstances()
+{
+	return true;
+}
+
+int KApplication::AnotherInstanceIsRunning(KString **argv, int argc)
+{
+	return 0;
+}
+
+const wchar_t* KApplication::GetApplicationID()
+{
+	return L"RFC_APPLICATION";
+}
+
 KApplication::~KApplication()
 {
 }

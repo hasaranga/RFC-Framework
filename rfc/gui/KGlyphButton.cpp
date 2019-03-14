@@ -63,12 +63,12 @@ bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *re
 				}
 				else if (CDDS_POSTPAINT == lpNMCD->dwDrawStage) //  postpaint stage
 				{
-					RECT rc = lpNMCD->rc;
-					bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED | CDIS_GRAYED)) != 0;
+					const RECT rc = lpNMCD->rc;
+					const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED | CDIS_GRAYED)) != 0;
 
 					HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, glyphFont->GetFontHandle());
-					COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
-					int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
+					const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
+					const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
 					RECT rcIcon = { rc.left + glyphLeft, rc.top, rc.right, rc.bottom };
 					::DrawTextW(lpNMCD->hdc, glyphChar, 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER); // draw glyph

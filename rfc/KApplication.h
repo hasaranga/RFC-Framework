@@ -75,6 +75,24 @@ public:
 	*/
 	virtual int Main(KString **argv, int argc);
 
+	/**
+		Return false if your application is single instance only.
+		Single instance applications must implement "GetApplicationID" method.
+	*/
+	virtual bool AllowMultipleInstances();
+
+	/**
+		This method will be called if the application is single instance only and another instance is already running.
+		("Main" method will not be called.)
+	*/
+	virtual int AnotherInstanceIsRunning(KString **argv, int argc);
+
+	/**
+		Unique id of your application which is limited to MAX_PATH characters.
+		Single instance applications must implement this method.
+	*/
+	virtual const wchar_t* GetApplicationID();
+
 	/** 
 		Destructs an Application object.
 	*/

@@ -80,7 +80,7 @@ bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 {
 	if( (msg == WM_HSCROLL) || (msg == WM_VSCROLL) )
 	{
-		int nScrollCode = (int)LOWORD(wParam);
+		const int nScrollCode = (int)LOWORD(wParam);
 
 		if( (TB_THUMBTRACK == nScrollCode) || (TB_LINEDOWN == nScrollCode) || (TB_LINEUP == nScrollCode) || 
 			(TB_BOTTOM == nScrollCode) || (TB_TOP == nScrollCode) || (TB_PAGEUP == nScrollCode) || 

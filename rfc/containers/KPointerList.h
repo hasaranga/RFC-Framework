@@ -56,10 +56,10 @@ protected:
 	int size;
 	int roomCount;
 	int roomIncrement;
-	void* list;
+	T* list;
 
 	CRITICAL_SECTION criticalSection;
-	bool isThreadSafe;
+	volatile bool isThreadSafe;
 
 public:
 	/**
@@ -67,18 +67,16 @@ public:
 		@param roomIncrement initial and reallocation size of internal memory block in DWORDS
 		@param isThreadSafe make all the methods thread-safe
 	*/
-	KPointerList(int roomIncrement = 1024, bool isThreadSafe = false) // 1024*4=4096 = default alignment!
+	KPointerList(const int roomIncrement = 1024, const bool isThreadSafe = false) // 1024*4=4096 = default alignment!
 	{
 		roomCount = roomIncrement;
 		this->roomIncrement = roomIncrement;
 		this->isThreadSafe = isThreadSafe;
 		size = 0;
-		list = ::malloc(roomCount * PTR_SIZE);
+		list = (T*)::malloc(roomCount * RFC_PTR_SIZE);
 		
 		if(isThreadSafe)
-		{
 			::InitializeCriticalSection(&criticalSection);
-		}
 	}
 
 	/**
@@ -88,42 +86,38 @@ public:
 	bool AddPointer(T pointer)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection); // thread safe!
-		}
 
 		if(roomCount >= (size + 1) ) // no need reallocation. coz room count is enough!
 		{
-			*(NATIVE_INT*)((NATIVE_INT)list + (size * PTR_SIZE)) = (NATIVE_INT)pointer;
-
+			list[size] = pointer;
 			size++;
+
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return true;
-		}else // require reallocation!
+		}
+		else // require reallocation!
 		{
 			roomCount += roomIncrement;
-			void* retVal = ::realloc(list, roomCount * PTR_SIZE); 
+			void* retVal = ::realloc((void*)list, roomCount * RFC_PTR_SIZE);
 			if(retVal)
 			{
-				list = retVal;
-
-				*(NATIVE_INT*)((NATIVE_INT)list + (size * PTR_SIZE)) = (NATIVE_INT)pointer;
-
+				list = (T*)retVal;
+				list[size] = pointer;
 				size++;
+
 				if(isThreadSafe)
-				{
 					::LeaveCriticalSection(&criticalSection);
-				}
+
 				return true;
-			}else // memory allocation failed!
+			}
+			else // memory allocation failed!
 			{
 				if(isThreadSafe)
-				{
 					::LeaveCriticalSection(&criticalSection);
-				}
+
 				return false;
 			}
 		}
@@ -133,28 +127,26 @@ public:
 		Get pointer at id.
 		@returns 0 if id is out of range!
 	*/
-	T GetPointer(int id)
+	T GetPointer(const int id)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
 		if( (0 <= id) & (id < size) ) // checks for valid range!
 		{	
-			T object = (T)(*(NATIVE_INT*)((NATIVE_INT)list + (id * PTR_SIZE)));
+			T object = list[id];
+
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return object;
-		}else // out of range!
+		}
+		else // out of range!
 		{
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
-			return 0;
+
+			return NULL;
 		}
 	}
 
@@ -171,27 +163,25 @@ public:
 		Replace pointer of given id with new pointer
 		@returns false if id is out of range!
 	*/
-	bool SetPointer(int id, T pointer)
+	bool SetPointer(const int id, T pointer)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
 		if( (0 <= id) & (id < size) )
-		{			
-			*(NATIVE_INT*)((NATIVE_INT)list + (id * PTR_SIZE)) = (NATIVE_INT)pointer;
+		{	
+			list[id] = pointer;
+
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return true;
-		}else // out of range!
+		}
+		else // out of range!
 		{
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return false;
 		}
 	}
@@ -200,42 +190,40 @@ public:
 		Remove pointer of given id
 		@returns false if id is out of range!
 	*/
-	bool RemovePointer(int id)
+	bool RemovePointer(const int id)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
 		if( (0 <= id) & (id < size) )
 		{	
-			int newRoomCount = (((size - 1) / roomIncrement) + 1) * roomIncrement;
-			void* newList = ::malloc(newRoomCount * PTR_SIZE);
+			const int newRoomCount = (((size - 1) / roomIncrement) + 1) * roomIncrement;
+			T* newList = (T*)::malloc(newRoomCount * RFC_PTR_SIZE);
 
-			for(register int i = 0, j = 0; i < size; i++)
+			for(int i = 0, j = 0; i < size; i++)
 			{
 				if(i != id)
 				{
-					*(NATIVE_INT*)((NATIVE_INT)newList + (j*PTR_SIZE)) = *(NATIVE_INT*)((NATIVE_INT)list + (i * PTR_SIZE));
+					newList[j] = list[i];
 					j++;
 				}	
 			}
-			::free(list); // free old list!
+			::free((void*)list); // free old list!
 			list = newList;
 			roomCount = newRoomCount;
 			size--;
+
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return true;
 
-		}else // out of range!
+		}
+		else // out of range!
 		{
 			if(isThreadSafe)
-			{
 				::LeaveCriticalSection(&criticalSection);
-			}
+
 			return false;
 		}
 
@@ -247,19 +235,15 @@ public:
 	void RemoveAll(bool reallocate = true)// remove all pointers from list!
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
-		::free(list);
+		::free((void*)list);
 		roomCount = roomIncrement;
-		list = reallocate ? ::malloc(roomCount * PTR_SIZE) : 0;
+		list = reallocate ? (T*)::malloc(roomCount * RFC_PTR_SIZE) : NULL;
 		size = 0;
 
 		if(isThreadSafe)
-		{
 			::LeaveCriticalSection(&criticalSection);
-		}
 	}
 
 	/**
@@ -269,26 +253,22 @@ public:
 	void DeleteAll(bool reallocate = true)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
 		for(int i = 0; i < size; i++)
 		{
-			T object = (T)(*(NATIVE_INT*)((NATIVE_INT)list + (i * PTR_SIZE)));
+			T object = list[i];
 			delete object;
 		}
 
-		::free(list);
+		::free((void*)list);
 
 		roomCount = roomIncrement;
-		list = reallocate ? ::malloc(roomCount * PTR_SIZE) : 0;
+		list = reallocate ? (T*)::malloc(roomCount * RFC_PTR_SIZE) : NULL;
 		size = 0;
 
 		if(isThreadSafe)
-		{
 			::LeaveCriticalSection(&criticalSection);
-		}
 	}
 
 	/**
@@ -298,26 +278,22 @@ public:
 	int GetID(T pointer)
 	{
 		if(isThreadSafe)
-		{
 			::EnterCriticalSection(&criticalSection);
-		}
 
-		for(register int i = 0; i < size; i++)
+		for(int i = 0; i < size; i++)
 		{
-			if (*(NATIVE_INT*)((NATIVE_INT)list + (i*PTR_SIZE)) == (NATIVE_INT)pointer)
+			if (list[i] == pointer)
 			{
 				if(isThreadSafe)
-				{
 					::LeaveCriticalSection(&criticalSection);
-				}
+
 				return i;
 			}
 		}
 
 		if(isThreadSafe)
-		{
 			::LeaveCriticalSection(&criticalSection);
-		}
+
 		return -1;
 	}
 
@@ -333,12 +309,10 @@ public:
 	~KPointerList()
 	{
 		if (list)
-			::free(list);
+			::free((void*)list);
 
 		if(isThreadSafe)
-		{
 			::DeleteCriticalSection(&criticalSection);
-		}
 	}
 
 private:

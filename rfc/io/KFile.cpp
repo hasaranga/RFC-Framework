@@ -106,18 +106,18 @@ bool KFile::SetFilePointerToEnd()
 
 DWORD KFile::GetFileSize()
 {
-	DWORD fileSize = ::GetFileSize(fileHandle, NULL);
+	const DWORD fileSize = ::GetFileSize(fileHandle, NULL);
 	return (fileSize == INVALID_FILE_SIZE) ? 0 : fileSize;
 }
 
 void* KFile::ReadAsData()
 {
-	DWORD fileSize = this->GetFileSize();
+	const DWORD fileSize = this->GetFileSize();
 
 	if (fileSize)
 	{
 		void* buffer = (void*)::malloc(fileSize);
-		DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
+		const DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
 			return buffer;
@@ -131,9 +131,9 @@ void* KFile::ReadAsData()
 bool KFile::WriteString(const KString& text, bool isUnicode)
 {
 	void* buffer = isUnicode ? (void*)(const wchar_t*)text : (void*)(const char*)text;
-	DWORD numberOfBytesToWrite = text.GetLength() * ( isUnicode ? sizeof(wchar_t) : sizeof(char) );
+	const DWORD numberOfBytesToWrite = text.GetLength() * ( isUnicode ? sizeof(wchar_t) : sizeof(char) );
 
-	DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
+	const DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
 
 	return (numberOfBytesWritten == numberOfBytesToWrite);
 }
@@ -145,7 +145,7 @@ KString KFile::ReadAsString(bool isUnicode)
 	if (fileSize)
 	{
 		char* buffer = (char*)::malloc(fileSize + 1); // +1 is for null
-		DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
+		const DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
 		{
@@ -180,7 +180,7 @@ bool KFile::CopyFile(const KString& sourceFileName, const KString& destFileName)
 
 bool KFile::IsFileExists(const KString& fileName)
 {
-	DWORD dwAttrib = ::GetFileAttributesW(fileName);
+	const DWORD dwAttrib = ::GetFileAttributesW(fileName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }

@@ -232,7 +232,7 @@ const KString& KString::operator= (const wchar_t* const other)
 
 	if (other != 0)
 	{
-		int count = (int)::wcslen(other);
+		const int count = (int)::wcslen(other);
 		if (count)
 		{
 			stringHolder = new KStringHolder(::_wcsdup(other), count);
@@ -327,7 +327,7 @@ KString KString::Append(const KString& otherString)const
 	{
 		if (!this->isZeroLength)
 		{
-			int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + (otherString.isStaticText ? otherString.staticTextLength : otherString.stringHolder->count);
+			const int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + (otherString.isStaticText ? otherString.staticTextLength : otherString.stringHolder->count);
 			wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
 
 			::wcscpy(destText, isStaticText ? staticText : stringHolder->w_text);
@@ -350,7 +350,7 @@ KString KString::AppendStaticText(const wchar_t* const text, int length, bool ap
 {
 	if (!this->isZeroLength)
 	{
-		int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + length;
+		const int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + length;
 		wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
 
 		::wcscpy(destText, appendToEnd ? (isStaticText ? staticText : stringHolder->w_text) : text);
@@ -378,7 +378,7 @@ void KString::AssignStaticText(const wchar_t* const text, int length)
 
 KString KString::SubString(int start, int end)const
 {
-	int count = this->GetLength();
+	const int count = this->GetLength();
 
 	if ((0 <= start) && (start <= (count - 1)))
 	{
@@ -466,7 +466,7 @@ bool KString::IsQuotedString()const
 
 wchar_t KString::GetCharAt(int index)const
 {
-	int count = this->GetLength();
+	const int count = this->GetLength();
 
 	if ((0 <= index) && (index <= (count - 1)))
 		return (isStaticText ? staticText[index] : stringHolder->w_text[index]);

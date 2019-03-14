@@ -58,13 +58,13 @@ void KGraphics::FillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF co
 
 void KGraphics::FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
 {
-	COLORREF clrOld = ::SetBkColor(hdc, color);
+	const COLORREF clrOld = ::SetBkColor(hdc, color);
 
 	::ExtTextOut(hdc, 0, 0, ETO_OPAQUE, lpRect, NULL, 0, NULL);
 	::SetBkColor(hdc, clrOld);
 }
 
-RECT KGraphics::CalculateTextSize(wchar_t *text, HFONT hFont)
+RECT KGraphics::CalculateTextSize(const wchar_t *text, HFONT hFont)
 {
 	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
 	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);

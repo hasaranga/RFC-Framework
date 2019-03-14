@@ -134,31 +134,57 @@ HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* com
 #define START_RFC_APPLICATION(AppClass) \
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
 { \
-	::InitRFC(hInstance);\
-	int argc = 0;\
-	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc);\
+	::InitRFC(hInstance); \
+	int argc = 0; \
+	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
 	KString **str_argv = (KString**)::malloc(argc * PTR_SIZE); \
-	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);}\
-	AppClass* application = new AppClass();\
-	int retVal = application->Main(str_argv, argc);\
-	delete application;\
-	for(int i = 0; i < argc; i++){delete str_argv[i];}\
-	::DeInitRFC();\
-	::free((void*)str_argv);\
-	::GlobalFree(args);\
-	return retVal;\
+	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);} \
+	AppClass* application = new AppClass(); \
+	int retVal = 0; \
+	if (application->AllowMultipleInstances()){ \
+		retVal = application->Main(str_argv, argc); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
+		}else{ \
+			retVal = application->Main(str_argv, argc); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	delete application; \
+	for(int i = 0; i < argc; i++){delete str_argv[i];} \
+	::DeInitRFC(); \
+	::free((void*)str_argv); \
+	::GlobalFree(args); \
+	return retVal; \
 }
 
 // use this macro if you are not using commandline arguments in your app.
 #define START_RFC_APPLICATION_NO_CMD_ARGS(AppClass) \
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
 { \
-	::InitRFC(hInstance);\
-	AppClass* application = new AppClass();\
-	int retVal = application->Main(0, 0);\
-	delete application;\
-	::DeInitRFC();\
-	return retVal;\
+	::InitRFC(hInstance); \
+	AppClass* application = new AppClass(); \
+	int retVal = 0; \
+	if (application->AllowMultipleInstances()){ \
+		retVal = application->Main(0, 0); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application->AnotherInstanceIsRunning(0, 0); \
+		}else{ \
+			retVal = application->Main(0, 0); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	delete application; \
+	::DeInitRFC(); \
+	return retVal; \
 }
 
 // require to support XP/Vista styles.

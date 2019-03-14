@@ -30,7 +30,7 @@ KDirectory::~KDirectory(){}
 
 bool KDirectory::IsDirExists(const KString& dirName)
 {
-	DWORD dwAttrib = ::GetFileAttributesW(dirName);
+	const DWORD dwAttrib = ::GetFileAttributesW(dirName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }

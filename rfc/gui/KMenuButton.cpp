@@ -80,14 +80,14 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 			}
 			else if ( CDDS_POSTPAINT== lpNMCD->dwDrawStage ) //  postpaint stage
 			{
-				RECT rc = lpNMCD->rc;
+				const RECT rc = lpNMCD->rc;
 				KGraphics::Draw3dVLine(lpNMCD->hdc, rc.right - 22, rc.top + 6, rc.bottom - 12); // draw line
 
-				bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED|CDIS_GRAYED)) != 0;
+				const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED|CDIS_GRAYED)) != 0;
 
 				HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, arrowFont->GetFontHandle());
-				COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, ::GetSysColor(bDisabled ? COLOR_GRAYTEXT : COLOR_BTNTEXT));
-				int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
+				const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, ::GetSysColor(bDisabled ? COLOR_GRAYTEXT : COLOR_BTNTEXT));
+				const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
 				RECT rcIcon = { rc.right - 18, rc.top, rc.right, rc.bottom };
 				::DrawTextW(lpNMCD->hdc, L"\x36", 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER); // draw arrow

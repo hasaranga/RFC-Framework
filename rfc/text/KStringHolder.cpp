@@ -50,7 +50,7 @@ void KStringHolder::AddReference()
 
 void KStringHolder::ReleaseReference()
 {
-	LONG res = ::InterlockedDecrement(&refCount);
+	const LONG res = ::InterlockedDecrement(&refCount);
 	if(res == 0)
 	{
 		if(a_text)
@@ -77,7 +77,7 @@ const char* KStringHolder::GetAnsiVersion(UINT codePage)
 		return a_text;
 	}else
 	{
-		int length = ::WideCharToMultiByte(codePage, 0, w_text, -1, 0, 0, 0, 0);
+		const int length = ::WideCharToMultiByte(codePage, 0, w_text, -1, 0, 0, 0, 0);
 		if (length)
 		{
 			a_text = (char*)::malloc(length);

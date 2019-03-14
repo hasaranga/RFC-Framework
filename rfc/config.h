@@ -4,12 +4,12 @@
 
 #ifdef _WIN64
 	#define RFC64
-	#define PTR_SIZE 8
-	#define NATIVE_INT __int64
+	#define RFC_PTR_SIZE 8
+	#define RFC_NATIVE_INT __int64
 #else
 	#define RFC32
-	#define PTR_SIZE 4
-	#define NATIVE_INT int
+	#define RFC_PTR_SIZE 4
+	#define RFC_NATIVE_INT int
 #endif
 
 

@@ -41,6 +41,21 @@ int KApplication::Main(KString **argv, int argc)
 	return 0;
 }
 
+bool KApplication::AllowMultipleInstances()
+{
+	return true;
+}
+
+int KApplication::AnotherInstanceIsRunning(KString **argv, int argc)
+{
+	return 0;
+}
+
+const wchar_t* KApplication::GetApplicationID()
+{
+	return L"RFC_APPLICATION";
+}
+
 KApplication::~KApplication()
 {
 }
@@ -122,7 +137,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode,WPARAM wParam,LPARAM lParam)
 					::AttachRFCPropertiesToHWND(hwnd, InternalVariables::currentComponent);
 
 					// Call the next hook, if there is one
-					LRESULT result = ::CallNextHookEx(InternalVariables::wnd_hook, nCode, wParam, lParam);
+					const LRESULT result = ::CallNextHookEx(InternalVariables::wnd_hook, nCode, wParam, lParam);
 
 					// we subclassed what we created. so remove the hook.
 					::UnhookWindowsHookEx(InternalVariables::wnd_hook); // unhooking at here will allow child creation at WM_CREATE. otherwise this will hook child also!
@@ -866,13 +881,13 @@ void KGraphics::FillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF co
 
 void KGraphics::FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
 {
-	COLORREF clrOld = ::SetBkColor(hdc, color);
+	const COLORREF clrOld = ::SetBkColor(hdc, color);
 
 	::ExtTextOut(hdc, 0, 0, ETO_OPAQUE, lpRect, NULL, 0, NULL);
 	::SetBkColor(hdc, clrOld);
 }
 
-RECT KGraphics::CalculateTextSize(wchar_t *text, HFONT hFont)
+RECT KGraphics::CalculateTextSize(const wchar_t *text, HFONT hFont)
 {
 	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
 	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
@@ -1223,14 +1238,14 @@ void KComboBox::RemoveItem(int index)
 
 void KComboBox::RemoveItem(const KString& text)
 {
-	int itemIndex = this->GetItemIndex(text);
+	const int itemIndex = this->GetItemIndex(text);
 	if(itemIndex > -1)
 		this->RemoveItem(itemIndex);
 }
 
 int KComboBox::GetItemIndex(const KString& text)
 {
-	int listSize = stringList->GetSize();
+	const int listSize = stringList->GetSize();
 	if(listSize)
 	{
 		for(int i = 0; i < listSize; i++)
@@ -1251,7 +1266,7 @@ int KComboBox::GetSelectedItemIndex()
 {
 	if(compHWND)
 	{	 
-		int index = (int)::SendMessageW(compHWND, CB_GETCURSEL, 0, 0);
+		const int index = (int)::SendMessageW(compHWND, CB_GETCURSEL, 0, 0);
 		if(index != CB_ERR)
 			return index;
 	}
@@ -1260,7 +1275,7 @@ int KComboBox::GetSelectedItemIndex()
 
 KString KComboBox::GetSelectedItem()
 {
-	int itemIndex = this->GetSelectedItemIndex();
+	const int itemIndex = this->GetSelectedItemIndex();
 	if(itemIndex > -1)
 		return *stringList->GetPointer(itemIndex);
 	return KString();
@@ -1305,7 +1320,7 @@ bool KComboBox::CreateComponent(bool requireInitialMessages)
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
-		int listSize = stringList->GetSize();
+		const int listSize = stringList->GetSize();
 		if(listSize)
 		{
 			for(int i = 0; i < listSize; i++)
@@ -1856,12 +1871,12 @@ bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *re
 				}
 				else if (CDDS_POSTPAINT == lpNMCD->dwDrawStage) //  postpaint stage
 				{
-					RECT rc = lpNMCD->rc;
-					bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED | CDIS_GRAYED)) != 0;
+					const RECT rc = lpNMCD->rc;
+					const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED | CDIS_GRAYED)) != 0;
 
 					HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, glyphFont->GetFontHandle());
-					COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
-					int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
+					const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
+					const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
 					RECT rcIcon = { rc.left + glyphLeft, rc.top, rc.right, rc.bottom };
 					::DrawTextW(lpNMCD->hdc, glyphChar, 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER); // draw glyph
@@ -1946,15 +1961,15 @@ void KGridView::InsertRecord(KString **columnsData)
 	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = itemCount;
 
-	int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
+	const int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvi = { 0 };
-		lvi.iSubItem = i;
-		lvi.pszText = (*columnsData[i]);
+		LV_ITEMW lvItem = { 0 };
+		lvItem.iSubItem = i;
+		lvItem.pszText = (*columnsData[i]);
 
-		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
+		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvItem);
 	}
 
 	++itemCount;
@@ -1967,15 +1982,15 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = rowIndex;
 
-	int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
+	const int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvi= { 0 };
-		lvi.iSubItem = i;
-		lvi.pszText = (*columnsData[i]);
+		LV_ITEMW lvItem= { 0 };
+		lvItem.iSubItem = i;
+		lvItem.pszText = (*columnsData[i]);
 
-		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvi);
+		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvItem);
 	}
 
 	++itemCount;
@@ -2337,14 +2352,14 @@ void KListBox::RemoveItem(int index)
 
 void KListBox::RemoveItem(const KString& text)
 {
-	int itemIndex = this->GetItemIndex(text);
+	const int itemIndex = this->GetItemIndex(text);
 	if(itemIndex > -1)
 		this->RemoveItem(itemIndex);
 }
 
 int KListBox::GetItemIndex(const KString& text)
 {
-	int listSize = stringList->GetSize();
+	const int listSize = stringList->GetSize();
 	if(listSize)
 	{
 		for(int i = 0; i < listSize; i++)
@@ -2365,7 +2380,7 @@ int KListBox::GetSelectedItemIndex()
 {
 	if(compHWND)
 	{	 
-		int index = (int)::SendMessageW(compHWND, LB_GETCURSEL, 0, 0);
+		const int index = (int)::SendMessageW(compHWND, LB_GETCURSEL, 0, 0);
 		if(index != LB_ERR)
 			return index;
 	}
@@ -2374,7 +2389,7 @@ int KListBox::GetSelectedItemIndex()
 
 KString KListBox::GetSelectedItem()
 {
-	int itemIndex = this->GetSelectedItemIndex();
+	const int itemIndex = this->GetSelectedItemIndex();
 	if(itemIndex > -1)
 		return *stringList->GetPointer(itemIndex);
 	return KString();
@@ -2384,7 +2399,7 @@ int KListBox::GetSelectedItems(int* itemArray, int itemCountInArray)
 {
 	if(compHWND)
 	{	 
-		int items = (int)::SendMessageW(compHWND, LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
+		const int items = (int)::SendMessageW(compHWND, LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
 		if(items != LB_ERR)
 			return items;
 	}
@@ -2452,7 +2467,7 @@ bool KListBox::CreateComponent(bool requireInitialMessages)
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
-		int listSize = stringList->GetSize();
+		const int listSize = stringList->GetSize();
 		if(listSize)
 		{
 			for(int i = 0; i < listSize; i++)
@@ -2730,14 +2745,14 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 			}
 			else if ( CDDS_POSTPAINT== lpNMCD->dwDrawStage ) //  postpaint stage
 			{
-				RECT rc = lpNMCD->rc;
+				const RECT rc = lpNMCD->rc;
 				KGraphics::Draw3dVLine(lpNMCD->hdc, rc.right - 22, rc.top + 6, rc.bottom - 12); // draw line
 
-				bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED|CDIS_GRAYED)) != 0;
+				const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED|CDIS_GRAYED)) != 0;
 
 				HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, arrowFont->GetFontHandle());
-				COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, ::GetSysColor(bDisabled ? COLOR_GRAYTEXT : COLOR_BTNTEXT));
-				int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
+				const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, ::GetSysColor(bDisabled ? COLOR_GRAYTEXT : COLOR_BTNTEXT));
+				const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
 				RECT rcIcon = { rc.right - 18, rc.top, rc.right, rc.bottom };
 				::DrawTextW(lpNMCD->hdc, L"\x36", 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER); // draw arrow
@@ -3290,10 +3305,10 @@ KString KTextBox::GetText()
 {
 	if(compHWND)
 	{
-		int length = ::GetWindowTextLengthW(compHWND);
+		const int length = ::GetWindowTextLengthW(compHWND);
 		if(length)
 		{
-			int size = (length + 1) * sizeof(wchar_t);
+			const int size = (length + 1) * sizeof(wchar_t);
 			wchar_t *text = (wchar_t*)::malloc(size);
 			text[0] = 0;
 			::GetWindowTextW(compHWND, text, size);
@@ -3496,7 +3511,7 @@ bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 {
 	if( (msg == WM_HSCROLL) || (msg == WM_VSCROLL) )
 	{
-		int nScrollCode = (int)LOWORD(wParam);
+		const int nScrollCode = (int)LOWORD(wParam);
 
 		if( (TB_THUMBTRACK == nScrollCode) || (TB_LINEDOWN == nScrollCode) || (TB_LINEUP == nScrollCode) || 
 			(TB_BOTTOM == nScrollCode) || (TB_TOP == nScrollCode) || (TB_PAGEUP == nScrollCode) || 
@@ -4002,7 +4017,7 @@ KDirectory::~KDirectory(){}
 
 bool KDirectory::IsDirExists(const KString& dirName)
 {
-	DWORD dwAttrib = ::GetFileAttributesW(dirName);
+	const DWORD dwAttrib = ::GetFileAttributesW(dirName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
@@ -4159,18 +4174,18 @@ bool KFile::SetFilePointerToEnd()
 
 DWORD KFile::GetFileSize()
 {
-	DWORD fileSize = ::GetFileSize(fileHandle, NULL);
+	const DWORD fileSize = ::GetFileSize(fileHandle, NULL);
 	return (fileSize == INVALID_FILE_SIZE) ? 0 : fileSize;
 }
 
 void* KFile::ReadAsData()
 {
-	DWORD fileSize = this->GetFileSize();
+	const DWORD fileSize = this->GetFileSize();
 
 	if (fileSize)
 	{
 		void* buffer = (void*)::malloc(fileSize);
-		DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
+		const DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
 			return buffer;
@@ -4184,9 +4199,9 @@ void* KFile::ReadAsData()
 bool KFile::WriteString(const KString& text, bool isUnicode)
 {
 	void* buffer = isUnicode ? (void*)(const wchar_t*)text : (void*)(const char*)text;
-	DWORD numberOfBytesToWrite = text.GetLength() * ( isUnicode ? sizeof(wchar_t) : sizeof(char) );
+	const DWORD numberOfBytesToWrite = text.GetLength() * ( isUnicode ? sizeof(wchar_t) : sizeof(char) );
 
-	DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
+	const DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
 
 	return (numberOfBytesWritten == numberOfBytesToWrite);
 }
@@ -4198,7 +4213,7 @@ KString KFile::ReadAsString(bool isUnicode)
 	if (fileSize)
 	{
 		char* buffer = (char*)::malloc(fileSize + 1); // +1 is for null
-		DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
+		const DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
 		{
@@ -4233,7 +4248,7 @@ bool KFile::CopyFile(const KString& sourceFileName, const KString& destFileName)
 
 bool KFile::IsFileExists(const KString& fileName)
 {
-	DWORD dwAttrib = ::GetFileAttributesW(fileName);
+	const DWORD dwAttrib = ::GetFileAttributesW(fileName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
@@ -4275,6 +4290,7 @@ KLogger::KLogger(DWORD bufferSize)
 	this->bufferSize = bufferSize;
 	bufferIndex = 0;
 	totalEvents = 0;
+	totalMills = 0;
 	bufferFull = false;
 	isFirstCall = true;
 }
@@ -4299,7 +4315,7 @@ bool KLogger::WriteNewEvent(unsigned char eventType)
 			totalMills = 0;
 		}
 		else{
-			double deltaMills = pCounter.EndCounter();
+			const double deltaMills = pCounter.EndCounter();
 			totalMills += (unsigned int)deltaMills;
 
 			secs = (unsigned short)(totalMills/1000);
@@ -4699,7 +4715,7 @@ KString KMD5::GenerateFromFile(const KString& fileName)
 	KFile file;
 	file.OpenFile(fileName, KFile::KREAD, false);
 
-	DWORD fileSize = file.GetFileSize();
+	const DWORD fileSize = file.GetFileSize();
 	file.CloseFile();
 
 	if (fileSize==0) // empty file
@@ -4773,7 +4789,7 @@ KString KSHA1::GenerateFromFile(const KString& fileName)
 	KFile file;
 	file.OpenFile(fileName, KFile::KREAD, false);
 
-	DWORD fileSize = file.GetFileSize();
+	const DWORD fileSize = file.GetFileSize();
 	file.CloseFile();
 
 	if (fileSize == 0) // empty file
@@ -5029,7 +5045,7 @@ const KString& KString::operator= (const wchar_t* const other)
 
 	if (other != 0)
 	{
-		int count = (int)::wcslen(other);
+		const int count = (int)::wcslen(other);
 		if (count)
 		{
 			stringHolder = new KStringHolder(::_wcsdup(other), count);
@@ -5124,7 +5140,7 @@ KString KString::Append(const KString& otherString)const
 	{
 		if (!this->isZeroLength)
 		{
-			int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + (otherString.isStaticText ? otherString.staticTextLength : otherString.stringHolder->count);
+			const int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + (otherString.isStaticText ? otherString.staticTextLength : otherString.stringHolder->count);
 			wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
 
 			::wcscpy(destText, isStaticText ? staticText : stringHolder->w_text);
@@ -5147,7 +5163,7 @@ KString KString::AppendStaticText(const wchar_t* const text, int length, bool ap
 {
 	if (!this->isZeroLength)
 	{
-		int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + length;
+		const int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + length;
 		wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
 
 		::wcscpy(destText, appendToEnd ? (isStaticText ? staticText : stringHolder->w_text) : text);
@@ -5175,7 +5191,7 @@ void KString::AssignStaticText(const wchar_t* const text, int length)
 
 KString KString::SubString(int start, int end)const
 {
-	int count = this->GetLength();
+	const int count = this->GetLength();
 
 	if ((0 <= start) && (start <= (count - 1)))
 	{
@@ -5263,7 +5279,7 @@ bool KString::IsQuotedString()const
 
 wchar_t KString::GetCharAt(int index)const
 {
-	int count = this->GetLength();
+	const int count = this->GetLength();
 
 	if ((0 <= index) && (index <= (count - 1)))
 		return (isStaticText ? staticText[index] : stringHolder->w_text[index]);
@@ -5352,7 +5368,7 @@ void KStringHolder::AddReference()
 
 void KStringHolder::ReleaseReference()
 {
-	LONG res = ::InterlockedDecrement(&refCount);
+	const LONG res = ::InterlockedDecrement(&refCount);
 	if(res == 0)
 	{
 		if(a_text)
@@ -5379,7 +5395,7 @@ const char* KStringHolder::GetAnsiVersion(UINT codePage)
 		return a_text;
 	}else
 	{
-		int length = ::WideCharToMultiByte(codePage, 0, w_text, -1, 0, 0, 0, 0);
+		const int length = ::WideCharToMultiByte(codePage, 0, w_text, -1, 0, 0, 0, 0);
 		if (length)
 		{
 			a_text = (char*)::malloc(length);
@@ -5999,8 +6015,8 @@ bool KRegistry::WriteString(HKEY hKeyRoot, const KString& subKey, const KString&
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return false;
 
-	int bCount = (value.GetLength() * sizeof(wchar_t)) + 1; // +1 for ending null
-	LONG ret = ::RegSetValueExW(hkey, valueName, 0, REG_SZ, (LPBYTE)(const wchar_t*)value, bCount);
+	const int bCount = (value.GetLength() * sizeof(wchar_t)) + 1; // +1 for ending null
+	const LONG ret = ::RegSetValueExW(hkey, valueName, 0, REG_SZ, (LPBYTE)(const wchar_t*)value, bCount);
 	::RegCloseKey(hkey);
 
 	if (ret == ERROR_SUCCESS)
@@ -6016,7 +6032,7 @@ bool KRegistry::ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& v
 	{
 		DWORD dwType = REG_DWORD;
 		DWORD dwSize = sizeof(DWORD);
-		LONG ret = ::RegQueryValueExW(hkey, valueName, NULL, &dwType, (LPBYTE)result, &dwSize);
+		const LONG ret = ::RegQueryValueExW(hkey, valueName, NULL, &dwType, (LPBYTE)result, &dwSize);
 		::RegCloseKey(hkey);
 
 		if (ret == ERROR_SUCCESS)
@@ -6031,8 +6047,8 @@ bool KRegistry::WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& 
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return false;
 
-	DWORD dwSize = sizeof(DWORD);
-	LONG ret = ::RegSetValueExW(hkey, valueName, 0, REG_DWORD, (LPBYTE)&value, dwSize);
+	const DWORD dwSize = sizeof(DWORD);
+	const LONG ret = ::RegSetValueExW(hkey, valueName, 0, REG_DWORD, (LPBYTE)&value, dwSize);
 	::RegCloseKey(hkey);
 
 	if (ret == ERROR_SUCCESS)
@@ -6077,7 +6093,7 @@ bool KRegistry::WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString&
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return false;
 
-	LONG ret = ::RegSetValueExW(hkey, valueName, 0, REG_BINARY, (LPBYTE)buffer, buffSize);
+	const LONG ret = ::RegSetValueExW(hkey, valueName, 0, REG_BINARY, (LPBYTE)buffer, buffSize);
 	::RegCloseKey(hkey);
 
 	if (ret == ERROR_SUCCESS)

@@ -52,7 +52,7 @@ KString KMD5::GenerateFromFile(const KString& fileName)
 	KFile file;
 	file.OpenFile(fileName, KFile::KREAD, false);
 
-	DWORD fileSize = file.GetFileSize();
+	const DWORD fileSize = file.GetFileSize();
 	file.CloseFile();
 
 	if (fileSize==0) // empty file

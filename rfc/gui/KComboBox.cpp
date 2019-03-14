@@ -71,14 +71,14 @@ void KComboBox::RemoveItem(int index)
 
 void KComboBox::RemoveItem(const KString& text)
 {
-	int itemIndex = this->GetItemIndex(text);
+	const int itemIndex = this->GetItemIndex(text);
 	if(itemIndex > -1)
 		this->RemoveItem(itemIndex);
 }
 
 int KComboBox::GetItemIndex(const KString& text)
 {
-	int listSize = stringList->GetSize();
+	const int listSize = stringList->GetSize();
 	if(listSize)
 	{
 		for(int i = 0; i < listSize; i++)
@@ -99,7 +99,7 @@ int KComboBox::GetSelectedItemIndex()
 {
 	if(compHWND)
 	{	 
-		int index = (int)::SendMessageW(compHWND, CB_GETCURSEL, 0, 0);
+		const int index = (int)::SendMessageW(compHWND, CB_GETCURSEL, 0, 0);
 		if(index != CB_ERR)
 			return index;
 	}
@@ -108,7 +108,7 @@ int KComboBox::GetSelectedItemIndex()
 
 KString KComboBox::GetSelectedItem()
 {
-	int itemIndex = this->GetSelectedItemIndex();
+	const int itemIndex = this->GetSelectedItemIndex();
 	if(itemIndex > -1)
 		return *stringList->GetPointer(itemIndex);
 	return KString();
@@ -153,7 +153,7 @@ bool KComboBox::CreateComponent(bool requireInitialMessages)
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
-		int listSize = stringList->GetSize();
+		const int listSize = stringList->GetSize();
 		if(listSize)
 		{
 			for(int i = 0; i < listSize; i++)

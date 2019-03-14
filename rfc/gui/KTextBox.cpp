@@ -46,10 +46,10 @@ KString KTextBox::GetText()
 {
 	if(compHWND)
 	{
-		int length = ::GetWindowTextLengthW(compHWND);
+		const int length = ::GetWindowTextLengthW(compHWND);
 		if(length)
 		{
-			int size = (length + 1) * sizeof(wchar_t);
+			const int size = (length + 1) * sizeof(wchar_t);
 			wchar_t *text = (wchar_t*)::malloc(size);
 			text[0] = 0;
 			::GetWindowTextW(compHWND, text, size);

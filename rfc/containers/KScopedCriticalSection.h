@@ -52,7 +52,7 @@ public:
 	CRITICAL_SECTION* Detach()
 	{ 
 		CRITICAL_SECTION *c = criticalSection;
-		criticalSection = 0;
+		criticalSection = NULL;
 		return c; 
 	}
 
