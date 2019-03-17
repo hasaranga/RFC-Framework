@@ -137,7 +137,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	::InitRFC(hInstance); \
 	int argc = 0; \
 	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
-	KString **str_argv = (KString**)::malloc(argc * PTR_SIZE); \
+	KString **str_argv = (KString**)::malloc(argc * RFC_PTR_SIZE); \
 	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);} \
 	AppClass* application = new AppClass(); \
 	int retVal = 0; \
@@ -146,9 +146,9 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	}else{ \
 		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
-		}else{ \
 			retVal = application->Main(str_argv, argc); \
+		}else{ \
+			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
@@ -174,9 +174,9 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	}else{ \
 		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->AnotherInstanceIsRunning(0, 0); \
-		}else{ \
 			retVal = application->Main(0, 0); \
+		}else{ \
+			retVal = application->AnotherInstanceIsRunning(0, 0); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \

@@ -58,6 +58,11 @@ public:
 	*/
 	HCURSOR GetHandle();
 
+	/**
+		Returns cursor handle
+	*/
+	operator HCURSOR()const;
+
 	virtual ~KCursor();
 
 private:

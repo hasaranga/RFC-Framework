@@ -66,6 +66,8 @@ public:
 
 	virtual HANDLE GetFileHandle();
 
+	operator HANDLE()const;
+
 	/** 
 		fills given buffer and returns number of bytes read.
 	*/

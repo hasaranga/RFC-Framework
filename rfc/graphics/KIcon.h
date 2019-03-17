@@ -58,6 +58,8 @@ public:
 	*/
 	HICON GetHandle();
 
+	operator HICON()const;
+
 	virtual ~KIcon();
 
 private:

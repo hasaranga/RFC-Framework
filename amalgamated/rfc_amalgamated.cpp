@@ -656,6 +656,11 @@ KBitmap::KBitmap()
 	hBitmap = 0;
 }
 
+KBitmap::operator HBITMAP()const
+{
+	return hBitmap;
+}
+
 bool KBitmap::LoadFromResource(WORD resourceID)
 {
 	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
@@ -745,6 +750,11 @@ HCURSOR KCursor::GetHandle()
 	return hCursor;
 }
 
+KCursor::operator HCURSOR()const
+{
+	return hCursor;
+}
+
 KCursor::~KCursor()
 {
 	if(hCursor)
@@ -811,6 +821,11 @@ void KFont::RemoveFont(const KString& path)
 }
 
 HFONT KFont::GetFontHandle()
+{
+	return hFont;
+}
+
+KFont::operator HFONT()const
 {
 	return hFont;
 }
@@ -948,6 +963,11 @@ bool KIcon::LoadFromFile(const KString& filePath)
 }
 
 HICON KIcon::GetHandle()
+{
+	return hIcon;
+}
+
+KIcon::operator HICON()const
 {
 	return hIcon;
 }
@@ -1536,6 +1556,11 @@ KComponent::KComponent(bool generateWindowClassDetails)
 	}
 
 	compFont = KFont::GetDefaultFont();
+}
+
+KComponent::operator HWND()const
+{
+	return compHWND;
 }
 
 void KComponent::OnHotPlug()
@@ -4136,6 +4161,11 @@ HANDLE KFile::GetFileHandle()
 	return fileHandle;
 }
 
+KFile::operator HANDLE()const
+{
+	return fileHandle;
+}
+
 DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
 {
 	DWORD numberOfBytesRead = 0;
@@ -5492,6 +5522,11 @@ void KThread::SetRunnable(KRunnable *runnable)
 }
 
 HANDLE KThread::GetHandle()
+{
+	return handle;
+}
+
+KThread::operator HANDLE()const
 {
 	return handle;
 }

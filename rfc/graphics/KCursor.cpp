@@ -51,6 +51,11 @@ HCURSOR KCursor::GetHandle()
 	return hCursor;
 }
 
+KCursor::operator HCURSOR()const
+{
+	return hCursor;
+}
+
 KCursor::~KCursor()
 {
 	if(hCursor)

@@ -67,6 +67,11 @@ KComponent::KComponent(bool generateWindowClassDetails)
 	compFont = KFont::GetDefaultFont();
 }
 
+KComponent::operator HWND()const
+{
+	return compHWND;
+}
+
 void KComponent::OnHotPlug()
 {
 

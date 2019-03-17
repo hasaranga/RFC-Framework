@@ -63,6 +63,11 @@ public:
 		@param generateWindowClassDetails	set to false if you are not registering window class and using standard class name like BUTTON, STATIC etc... wc member is invalid if generateWindowClassDetails is false.
 	*/
 	KComponent(bool generateWindowClassDetails);
+	
+	/**
+		Returns HWND of this component
+	*/
+	operator HWND()const;
 
 	/**
 		Called after hotplugged into a given HWND.

@@ -68,6 +68,11 @@ HANDLE KFile::GetFileHandle()
 	return fileHandle;
 }
 
+KFile::operator HANDLE()const
+{
+	return fileHandle;
+}
+
 DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
 {
 	DWORD numberOfBytesRead = 0;

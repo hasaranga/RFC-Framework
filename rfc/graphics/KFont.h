@@ -68,6 +68,8 @@ public:
 	*/
 	virtual HFONT GetFontHandle();
 
+	operator HFONT()const;
+
 	virtual ~KFont();
 
 private:

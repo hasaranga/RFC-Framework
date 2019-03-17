@@ -30,6 +30,11 @@ KBitmap::KBitmap()
 	hBitmap = 0;
 }
 
+KBitmap::operator HBITMAP()const
+{
+	return hBitmap;
+}
+
 bool KBitmap::LoadFromResource(WORD resourceID)
 {
 	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);

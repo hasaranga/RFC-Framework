@@ -60,6 +60,11 @@ public:
 	*/
 	HBITMAP GetHandle();
 
+	/**
+		Returns bitmap handle
+	*/
+	operator HBITMAP()const;
+
 	virtual ~KBitmap();
 
 private:

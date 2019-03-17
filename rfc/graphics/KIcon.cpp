@@ -51,6 +51,11 @@ HICON KIcon::GetHandle()
 	return hIcon;
 }
 
+KIcon::operator HICON()const
+{
+	return hIcon;
+}
+
 KIcon::~KIcon()
 {
 	if(hIcon)

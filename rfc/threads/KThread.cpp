@@ -47,6 +47,11 @@ HANDLE KThread::GetHandle()
 	return handle;
 }
 
+KThread::operator HANDLE()const
+{
+	return handle;
+}
+
 bool KThread::ShouldRun()
 {
 	return !threadShouldStop;

@@ -2735,6 +2735,8 @@ public:
 	*/
 	virtual HANDLE GetHandle();
 
+	operator HANDLE()const;
+
 	/**
 		Override this method in your class.
 	*/
@@ -3077,6 +3079,8 @@ public:
 
 	virtual HANDLE GetFileHandle();
 
+	operator HANDLE()const;
+
 	/** 
 		fills given buffer and returns number of bytes read.
 	*/
@@ -3404,6 +3408,11 @@ public:
 	*/
 	HBITMAP GetHandle();
 
+	/**
+		Returns bitmap handle
+	*/
+	operator HBITMAP()const;
+
 	virtual ~KBitmap();
 
 private:
@@ -3482,6 +3491,8 @@ public:
 	*/
 	virtual HFONT GetFontHandle();
 
+	operator HFONT()const;
+
 	virtual ~KFont();
 
 private:
@@ -3548,6 +3559,11 @@ public:
 		Returns cursor handle
 	*/
 	HCURSOR GetHandle();
+
+	/**
+		Returns cursor handle
+	*/
+	operator HCURSOR()const;
 
 	virtual ~KCursor();
 
@@ -3765,6 +3781,8 @@ public:
 	*/
 	HICON GetHandle();
 
+	operator HICON()const;
+
 	virtual ~KIcon();
 
 private:
@@ -3835,6 +3853,11 @@ public:
 		@param generateWindowClassDetails	set to false if you are not registering window class and using standard class name like BUTTON, STATIC etc... wc member is invalid if generateWindowClassDetails is false.
 	*/
 	KComponent(bool generateWindowClassDetails);
+	
+	/**
+		Returns HWND of this component
+	*/
+	operator HWND()const;
 
 	/**
 		Called after hotplugged into a given HWND.
@@ -5560,7 +5583,7 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	::InitRFC(hInstance); \
 	int argc = 0; \
 	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
-	KString **str_argv = (KString**)::malloc(argc * PTR_SIZE); \
+	KString **str_argv = (KString**)::malloc(argc * RFC_PTR_SIZE); \
 	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);} \
 	AppClass* application = new AppClass(); \
 	int retVal = 0; \
@@ -5569,9 +5592,9 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	}else{ \
 		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
-		}else{ \
 			retVal = application->Main(str_argv, argc); \
+		}else{ \
+			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
@@ -5597,9 +5620,9 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	}else{ \
 		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->AnotherInstanceIsRunning(0, 0); \
-		}else{ \
 			retVal = application->Main(0, 0); \
+		}else{ \
+			retVal = application->AnotherInstanceIsRunning(0, 0); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \

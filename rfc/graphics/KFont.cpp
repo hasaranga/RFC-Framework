@@ -63,6 +63,11 @@ HFONT KFont::GetFontHandle()
 	return hFont;
 }
 
+KFont::operator HFONT()const
+{
+	return hFont;
+}
+
 KFont::~KFont()
 {
 	if(customFont)

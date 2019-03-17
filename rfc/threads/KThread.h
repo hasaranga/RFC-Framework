@@ -87,6 +87,8 @@ public:
 	*/
 	virtual HANDLE GetHandle();
 
+	operator HANDLE()const;
+
 	/**
 		Override this method in your class.
 	*/
