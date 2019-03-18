@@ -42,6 +42,7 @@
 #include "utils/KPlatformUtil.h"
 #include "utils/KPerformanceCounter.h"
 #include "utils/KRegistry.h"
+#include "utils/KTime.h"
 #include "KApplication.h"
 #include "text/KString.h"
 #include "graphics/KFont.h"
