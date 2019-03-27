@@ -83,7 +83,7 @@ public:
 
 };
 
-class MyGreatApp : KApplication
+class MyGreatApp : public KApplication
 {
 
 public:

@@ -29,9 +29,6 @@
 
 class KTime
 {
-protected:
-	SYSTEMTIME timeNow;
-
 public:
 
 	KTime(){}

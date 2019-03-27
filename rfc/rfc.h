@@ -35,6 +35,8 @@
 
 #ifdef _MSC_VER
 	#pragma comment(lib, "Comctl32.lib")
+	#pragma comment(lib, "Rpcrt4.lib")
+	#pragma comment(lib, "Winhttp.lib")
 #endif
 
 #include "config.h"
@@ -43,6 +45,7 @@
 #include "utils/KPerformanceCounter.h"
 #include "utils/KRegistry.h"
 #include "utils/KTime.h"
+#include "utils/KGuid.h"
 #include "KApplication.h"
 #include "text/KString.h"
 #include "graphics/KFont.h"
@@ -100,6 +103,7 @@
 #include "containers/KScopedGdiObject.h"
 #include "containers/KScopedComPointer.h"
 #include "containers/KScopedStructPointer.h"
+#include "network/KInternet.h"
 
 LRESULT CALLBACK GlobalWnd_Proc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK GlobalDlg_Proc(HWND, UINT, WPARAM, LPARAM);

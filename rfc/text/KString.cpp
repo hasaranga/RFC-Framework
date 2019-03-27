@@ -497,6 +497,28 @@ int KString::GetIntValue()const
 	return ::_wtoi(isStaticText ? staticText : stringHolder->w_text);
 }
 
+KString KString::ToUpperCase()const
+{
+	if (this->GetLength() == 0)
+		return KString();
+
+	KString result((const wchar_t*)*this, KString::USE_COPY_OF_TEXT);
+	::CharUpperBuffW((wchar_t*)result, result.GetLength());
+
+	return result;
+}
+
+KString KString::ToLowerCase()const
+{
+	if (this->GetLength() == 0)
+		return KString();
+
+	KString result((const wchar_t*)*this, KString::USE_COPY_OF_TEXT);
+	::CharLowerBuffW((wchar_t*)result, result.GetLength());
+
+	return result;
+}
+
 KString::~KString()
 {
 	if (stringHolder)

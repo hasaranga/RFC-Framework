@@ -157,7 +157,7 @@ public:
 		Appends a string at the end of this one.
 		@returns     the concatenated string
 	*/
-	virtual KString Append(const KString& otherString)const;
+	KString Append(const KString& otherString)const;
 
 	/**
 		Appends a statically typed string to begining or end of this one.
@@ -166,14 +166,14 @@ public:
 		@param appendToEnd	appends to begining if false
 		@returns			the concatenated string
 	*/
-	virtual KString AppendStaticText(const wchar_t* const text, int length, bool appendToEnd = true)const;
+	KString AppendStaticText(const wchar_t* const text, int length, bool appendToEnd = true)const;
 
 	/**
 		Assigns a statically typed string.
 		@param text			statically typed text
 		@param length		text length. should not be zero.
 	*/
-	virtual void AssignStaticText(const wchar_t* const text, int length);
+	void AssignStaticText(const wchar_t* const text, int length);
 
 	/** 
 		Returns a subsection of the string.
@@ -184,73 +184,84 @@ public:
 		@param start   the index of the start of the substring needed
 		@param end     all characters from start up to this index are returned
 	*/
-	virtual KString SubString(int start, int end)const;
+	KString SubString(int start, int end)const;
 
 	/**
 		Case-insensitive comparison with another string. Slower than "Compare" method.
 		@returns     true if the two strings are identical, false if not
 	*/
-	virtual bool CompareIgnoreCase(const KString& otherString)const;
+	bool CompareIgnoreCase(const KString& otherString)const;
 
 	/** 
 		Case-sensitive comparison with another string.
 		@returns     true if the two strings are identical, false if not
 	*/
-	virtual bool Compare(const KString& otherString)const;
+	bool Compare(const KString& otherString)const;
 
 	/** 
 		Case-sensitive comparison with statically typed string.
 		@param text		statically typed text.
 		@returns		true if the two strings are identical, false if not
 	*/
-	virtual bool CompareWithStaticText(const wchar_t* const text)const;
+	bool CompareWithStaticText(const wchar_t* const text)const;
 
 	/**
 		Compare first character with given unicode character
 	*/
-	virtual bool StartsWithChar(wchar_t character)const;
+	bool StartsWithChar(wchar_t character)const;
+
 	/**
 		Compare first character with given ansi character
 	*/
-	virtual bool StartsWithChar(char character)const;
+	bool StartsWithChar(char character)const;
 
 	/**
 		Compare last character with given unicode character
 	*/
-	virtual bool EndsWithChar(wchar_t character)const;
+	bool EndsWithChar(wchar_t character)const;
 
 	/**
 		Compare last character with given ansi character
 	*/
-	virtual bool EndsWithChar(char character)const;
+	bool EndsWithChar(char character)const;
 
 	/**
 		Check if string is quoted or not
 	*/
-	virtual bool IsQuotedString()const;
+	bool IsQuotedString()const;
 
 	/** 
 		Returns a character from the string.
 		@returns -1 if index is out of range
 	*/
-	virtual wchar_t GetCharAt(int index)const;
+	wchar_t GetCharAt(int index)const;
 
 	/**
 		Returns number of characters in string
 	*/
-	virtual int GetLength()const;
+	int GetLength()const;
 
 	/**
 		Returns true if string is empty
 	*/
-	virtual bool IsEmpty()const;
+	bool IsEmpty()const;
 
-	virtual bool IsNotEmpty()const;
+	bool IsNotEmpty()const;
 
 	/**
 		Returns value of string
 	*/
-	virtual int GetIntValue()const;
+	int GetIntValue()const;
+
+	/** 
+		Returns an upper-case version of this string.
+	*/
+	KString ToUpperCase()const;
+
+	/** 
+		Returns an lower-case version of this string. 
+	*/
+	KString ToLowerCase()const;
 
 	virtual ~KString();
 

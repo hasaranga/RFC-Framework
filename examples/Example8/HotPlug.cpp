@@ -51,7 +51,7 @@ public:
 };
 
 
-class ExampleApp : KApplication
+class ExampleApp : public KApplication
 {
 public:
 	int Main(KString **argv, int argc)
