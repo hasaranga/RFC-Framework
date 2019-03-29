@@ -27,6 +27,12 @@
 #include <windows.h>
 #include "../containers/KLeakDetector.h"
 
+// __int64 is not defined in mingw.
+#ifdef __MINGW32__
+	#include <stdint.h>
+	typedef int64_t _int64;
+#endif
+
 class KTime
 {
 public:

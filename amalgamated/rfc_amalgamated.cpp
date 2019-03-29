@@ -4717,8 +4717,15 @@ KSettingsWriter::~KSettingsWriter()
 	  
 */
 
+// mingw does not ship with winhttp. So, this class is not available for mingw compiler.
+#ifndef __MINGW32__
 
-#include <string>
+#ifndef _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include <string.h>
+#include <stdio.h>
 
 KInternet::KInternet(){}
 
@@ -4777,36 +4784,40 @@ KString KInternet::UrlEncodeString(const KString &text)
 	if (text.GetLength() == 0)
 		return KString();
 
-	std::string new_str = "";
+	KString new_str;
 	char c;
 	int ic;
 	const char* chars = text;
 	char bufHex[10];
-	int len = (int)strlen(chars);
+	int len = text.GetLength();
 
-	for (int i = 0; i<len; i++){
+	for (int i = 0; i < len; i++)
+	{
 		c = chars[i];
 		ic = c;
 
 		if (c == ' ')
 		{
-			new_str += '+';
+			new_str = new_str.AppendStaticText(L"+", 1, true);
 		}
-		else if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
-		{
-			new_str += c;
+		else if (::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
+		{		
+			char tmp[] = { c, 0 };
+			new_str = new_str.Append(KString(tmp));
 		}
 		else
 		{
-			sprintf(bufHex, "%X", c);
+			::sprintf(bufHex, "%X", c);
+
 			if (ic < 16)
-				new_str += "%0";
+				new_str = new_str.AppendStaticText(L"%0", 2, true);
 			else
-				new_str += "%";
-			new_str += bufHex;
+				new_str = new_str.AppendStaticText(L"%", 1, true);
+
+			new_str = new_str.Append(KString(bufHex));
 		}
 	}
-	return KString(new_str.c_str());
+	return new_str;
 }
 
 KString KInternet::UrlDecodeString(const KString &text)
@@ -4814,27 +4825,39 @@ KString KInternet::UrlDecodeString(const KString &text)
 	if (text.GetLength() == 0)
 		return KString();
 
-	std::string ret;
-	std::string str((const char*)text);
+	KString ret;
+	const char* str = text;
 
 	char ch;
-	int i, ii, len = (int)str.length();
+	int i, ii, len = text.GetLength();
 
-	for (i = 0; i < len; i++){
-		if (str[i] != '%'){
+	for (i = 0; i < len; i++)
+	{
+		if (str[i] != '%')
+		{
 			if (str[i] == '+')
-				ret += ' ';
+			{
+				ret = ret.AppendStaticText(L" ", 1, true);
+			}
 			else
-				ret += str[i];
+			{
+				char tmp[] = { str[i], 0 };
+				ret = ret.Append(KString(tmp));
+			}
 		}
-		else{
-			sscanf(str.substr(i + 1, 2).c_str(), "%x", &ii);
+		else
+		{
+			KString sub(text.SubString(i + 1, i + 2));
+			::sscanf(sub, "%x", &ii);
 			ch = static_cast<char>(ii);
-			ret += ch;
+
+			char tmp[] = { ch, 0 };
+			ret = ret.Append(KString(tmp));
+
 			i = i + 2;
 		}
 	}
-	return KString(ret.c_str());
+	return ret;
 }
 
 KString KInternet::PostText(const wchar_t* url,
@@ -4910,6 +4933,8 @@ KString KInternet::PostText(const wchar_t* url,
 
 	return receivedText;
 }
+
+#endif
 
 // =========== KMD5.cpp ===========
 

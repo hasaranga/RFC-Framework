@@ -24,6 +24,9 @@
 #ifndef _RFC_KINTERNET_H_
 #define _RFC_KINTERNET_H_
 
+// mingw does not ship with winhttp. So, this class is not available for mingw compiler.
+#ifndef __MINGW32__
+
 #include <windows.h>
 #include "../text/KString.h"
 #include "../containers/KLeakDetector.h"
@@ -72,5 +75,7 @@ public:
 private:
 	RFC_LEAK_DETECTOR(KInternet)
 };
+
+#endif
 
 #endif

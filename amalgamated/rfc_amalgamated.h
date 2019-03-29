@@ -1717,6 +1717,12 @@ public:
 
 #include <windows.h>
 
+// __int64 is not defined in mingw.
+#ifdef __MINGW32__
+	#include <stdint.h>
+	typedef int64_t _int64;
+#endif
+
 class KTime
 {
 public:
@@ -3181,6 +3187,9 @@ private:
 #ifndef _RFC_KINTERNET_H_
 #define _RFC_KINTERNET_H_
 
+// mingw does not ship with winhttp. So, this class is not available for mingw compiler.
+#ifndef __MINGW32__
+
 #include <windows.h>
 #include <winhttp.h>
 
@@ -3230,6 +3239,8 @@ private:
 
 #endif
 
+#endif
+
 // =========== KGuid.h ===========
 
 /*
@@ -3258,6 +3269,11 @@ private:
 #define _RFC_KGUID_H_
 
 #include <windows.h>
+
+// RPC_WSTR is not defined in mingw.
+#ifdef __MINGW32__
+	typedef unsigned short* RPC_WSTR;
+#endif
 
 class KGuid
 {

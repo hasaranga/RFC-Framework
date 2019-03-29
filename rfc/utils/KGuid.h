@@ -28,6 +28,11 @@
 #include "../containers/KLeakDetector.h"
 #include "../text/KString.h"
 
+// RPC_WSTR is not defined in mingw.
+#ifdef __MINGW32__
+	typedef unsigned short* RPC_WSTR;
+#endif
+
 class KGuid
 {
 public:
