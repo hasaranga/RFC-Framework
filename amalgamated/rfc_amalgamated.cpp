@@ -1433,12 +1433,32 @@ void KComboBoxListener::OnComboBoxItemSelect(KComboBox *comboBox){}
 	  
 */
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+	#define _CRT_SECURE_NO_WARNINGS
+#endif 
 
-bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName)
+
+const wchar_t* const RFC_OSD_REG_LOCATION = L"Software\\CrownSoft\\RFC\\OSD";
+
+bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, 
+	const KString& title, 
+	const wchar_t* filter, 
+	KString *fileName, 
+	bool saveLastLocation, 
+	const wchar_t* dialogGuid)
 {
 	// assumes MAX_PATH * 2 is enough!	
 	wchar_t *buff = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
 	buff[0] = 0;
+ 
+	if (saveLastLocation)
+	{
+		KString lastLocation;
+		KRegistry::ReadString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
+
+		if (lastLocation.GetLength() > 0)
+			::wcscpy(buff, (const wchar_t*)lastLocation);
+	}
 
 	OPENFILENAMEW ofn;
 	::ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
@@ -1448,25 +1468,48 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, const KString& title,
 	ofn.lpstrFilter = filter;
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
-	ofn.Flags =  OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+	ofn.Flags = OFN_FILEMUSTEXIST | OFN_HIDEREADONLY | OFN_NOCHANGEDIR;
 	ofn.lpstrTitle = title;
 
 	if(::GetOpenFileNameW(&ofn))
 	{
-		*fileName = KString(buff, KString::FREE_TEXT_WHEN_DONE);
+		KString path(buff, KString::FREE_TEXT_WHEN_DONE);
+		*fileName = path;
+
+		if (saveLastLocation)
+		{
+			KRegistry::CreateKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
+			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, path);
+		}
+
 		return true;
-	}else
+	}
+	else
 	{
 		::free(buff);
 		return false;
 	}
 }
 
-bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName)
+bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, 
+	const KString& title, 
+	const wchar_t* filter, 
+	KString *fileName,
+	bool saveLastLocation,
+	const wchar_t* dialogGuid)
 {
 	// assumes MAX_PATH * 2 is enough!
 	wchar_t *buff = (wchar_t*)::malloc((MAX_PATH * 2) * sizeof(wchar_t));
 	buff[0] = 0;
+
+	if (saveLastLocation)
+	{
+		KString lastLocation;
+		KRegistry::ReadString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
+
+		if (lastLocation.GetLength() > 0)
+			::wcscpy(buff, (const wchar_t*)lastLocation);
+	}
 
 	OPENFILENAMEW ofn;
 	::ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
@@ -1476,14 +1519,23 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, const KString& title,
 	ofn.lpstrFilter = filter;
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
-	ofn.Flags =  OFN_HIDEREADONLY;
+	ofn.Flags = OFN_HIDEREADONLY | OFN_NOCHANGEDIR;
 	ofn.lpstrTitle = title;
 
 	if(::GetSaveFileNameW(&ofn))
 	{
-		*fileName = KString(buff, KString::FREE_TEXT_WHEN_DONE);
+		KString path(buff, KString::FREE_TEXT_WHEN_DONE);
+		*fileName = path;
+
+		if (saveLastLocation)
+		{
+			KRegistry::CreateKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
+			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, path);
+		}
+
 		return true;
-	}else
+	}
+	else
 	{
 		::free(buff);
 		return false;
@@ -4064,6 +4116,18 @@ KString KDirectory::GetModuleDir(HMODULE hModule)
 	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
 	path[0] = 0;
 	::GetModuleFileNameW(hModule, path, MAX_PATH * 2);
+
+	wchar_t *p;
+	for (p = path; *p; p++) {}	// find end
+	for (; p > path && *p != L'\\'; p--) {} // back up to last backslash
+	*p = 0;	// kill it
+
+	return KString(path, KString::FREE_TEXT_WHEN_DONE);
+}
+
+KString KDirectory::GetParentDir(const KString& filePath)
+{
+	wchar_t *path = ::_wcsdup(filePath);
 
 	wchar_t *p;
 	for (p = path; *p; p++) {}	// find end

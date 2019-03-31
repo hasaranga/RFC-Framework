@@ -3051,6 +3051,11 @@ public:
 	static KString GetModuleDir(HMODULE hModule);
 
 	/**
+		returns the parent directory of given file.
+	*/
+	static KString GetParentDir(const KString& filePath);
+
+	/**
 		returns the the directory for temporary files.
 		returns empty string on error.
 	*/
@@ -5087,14 +5092,16 @@ public:
 	/**
 		Filter string might be like this "Text Files (*.txt)\0*.txt\0"
 		You cannot use String object for filter, because filter string contains multiple null characters.
+		"dialogGuid" is valid only if "saveLastLocation" is true.
 	*/
-	static bool ShowOpenFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName);
+	static bool ShowOpenFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName, bool saveLastLocation = false, const wchar_t* dialogGuid = 0);
 
 	/**
 		Filter string might be like this "Text Files (*.txt)\0*.txt\0"
 		You cannot use String object for filter, because filter string contains multiple null characters.
+		"dialogGuid" is valid only if "saveLastLocation" is true.
 	*/
-	static bool ShowSaveFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName);
+	static bool ShowSaveFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName, bool saveLastLocation = false, const wchar_t* dialogGuid = 0);
 };
 
 #endif

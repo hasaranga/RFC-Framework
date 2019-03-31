@@ -55,6 +55,11 @@ public:
 	static KString GetModuleDir(HMODULE hModule);
 
 	/**
+		returns the parent directory of given file.
+	*/
+	static KString GetParentDir(const KString& filePath);
+
+	/**
 		returns the the directory for temporary files.
 		returns empty string on error.
 	*/

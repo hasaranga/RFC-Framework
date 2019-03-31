@@ -61,6 +61,18 @@ KString KDirectory::GetModuleDir(HMODULE hModule)
 	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
+KString KDirectory::GetParentDir(const KString& filePath)
+{
+	wchar_t *path = ::_wcsdup(filePath);
+
+	wchar_t *p;
+	for (p = path; *p; p++) {}	// find end
+	for (; p > path && *p != L'\\'; p--) {} // back up to last backslash
+	*p = 0;	// kill it
+
+	return KString(path, KString::FREE_TEXT_WHEN_DONE);
+}
+
 KString KDirectory::GetTempDir()
 {
 	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH + 1) * sizeof(wchar_t) );
