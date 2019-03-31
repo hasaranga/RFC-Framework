@@ -42,17 +42,17 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window,
 	wchar_t *buff = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
 	buff[0] = 0;
  
+	OPENFILENAMEW ofn;
+	::ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
+
+	KString lastLocation;
 	if (saveLastLocation)
 	{
-		KString lastLocation;
 		KRegistry::ReadString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
 
 		if (lastLocation.GetLength() > 0)
-			::wcscpy(buff, (const wchar_t*)lastLocation);
+			ofn.lpstrInitialDir = (const wchar_t*)lastLocation;
 	}
-
-	OPENFILENAMEW ofn;
-	::ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
 
 	ofn.lStructSize = sizeof(OPENFILENAMEW);
 	ofn.hwndOwner = (window != NULL) ? window->GetHWND() : NULL;
@@ -69,8 +69,10 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window,
 
 		if (saveLastLocation)
 		{
+			KString parentDir(KDirectory::GetParentDir(path).AppendStaticText(L"\\", 1, true));
+
 			KRegistry::CreateKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
-			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, path);
+			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, parentDir);
 		}
 
 		return true;
@@ -93,17 +95,17 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window,
 	wchar_t *buff = (wchar_t*)::malloc((MAX_PATH * 2) * sizeof(wchar_t));
 	buff[0] = 0;
 
+	OPENFILENAMEW ofn;
+	::ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
+
+	KString lastLocation;
 	if (saveLastLocation)
-	{
-		KString lastLocation;
+	{		
 		KRegistry::ReadString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
 
 		if (lastLocation.GetLength() > 0)
-			::wcscpy(buff, (const wchar_t*)lastLocation);
+			ofn.lpstrInitialDir = (const wchar_t*)lastLocation;
 	}
-
-	OPENFILENAMEW ofn;
-	::ZeroMemory(&ofn, sizeof(OPENFILENAMEW));
 
 	ofn.lStructSize = sizeof(OPENFILENAMEW);
 	ofn.hwndOwner = (window != NULL) ? window->GetHWND() : NULL;
@@ -120,8 +122,10 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window,
 
 		if (saveLastLocation)
 		{
+			KString parentDir(KDirectory::GetParentDir(path).AppendStaticText(L"\\", 1, true));
+
 			KRegistry::CreateKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
-			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, path);
+			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, parentDir);
 		}
 
 		return true;
