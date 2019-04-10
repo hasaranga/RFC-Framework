@@ -14,7 +14,7 @@ protected:
 public:
 	MyWindow()
 	{
-		this->CreateComponent();
+		this->Create();
 
 		textArea.SetPosition(0, 0);
 		this->AddComponent(&textArea);

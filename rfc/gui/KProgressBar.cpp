@@ -59,7 +59,7 @@ void KProgressBar::SetValue(int value)
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
-bool KProgressBar::CreateComponent(bool requireInitialMessages)
+bool KProgressBar::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;

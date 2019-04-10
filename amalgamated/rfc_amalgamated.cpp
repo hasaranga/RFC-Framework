@@ -1049,7 +1049,7 @@ bool KButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KButton::CreateComponent(bool requireInitialMessages)
+bool KButton::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
@@ -1137,7 +1137,7 @@ KCheckBox::KCheckBox()
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP;
 }
 
-bool KCheckBox::CreateComponent(bool requireInitialMessages)
+bool KCheckBox::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
@@ -1328,7 +1328,7 @@ bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KComboBox::CreateComponent(bool requireInitialMessages)
+bool KComboBox::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
@@ -1682,7 +1682,7 @@ KString KComponent::GetComponentClassName()
 	return compClassName;
 }
 
-bool KComponent::CreateComponent(bool requireInitialMessages)
+bool KComponent::Create(bool requireInitialMessages)
 {
 	if(!::RegisterClassExW(&wc))
 		return false;
@@ -2174,7 +2174,7 @@ bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KGridView::CreateComponent(bool requireInitialMessages)
+bool KGridView::Create(bool requireInitialMessages)
 {
 	if (!compParentHWND) // user must specify parent handle!
 		return false;
@@ -2327,7 +2327,7 @@ KLabel::KLabel() : KComponent(false)
 	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
-bool KLabel::CreateComponent(bool requireInitialMessages)
+bool KLabel::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
@@ -2536,7 +2536,7 @@ bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KListBox::CreateComponent(bool requireInitialMessages)
+bool KListBox::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
@@ -3121,9 +3121,9 @@ char KPasswordBox::GetPasswordChar()
 	return pwdChar;
 }
 
-bool KPasswordBox::CreateComponent()
+bool KPasswordBox::Create()
 {
-	if(KTextBox::CreateComponent())
+	if(KTextBox::Create())
 	{
 		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
 		return true;
@@ -3195,7 +3195,7 @@ void KProgressBar::SetValue(int value)
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
-bool KProgressBar::CreateComponent(bool requireInitialMessages)
+bool KProgressBar::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
@@ -3403,7 +3403,7 @@ KString KTextBox::GetText()
 }
 
 
-bool KTextBox::CreateComponent(bool requireInitialMessages)
+bool KTextBox::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
@@ -3488,7 +3488,7 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 	}
 }
 
-bool KToolTip::CreateComponent(bool requireInitialMessages)
+bool KToolTip::Create(bool requireInitialMessages)
 {
 	return false;
 }
@@ -3607,7 +3607,7 @@ bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KTrackBar::CreateComponent(bool requireInitialMessages)
+bool KTrackBar::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
@@ -3744,7 +3744,7 @@ bool KWindow::AddComponent(KComponent *component, bool requireInitialMessages)
 		if(compHWND)
 		{
 			component->SetParentHWND(compHWND);
-			return component->CreateComponent(requireInitialMessages);
+			return component->Create(requireInitialMessages);
 		}
 	}
 	return false;

@@ -38,7 +38,7 @@ public:
 
 	virtual char GetPasswordChar();
 
-	virtual bool CreateComponent();
+	virtual bool Create();
 
 	virtual ~KPasswordBox();
 };

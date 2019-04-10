@@ -135,7 +135,7 @@ KString KComponent::GetComponentClassName()
 	return compClassName;
 }
 
-bool KComponent::CreateComponent(bool requireInitialMessages)
+bool KComponent::Create(bool requireInitialMessages)
 {
 	if(!::RegisterClassExW(&wc))
 		return false;

@@ -7,10 +7,10 @@ class MyApplication : public KApplication
 public:
 
 	int Main(KString **argv, int argc)
-	{
+	{	
 		KFrame myWindow;
 
-		myWindow.CreateComponent(); // this will create window
+		myWindow.Create(); // this will create window
 
 		myWindow.SetText(L"Empty Window"); // always use unicode strings. They are fast!
 		myWindow.CenterScreen();

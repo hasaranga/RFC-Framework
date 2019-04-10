@@ -96,7 +96,7 @@ public:
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 		@returns false if registration failed or component creation failed.
 	*/
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	/**
 		Handles internal window messages. (subclassed window proc)

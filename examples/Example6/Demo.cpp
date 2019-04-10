@@ -34,7 +34,7 @@ public:
 		fontWebdings24 = new KFont(L"Webdings", 24,false,false,true);
 		isStarted = false;
 
-		this->CreateComponent();
+		this->Create();
 		this->SetText(L"Demo");
 		this->SetSize(600, 400);
 
@@ -44,7 +44,6 @@ public:
 		btn2.SetText(L"Button2");
 		btn2.SetListener(this);
 		btn2.SetPosition(10, 40);
-
 		label.SetPosition(120,10);
 
 		checkBox.SetCheckedState(true);

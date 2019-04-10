@@ -44,9 +44,9 @@ char KPasswordBox::GetPasswordChar()
 	return pwdChar;
 }
 
-bool KPasswordBox::CreateComponent()
+bool KPasswordBox::Create()
 {
-	if(KTextBox::CreateComponent())
+	if(KTextBox::Create())
 	{
 		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
 		return true;

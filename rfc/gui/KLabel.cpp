@@ -39,7 +39,7 @@ KLabel::KLabel() : KComponent(false)
 	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
-bool KLabel::CreateComponent(bool requireInitialMessages)
+bool KLabel::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;

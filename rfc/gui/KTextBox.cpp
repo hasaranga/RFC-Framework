@@ -63,7 +63,7 @@ KString KTextBox::GetText()
 }
 
 
-bool KTextBox::CreateComponent(bool requireInitialMessages)
+bool KTextBox::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;

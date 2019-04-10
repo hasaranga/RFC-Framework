@@ -11,7 +11,7 @@ public:
 	MyWindow()
 	{
 		this->SetText(L"My Window");
-		this->CreateComponent(); // create window before you add child components to it!
+		this->Create(); // create window before you add child components to it!
 		
 		btn1.SetPosition(10, 10);
 		btn1.SetText(L"My Button");

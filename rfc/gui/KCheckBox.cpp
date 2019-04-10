@@ -31,7 +31,7 @@ KCheckBox::KCheckBox()
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP;
 }
 
-bool KCheckBox::CreateComponent(bool requireInitialMessages)
+bool KCheckBox::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;

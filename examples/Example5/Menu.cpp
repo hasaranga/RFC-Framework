@@ -13,7 +13,7 @@ public:
 	MyWindow()
 	{
 		this->SetText(L"My Window");
-		this->CreateComponent();
+		this->Create();
 
 		miOpen.SetText(L"Open...");
 		miExit.SetText(L"Exit");

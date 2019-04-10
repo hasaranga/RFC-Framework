@@ -73,7 +73,7 @@ protected:
 public:
 	ShinyGUI()
 	{
-		this->CreateComponent();
+		this->Create();
 		this->SetText(L"ShinyGUI");
 
 		customComp.SetPosition(50, 50);

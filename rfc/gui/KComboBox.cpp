@@ -141,7 +141,7 @@ bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KComboBox::CreateComponent(bool requireInitialMessages)
+bool KComboBox::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;

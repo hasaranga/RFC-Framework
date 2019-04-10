@@ -184,7 +184,7 @@ bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KListBox::CreateComponent(bool requireInitialMessages)
+bool KListBox::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;

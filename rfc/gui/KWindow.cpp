@@ -77,7 +77,7 @@ bool KWindow::AddComponent(KComponent *component, bool requireInitialMessages)
 		if(compHWND)
 		{
 			component->SetParentHWND(compHWND);
-			return component->CreateComponent(requireInitialMessages);
+			return component->Create(requireInitialMessages);
 		}
 	}
 	return false;

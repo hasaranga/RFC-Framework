@@ -4084,7 +4084,7 @@ public:
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 		@returns false if registration failed or component creation failed.
 	*/
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	/**
 		Handles internal window messages. (subclassed window proc)
@@ -4275,7 +4275,7 @@ public:
 
 	virtual void SetValue(int value);
 
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual ~KProgressBar();
 };
@@ -4318,7 +4318,7 @@ public:
 
 	virtual KString GetText();
 
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual ~KTextBox();
 };
@@ -4379,7 +4379,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual ~KTrackBar();
 };
@@ -4421,7 +4421,7 @@ class KLabel : public KComponent
 public:
 	KLabel();
 
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual ~KLabel();
 };
@@ -4538,7 +4538,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual void OnItemSelect();
 
@@ -4597,7 +4597,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual ~KButton();
 };
@@ -4640,7 +4640,7 @@ protected:
 public:
 	KCheckBox();
 
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual void OnPress();
 
@@ -4975,7 +4975,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual void OnItemSelect();
 
@@ -5047,7 +5047,7 @@ public:
 
 	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
 
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual void SetListener(KComboBoxListener *listener);
 
@@ -5458,7 +5458,7 @@ public:
 
 	virtual char GetPasswordChar();
 
-	virtual bool CreateComponent();
+	virtual bool Create();
 
 	virtual ~KPasswordBox();
 };
@@ -5589,7 +5589,7 @@ public:
 	/**
 		calling this method has no effect.
 	*/
-	virtual bool CreateComponent(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual void SetText(const KString& compText);
 };

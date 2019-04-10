@@ -11,7 +11,7 @@ public:
 	MyWindow()
 	{
 		this->SetText(L"My Window");
-		this->CreateComponent();
+		this->Create();
 
 		btn1.SetPosition(10, 10);
 		btn1.SetText(L"My Button");

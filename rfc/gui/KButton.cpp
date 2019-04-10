@@ -70,7 +70,7 @@ bool KButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KButton::CreateComponent(bool requireInitialMessages)
+bool KButton::Create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;

@@ -196,7 +196,7 @@ bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
 
-bool KGridView::CreateComponent(bool requireInitialMessages)
+bool KGridView::Create(bool requireInitialMessages)
 {
 	if (!compParentHWND) // user must specify parent handle!
 		return false;

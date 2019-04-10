@@ -60,7 +60,7 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 	}
 }
 
-bool KToolTip::CreateComponent(bool requireInitialMessages)
+bool KToolTip::Create(bool requireInitialMessages)
 {
 	return false;
 }
