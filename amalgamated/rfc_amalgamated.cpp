@@ -4310,12 +4310,14 @@ KString KFile::ReadAsString(bool isUnicode)
 
 	if (fileSize)
 	{
-		char* buffer = (char*)::malloc(fileSize + 1); // +1 is for null
+		char* buffer = (char*)::malloc(fileSize + 2); // +2 is for null
 		const DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
 		{
 			buffer[fileSize] = 0; // null terminated string
+			buffer[fileSize + 1] = 0; // null for the unicode encoding
+
 			if (isUnicode)
 			{
 				return KString((const wchar_t*)buffer, KString::FREE_TEXT_WHEN_DONE);
