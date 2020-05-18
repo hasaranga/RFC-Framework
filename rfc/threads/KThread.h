@@ -115,9 +115,10 @@ public:
 	virtual bool IsThreadRunning();
 
 	/**
-		Calling thread is not return until this thread finish.
+		Caller will not return until this thread finish.
+		Set pumpMessages to true to enable message processing for caller. It will help to avoid deadlocks if the caller is a gui thread!
 	*/
-	virtual void WaitUntilThreadFinish();
+	virtual DWORD WaitUntilThreadFinish(bool pumpMessages = false);
 
 	/**
 		Sleeps calling thread to given micro seconds.

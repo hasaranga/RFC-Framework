@@ -79,9 +79,39 @@ void KThread::ThreadShouldStop()
 	threadShouldStop = true;
 }
 
-void KThread::WaitUntilThreadFinish()
+DWORD KThread::WaitUntilThreadFinish(bool pumpMessages)
 {
-	::WaitForSingleObject(handle, INFINITE);
+	if (!pumpMessages)
+		return ::WaitForSingleObject(handle, INFINITE);
+	
+	while (true)
+	{
+		MSG msg;
+		while (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			::TranslateMessage(&msg);
+			::DispatchMessageW(&msg);
+		}
+
+		// if this thread sent msgs to caller thread before calling following function and after the above while block, those msgs will not be processed until new msg arrived. 
+		// if there is no new msgs, there will be a deadlock! that's why we have a timeout! after the timeout, any pending msgs will be processed and continue...
+		DWORD dwRet = ::MsgWaitForMultipleObjects(1, &handle, FALSE, 200, QS_ALLINPUT);
+
+		if (dwRet == WAIT_OBJECT_0) // thread finished
+		{
+			return true;
+		}
+		else if ((dwRet == (WAIT_OBJECT_0 + 1)) || (dwRet == WAIT_TIMEOUT)) // window message or timeout
+		{
+			continue;
+		}
+		else // failure
+		{
+			break;
+		}
+	}
+
+	return false;
 }
 
 bool KThread::StartThread()

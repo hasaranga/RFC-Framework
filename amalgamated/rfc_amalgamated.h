@@ -453,7 +453,7 @@ template<class StructType>
 class KReleaseUsingFree
 {
 public:
-	static void Free(StructType* structPtr)
+	static void Release(StructType* structPtr)
 	{
 		::free(structPtr);
 	}
@@ -463,7 +463,7 @@ template<class StructType>
 class KReleaseUsingTaskMemFree
 {
 public:
-	static void Free(StructType* memory)
+	static void Release(StructType* memory)
 	{
 		::CoTaskMemFree(memory);
 	}
@@ -521,7 +521,7 @@ public:
 	~KScopedStructPointer()
 	{
 		if (structPointer)
-			ReleaseMethod::Free(structPointer);
+			ReleaseMethod::Release(structPointer);
 	}
 
 	/** 
@@ -540,7 +540,7 @@ public:
 			structPointer = newStructPointer;
 
 			if (oldStructPointer)
-				ReleaseMethod::Free(oldStructPointer);
+				ReleaseMethod::Release(oldStructPointer);
 		}
 
 		return *this;
@@ -2977,9 +2977,10 @@ public:
 	virtual bool IsThreadRunning();
 
 	/**
-		Calling thread is not return until this thread finish.
+		Caller will not return until this thread finish.
+		Set pumpMessages to true to enable message processing for caller. It will help to avoid deadlocks if the caller is a gui thread!
 	*/
-	virtual void WaitUntilThreadFinish();
+	virtual DWORD WaitUntilThreadFinish(bool pumpMessages = false);
 
 	/**
 		Sleeps calling thread to given micro seconds.
