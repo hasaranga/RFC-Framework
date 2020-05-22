@@ -1,7 +1,7 @@
 
 /*
 	RFC Framework v0.2.6
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2020 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -103,6 +103,7 @@
 #include "containers/KScopedGdiObject.h"
 #include "containers/KScopedComPointer.h"
 #include "containers/KScopedStructPointer.h"
+#include "containers/KScopedMallocPointer.h"
 #include "network/KInternet.h"
 
 LRESULT CALLBACK GlobalWnd_Proc(HWND, UINT, WPARAM, LPARAM);

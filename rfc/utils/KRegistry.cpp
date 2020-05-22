@@ -59,8 +59,8 @@ bool KRegistry::ReadString(HKEY hKeyRoot, const KString& subKey, const KString& 
 				*result = KString();
 			}
 			else{
-				void* buffer = ::malloc(requiredBytes + 1); // +1 for strings which doesn't have ending null
-				::ZeroMemory(buffer, requiredBytes + 1); // ending null might not contain in register
+				void* buffer = ::malloc(requiredBytes + sizeof(wchar_t)); // + for strings which doesn't have ending null
+				::ZeroMemory(buffer, requiredBytes + sizeof(wchar_t)); // zero the ending null
 
 				ret = ::RegQueryValueExW(hkey, valueName, NULL, NULL, (LPBYTE)buffer, &requiredBytes);
 				*result = KString((wchar_t*)buffer, KString::FREE_TEXT_WHEN_DONE);

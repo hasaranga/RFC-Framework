@@ -693,6 +693,126 @@ public:
 
 #endif
 
+// =========== KScopedMallocPointer.h ===========
+
+/*
+	RFC - KScopedMallocPointer.h
+	Copyright (C) 2013-2020 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+
+*/
+
+#ifndef _RFC_KSCOPED_MALLOC_POINTER_H_
+#define _RFC_KSCOPED_MALLOC_POINTER_H_
+
+#include <malloc.h>
+#include <Objbase.h>
+
+
+/**
+	This class holds a pointer which is allocated using malloc and it will automatically freed when this object goes
+	out of scope. 
+*/
+template<class PointerType>
+class KScopedMallocPointer
+{
+private:
+	PointerType* pointer;
+
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
+public:
+	inline KScopedMallocPointer()
+	{
+		pointer = NULL;
+	}
+
+	inline KScopedMallocPointer(PointerType* pointer)
+	{
+		this->pointer = pointer;
+	}
+
+	KScopedMallocPointer(KScopedMallocPointer& pointerToTransferFrom)
+	{
+		this->pointer = pointerToTransferFrom.pointer;
+		pointerToTransferFrom.pointer = NULL;
+	}
+
+	bool IsNull()
+	{
+		return (pointer == NULL);
+	}
+
+	/** 
+		Removes the current pointer from this KScopedMallocPointer without freeing it.
+		This will return the current pointer, and set the KScopedMallocPointer to a null pointer.
+	*/
+	PointerType* Detach()
+	{ 
+		PointerType* m = pointer;
+		pointer = NULL;
+		return m; 
+	}
+
+	~KScopedMallocPointer()
+	{
+		if (pointer)
+			::free(pointer);
+	}
+
+	/** 
+		Changes this KScopedMallocPointer to point to a new pointer.
+
+		If this KScopedMallocPointer already holds a pointer, that pointer
+		will first be freed.
+
+		The pointer that you pass in may be a nullptr.
+	*/
+	KScopedMallocPointer& operator= (PointerType* const newPointer)
+	{
+		if (pointer != newPointer)
+		{
+			PointerType* const oldPointer = pointer;
+			pointer = newPointer;
+
+			if (oldPointer)
+				::free(oldPointer);
+		}
+
+		return *this;
+	}
+
+	inline PointerType** operator&() { return &pointer; }
+
+	/** Returns the pointer that this KScopedMallocPointer refers to. */
+	inline operator PointerType*() const { return pointer; }
+
+	/** Returns the pointer that this KScopedMallocPointer refers to. */
+	inline PointerType& operator*() const { return *pointer; }
+
+};
+
+#endif
+
 // =========== KScopedHandle.h ===========
 
 /*
@@ -906,77 +1026,6 @@ public:
 
 #endif
 
-// =========== KScopedCriticalSection.h ===========
-
-/*
-	RFC - KScopedCriticalSection.h
-	Copyright (C) 2013-2019 CrownSoft
-
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-
-*/
-
-#ifndef _RFC_KSCOPED_CRITICAL_SECTION_H_
-#define _RFC_KSCOPED_CRITICAL_SECTION_H_
-
-#include <windows.h>
-
-/**
-	This class holds a pointer to CRITICAL_SECTION which is automatically released when this object goes
-	out of scope.
-*/
-class KScopedCriticalSection
-{
-private:
-	CRITICAL_SECTION *criticalSection;
-
-	// Prevent heap allocation
-	void* operator new(size_t);
-	void* operator new[](size_t);
-	void  operator delete(void*);
-	void  operator delete[](void*);
-
-public:
-	KScopedCriticalSection(CRITICAL_SECTION *criticalSection)
-	{
-		this->criticalSection = criticalSection;
-		::EnterCriticalSection(criticalSection);
-	}
-
-	// does not call LeaveCriticalSection
-	CRITICAL_SECTION* Detach()
-	{ 
-		CRITICAL_SECTION *c = criticalSection;
-		criticalSection = NULL;
-		return c; 
-	}
-
-	~KScopedCriticalSection()
-	{
-		if (criticalSection)
-			::LeaveCriticalSection(criticalSection);
-	}
-
-	inline operator CRITICAL_SECTION*() const { return criticalSection; }
-
-};
-
-#endif
-
 // =========== sha1.h ===========
 
 /*
@@ -1142,6 +1191,110 @@ namespace ExtLibs{
 	};
 
 }
+
+#endif
+
+// =========== KScopedComPointer.h ===========
+
+/*
+	RFC - KScopedComPointer.h
+	Copyright (C) 2013-2019 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+
+*/
+
+#ifndef _RFC_KSCOPED_COM_POINTER_H_
+#define _RFC_KSCOPED_COM_POINTER_H_
+
+/**
+	This class holds a COM pointer which is automatically released when this object goes
+	out of scope.
+*/
+template<class T>
+class KScopedComPointer
+{
+private:
+	T* object;
+
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
+public:
+	inline KScopedComPointer()
+	{
+		object = NULL;
+	}
+
+	inline KScopedComPointer(T* object)
+	{
+		this->object = object;
+
+		if (this->object)
+			this->object->AddRef();
+	}
+
+	KScopedComPointer(KScopedComPointer& objectToTransferFrom)
+	{
+		object = objectToTransferFrom.object;
+
+		if (object)
+			object->AddRef();
+	}
+
+	bool IsNull()
+	{
+		return (object == NULL);
+	}
+
+	/** 
+		Removes the current COM object from this KScopedComPointer without releasing it.
+		This will return the current object, and set the KScopedComPointer to a null pointer.
+	*/
+	T* Detach()
+	{ 
+		T* o = object; 
+		object = NULL; 
+		return o; 
+	}
+
+	~KScopedComPointer()
+	{
+		if (object)
+			object->Release();
+
+		object = NULL;
+	}
+
+	inline T** operator&() { return &object; }
+
+	/** Returns the object that this KScopedComPointer refers to. */
+	inline operator T*() const { return object; }
+
+	/** Returns the object that this KScopedComPointer refers to. */
+	inline T& operator*() const { return *object; }
+
+	/** Lets you access methods and properties of the object that this KScopedComPointer refers to. */
+	inline T* operator->() const { return object; }
+
+};
 
 #endif
 
@@ -1414,10 +1567,10 @@ private:
 
 #endif
 
-// =========== KScopedComPointer.h ===========
+// =========== KScopedCriticalSection.h ===========
 
 /*
-	RFC - KScopedComPointer.h
+	RFC - KScopedCriticalSection.h
 	Copyright (C) 2013-2019 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
@@ -1438,18 +1591,19 @@ private:
 
 */
 
-#ifndef _RFC_KSCOPED_COM_POINTER_H_
-#define _RFC_KSCOPED_COM_POINTER_H_
+#ifndef _RFC_KSCOPED_CRITICAL_SECTION_H_
+#define _RFC_KSCOPED_CRITICAL_SECTION_H_
+
+#include <windows.h>
 
 /**
-	This class holds a COM pointer which is automatically released when this object goes
+	This class holds a pointer to CRITICAL_SECTION which is automatically released when this object goes
 	out of scope.
 */
-template<class T>
-class KScopedComPointer
+class KScopedCriticalSection
 {
 private:
-	T* object;
+	CRITICAL_SECTION *criticalSection;
 
 	// Prevent heap allocation
 	void* operator new(size_t);
@@ -1458,61 +1612,27 @@ private:
 	void  operator delete[](void*);
 
 public:
-	inline KScopedComPointer()
+	KScopedCriticalSection(CRITICAL_SECTION *criticalSection)
 	{
-		object = NULL;
+		this->criticalSection = criticalSection;
+		::EnterCriticalSection(criticalSection);
 	}
 
-	inline KScopedComPointer(T* object)
-	{
-		this->object = object;
-
-		if (this->object)
-			this->object->AddRef();
-	}
-
-	KScopedComPointer(KScopedComPointer& objectToTransferFrom)
-	{
-		object = objectToTransferFrom.object;
-
-		if (object)
-			object->AddRef();
-	}
-
-	bool IsNull()
-	{
-		return (object == NULL);
-	}
-
-	/** 
-		Removes the current COM object from this KScopedComPointer without releasing it.
-		This will return the current object, and set the KScopedComPointer to a null pointer.
-	*/
-	T* Detach()
+	// does not call LeaveCriticalSection
+	CRITICAL_SECTION* Detach()
 	{ 
-		T* o = object; 
-		object = NULL; 
-		return o; 
+		CRITICAL_SECTION *c = criticalSection;
+		criticalSection = NULL;
+		return c; 
 	}
 
-	~KScopedComPointer()
+	~KScopedCriticalSection()
 	{
-		if (object)
-			object->Release();
-
-		object = NULL;
+		if (criticalSection)
+			::LeaveCriticalSection(criticalSection);
 	}
 
-	inline T** operator&() { return &object; }
-
-	/** Returns the object that this KScopedComPointer refers to. */
-	inline operator T*() const { return object; }
-
-	/** Returns the object that this KScopedComPointer refers to. */
-	inline T& operator*() const { return *object; }
-
-	/** Lets you access methods and properties of the object that this KScopedComPointer refers to. */
-	inline T* operator->() const { return object; }
+	inline operator CRITICAL_SECTION*() const { return criticalSection; }
 
 };
 
@@ -3697,6 +3817,79 @@ private:
 
 #endif
 
+// =========== KRegistry.h ===========
+
+/*
+    RFC - KRegistry.h
+    Copyright (C) 2013-2017 CrownSoft
+  
+    This software is provided 'as-is', without any express or implied
+    warranty.  In no event will the authors be held liable for any damages
+    arising from the use of this software.
+
+    Permission is granted to anyone to use this software for any purpose,
+    including commercial applications, and to alter it and redistribute it
+    freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+       claim that you wrote the original software. If you use this software
+       in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+    2. Altered source versions must be plainly marked as such, and must not be
+       misrepresented as being the original software.
+    3. This notice may not be removed or altered from any source distribution.
+      
+*/
+
+#ifndef _RFC_KREGISTRY_H_
+#define _RFC_KREGISTRY_H_
+
+#include<windows.h>
+
+class KRegistry
+{
+
+public:
+	KRegistry();
+
+	// returns true on success or if the key already exists.
+	static bool CreateKey(HKEY hKeyRoot, const KString& subKey);
+
+	// the subkey to be deleted must not have subkeys. 
+	static bool DeleteKey(HKEY hKeyRoot, const KString& subKey);
+
+	static bool ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString *result);
+
+	static bool WriteString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
+
+	static bool ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD *result);
+
+	static bool WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
+
+	/**
+		you must free the buffer when you are done with it.
+
+		e.g. @code
+		void *buffer;
+		DWORD bufferSize;
+		if(KRegistry::ReadBinary(xxx, xxx, xxx, &buffer, &buffSize))
+		{
+			// do your thing here...
+
+			free(buffer);
+		}
+		@endcode
+	*/
+	static bool ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void **buffer, DWORD *buffSize);
+
+	static bool WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void *buffer, DWORD buffSize);
+
+	virtual ~KRegistry();
+
+};
+
+#endif
+
 // =========== KIcon.h ===========
 
 /*
@@ -3916,79 +4109,6 @@ private:
 
 #endif
 
-
-// =========== KRegistry.h ===========
-
-/*
-    RFC - KRegistry.h
-    Copyright (C) 2013-2017 CrownSoft
-  
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-      
-*/
-
-#ifndef _RFC_KREGISTRY_H_
-#define _RFC_KREGISTRY_H_
-
-#include<windows.h>
-
-class KRegistry
-{
-
-public:
-	KRegistry();
-
-	// returns true on success or if the key already exists.
-	static bool CreateKey(HKEY hKeyRoot, const KString& subKey);
-
-	// the subkey to be deleted must not have subkeys. 
-	static bool DeleteKey(HKEY hKeyRoot, const KString& subKey);
-
-	static bool ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString *result);
-
-	static bool WriteString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
-
-	static bool ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD *result);
-
-	static bool WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
-
-	/**
-		you must free the buffer when you are done with it.
-
-		e.g. @code
-		void *buffer;
-		DWORD bufferSize;
-		if(KRegistry::ReadBinary(xxx, xxx, xxx, &buffer, &buffSize))
-		{
-			// do your thing here...
-
-			free(buffer);
-		}
-		@endcode
-	*/
-	static bool ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void **buffer, DWORD *buffSize);
-
-	static bool WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void *buffer, DWORD buffSize);
-
-	virtual ~KRegistry();
-
-};
-
-#endif
 
 // =========== KComponent.h ===========
 
@@ -5107,60 +5227,6 @@ public:
 
 #endif
 
-// =========== KMenu.h ===========
-
-/*
-	RFC - KMenu.h
-	Copyright (C) 2013-2019 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
-*/
-
-#ifndef _RFC_KMENU_H_
-#define _RFC_KMENU_H_
-
-
-class KMenu
-{
-protected:
-	HMENU hMenu;
-
-public:
-	KMenu();
-
-	virtual void AddMenuItem(KMenuItem *menuItem);
-
-	virtual void AddSubMenu(const KString& text, KMenu *menu);
-
-	virtual void AddSeperator();
-
-	virtual HMENU GetMenuHandle();
-
-	virtual void PopUpMenu(KWindow *window);
-
-	virtual ~KMenu();
-
-private:
-	RFC_LEAK_DETECTOR(KMenu)
-};
-
-#endif
-
 // =========== KTimer.h ===========
 
 /*
@@ -5253,10 +5319,10 @@ private:
 
 #endif
 
-// =========== KMenuBar.h ===========
+// =========== KMenu.h ===========
 
 /*
-	RFC - KMenuBar.h
+	RFC - KMenu.h
 	Copyright (C) 2013-2019 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
@@ -5277,28 +5343,33 @@ private:
 	  
 */
 
-#ifndef _RFC_KMENUBAR_H_
-#define _RFC_KMENUBAR_H_
+#ifndef _RFC_KMENU_H_
+#define _RFC_KMENU_H_
 
 
-class KMenuBar
+class KMenu
 {
 protected:
 	HMENU hMenu;
 
 public:
-	KMenuBar();
+	KMenu();
 
-	virtual void AddMenu(const KString& text, KMenu *menu);
+	virtual void AddMenuItem(KMenuItem *menuItem);
 
-	virtual void AddToWindow(KWindow *window);
+	virtual void AddSubMenu(const KString& text, KMenu *menu);
 
-	virtual ~KMenuBar();
+	virtual void AddSeperator();
+
+	virtual HMENU GetMenuHandle();
+
+	virtual void PopUpMenu(KWindow *window);
+
+	virtual ~KMenu();
 
 private:
-	RFC_LEAK_DETECTOR(KMenuBar)
+	RFC_LEAK_DETECTOR(KMenu)
 };
-
 
 #endif
 
@@ -5770,11 +5841,60 @@ public:
 
 #endif
 
+// =========== KMenuBar.h ===========
+
+/*
+	RFC - KMenuBar.h
+	Copyright (C) 2013-2019 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+	  
+*/
+
+#ifndef _RFC_KMENUBAR_H_
+#define _RFC_KMENUBAR_H_
+
+
+class KMenuBar
+{
+protected:
+	HMENU hMenu;
+
+public:
+	KMenuBar();
+
+	virtual void AddMenu(const KString& text, KMenu *menu);
+
+	virtual void AddToWindow(KWindow *window);
+
+	virtual ~KMenuBar();
+
+private:
+	RFC_LEAK_DETECTOR(KMenuBar)
+};
+
+
+#endif
+
 // =========== rfc.h ===========
 
 /*
 	RFC Framework v0.2.6
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2020 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
