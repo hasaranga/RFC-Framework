@@ -88,6 +88,7 @@
 #include "threads/KRunnable.h"
 #include "threads/KTimer.h"
 #include "threads/KTimerListener.h"
+#include "threads/KInterruptableSleep.h"
 #include "io/KFile.h"
 #include "io/KDirectory.h"
 #include "io/KSettingsWriter.h"
