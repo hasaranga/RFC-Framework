@@ -2629,6 +2629,8 @@ public:
 
 	static RECT CalculateTextSize(const wchar_t *text, HFONT hFont);
 
+	static int CalculateTextHeight(wchar_t* text, HFONT hFont, int width);
+
 private:
 	RFC_LEAK_DETECTOR(KGraphics)
 };

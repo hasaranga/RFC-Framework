@@ -76,3 +76,16 @@ RECT KGraphics::CalculateTextSize(const wchar_t *text, HFONT hFont)
 	::DeleteDC(hDC);
 	return sz;
 }
+
+int KGraphics::CalculateTextHeight(wchar_t* text, HFONT hFont, int width)
+{
+	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
+	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
+	RECT sz = { 0, 0, width, 0 };
+
+	::DrawText(hDC, text, ::lstrlenW(text), &sz, DT_CALCRECT | DT_NOPREFIX | DT_WORDBREAK | DT_EDITCONTROL | DT_LEFT);
+	::SelectObject(hDC, hOldFont);
+
+	::DeleteDC(hDC);
+	return sz.bottom;
+}
