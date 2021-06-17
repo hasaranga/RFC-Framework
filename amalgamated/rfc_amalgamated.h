@@ -5155,6 +5155,8 @@ public:
 
 	virtual bool SetClientAreaSize(int width, int height);
 
+	static bool IsOffScreen(int posX, int posY);
+
 	virtual bool GetClientAreaSize(int *width, int *height);
 
 	virtual void OnMoved();

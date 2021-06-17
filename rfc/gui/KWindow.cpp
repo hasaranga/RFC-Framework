@@ -101,6 +101,14 @@ bool KWindow::SetClientAreaSize(int width, int height)
 	return false;
 }
 
+bool KWindow::IsOffScreen(int posX, int posY)
+{
+	POINT point;
+	point.x = posX;
+	point.y = posY;
+	return (::MonitorFromPoint(point, MONITOR_DEFAULTTONULL) == NULL);
+}
+
 bool KWindow::GetClientAreaSize(int *width, int *height)
 {
 	if (compHWND)
