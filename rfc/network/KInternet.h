@@ -1,7 +1,6 @@
 
 /*
-	RFC - KInternet.h
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,16 +20,15 @@
 	  
 */
 
-#ifndef _RFC_KINTERNET_H_
-#define _RFC_KINTERNET_H_
+#pragma once
 
 // mingw does not ship with winhttp. So, this class is not available for mingw compiler.
 #ifndef __MINGW32__
 
-#include <windows.h>
-#include "../text/KString.h"
-#include "../containers/KLeakDetector.h"
+#include "../core/CoreModule.h"
 #include <winhttp.h>
+
+#pragma comment(lib, "Winhttp.lib")
 
 class KInternet
 {
@@ -78,4 +76,3 @@ private:
 
 #endif
 
-#endif

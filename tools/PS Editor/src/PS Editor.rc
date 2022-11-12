@@ -1,0 +1,201 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG1 DIALOGEX 0, 0, 529, 274
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Property Storage - Editor"
+MENU IDR_MENU1
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_TREE1,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,1,0,179,273
+END
+
+IDD_DIALOG2 DIALOGEX 0, 0, 338, 96
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Object ID",IDC_STATIC,17,14,32,8
+    EDITTEXT        IDC_EDIT1,71,13,177,12,ES_AUTOHSCROLL
+    LTEXT           "Object Name",IDC_STATIC,17,37,42,8
+    EDITTEXT        IDC_EDIT2,71,35,177,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Update",IDC_BUTTON1,198,59,51,14
+    PUSHBUTTON      "Generate",IDC_BUTTON2,258,12,41,14
+END
+
+IDD_DIALOG3 DIALOGEX 0, 0, 338, 278
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Property Name",IDC_STATIC,13,12,80,8
+    LTEXT           "Property Type",IDC_STATIC,14,33,47,8
+    EDITTEXT        IDC_EDIT1,69,11,183,12,ES_AUTOHSCROLL
+    COMBOBOX        IDC_COMBO1,70,31,182,86,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Property Value",IDC_STATIC,13,54,48,8
+    EDITTEXT        IDC_EDIT2,70,52,244,175,ES_MULTILINE | WS_VSCROLL | WS_HSCROLL
+    PUSHBUTTON      "SVG Preview",IDC_BUTTON1,12,95,50,14
+    PUSHBUTTON      "Update",IDC_BUTTON2,263,238,50,14
+    PUSHBUTTON      "Browse File",IDC_BUTTON3,12,72,50,14
+    LTEXT           "",IDC_FILE_NAME,70,239,184,12,0,WS_EX_STATICEDGE
+    LTEXT           "File Name",IDC_STATIC,29,240,32,8
+END
+
+IDD_DIALOG4 DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "SVG Preview"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Scale",IDC_STATIC,11,10,18,8
+    COMBOBOX        IDC_COMBO1,37,8,88,56,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_DIALOG1, DIALOG
+    BEGIN
+        RIGHTMARGIN, 527
+    END
+
+    IDD_DIALOG2, DIALOG
+    BEGIN
+    END
+
+    IDD_DIALOG3, DIALOG
+    BEGIN
+    END
+
+    IDD_DIALOG4, DIALOG
+    BEGIN
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_DIALOG1 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG2 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG3 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG4 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU1 MENU
+BEGIN
+    POPUP "File"
+    BEGIN
+        MENUITEM "New File...",                 ID_FILE_NEWFILE
+        MENUITEM "Open File...",                ID_FILE_OPEN
+        MENUITEM "Save As...",                  ID_FILE_SAVEAS
+        MENUITEM SEPARATOR
+        MENUITEM "Exit",                        ID_FILE_EXIT
+    END
+    POPUP "Edit"
+    BEGIN
+        MENUITEM "Add Object",                  ID_EDIT_ADDNEWOBJECT
+        MENUITEM "Add Property",                ID_EDIT_ADDNEWPROPERTY
+        MENUITEM "Duplicate",                   ID_EDIT_DUPLICATE
+        MENUITEM SEPARATOR
+        MENUITEM "Remove Selected",             ID_EDIT_REMOVEOBJECT
+        MENUITEM SEPARATOR
+        MENUITEM "Move Up (Ctrl + W)",          ID_EDIT_MOVEUP
+        MENUITEM "Move Down (Ctrl + S)",        ID_EDIT_MOVEDOWN
+    END
+    POPUP "Help"
+    BEGIN
+        MENUITEM "About...",                    ID_HELP_ABOUT
+    END
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

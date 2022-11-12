@@ -1,7 +1,6 @@
 
 /*
-	RFC - KInternet.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,16 +16,11 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.  
 */
 
 // mingw does not ship with winhttp. So, this class is not available for mingw compiler.
 #ifndef __MINGW32__
-
-#ifndef _CRT_SECURE_NO_WARNINGS
-	#define _CRT_SECURE_NO_WARNINGS
-#endif
 
 #include "KInternet.h"
 #include <string.h>
@@ -112,7 +106,7 @@ KString KInternet::UrlEncodeString(const KString &text)
 		}
 		else
 		{
-			::sprintf(bufHex, "%X", c);
+			::sprintf_s(bufHex, 10, "%X", c);
 
 			if (ic < 16)
 				new_str = new_str.AppendStaticText(L"%0", 2, true);
@@ -153,7 +147,7 @@ KString KInternet::UrlDecodeString(const KString &text)
 		else
 		{
 			KString sub(text.SubString(i + 1, i + 2));
-			::sscanf(sub, "%x", &ii);
+			::sscanf_s(sub, "%x", &ii);
 			ch = static_cast<char>(ii);
 
 			char tmp[] = { ch, 0 };

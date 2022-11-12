@@ -1,7 +1,6 @@
 
 /*
-	RFC - KCommonDialogBox.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,17 +16,13 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.  
 */
 
-#ifndef _CRT_SECURE_NO_WARNINGS
-	#define _CRT_SECURE_NO_WARNINGS
-#endif 
 
 #include "KCommonDialogBox.h"
-#include "../utils/KRegistry.h"
-#include "../io/KDirectory.h"
+#include "../utils/UtilsModule.h"
+#include "../file/FileModule.h"
 
 const wchar_t* const RFC_OSD_REG_LOCATION = L"Software\\CrownSoft\\RFC\\OSD";
 

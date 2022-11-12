@@ -1,28 +1,27 @@
 
 /*
-RFC - KMenuButton.cpp
-Copyright (C) 2013-2019 CrownSoft
-  
-This software is provided 'as-is', without any express or implied
-warranty.  In no event will the authors be held liable for any damages
-arising from the use of this software.
+	Copyright (C) 2013-2022 CrownSoft
 
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
 
-1. The origin of this software must not be misrepresented; you must not
-	claim that you wrote the original software. If you use this software
-	in a product, an acknowledgment in the product documentation would be
-	appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be
-	misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-	  
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
 */
 
 #include "KMenuButton.h"
-#include "../rfc.h"
+#include "KGraphics.h"
+#include <commctrl.h>
 
 KMenuButton::KMenuButton()
 {
@@ -30,7 +29,7 @@ KMenuButton::KMenuButton()
 	glyphFont = 0;
 	glyphChar = 0;
 	glyphLeft = 6;
-	arrowFont = new KFont(CONST_TXT("Webdings"), 18);
+	arrowFont = new KFont(CONST_TXT("Webdings"), 18, false, false, false, false, USER_DEFAULT_SCREEN_DPI);
 }	
 
 KMenuButton::~KMenuButton()
@@ -51,6 +50,16 @@ void KMenuButton::SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF 
 	this->glyphLeft = glyphLeft;
 
 	this->Repaint();
+}
+
+void KMenuButton::SetDPI(int newDPI)
+{
+	if (glyphFont)
+		glyphFont->SetDPI(newDPI);
+
+	arrowFont->SetDPI(newDPI);
+
+	KButton::SetDPI(newDPI);
 }
 
 void KMenuButton::OnPress()
@@ -81,7 +90,9 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 			else if ( CDDS_POSTPAINT== lpNMCD->dwDrawStage ) //  postpaint stage
 			{
 				const RECT rc = lpNMCD->rc;
-				KGraphics::Draw3dVLine(lpNMCD->hdc, rc.right - 22, rc.top + 6, rc.bottom - 12); // draw line
+				KGraphics::Draw3dVLine(lpNMCD->hdc, rc.right - ::MulDiv(22, compDPI, USER_DEFAULT_SCREEN_DPI),
+					rc.top + ::MulDiv(6, compDPI, USER_DEFAULT_SCREEN_DPI), 
+					rc.bottom - ::MulDiv(12, compDPI, USER_DEFAULT_SCREEN_DPI)); // draw line
 
 				const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED|CDIS_GRAYED)) != 0;
 
@@ -89,7 +100,7 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 				const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, ::GetSysColor(bDisabled ? COLOR_GRAYTEXT : COLOR_BTNTEXT));
 				const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
-				RECT rcIcon = { rc.right - 18, rc.top, rc.right, rc.bottom };
+				RECT rcIcon = { rc.right - ::MulDiv(18, compDPI, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
 				::DrawTextW(lpNMCD->hdc, L"\x36", 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER); // draw arrow
 
 				if (glyphFont) // draw glyph
@@ -97,7 +108,7 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 					::SelectObject(lpNMCD->hdc, glyphFont->GetFontHandle());
 					::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
 
-					rcIcon = { rc.left + glyphLeft, rc.top, rc.right, rc.bottom };
+					rcIcon = { rc.left + ::MulDiv(glyphLeft, compDPI, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
 					::DrawTextW(lpNMCD->hdc, glyphChar, 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
 				}
 

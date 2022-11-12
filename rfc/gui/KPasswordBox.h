@@ -1,7 +1,6 @@
 
 /*
-	RFC - KPasswordBox.h
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,30 +16,27 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.	  
 */
 
-#ifndef _RFC_KPASSWORDBOX_H_
-#define _RFC_KPASSWORDBOX_H_
+#pragma once
 
 #include "KTextBox.h"
 
 class KPasswordBox : public KTextBox
 {
 protected:
-	char pwdChar;
+	wchar_t pwdChar;
 
 public:
 	KPasswordBox(bool readOnly=false);
 
-	virtual void SetPasswordChar(const char pwdChar);
+	virtual void SetPasswordChar(const wchar_t pwdChar);
 
-	virtual char GetPasswordChar();
+	virtual wchar_t GetPasswordChar();
 
-	virtual bool Create();
+	virtual bool Create(bool requireInitialMessages = false);
 
 	virtual ~KPasswordBox();
 };
 
-#endif

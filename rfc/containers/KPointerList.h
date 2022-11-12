@@ -1,7 +1,6 @@
 
 /*
-	RFC - KPointerList.h
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,24 +16,14 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.	  
 */
 
 
-#ifndef _RFC_KPOINTERLIST_H_
-#define _RFC_KPOINTERLIST_H_
+#pragma once
 
+#include "../core/CoreModule.h"
 #include <malloc.h>
-#include <windows.h>
-#include "../config.h"
-#include "KLeakDetector.h"
-
-#if defined(_MSC_VER) && _MSC_VER > 1000
-	#pragma warning(disable:4311)
-	#pragma warning(disable:4312)
-#endif
-
 
 /**
 	Holds a resizable list of pointers.
@@ -319,4 +308,3 @@ private:
 	RFC_LEAK_DETECTOR(KPointerList)
 };
 
-#endif

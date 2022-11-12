@@ -23,32 +23,32 @@
 
 
 #include "KComponent.h"
-#include "../rfc.h"
-
+#include "KIDGenerator.h"
+#include "KGUIProc.h"
 
 KComponent::KComponent(bool generateWindowClassDetails)
 {
-	RFC_INIT_VERIFIER;
 	isRegistered = false;
 
-	KPlatformUtil *platformUtil = KPlatformUtil::GetInstance();
-	compCtlID = platformUtil->GenerateControlID();
+	KIDGenerator *idGenerator = KIDGenerator::GetInstance();
+	compCtlID = idGenerator->GenerateControlID();
 
 	compHWND = 0;
 	compParentHWND = 0;
 	compDwStyle = 0;
 	compDwExStyle = 0;
 	cursor = 0;
-	compX = CW_USEDEFAULT;
-	compY = CW_USEDEFAULT;
+	compX = 0;
+	compY = 0;
 	compWidth = CW_USEDEFAULT;
 	compHeight = CW_USEDEFAULT;
+	compDPI = USER_DEFAULT_SCREEN_DPI;
 	compVisible = true;
 	compEnabled = true;
 
 	if (generateWindowClassDetails)
 	{
-		compClassName = platformUtil->GenerateClassName();
+		compClassName = idGenerator->GenerateClassName();
 		wc.cbSize = sizeof(WNDCLASSEX);
 		wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
 		wc.hIcon = 0;
@@ -61,7 +61,7 @@ KComponent::KComponent(bool generateWindowClassDetails)
 		wc.hInstance = KApplication::hInstance;
 		wc.lpszClassName = compClassName;
 
-		wc.lpfnWndProc = ::GlobalWnd_Proc;
+		wc.lpfnWndProc = KGUIProc::WindowProc;
 	}
 
 	compFont = KFont::GetDefaultFont();
@@ -113,7 +113,7 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 		compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
 	}
 
-	::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);	
+	KGUIProc::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);	
 
 	this->OnHotPlug();
 }
@@ -142,7 +142,7 @@ bool KComponent::Create(bool requireInitialMessages)
 
 	isRegistered = true;
 
-	::CreateRFCComponent(this, requireInitialMessages);
+	KGUIProc::CreateComponent(this, requireInitialMessages);
 
 	if(compHWND)
 	{
@@ -158,11 +158,17 @@ bool KComponent::Create(bool requireInitialMessages)
 	return false;
 }
 
+void KComponent::Destroy()
+{
+	if (compHWND)
+		::DestroyWindow(compHWND);
+}
+
 LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(InternalDefinitions::RFCPropAtom_OldProc));
+	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::AtomOldProc));
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc != (void*)::GlobalWnd_Proc) // it's a subclassed common control or hot-plugged dialog! RFCOldProc of subclassed control|dialog is not GlobalWnd_Proc function.
+		if((void*)lpfnOldWndProc != (void*)KGUIProc::WindowProc) // it's a subclassed common control or hot-plugged dialog! RFCOldProc property of subclassed control|dialog is not KGUIProc::WindowProc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }
@@ -242,6 +248,11 @@ void KComponent::SetExStyle(DWORD compDwExStyle)
 		::SetWindowLongPtrW(compHWND, GWL_EXSTYLE, compDwExStyle);
 }
 
+int KComponent::GetDPI()
+{
+	return compDPI;
+}
+
 int KComponent::GetX()
 {
 	return compX; 
@@ -260,6 +271,34 @@ int KComponent::GetWidth()
 int KComponent::GetHeight()
 {
 	return compHeight;
+}
+
+void KComponent::SetDPI(int newDPI)
+{
+	if (newDPI == compDPI)
+		return;
+
+	int oldDPI = compDPI;
+	compDPI = newDPI;
+
+	if (compDwStyle & WS_CHILD) // do not change position and font size of top level windows.
+	{
+		this->compX = ::MulDiv(compX, newDPI, oldDPI);
+		this->compY = ::MulDiv(compY, newDPI, oldDPI);
+
+		if (!compFont->IsDefaultFont())
+			compFont->SetDPI(newDPI);
+	}
+
+	this->compWidth = ::MulDiv(compWidth, newDPI, oldDPI);
+	this->compHeight = ::MulDiv(compHeight, newDPI, oldDPI);
+
+	if (compHWND)
+	{
+		::SetWindowPos(compHWND, 0, compX, compY, compWidth, compHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+		if((!compFont->IsDefaultFont()) && (compDwStyle & WS_CHILD))
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0));
+	}
 }
 
 void KComponent::SetSize(int compWidth, int compHeight)

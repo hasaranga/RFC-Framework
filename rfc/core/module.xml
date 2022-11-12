@@ -1,0 +1,7 @@
+<xml>
+	<name>Core</name>
+	<fixed>true</fixed>
+	<dependencies></dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KApplication, KDPIUtility, KLeakDetector, KString</description>
+</xml>

@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Company>CrownSoft</Company>
+    <Product>RFC Generator</Product>
+    <Copyright>CrownSoft</Copyright>
+    <ApplicationIcon>rfc.ico</ApplicationIcon>
+    <Description>RFC Generator</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="rfc.ico" />
+  </ItemGroup>
+
+</Project>

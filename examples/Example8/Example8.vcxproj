@@ -19,13 +19,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -76,12 +76,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\amalgamated\rfc_amalgamated.cpp" />
-    <ClCompile Include="HotPlug.cpp" />
+    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="rfc\rfc.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\amalgamated\rfc_amalgamated.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="rfc\rfc.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Example8.rc" />

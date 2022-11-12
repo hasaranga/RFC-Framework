@@ -1,7 +1,6 @@
 
 /*
-	RFC - KGlyphButton.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +21,7 @@
 */
 
 #include "KGlyphButton.h"
-#include "../rfc.h"
+#include <commctrl.h>
 
 KGlyphButton::KGlyphButton()
 {
@@ -43,6 +42,14 @@ void KGlyphButton::SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF
 	this->glyphLeft = glyphLeft;
 
 	this->Repaint();
+}
+
+void KGlyphButton::SetDPI(int newDPI)
+{
+	if (glyphFont)
+		glyphFont->SetDPI(newDPI);
+
+	KButton::SetDPI(newDPI);
 }
 
 bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
@@ -70,7 +77,7 @@ bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *re
 					const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
 					const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
-					RECT rcIcon = { rc.left + glyphLeft, rc.top, rc.right, rc.bottom };
+					RECT rcIcon = { rc.left + ::MulDiv(glyphLeft, compDPI, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
 					::DrawTextW(lpNMCD->hdc, glyphChar, 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER); // draw glyph
 
 					::SetBkMode(lpNMCD->hdc, oldBkMode);

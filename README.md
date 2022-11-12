@@ -3,11 +3,12 @@
 # RFC Framework
 
 
-RFC Framework v0.2.6 By CrownSoft.
+RFC Framework v1.0 By CrownSoft.
 
 RFC Framework is a C++ framework which helps you to create Windows GUI applications with clean and minimum code. By using this framework, you can write applications using object oriented fashion!
 
-copy rfc_amalgamated.h and rfc_amalgamated.cpp files into your project and start coding!
+Run the "Generator.exe" and select required modules. Browse the output location and press "Generate" button. It will generate single header and cpp file which can be used with your project.
+
 Checkout examples dir for usage of this framework.
 
 The minimum supported OS is Windows XP.

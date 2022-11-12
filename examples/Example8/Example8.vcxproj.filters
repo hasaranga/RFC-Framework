@@ -13,21 +13,24 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="rfc">
+      <UniqueIdentifier>{f6bda157-7b2b-4dc3-a41c-569e51d99cd1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\amalgamated\rfc_amalgamated.cpp">
+    <ClCompile Include="Source.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HotPlug.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="rfc\rfc.cpp">
+      <Filter>rfc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\amalgamated\rfc_amalgamated.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rfc\rfc.h">
+      <Filter>rfc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

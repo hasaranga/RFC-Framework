@@ -1,7 +1,6 @@
 
 /*
-	RFC - KMenuItem.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,22 +16,20 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.	  
 */
 
-#include"KMenuItem.h"
-#include"KMenuItemListener.h"
-#include "../rfc.h"
+#include "KMenuItem.h"
+#include "KMenuItemListener.h"
+#include "KIDGenerator.h"
 
 KMenuItem::KMenuItem()
 {
-	RFC_INIT_VERIFIER;
 	hMenu = 0;
 	listener = 0;
 	enabled = true;
 	checked = false;
-	itemID = KPlatformUtil::GetInstance()->GenerateMenuItemID(this);
+	itemID = KIDGenerator::GetInstance()->GenerateMenuItemID(this);
 }
 
 void KMenuItem::AddToMenu(HMENU hMenu)
@@ -63,7 +60,7 @@ bool KMenuItem::IsChecked()
 void KMenuItem::SetCheckedState(bool state)
 {
 	checked = state;
-	if(hMenu) // it's alredy created menu item!
+	if(hMenu) // already created menu item
 	{
 		MENUITEMINFOW mii;
 		::ZeroMemory(&mii, sizeof(mii));
@@ -84,7 +81,7 @@ bool KMenuItem::IsEnabled()
 void KMenuItem::SetEnabled(bool state)
 {
 	enabled = state;
-	if(hMenu) // it's alredy created menu item!
+	if(hMenu) // already created menu item
 	{
 		MENUITEMINFOW mii;
 		::ZeroMemory(&mii, sizeof(mii));
@@ -100,7 +97,7 @@ void KMenuItem::SetEnabled(bool state)
 void KMenuItem::SetText(const KString& text)
 {
 	itemText = text;
-	if(hMenu) // it's alredy created menu item!
+	if(hMenu) // already created menu item
 	{
 		MENUITEMINFOW mii;
 		::ZeroMemory(&mii, sizeof(mii));

@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="lunasvg">
+      <UniqueIdentifier>{41d48af3-5707-4828-ac35-6006eacaa6b3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\canvas.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\clippathelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\defselement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\element.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\gelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\geometryelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\graphicselement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\layoutcontext.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\lunasvg.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\markerelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\maskelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\paintelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\parser.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\parserutils.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\plutovg.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\plutovg-private.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\property.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\stopelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\styledelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\styleelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\svgelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\sw_ft_math.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\sw_ft_raster.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\sw_ft_stroker.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\sw_ft_types.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\symbolelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+    <ClInclude Include="lunasvg\useelement.h">
+      <Filter>lunasvg</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\canvas.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\clippathelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\defselement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\element.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\gelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\geometryelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\graphicselement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\layoutcontext.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\lunasvg.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\markerelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\maskelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\paintelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\parser.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\plutovg.c">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\plutovg-blend.c">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\plutovg-dash.c">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\plutovg-geometry.c">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\plutovg-paint.c">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\plutovg-rle.c">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\property.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\stopelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\styledelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\styleelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\svgelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\sw_ft_math.c">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\sw_ft_raster.c">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\sw_ft_stroker.c">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\symbolelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="lunasvg\useelement.cpp">
+      <Filter>lunasvg</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="PS Editor.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

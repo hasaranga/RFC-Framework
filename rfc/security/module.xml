@@ -1,0 +1,7 @@
+<xml>
+	<name>Security</name>
+	<fixed>false</fixed>
+	<dependencies>Core,File</dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KMD5, KSHA1</description>
+</xml>

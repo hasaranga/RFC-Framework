@@ -1,0 +1,7 @@
+<xml>
+	<name>IPC</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KIPCServer, KIPCClient</description>
+</xml>

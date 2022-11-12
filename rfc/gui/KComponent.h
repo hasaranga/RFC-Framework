@@ -1,7 +1,6 @@
 
 /*
-	RFC - KComponent.h
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,23 +16,17 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.	  
 */
 
-#ifndef _RFC_KCOMPONENT_H_
-#define _RFC_KCOMPONENT_H_
+#pragma once
 
-
-#include <windows.h>
-#include "../graphics/KFont.h"
-#include "../graphics/KCursor.h"
-#include "../text/KString.h"
-#include "../containers/KLeakDetector.h"
+#include "../core/CoreModule.h"
+#include "KFont.h"
+#include "KCursor.h"
 
 /**
 	Base class of all W32 gui objects.
-	define "RFC_SINGLE_THREAD_COMP_CREATION" if your app does not create components within multiple threads.
 */
 class KComponent
 {
@@ -49,6 +42,7 @@ protected:
 	int compY;
 	int compWidth;
 	int compHeight;
+	int compDPI;
 	bool compVisible;
 	bool compEnabled;
 	bool isRegistered;
@@ -97,6 +91,8 @@ public:
 		@returns false if registration failed or component creation failed.
 	*/
 	virtual bool Create(bool requireInitialMessages = false);
+
+	virtual void Destroy();
 
 	/**
 		Handles internal window messages. (subclassed window proc)
@@ -194,6 +190,8 @@ public:
 	*/
 	virtual int GetHeight();
 
+	virtual int GetDPI();
+
 	/**
 		Sets width and height of the component.
 	*/
@@ -203,6 +201,8 @@ public:
 		Sets x and y position of the component. x and y are relative to parent component
 	*/
 	virtual void SetPosition(int compX, int compY);
+
+	virtual void SetDPI(int newDPI);
 
 	/**
 		Sets visible state of the component
@@ -245,4 +245,19 @@ private:
 	RFC_LEAK_DETECTOR(KComponent)
 };
 
-#endif
+
+// macros to handle window messages
+
+#define BEGIN_KMSG_HANDLER \
+	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) \
+	{\
+	switch(msg)\
+	{
+
+#define ON_KMSG(_KMsg,_KMsgHandler) \
+	case _KMsg: return _KMsgHandler(wParam,lParam);
+
+#define END_KMSG_HANDLER(_KComponentParentClass) \
+	default: return _KComponentParentClass::WindowProc(hwnd,msg,wParam,lParam); \
+	}\
+	}

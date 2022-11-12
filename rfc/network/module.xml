@@ -1,0 +1,7 @@
+<xml>
+	<name>Network</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KInternet</description>
+</xml>

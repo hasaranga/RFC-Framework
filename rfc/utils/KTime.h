@@ -1,7 +1,6 @@
 
 /*
-	RFC - KTime.h
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -18,14 +17,11 @@
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
 	3. This notice may not be removed or altered from any source distribution.
-
 */
 
-#ifndef _RFC_KTIME_H_
-#define _RFC_KTIME_H_
+#pragma once
 
-#include <windows.h>
-#include "../containers/KLeakDetector.h"
+#include "../core/CoreModule.h"
 
 // __int64 is not defined in mingw.
 #ifdef __MINGW32__
@@ -88,4 +84,3 @@ private:
 	RFC_LEAK_DETECTOR(KTime)
 };
 
-#endif

@@ -1,7 +1,6 @@
 
 /*
-	RFC - KComboBox.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,9 +20,9 @@
 	  
 */
 
-#include "../rfc.h"
 #include "KComboBox.h"
-
+#include "KGUIProc.h"
+#include "KComboBoxListener.h"
 
 KComboBox::KComboBox(bool sort) : KComponent(false)
 {
@@ -146,7 +145,7 @@ bool KComboBox::Create(bool requireInitialMessages)
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	::CreateRFCComponent(this, requireInitialMessages); // we dont need to register COMBOBOX class!
+	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register COMBOBOX class!
 
 	if(compHWND)
 	{

@@ -1,0 +1,7 @@
+<xml>
+	<name>Containers</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KPointerList, KScopedClassPointer, KScopedComPointer, KScopedCriticalSection, KScopedGdiObject, KScopedHandle, KScopedMallocPointer, KScopedMemoryBlock, KScopedStructPointer</description>
+</xml>

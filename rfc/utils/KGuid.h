@@ -1,7 +1,6 @@
 
 /*
-	RFC - KGuid.h
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -18,15 +17,13 @@
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
 	3. This notice may not be removed or altered from any source distribution.
-
 */
 
-#ifndef _RFC_KGUID_H_
-#define _RFC_KGUID_H_
+#pragma once
 
-#include <windows.h>
-#include "../containers/KLeakDetector.h"
-#include "../text/KString.h"
+#include "../core/CoreModule.h"
+
+#pragma comment(lib, "Rpcrt4.lib")
 
 // RPC_WSTR is not defined in mingw.
 #ifdef __MINGW32__
@@ -71,4 +68,3 @@ private:
 	RFC_LEAK_DETECTOR(KGuid)
 };
 
-#endif

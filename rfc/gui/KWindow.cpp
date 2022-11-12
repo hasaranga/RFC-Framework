@@ -1,7 +1,6 @@
 
 /*
-	RFC - KWindow.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,14 +16,15 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.	  
 */
 
 #include "KWindow.h"
-#include "../rfc.h"
+#include "KGUIProc.h"
+#include "KTimer.h"
+#include "KIDGenerator.h"
 
-KWindow::KWindow() : KComponent(true)
+KWindow::KWindow() : KComponent(true), componentList(50, false)
 {
 	compText.AssignStaticText(TXT_WITH_LEN("KWindow"));
 
@@ -32,11 +32,42 @@ KWindow::KWindow() : KComponent(true)
 	compHeight = 200;
 
 	compVisible = false;
+	enableDPIUnawareMode = false;
 	compDwStyle = WS_POPUP;
 	compDwExStyle = WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT;
-	wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+	wc.style = CS_HREDRAW | CS_VREDRAW;
 	compCtlID = 0; // control id is zero for top level window
 	lastFocusedChild = 0;
+	dpiChangeListener = NULL;
+}
+
+bool KWindow::Create(bool requireInitialMessages)
+{
+	DPI_AWARENESS_CONTEXT prevContext = 0;
+	bool dpiAwarenessContextChanged = false;
+
+	if ((KApplication::dpiAwareness == KDPIAwareness::MIXEDMODE_ONLY) && KApplication::dpiAwareAPICalled && enableDPIUnawareMode)
+	{
+		if (KDPIUtility::pSetThreadDpiAwarenessContext)
+		{
+			prevContext = KDPIUtility::pSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
+			dpiAwarenessContextChanged = true;
+		}
+	}
+
+	bool retVal = KComponent::Create(requireInitialMessages);
+
+	if(dpiAwarenessContextChanged)
+		KDPIUtility::pSetThreadDpiAwarenessContext(prevContext);
+
+	if(retVal && (KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
+	{
+		int dpi = KDPIUtility::GetWindowDPI(compHWND);
+		if (dpi != USER_DEFAULT_SCREEN_DPI)
+			this->SetDPI(dpi);
+	}
+
+	return retVal;
 }
 
 void KWindow::Flash()
@@ -49,11 +80,15 @@ void KWindow::SetIcon(KIcon *icon)
 	::SetClassLongPtrW(compHWND, GCLP_HICON, (LONG_PTR)icon->GetHandle());
 }
 
-void KWindow::Destroy()
+void KWindow::SetDPIChangeListener(KDPIChangeListener* dpiChangeListener)
 {
-	::DestroyWindow(compHWND);
+	this->dpiChangeListener = dpiChangeListener;
 }
 
+void KWindow::SetEnableDPIUnawareMode(bool enable)
+{
+	enableDPIUnawareMode = enable;
+}
 
 void KWindow::OnClose()
 {
@@ -63,6 +98,16 @@ void KWindow::OnClose()
 void KWindow::OnDestroy()
 {
 	::PostQuitMessage(0);
+}
+
+void KWindow::PostCustomMessage(WPARAM msgID, LPARAM param)
+{
+	::PostMessageW(compHWND, RFC_CUSTOM_MESSAGE, msgID, param);
+}
+
+void KWindow::OnCustomMessage(WPARAM msgID, LPARAM param)
+{
+
 }
 
 void KWindow::CenterScreen()
@@ -75,12 +120,28 @@ bool KWindow::AddComponent(KComponent *component, bool requireInitialMessages)
 	if(component)
 	{
 		if(compHWND)
-		{
+		{		
 			component->SetParentHWND(compHWND);
+
+			if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled )
+				component->SetDPI(compDPI);
+
+			componentList.AddPointer(component);
+
 			return component->Create(requireInitialMessages);
 		}
 	}
 	return false;
+}
+
+void KWindow::RemoveComponent(KComponent* component)
+{
+	int index = componentList.GetID(component);
+	if (index != -1)
+	{
+		componentList.RemovePointer(index);
+		component->Destroy();
+	}
 }
 
 bool KWindow::SetClientAreaSize(int width, int height)
@@ -145,7 +206,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
+					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -158,7 +219,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
+				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(KGUIProc::AtomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -178,7 +239,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
 		case WM_CTLCOLORSTATIC: // static controls
 			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
+				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -192,7 +253,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
+					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::AtomComponent));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -205,7 +266,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
+				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -217,7 +278,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_TIMER:
 			{
-				KTimer *timer = KPlatformUtil::GetInstance()->GetTimerByID((UINT)wParam);
+				KTimer *timer = KIDGenerator::GetInstance()->GetTimerByID((UINT)wParam);
 				if(timer)
 				{
 					timer->OnTimer();
@@ -250,11 +311,45 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
 
+		case WM_DPICHANGED:
+			{
+				if ((KApplication::dpiAwareness == KDPIAwareness::UNAWARE_MODE) || enableDPIUnawareMode || (!KApplication::dpiAwareAPICalled))
+					return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+				this->compDPI = HIWORD(wParam);
+				RECT* const prcNewWindow = (RECT*)lParam;
+
+				this->compX = prcNewWindow->left;
+				this->compY = prcNewWindow->top;
+				this->compWidth = prcNewWindow->right - prcNewWindow->left;
+				this->compHeight = prcNewWindow->bottom - prcNewWindow->top;
+
+				::SetWindowPos(compHWND,
+					NULL,
+					this->compX,
+					this->compY,
+					this->compWidth,
+					this->compHeight,
+					SWP_NOZORDER | SWP_NOACTIVATE);
+
+				::InvalidateRect(compHWND, NULL, TRUE);
+
+				for (int i = 0; i < componentList.GetSize(); i++)
+				{
+					componentList[i]->SetDPI(compDPI);
+				}
+
+				if (dpiChangeListener)
+					dpiChangeListener->OnDPIChange(compHWND, compDPI);
+
+				return 0;
+			}
+
 		case WM_COMMAND: // button, checkbox, radio button, listbox, combobox or menu-item
 			{
 				if( (HIWORD(wParam) == 0) && (lParam == 0) ) // its menu item! unfortunately windows does not send menu handle with clicked event!
 				{
-					KMenuItem *menuItem = KPlatformUtil::GetInstance()->GetMenuItemByID(LOWORD(wParam));
+					KMenuItem *menuItem = KIDGenerator::GetInstance()->GetMenuItemByID(LOWORD(wParam));
 					if(menuItem)
 					{
 						menuItem->OnPress();
@@ -263,7 +358,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				else if(lParam)// send to appropriate component
 				{
-					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(InternalDefinitions::RFCPropAtom_Component));
+					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -315,6 +410,10 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_DESTROY:
 			this->OnDestroy();
+			break;
+
+		case RFC_CUSTOM_MESSAGE:
+			this->OnCustomMessage(wParam, lParam);
 			break;
 
 		default:

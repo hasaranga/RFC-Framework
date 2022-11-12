@@ -1,0 +1,7 @@
+<xml>
+	<name>File</name>
+	<fixed>false</fixed>
+	<dependencies>Core,Containers,Utils</dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KDirectory, KFile, KLogger, KPSProperty, KPSObject, KPSReader, KSettingsReader, KSettingsWriter</description>
+</xml>

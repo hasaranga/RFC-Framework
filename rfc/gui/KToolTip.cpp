@@ -1,7 +1,6 @@
 
 /*
-	RFC - KToolTip.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,12 +16,12 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.  
 */
 
-#include "../rfc.h"
 #include "KToolTip.h"
+#include "KGUIProc.h"
+#include <commctrl.h>
 
 KToolTip::KToolTip() : KComponent(false)
 {
@@ -47,7 +46,7 @@ void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComp
 	{
 		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
-		::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);
+		KGUIProc::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);
 
 		TOOLINFOW toolInfo = { 0 };
 		toolInfo.cbSize = sizeof(TOOLINFOW);

@@ -1,0 +1,7 @@
+<xml>
+	<name>Thread</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KInterruptableSleep, KRunnable, KThread</description>
+</xml>

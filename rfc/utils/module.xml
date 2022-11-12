@@ -1,0 +1,7 @@
+<xml>
+	<name>Utils</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KGuid, KPerformanceCounter, KRegistry, KTime</description>
+</xml>

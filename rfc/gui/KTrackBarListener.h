@@ -1,7 +1,6 @@
 
 /*
-	RFC - KTrackBarListener.h
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,14 +16,10 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.	  
 */
 
-#ifndef _RFC_KTRACKBARLISTENER_H_
-#define _RFC_KTRACKBARLISTENER_H_
-
-#include "../config.h"
+#pragma once
 
 class KTrackBar;
 
@@ -38,4 +33,3 @@ public:
 	virtual void OnTrackBarChange(KTrackBar *trackBar);
 };
 
-#endif

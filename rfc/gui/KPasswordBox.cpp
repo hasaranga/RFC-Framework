@@ -1,7 +1,6 @@
 
 /*
-	RFC - KPasswordBox.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -17,19 +16,18 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-	  
+	3. This notice may not be removed or altered from any source distribution.	  
 */
 
 #include "KPasswordBox.h"
 
 KPasswordBox::KPasswordBox(bool readOnly):KTextBox(readOnly)
 {
-	pwdChar = '*';
+	pwdChar = L'*';
 	compDwStyle = compDwStyle | ES_PASSWORD;
 }
 
-void KPasswordBox::SetPasswordChar(const char pwdChar)
+void KPasswordBox::SetPasswordChar(const wchar_t pwdChar)
 {
 	this->pwdChar = pwdChar;
 	if(compHWND)
@@ -39,14 +37,14 @@ void KPasswordBox::SetPasswordChar(const char pwdChar)
 	}
 }
 
-char KPasswordBox::GetPasswordChar()
+wchar_t KPasswordBox::GetPasswordChar()
 {
 	return pwdChar;
 }
 
-bool KPasswordBox::Create()
+bool KPasswordBox::Create(bool requireInitialMessages)
 {
-	if(KTextBox::Create())
+	if(KTextBox::Create(requireInitialMessages))
 	{
 		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
 		return true;
