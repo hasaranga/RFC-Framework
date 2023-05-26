@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2023 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,6 +23,11 @@
 
 #include"KButton.h"
 
+/*
+* Win32 group box is designed to be placed around other controls. Do not use its hwnd
+* as a parent/host for other controls. Position other controls over it and then call 
+* BringToFront method.
+*/
 class KGroupBox : public KButton
 {
 public:

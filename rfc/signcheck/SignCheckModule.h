@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2023 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -21,17 +21,4 @@
 
 #pragma once
 
-typedef bool (*RFCModuleInitFunc)();
-typedef void (*RFCModuleFreeFunc)();
-
-#define MAX_RFC_MODULE_COUNT 3
-
-class KModuleManager {
-public:
-	static bool RegisterRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc);
-	static RFCModuleInitFunc* RFCModuleInitFuncList();
-	static RFCModuleFreeFunc* RFCModuleFreeFuncList();
-};
-
-#define REGISTER_RFC_MODULE(index, ModuleObjectType) \
-static bool ModuleObjectType##_Registered = KModuleManager::RegisterRFCModule( index , ModuleObjectType##::RFCModuleInit, ModuleObjectType##::RFCModuleFree);
+#include "KSignCheck.h"

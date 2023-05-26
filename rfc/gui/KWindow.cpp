@@ -115,7 +115,7 @@ void KWindow::CenterScreen()
 	this->SetPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
 }
 
-bool KWindow::AddComponent(KComponent *component, bool requireInitialMessages)
+bool KWindow::AddComponent(KComponent* component, bool requireInitialMessages)
 {
 	if(component)
 	{
@@ -142,6 +142,17 @@ void KWindow::RemoveComponent(KComponent* component)
 		componentList.RemovePointer(index);
 		component->Destroy();
 	}
+}
+
+bool KWindow::AddContainer(KHostPanel* container, bool requireInitialMessages)
+{
+	if (container)
+	{
+		container->SetComponentList(&componentList);
+		container->SetEnableDPIUnawareMode(enableDPIUnawareMode);
+		return this->AddComponent(static_cast<KComponent*>(container), requireInitialMessages);
+	}
+	return false;
 }
 
 bool KWindow::SetClientAreaSize(int width, int height)

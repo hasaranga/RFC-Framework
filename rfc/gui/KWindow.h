@@ -23,6 +23,7 @@
 
 #include "KComponent.h"
 #include "KIcon.h"
+#include "KHostPanel.h"
 #include "../containers/ContainersModule.h"
 
 #define RFC_CUSTOM_MESSAGE WM_APP + 100
@@ -64,9 +65,13 @@ public:
 	/**
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 	*/
-	virtual bool AddComponent(KComponent *component, bool requireInitialMessages = false);
+	virtual bool AddComponent(KComponent* component, bool requireInitialMessages = false);
 
+	// Can be also use to remove a container. Also destroys the hwnd.
 	virtual void RemoveComponent(KComponent* component);
+
+	// use this method to add KHostPanel to the window.
+	virtual bool AddContainer(KHostPanel* container, bool requireInitialMessages = false);
 
 	virtual bool SetClientAreaSize(int width, int height);
 
@@ -79,7 +84,7 @@ public:
 
 	static bool IsOffScreen(int posX, int posY);
 
-	virtual bool GetClientAreaSize(int *width, int *height);
+	virtual bool GetClientAreaSize(int* width, int* height);
 
 	virtual void OnMoved();
 

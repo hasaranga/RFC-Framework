@@ -3,5 +3,5 @@
 	<fixed>false</fixed>
 	<dependencies>Core</dependencies>
 	<platform>Win XP or higher</platform>
-	<description>KPointerList, KScopedClassPointer, KScopedComPointer, KScopedCriticalSection, KScopedGdiObject, KScopedHandle, KScopedMallocPointer, KScopedMemoryBlock, KScopedStructPointer</description>
+	<description>KPointerList, KPointerQueue, KScopedClassPointer, KScopedComPointer, KScopedCriticalSection, KScopedGdiObject, KScopedHandle, KScopedMallocPointer, KScopedMemoryBlock, KScopedStructPointer</description>
 </xml>

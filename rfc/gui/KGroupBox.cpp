@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2023 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,7 +28,9 @@ KGroupBox::KGroupBox()
 	compHeight = 100;
 
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_GROUPBOX;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 }
+
 
 KGroupBox::~KGroupBox()
 {

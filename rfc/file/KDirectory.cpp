@@ -80,11 +80,41 @@ KString KDirectory::GetTempDir()
 	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
-KString KDirectory::GetApplicationDataDir(bool isAllUsers)
+KString KDirectory::GetAllUserDataDir()
 {
 	wchar_t *path = (wchar_t*)::malloc( MAX_PATH * sizeof(wchar_t) );
 	path[0] = 0;
-	::SHGetFolderPathW(NULL, isAllUsers ? CSIDL_COMMON_APPDATA : CSIDL_APPDATA, NULL, 0, path);
+	::SHGetFolderPathW(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path);
 
 	return KString(path, KString::FREE_TEXT_WHEN_DONE);
+}
+
+KString KDirectory::GetLoggedInUserFolderPath(int csidl)
+{
+	DWORD dwProcessId;
+	::GetWindowThreadProcessId(::GetShellWindow(), &dwProcessId);
+
+	HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, dwProcessId);
+
+	HANDLE tokenHandle = NULL;
+	::OpenProcessToken(hProcess, TOKEN_QUERY | TOKEN_IMPERSONATE, &tokenHandle);
+	::CloseHandle(hProcess);
+
+	wchar_t* path = (wchar_t*)::malloc(MAX_PATH * sizeof(wchar_t));
+	path[0] = 0;
+	::SHGetFolderPathW(NULL, csidl, tokenHandle, 0, path);
+	::CloseHandle(tokenHandle);
+
+	KString configDir(path, KString::FREE_TEXT_WHEN_DONE);
+	return configDir;
+}
+
+KString KDirectory::GetRoamingFolder()
+{
+	return KDirectory::GetLoggedInUserFolderPath(CSIDL_APPDATA);
+}
+
+KString KDirectory::GetNonRoamingFolder()
+{
+	return KDirectory::GetLoggedInUserFolderPath(CSIDL_LOCAL_APPDATA);
 }

@@ -1,0 +1,7 @@
+<xml>
+	<name>Sign Check</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>Vista or higher</platform>
+	<description>KSignCheck</description>
+</xml>

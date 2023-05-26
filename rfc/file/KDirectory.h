@@ -62,10 +62,38 @@ public:
 	static KString GetTempDir();
 
 	/**
-		returns the the Application Data directory. if isAllUsers is true this function will return dir shared across all users.
+		returns the all user data directory. Requires admin priviledges for writing to this dir.
 		returns empty string on error.
 	*/
-	static KString GetApplicationDataDir(bool isAllUsers = false);
+	static KString GetAllUserDataDir();
+
+	// known path for the logged in user of the pc. (not run as user)
+	/*
+		CSIDL_ADMINTOOLS
+		CSIDL_APPDATA
+		CSIDL_COMMON_ADMINTOOLS
+		CSIDL_COMMON_APPDATA
+		CSIDL_COMMON_DOCUMENTS
+		CSIDL_COOKIES
+		CSIDL_FLAG_CREATE
+		CSIDL_FLAG_DONT_VERIFY
+		CSIDL_HISTORY
+		CSIDL_INTERNET_CACHE
+		CSIDL_LOCAL_APPDATA
+		CSIDL_MYPICTURES
+		CSIDL_PERSONAL
+		CSIDL_PROGRAM_FILES
+		CSIDL_PROGRAM_FILES_COMMON
+		CSIDL_SYSTEM
+		CSIDL_WINDOWS
+	*/
+	static KString GetLoggedInUserFolderPath(int csidl);
+
+	// path for logged in user of pc (not run as user)
+	static KString GetRoamingFolder();
+
+	// path for logged in user of pc (not run as user)
+	static KString GetNonRoamingFolder();
 
 	virtual ~KDirectory();
 
