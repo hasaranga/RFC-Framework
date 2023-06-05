@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2023 CrownSoft
+	Copyright (C) 2013-2022 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,19 +25,10 @@
 
 class KLabel : public KComponent
 {
-protected:
-	bool autoResize;
-
-	virtual void ResizeToTextSize();
-	const int AUTOSIZE_EXTRA_GAP = 10;
 public:
 	KLabel();
 
 	virtual bool Create(bool requireInitialMessages = false);
-	virtual void EnableAutoResize(bool enable);
-	virtual void SetText(const KString& compText);
-	virtual void SetFont(KFont* compFont);
-	virtual void SetDPI(int newDPI);
 
 	virtual ~KLabel();
 };
