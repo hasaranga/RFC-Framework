@@ -39,8 +39,6 @@
 	If you need to get a memory block out of a KScopedClassPointer without it being freed, you
 	can use the Release() method.
 
-	(ref: ScopedPointer class of JUCE)
-
 	e.g. @code
 	KScopedMemoryBlock<float*> a = (float*)malloc(512 * sizeof(float)); // slow
 	KScopedMemoryBlock<float*> b( (float*)malloc(512 * sizeof(float)) ); // fast
@@ -61,7 +59,7 @@ private:
 public:
 	inline KScopedMemoryBlock()
 	{
-		memoryBlock = NULL;
+		memoryBlock = nullptr;
 	}
 
 	inline KScopedMemoryBlock(T memoryBlock)
@@ -72,12 +70,12 @@ public:
 	KScopedMemoryBlock(KScopedMemoryBlock& memoryBlockToTransferFrom)
 	{
 		this->memoryBlock = memoryBlockToTransferFrom.memoryBlock;
-		memoryBlockToTransferFrom.memoryBlock = NULL;
+		memoryBlockToTransferFrom.memoryBlock = nullptr;
 	}
 
 	bool IsNull()
 	{
-		return (memoryBlock == NULL);
+		return (memoryBlock == nullptr);
 	}
 
 	/** 
@@ -87,7 +85,7 @@ public:
 	T Detach()
 	{ 
 		T m = memoryBlock;
-		memoryBlock = NULL;
+		memoryBlock = nullptr;
 		return m; 
 	}
 

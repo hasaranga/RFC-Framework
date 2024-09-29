@@ -32,9 +32,9 @@ protected:
 public:
 	KMenuBar();
 
-	virtual void AddMenu(const KString& text, KMenu *menu);
+	virtual void AddMenu(const KString& text, KMenu* menu);
 
-	virtual void AddToWindow(KWindow *window);
+	virtual void AddToWindow(KWindow* window);
 
 	virtual ~KMenuBar();
 

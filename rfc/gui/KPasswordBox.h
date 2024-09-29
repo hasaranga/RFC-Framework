@@ -35,7 +35,7 @@ public:
 
 	virtual wchar_t GetPasswordChar();
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
 	virtual ~KPasswordBox();
 };

@@ -56,7 +56,7 @@ public:
 	/**
 		Call this method before you start timer
 	*/
-	virtual void SetTimerWindow(KWindow *window);
+	virtual void SetTimerWindow(KWindow* window);
 
 	virtual void SetTimerID(UINT timerID);
 
@@ -75,7 +75,7 @@ public:
 	*/
 	virtual void StopTimer();
 
-	virtual void SetListener(KTimerListener *listener);
+	virtual void SetListener(KTimerListener* listener);
 
 	virtual bool IsTimerRunning();
 

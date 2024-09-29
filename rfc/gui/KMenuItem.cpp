@@ -26,7 +26,9 @@
 KMenuItem::KMenuItem()
 {
 	hMenu = 0;
-	listener = 0;
+	listener = nullptr;
+	param = nullptr;
+	intParam = -1;
 	enabled = true;
 	checked = false;
 	itemID = KIDGenerator::GetInstance()->GenerateMenuItemID(this);
@@ -50,6 +52,26 @@ void KMenuItem::AddToMenu(HMENU hMenu)
 
 	::InsertMenuItemW(hMenu, itemID, FALSE, &mii);
 
+}
+
+void KMenuItem::SetParam(void* param)
+{
+	this->param = param;
+}
+
+void KMenuItem::SetIntParam(int intParam)
+{
+	this->intParam = intParam;
+}
+
+int KMenuItem::GetIntParam()
+{
+	return intParam;
+}
+
+void* KMenuItem::GetParam()
+{
+	return param;
 }
 
 bool KMenuItem::IsChecked()
@@ -127,7 +149,7 @@ HMENU KMenuItem::GetMenuHandle()
 	return hMenu;
 }
 
-void KMenuItem::SetListener(KMenuItemListener *listener)
+void KMenuItem::SetListener(KMenuItemListener* listener)
 {
 	this->listener = listener;
 }

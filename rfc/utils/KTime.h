@@ -36,7 +36,7 @@ public:
 	KTime(){}
 
 	// Returns time difference in units of 100 us.
-	static _int64 Delta100us(const SYSTEMTIME &time1, const SYSTEMTIME &time2)
+	static _int64 Delta100us(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
 		union timeunion {
 			FILETIME fileTime;
@@ -53,19 +53,19 @@ public:
 	}
 
 	// Returns time difference in seconds.
-	static _int64 DeltaSeconds(const SYSTEMTIME &time1, const SYSTEMTIME &time2)
+	static _int64 DeltaSeconds(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
 		return (Delta100us(time1, time2) / 10000000);
 	}
 
 	// Returns time difference in minutes.
-	static _int64 DeltaMinutes(const SYSTEMTIME &time1, const SYSTEMTIME &time2)
+	static _int64 DeltaMinutes(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
 		return (DeltaSeconds(time1, time2) / 60);
 	}
 
 	// Returns time difference in hours.
-	static _int64 DeltaHours(const SYSTEMTIME &time1, const SYSTEMTIME &time2)
+	static _int64 DeltaHours(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
 		return (DeltaMinutes(time1, time2) / 60);
 	}

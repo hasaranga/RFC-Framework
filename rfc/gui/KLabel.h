@@ -33,11 +33,11 @@ protected:
 public:
 	KLabel();
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 	virtual void EnableAutoResize(bool enable);
-	virtual void SetText(const KString& compText);
-	virtual void SetFont(KFont* compFont);
-	virtual void SetDPI(int newDPI);
+	virtual void SetText(const KString& compText) override;
+	virtual void SetFont(KFont* compFont) override;
+	virtual void SetDPI(int newDPI) override;
 
 	virtual ~KLabel();
 };

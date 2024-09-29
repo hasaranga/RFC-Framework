@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2024 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -42,7 +42,7 @@ const KString operator+ (const KString& string1, const KString& string2)
 KString::KString()
 {
 	isZeroLength = true;
-	stringHolder = 0;
+	stringHolder = nullptr;
 	isStaticText = false;
 }
 
@@ -52,7 +52,7 @@ KString::KString(const KString& other)
 
 	if (other.isStaticText)
 	{
-		stringHolder = 0;
+		stringHolder = nullptr;
 
 		isStaticText = true;
 		staticText = other.staticText;
@@ -67,7 +67,7 @@ KString::KString(const KString& other)
 	}
 	else
 	{
-		stringHolder = 0;
+		stringHolder = nullptr;
 		isStaticText = false;
 	}
 }
@@ -76,7 +76,7 @@ KString::KString(const char* const text, UINT codePage)
 {
 	isStaticText = false;
 
-	if (text != 0)
+	if (text != nullptr)
 	{
 		int count = ::MultiByteToWideChar(codePage, 0, text, -1, 0, 0); // get char count with null character
 		if (count)
@@ -98,12 +98,12 @@ KString::KString(const char* const text, UINT codePage)
 	}
 
 	isZeroLength = true;
-	stringHolder = 0;
+	stringHolder = nullptr;
 }
 
 KString::KString(const wchar_t* const text, unsigned char behaviour, int length)
 {
-	if (text != 0)
+	if (text != nullptr)
 	{
 		staticTextLength = ((length == -1) ? (int)::wcslen(text) : length);
 		if (staticTextLength)
@@ -114,7 +114,7 @@ KString::KString(const wchar_t* const text, unsigned char behaviour, int length)
 			if (isStaticText)
 			{
 				staticText = (wchar_t*)text;
-				stringHolder = 0;
+				stringHolder = nullptr;
 				return;
 			}
 
@@ -125,7 +125,7 @@ KString::KString(const wchar_t* const text, unsigned char behaviour, int length)
 
 	isZeroLength = true;
 	isStaticText = false;
-	stringHolder = 0;
+	stringHolder = nullptr;
 }
 
 KString::KString(const int value, const int radix)
@@ -191,7 +191,7 @@ KString::KString(const float value, const int numDecimals, bool compact)
 	::free(str_fmtp);
 
 	isZeroLength = true;
-	stringHolder = 0;
+	stringHolder = nullptr;
 }
 
 const KString& KString::operator= (const KString& other)
@@ -240,7 +240,7 @@ const KString& KString::operator= (const wchar_t* const other)
 	}
 
 	isZeroLength = true;
-	stringHolder = 0;
+	stringHolder = nullptr;
 	return *this;
 }
 
@@ -252,25 +252,6 @@ const KString KString::operator+ (const KString& stringToAppend)
 const KString KString::operator+ (const wchar_t* const textToAppend)
 {
 	return Append(KString(textToAppend, USE_COPY_OF_TEXT, -1));
-}
-
-void KString::ConvertToRefCountedStringIfStatic()const
-{
-	if (isStaticText)
-	{
-		isStaticText = false;
-		stringHolder = new KStringHolder(::_wcsdup(staticText), staticTextLength);
-	}
-}
-
-KString::operator const char*()const
-{
-	if (!isZeroLength)
-	{
-		this->ConvertToRefCountedStringIfStatic();
-		return stringHolder->GetAnsiVersion();
-	}
-	return "";
 }
 
 KString::operator const wchar_t*()const
@@ -305,15 +286,19 @@ KString::operator wchar_t*()const
 	}
 }
 
-const char KString::operator[](const int index)const
+const wchar_t KString::operator[](const int index)const
 {
 	if (!isZeroLength)
 	{
-		this->ConvertToRefCountedStringIfStatic();
-
-		if ((0 <= index) && (index <= (stringHolder->count - 1)))
+		if (isStaticText)
 		{
-			return stringHolder->GetAnsiVersion()[index];
+			if ((0 <= index) && (index <= (staticTextLength - 1)))
+				return staticText[index];
+		}
+		else if(stringHolder != nullptr)
+		{
+			if ((0 <= index) && (index <= (stringHolder->count - 1)))
+				return stringHolder->w_text[index];
 		}
 	}
 	return -1;
@@ -367,7 +352,7 @@ void KString::AssignStaticText(const wchar_t* const text, int length)
 	if (stringHolder)
 		stringHolder->ReleaseReference();
 	
-	stringHolder = 0;
+	stringHolder = nullptr;
 	isZeroLength = false;
 	isStaticText = true;
 	staticText = (wchar_t*)text;
@@ -426,31 +411,11 @@ bool KString::StartsWithChar(wchar_t character)const
 	return false;
 }
 
-bool KString::StartsWithChar(char character)const
-{
-	if (!this->isZeroLength)
-	{
-		this->ConvertToRefCountedStringIfStatic();
-		return (stringHolder->GetAnsiVersion()[0] == character);
-	}
-	return false;
-}
-
 bool KString::EndsWithChar(wchar_t character)const
 {
 	if (!this->isZeroLength)
 		return (isStaticText ? (staticText[staticTextLength - 1] == character) : (stringHolder->w_text[stringHolder->count - 1] == character));
 
-	return false;
-}
-
-bool KString::EndsWithChar(char character)const
-{
-	if (!this->isZeroLength)
-	{
-		this->ConvertToRefCountedStringIfStatic();
-		return (stringHolder->GetAnsiVersion()[stringHolder->count - 1] == character);
-	}
 	return false;
 }
 
@@ -519,7 +484,7 @@ KString KString::ToLowerCase()const
 
 char* KString::ToAnsiString(const wchar_t* text)
 {
-	if (text != NULL)
+	if (text != nullptr)
 	{
 		const int length = ::WideCharToMultiByte(CP_UTF8, 0, text, -1, 0, 0, 0, 0);
 		if (length)
@@ -541,7 +506,7 @@ char* KString::ToAnsiString(const wchar_t* text)
 
 wchar_t* KString::ToUnicodeString(const char* text)
 {
-	if (text != NULL)
+	if (text != nullptr)
 	{
 		const int length = ::MultiByteToWideChar(CP_UTF8, 0, text, -1, 0, 0);
 		if (length)

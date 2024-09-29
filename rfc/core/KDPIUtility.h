@@ -47,6 +47,8 @@ enum class KDPIAwareness
 
 class KDPIUtility
 {
+private: 
+    static float GetMonitorScalingRatio(HMONITOR monitor);
 public:		
 	static KGetDpiForMonitor pGetDpiForMonitor;
 	static KSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext;
@@ -59,5 +61,25 @@ public:
 	static WORD GetWindowDPI(HWND hWnd);
 
 	static void MakeProcessDPIAware(KDPIAwareness dpiAwareness);
+
+    // gives real value regardless of the process dpi awareness state.
+    // if the process is dpi unaware, os will always give 96dpi.
+    // so, this method will return correct scale value.
+    // it can be used with dpi unaware apps to get the scale of a monitor.
+    // https://stackoverflow.com/questions/70976583/get-real-screen-resolution-using-win32-api
+    /*
+        Example:
+        float monitorScale = 1.0f;
+     	HMONITOR hmon = ::MonitorFromWindow(compHWND, MONITOR_DEFAULTTONEAREST);
+		if (hmon != NULL)
+			monitorScale = KDPIUtility::GetScaleForMonitor(hmon);
+    */
+    static float GetScaleForMonitor(HMONITOR monitor);
+
+    // scale given 96dpi value according to window current dpi.
+    static int ScaleToWindowDPI(int valueFor96DPI, HWND window);
+
+    // scale given 96dpi value according to new dpi.
+    static int ScaleToNewDPI(int valueFor96DPI, int newDPI);
 };
 

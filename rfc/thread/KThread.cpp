@@ -26,7 +26,7 @@
 
 unsigned __stdcall RFCThread_Proc(void* lpParameter)
 {
-	if (lpParameter == 0) // for safe!
+	if (lpParameter == nullptr) // for safe!
 		return 0;
 
 	KThread* thread = (KThread*)lpParameter;
@@ -57,7 +57,7 @@ bool CreateRFCThread(KThread* thread)
 KThread::KThread()
 {
 	handle = 0; 
-	runnable = NULL;
+	runnable = nullptr;
 	threadShouldStop = false;
 }
 
@@ -66,7 +66,7 @@ void KThread::SetHandle(HANDLE handle)
 	this->handle = handle;
 }
 
-void KThread::SetRunnable(KRunnable *runnable)
+void KThread::SetRunnable(KRunnable* runnable)
 {
 	this->runnable = runnable;
 }

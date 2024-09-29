@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2024  CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,18 +28,22 @@
 #include "KDPIUtility.h"
 #include "KModuleManager.h"
 
-void InitRFC();
-void DeInitRFC();
+void InitRFCModules();
+void DeInitRFCModules();
 
-#define START_RFC_APPLICATION(AppClass, DPIAwareness) \
-int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
+// use within a dll functions. do not use inside of DllMain.
+void RFCDllInit();
+void RFCDllFree();
+
+#define START_RFC_CONSOLE_APP(AppClass) \
+int main() \
 { \
-	CoreModuleInitParams::hInstance = hInstance; \
+	CoreModuleInitParams::hInstance = 0; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
-	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
+	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE; \
 	AppClass* application = new AppClass(); \
 	application->ModifyModuleInitParams(); \
-	::InitRFC(); \
+	::InitRFCModules(); \
 	int argc = 0; \
 	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
 	KString **str_argv = (KString**)::malloc(argc * RFC_PTR_SIZE); \
@@ -60,22 +64,22 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	} \
 	delete application; \
 	for(int i = 0; i < argc; i++){delete str_argv[i];} \
-	::DeInitRFC(); \
+	::DeInitRFCModules(); \
 	::free((void*)str_argv); \
 	::GlobalFree(args); \
 	return retVal; \
 }
 
 // use this macro if you are not using commandline arguments in your app.
-#define START_RFC_APPLICATION_NO_CMD_ARGS(AppClass, DPIAwareness) \
-int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
+#define START_RFC_CONSOLE_APP_NO_CMD_ARGS(AppClass) \
+int WINAPI main() \
 { \
-	CoreModuleInitParams::hInstance = hInstance; \
+	CoreModuleInitParams::hInstance = 0; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
-	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
+	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE; \
 	AppClass* application = new AppClass(); \
 	application->ModifyModuleInitParams(); \
-	::InitRFC(); \
+	::InitRFCModules(); \
 	int retVal = 0; \
 	if (application->AllowMultipleInstances()){ \
 		retVal = application->Main(0, 0); \
@@ -91,7 +95,71 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 		} \
 	} \
 	delete application; \
-	::DeInitRFC(); \
+	::DeInitRFCModules(); \
+	return retVal; \
+}
+
+#define START_RFC_APPLICATION(AppClass, DPIAwareness) \
+int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
+{ \
+	CoreModuleInitParams::hInstance = hInstance; \
+	CoreModuleInitParams::initCOMAsSTA = true; \
+	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
+	AppClass* application = new AppClass(); \
+	application->ModifyModuleInitParams(); \
+	::InitRFCModules(); \
+	int argc = 0; \
+	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
+	KString **str_argv = (KString**)::malloc(argc * RFC_PTR_SIZE); \
+	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);} \
+	int retVal = 0; \
+	if (application->AllowMultipleInstances()){ \
+		retVal = application->Main(str_argv, argc); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application->Main(str_argv, argc); \
+		}else{ \
+			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	delete application; \
+	for(int i = 0; i < argc; i++){delete str_argv[i];} \
+	::DeInitRFCModules(); \
+	::free((void*)str_argv); \
+	::GlobalFree(args); \
+	return retVal; \
+}
+
+// use this macro if you are not using commandline arguments in your app.
+#define START_RFC_APPLICATION_NO_CMD_ARGS(AppClass, DPIAwareness) \
+int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
+{ \
+	CoreModuleInitParams::hInstance = hInstance; \
+	CoreModuleInitParams::initCOMAsSTA = true; \
+	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
+	AppClass* application = new AppClass(); \
+	application->ModifyModuleInitParams(); \
+	::InitRFCModules(); \
+	int retVal = 0; \
+	if (application->AllowMultipleInstances()){ \
+		retVal = application->Main(0, 0); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application->Main(0, 0); \
+		}else{ \
+			retVal = application->AnotherInstanceIsRunning(0, 0); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	delete application; \
+	::DeInitRFCModules(); \
 	return retVal; \
 }
 
@@ -107,4 +175,11 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 			#endif
 		#endif
 	#endif
+#endif
+
+
+#ifdef _DEBUG
+	#define DEBUG_PRINT(x) OutputDebugStringA(x);
+#else 
+	#define DEBUG_PRINT(x) 
 #endif

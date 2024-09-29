@@ -35,7 +35,7 @@ public:
 
 	virtual void SetValue(int value);
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
 	virtual ~KProgressBar();
 };

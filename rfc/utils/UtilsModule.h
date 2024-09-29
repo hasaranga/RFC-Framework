@@ -24,3 +24,6 @@
 #include "KRegistry.h"
 #include "KPerformanceCounter.h"
 #include "KTime.h"
+#include "KGuid.h"
+
+#pragma comment(lib, "Rpcrt4.lib")

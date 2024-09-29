@@ -22,6 +22,8 @@
 #pragma once
 
 #include "../core/CoreModule.h"
+#include "../containers/ContainersModule.h"
+
 #include <shlobj.h>
 
 /**
@@ -50,6 +52,8 @@ public:
 	*/
 	static KString GetModuleDir(HMODULE hModule);
 
+	static KString GetModuleFilePath(HMODULE hModule);
+
 	/**
 		returns the parent directory of given file.
 	*/
@@ -67,7 +71,7 @@ public:
 	*/
 	static KString GetAllUserDataDir();
 
-	// known path for the logged in user of the pc. (not run as user)
+	// known path for the logged in user of the pc. (not affected by right click -> run as admin)
 	/*
 		CSIDL_ADMINTOOLS
 		CSIDL_APPDATA
@@ -89,11 +93,18 @@ public:
 	*/
 	static KString GetLoggedInUserFolderPath(int csidl);
 
-	// path for logged in user of pc (not run as user)
+	// path for logged in user of pc (not affected by right click -> run as admin)
 	static KString GetRoamingFolder();
 
-	// path for logged in user of pc (not run as user)
+	// path for logged in user of pc (not affected by right click -> run as admin)
 	static KString GetNonRoamingFolder();
+
+	// must delete returned strings and list.
+	// extension without dot. ex: "mp3"
+	// folderPath is without ending slash
+	// returns only file names. not full path.
+	// does not scan for child folders.
+	static KPointerList<KString*>* ScanFolderForExtension(const KString& folderPath, const KString& extension);
 
 	virtual ~KDirectory();
 

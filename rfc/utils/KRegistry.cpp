@@ -41,7 +41,7 @@ bool KRegistry::DeleteKey(HKEY hKeyRoot, const KString& subKey)
 	return ::RegDeleteKeyW(hKeyRoot, subKey) == ERROR_SUCCESS ? true : false;
 }
 
-bool KRegistry::ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString *result)
+bool KRegistry::ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString* result)
 {
 	HKEY hkey = 0;
 	if (::RegOpenKeyExW(hKeyRoot, subKey, 0, KEY_READ, &hkey) == ERROR_SUCCESS)
@@ -89,7 +89,7 @@ bool KRegistry::WriteString(HKEY hKeyRoot, const KString& subKey, const KString&
 	return false;
 }
 
-bool KRegistry::ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD *result)
+bool KRegistry::ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD* result)
 {
 	HKEY hkey = 0;
 	if (::RegOpenKeyExW(hKeyRoot, subKey, 0, KEY_READ, &hkey) == ERROR_SUCCESS)
@@ -121,7 +121,7 @@ bool KRegistry::WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& 
 	return false;
 }
 
-bool KRegistry::ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void **buffer, DWORD *buffSize)
+bool KRegistry::ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void** buffer, DWORD* buffSize)
 {
 	HKEY hkey = 0;
 	if (::RegOpenKeyExW(hKeyRoot, subKey, 0, KEY_READ, &hkey) == ERROR_SUCCESS)
@@ -151,7 +151,7 @@ bool KRegistry::ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& 
 	return false;
 }
 
-bool KRegistry::WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void *buffer, DWORD buffSize)
+bool KRegistry::WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize)
 {
 	HKEY hkey = 0;
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)

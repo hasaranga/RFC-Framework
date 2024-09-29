@@ -23,8 +23,6 @@
 
 #include "../core/CoreModule.h"
 
-#pragma comment(lib, "Rpcrt4.lib")
-
 // RPC_WSTR is not defined in mingw.
 #ifdef __MINGW32__
 	typedef unsigned short* RPC_WSTR;
@@ -36,7 +34,7 @@ public:
 
 	KGuid(){}
 
-	static bool GenerateGUID(GUID *pGUID)
+	static bool GenerateGUID(GUID* pGUID)
 	{
 		return (::CoCreateGuid(pGUID) == S_OK);
 	}
@@ -51,9 +49,9 @@ public:
 		return KString();
 	}
 
-	static KString GUIDToString(GUID *pGUID)
+	static KString GUIDToString(GUID* pGUID)
 	{
-		wchar_t* strGuid = NULL;
+		wchar_t* strGuid = nullptr;
 		::UuidToStringW(pGUID, (RPC_WSTR*)&strGuid);
 
 		KString result(strGuid, KString::USE_COPY_OF_TEXT);

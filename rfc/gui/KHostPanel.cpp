@@ -33,7 +33,7 @@ KHostPanel::KHostPanel() : KComponent(true)
 
 	compText.AssignStaticText(TXT_WITH_LEN("KHostPanel"));
 	enableDPIUnawareMode = false;
-	componentList = 0;
+	componentList = nullptr;
 }
 
 void KHostPanel::SetComponentList(KPointerList<KComponent*>* componentList)
@@ -50,7 +50,7 @@ bool KHostPanel::AddComponent(KComponent* component, bool requireInitialMessages
 {
 	if (component)
 	{
-		if ((compHWND != 0) && (componentList != NULL))
+		if ((compHWND != 0) && (componentList != nullptr))
 		{
 			component->SetParentHWND(compHWND);
 
@@ -67,7 +67,7 @@ bool KHostPanel::AddComponent(KComponent* component, bool requireInitialMessages
 
 void KHostPanel::RemoveComponent(KComponent* component)
 {
-	if (componentList == NULL)
+	if (componentList == nullptr)
 		return;
 
 	int index = componentList->GetID(component);
@@ -97,7 +97,9 @@ LRESULT KHostPanel::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 		{
 			if (wParam != 0) // ignore menus
 			{
-				KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, 
+					MAKEINTATOM(KGUIProc::AtomComponent));
+
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -110,7 +112,9 @@ LRESULT KHostPanel::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 		{
-			KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(KGUIProc::AtomComponent));
+			KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, 
+				MAKEINTATOM(KGUIProc::AtomComponent));
+
 			if (component)
 			{
 				LRESULT result = 0; // just for safe
@@ -144,7 +148,9 @@ LRESULT KHostPanel::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 		{
 			if (wParam != 0) // ignore menus
 			{
-				KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd, ((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd, 
+					((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::AtomComponent));
+
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -157,7 +163,9 @@ LRESULT KHostPanel::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 		{
-			KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
+			KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, 
+				MAKEINTATOM(KGUIProc::AtomComponent));
+
 			if (component)
 			{
 				LRESULT result = 0; // just for safe
@@ -191,7 +199,9 @@ LRESULT KHostPanel::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			else if (lParam)// send to appropriate component
 			{
-				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, 
+					MAKEINTATOM(KGUIProc::AtomComponent));
+
 				if (component)
 				{
 					LRESULT result = 0; // just for safe

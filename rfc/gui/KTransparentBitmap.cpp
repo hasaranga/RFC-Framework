@@ -30,7 +30,7 @@ KTransparentBitmap::KTransparentBitmap(void* data, int width, int height, int st
 		height = 0;
 		hbm = 0;
 		hbmPrev = 0;
-		pvBits = 0;
+		pvBits = nullptr;
 		return;
 	}
 
@@ -39,7 +39,7 @@ KTransparentBitmap::KTransparentBitmap(void* data, int width, int height, int st
 
 	hdcMem = ::CreateCompatibleDC(NULL);
 
-	BITMAPINFO bmi = { 0 };
+	BITMAPINFO bmi = {};
 	bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
 	bmi.bmiHeader.biWidth = width;
 	bmi.bmiHeader.biHeight = -height; // top-down
@@ -76,7 +76,7 @@ void KTransparentBitmap::CreateEmptyBitmap(int width, int height)
 
 	hdcMem = ::CreateCompatibleDC(NULL);
 
-	BITMAPINFO bmi = { 0 };
+	BITMAPINFO bmi = {};
 	bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
 	bmi.bmiHeader.biWidth = width;
 	bmi.bmiHeader.biHeight = -height; // top-down
@@ -105,7 +105,7 @@ void KTransparentBitmap::ReleaseResources()
 
 bool KTransparentBitmap::HitTest(int x, int y)
 {
-	if (pvBits == 0)
+	if (pvBits == nullptr)
 		return false;
 
 	if ((x < 0) || (y < 0) || (x > (width - 1)) || (y > (height - 1)))
@@ -117,7 +117,7 @@ bool KTransparentBitmap::HitTest(int x, int y)
 
 unsigned int KTransparentBitmap::GetPixel(int x, int y)
 {
-	if (pvBits == 0)
+	if (pvBits == nullptr)
 		return 0;
 
 	if ((x < 0) || (y < 0) || (x > (width - 1)) || (y > (height - 1)))

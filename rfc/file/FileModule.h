@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2024 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -27,5 +27,7 @@
 #include "KPropertyStorage.h"
 #include "KSettingsReader.h"
 #include "KSettingsWriter.h"
+
+#pragma comment(lib,"Shlwapi.lib")
 
 

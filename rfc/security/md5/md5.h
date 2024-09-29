@@ -355,8 +355,11 @@ namespace ExtLibs{
 			}
 			else
 			{
-				while (len = (int)fread(buffer, 1, 1024, file))
+				len = (int)fread(buffer, 1, 1024, file);
+				while (len) {
 					Update(buffer, len);
+					len = (int)fread(buffer, 1, 1024, file);
+				}
 				Final();
 
 				fclose(file);

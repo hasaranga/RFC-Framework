@@ -25,8 +25,8 @@ KGridViewListener::KGridViewListener(){}
 
 KGridViewListener::~KGridViewListener(){}
 
-void KGridViewListener::OnGridViewItemSelect(KGridView *gridView){}
+void KGridViewListener::OnGridViewItemSelect(KGridView* gridView){}
 
-void KGridViewListener::OnGridViewItemRightClick(KGridView *gridView){}
-
-void KGridViewListener::OnGridViewItemDoubleClick(KGridView *gridView){}
+void KGridViewListener::OnGridViewItemRightClick(KGridView* gridView){}
+ 
+void KGridViewListener::OnGridViewItemDoubleClick(KGridView* gridView){}

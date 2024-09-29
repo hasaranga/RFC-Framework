@@ -22,7 +22,7 @@
 #pragma once
 
 #include "KMenuItem.h"
-#include "KWindow.h"
+#include "../core/CoreModule.h"
 
 class KMenu
 {
@@ -32,15 +32,17 @@ protected:
 public:
 	KMenu();
 
-	virtual void AddMenuItem(KMenuItem *menuItem);
+	virtual void AddMenuItem(KMenuItem* menuItem);
 
-	virtual void AddSubMenu(const KString& text, KMenu *menu);
+	virtual void AddSubMenu(const KString& text, KMenu* menu);
 
 	virtual void AddSeperator();
 
 	virtual HMENU GetMenuHandle();
 
-	virtual void PopUpMenu(KWindow *window);
+	// set bringWindowToForeground when showing popup menu for notify icon(systray).
+	// does not return until the menu close.
+	virtual void PopUpMenu(HWND window, bool bringWindowToForeground = false);
 
 	virtual ~KMenu();
 

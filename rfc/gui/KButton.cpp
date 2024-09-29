@@ -25,7 +25,7 @@
 
 KButton::KButton() : KComponent(false)
 {
-	listener = 0;
+	listener = nullptr;
 
 	compClassName.AssignStaticText(TXT_WITH_LEN("BUTTON"));
 	compText.AssignStaticText(TXT_WITH_LEN("Button"));

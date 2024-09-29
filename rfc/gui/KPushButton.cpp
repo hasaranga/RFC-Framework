@@ -25,7 +25,8 @@
 KPushButton::KPushButton()
 {
 	compText.AssignStaticText(TXT_WITH_LEN("Push Button"));
-	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP;
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | 
+		BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP;
 }
 
 KPushButton::~KPushButton()

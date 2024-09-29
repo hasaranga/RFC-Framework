@@ -44,7 +44,7 @@ private:
 public:
 	inline KScopedMallocPointer()
 	{
-		pointer = NULL;
+		pointer = nullptr;
 	}
 
 	inline KScopedMallocPointer(PointerType* pointer)
@@ -55,12 +55,12 @@ public:
 	KScopedMallocPointer(KScopedMallocPointer& pointerToTransferFrom)
 	{
 		this->pointer = pointerToTransferFrom.pointer;
-		pointerToTransferFrom.pointer = NULL;
+		pointerToTransferFrom.pointer = nullptr;
 	}
 
 	bool IsNull()
 	{
-		return (pointer == NULL);
+		return (pointer == nullptr);
 	}
 
 	/** 
@@ -70,7 +70,7 @@ public:
 	PointerType* Detach()
 	{ 
 		PointerType* m = pointer;
-		pointer = NULL;
+		pointer = nullptr;
 		return m; 
 	}
 

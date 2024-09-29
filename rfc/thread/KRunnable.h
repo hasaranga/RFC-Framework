@@ -32,7 +32,7 @@ public:
 
 	virtual ~KRunnable();
 
-	virtual void Run(KThread *thread);
+	virtual void Run(KThread* thread);
 
 private:
 	RFC_LEAK_DETECTOR(KRunnable)

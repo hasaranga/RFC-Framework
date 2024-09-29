@@ -41,9 +41,18 @@ public:
 
 	static void FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
 
-	static RECT CalculateTextSize(const wchar_t *text, HFONT hFont);
+	static RECT CalculateTextSize(const wchar_t* text, HFONT hFont);
 
-	static int CalculateTextHeight(wchar_t* text, HFONT hFont, int width);
+	static int CalculateTextHeight(const wchar_t* text, HFONT hFont, int width);
+
+	// This function sets the alpha channel to 255 without affecting any of the color channels.
+	// hdc is a memory DC with a 32bpp bitmap selected into it.
+	// can be use to fix 32bit bitmap alpha which is destroyed by the gdi operations.
+	static void MakeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy);
+
+	// hdc is a memory DC with a 32bpp bitmap selected into it.
+	// This function sets the alpha channel without affecting any of the color channels.
+	static void SetBitmapAlphaChannel(HDC hdc, int x, int y, int cx, int cy, BYTE alpha);
 
 private:
 	RFC_LEAK_DETECTOR(KGraphics)

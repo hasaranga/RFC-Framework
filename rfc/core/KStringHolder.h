@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2024 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,17 +30,12 @@
 class KStringHolder
 {
 	volatile LONG refCount;
-	char *a_text; // ansi version
-
-	#ifndef RFC_NO_SAFE_ANSI_STR
-	CRITICAL_SECTION cs_a_text; // to guard ansi string creation
-	#endif
 
 public:
-	wchar_t *w_text; // unicode version
+	wchar_t* w_text; // unicode version
 	int count; // character count
 
-	KStringHolder(wchar_t *w_text, int count);
+	KStringHolder(wchar_t* w_text, int count);
 
 	~KStringHolder();
 
@@ -53,11 +48,6 @@ public:
 		Make sure to call this method if you clear reference to KStringHolder object. it will release allocated memory for string.
 	*/
 	void ReleaseReference();
-
-	/**
-		ANSI version available only when needed.
-	*/
-	const char* GetAnsiVersion(UINT codePage = CP_UTF8);
 
 private:
 	RFC_LEAK_DETECTOR(KStringHolder)

@@ -35,16 +35,19 @@ KToolTip::~KToolTip()
 {
 }
 
-void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComponent)
+void KToolTip::AttachToComponent(KWindow* parentWindow, KComponent* attachedComponent)
 {
 	compParentHWND = parentWindow->GetHWND();
 	attachedCompHWND = attachedComponent->GetHWND();
 
-	compHWND = ::CreateWindowExW(0, compClassName, NULL, compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, compParentHWND, NULL, KApplication::hInstance, 0);
+	compHWND = ::CreateWindowExW(0, compClassName, NULL, 
+		compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
+		CW_USEDEFAULT, compParentHWND, NULL, KApplication::hInstance, 0);
 
 	if (compHWND)
 	{
-		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, 
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
 		KGUIProc::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);
 

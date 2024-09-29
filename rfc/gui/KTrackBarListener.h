@@ -30,6 +30,6 @@ public:
 
 	virtual ~KTrackBarListener();
 
-	virtual void OnTrackBarChange(KTrackBar *trackBar);
+	virtual void OnTrackBarChange(KTrackBar* trackBar);
 };
 

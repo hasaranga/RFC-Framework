@@ -35,11 +35,11 @@ public:
 	// the subkey to be deleted must not have subkeys. 
 	static bool DeleteKey(HKEY hKeyRoot, const KString& subKey);
 
-	static bool ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString *result);
+	static bool ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString* result);
 
 	static bool WriteString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
 
-	static bool ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD *result);
+	static bool ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD* result);
 
 	static bool WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
 
@@ -57,9 +57,9 @@ public:
 		}
 		@endcode
 	*/
-	static bool ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void **buffer, DWORD *buffSize);
+	static bool ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void** buffer, DWORD* buffSize);
 
-	static bool WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void *buffer, DWORD buffSize);
+	static bool WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize);
 
 	virtual ~KRegistry();
 

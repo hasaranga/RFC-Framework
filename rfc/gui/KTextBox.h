@@ -28,9 +28,9 @@ class KTextBox : public KComponent
 public:
 	KTextBox(bool readOnly = false);
 
-	virtual KString GetText();
+	virtual KString GetText() override;
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
 	virtual ~KTextBox();
 };

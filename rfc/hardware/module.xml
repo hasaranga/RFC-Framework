@@ -1,0 +1,7 @@
+<xml>
+	<name>Hardware</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KSerialPort</description>
+</xml>

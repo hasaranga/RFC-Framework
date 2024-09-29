@@ -28,7 +28,7 @@ public:
 	static HHOOK wnd_hook;
 };
 
-KComponent* RFCInternalVariables::currentComponent = 0;
+KComponent* RFCInternalVariables::currentComponent = nullptr;
 HHOOK RFCInternalVariables::wnd_hook = 0;
 
 ATOM KGUIProc::AtomComponent;
@@ -51,7 +51,8 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 					KGUIProc::AttachRFCPropertiesToHWND(hwnd, RFCInternalVariables::currentComponent);
 
 					// Call the next hook, if there is one
-					const LRESULT result = ::CallNextHookEx(RFCInternalVariables::wnd_hook, nCode, wParam, lParam);
+					const LRESULT result = ::CallNextHookEx(RFCInternalVariables::wnd_hook, 
+						nCode, wParam, lParam);
 
 					// we subclassed what we created. so remove the hook.
 					::UnhookWindowsHookEx(RFCInternalVariables::wnd_hook); // unhooking at here will allow child creation at WM_CREATE. otherwise this will hook child also!

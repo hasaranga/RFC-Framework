@@ -121,7 +121,7 @@ public:
 		if(isThreadSafe)
 			::EnterCriticalSection(&criticalSection);
 
-		if( (0 <= id) & (id < size) ) // checks for valid range!
+		if( (0 <= id) && (id < size) ) // checks for valid range!
 		{	
 			T object = list[id];
 
@@ -157,7 +157,7 @@ public:
 		if(isThreadSafe)
 			::EnterCriticalSection(&criticalSection);
 
-		if( (0 <= id) & (id < size) )
+		if( (0 <= id) && (id < size) )
 		{	
 			list[id] = pointer;
 
@@ -184,7 +184,7 @@ public:
 		if(isThreadSafe)
 			::EnterCriticalSection(&criticalSection);
 
-		if( (0 <= id) & (id < size) )
+		if( (0 <= id) && (id < size) )
 		{	
 			const int newRoomCount = (((size - 1) / roomIncrement) + 1) * roomIncrement;
 			T* newList = (T*)::malloc(newRoomCount * RFC_PTR_SIZE);

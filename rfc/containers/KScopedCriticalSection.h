@@ -30,7 +30,7 @@
 class KScopedCriticalSection
 {
 private:
-	CRITICAL_SECTION *criticalSection;
+	CRITICAL_SECTION* criticalSection;
 
 	// Prevent heap allocation
 	void* operator new(size_t);
@@ -39,7 +39,7 @@ private:
 	void  operator delete[](void*);
 
 public:
-	KScopedCriticalSection(CRITICAL_SECTION *criticalSection)
+	KScopedCriticalSection(CRITICAL_SECTION* criticalSection)
 	{
 		this->criticalSection = criticalSection;
 		::EnterCriticalSection(criticalSection);
@@ -48,8 +48,8 @@ public:
 	// does not call LeaveCriticalSection
 	CRITICAL_SECTION* Detach()
 	{ 
-		CRITICAL_SECTION *c = criticalSection;
-		criticalSection = NULL;
+		CRITICAL_SECTION* c = criticalSection;
+		criticalSection = nullptr;
 		return c; 
 	}
 

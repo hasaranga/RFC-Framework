@@ -30,15 +30,25 @@ class KMenuItem
 protected:
 	HMENU hMenu;
 	UINT itemID;
-	KMenuItemListener *listener;
+	KMenuItemListener* listener;
 	KString itemText;
 	bool enabled;
 	bool checked;
+	void* param;
+	int intParam;
 
 public:
 	KMenuItem();
 
 	virtual void AddToMenu(HMENU hMenu);
+
+	virtual void SetParam(void* param);
+
+	virtual void SetIntParam(int intParam);
+
+	virtual int GetIntParam();
+
+	virtual void* GetParam();
 
 	virtual bool IsChecked();
 
@@ -56,7 +66,7 @@ public:
 
 	virtual HMENU GetMenuHandle();
 
-	virtual void SetListener(KMenuItemListener *listener);
+	virtual void SetListener(KMenuItemListener* listener);
 
 	virtual KMenuItemListener* GetListener();
 

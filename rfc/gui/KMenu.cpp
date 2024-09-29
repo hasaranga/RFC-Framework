@@ -26,14 +26,15 @@ KMenu::KMenu()
 	hMenu = ::CreatePopupMenu();
 }
 
-void KMenu::AddMenuItem(KMenuItem *menuItem)
+void KMenu::AddMenuItem(KMenuItem* menuItem)
 {
 	menuItem->AddToMenu(hMenu);
 }
 
-void KMenu::AddSubMenu(const KString& text, KMenu *menu)
+void KMenu::AddSubMenu(const KString& text, KMenu* menu)
 {
-	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), text);
+	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, 
+		(UINT_PTR)menu->GetMenuHandle(), text);
 }
 
 void KMenu::AddSeperator()
@@ -53,14 +54,14 @@ HMENU KMenu::GetMenuHandle()
 	return hMenu;
 }
 
-void KMenu::PopUpMenu(KWindow *window)
+void KMenu::PopUpMenu(HWND window, bool bringWindowToForeground)
 {
-	if(window)
-	{
-		POINT p;
-		::GetCursorPos(&p);
-		::TrackPopupMenu(hMenu, TPM_LEFTBUTTON, p.x, p.y, 0, window->GetHWND(), NULL);
-	}
+	if (bringWindowToForeground)
+		::SetForegroundWindow(window);
+
+	POINT p;
+	::GetCursorPos(&p);
+	::TrackPopupMenu(hMenu, TPM_LEFTBUTTON, p.x, p.y, 0, window, NULL);
 }
 
 KMenu::~KMenu()

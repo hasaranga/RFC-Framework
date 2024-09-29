@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2024 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -29,17 +29,16 @@
 #include <malloc.h>
 
 /**
-	Using a reference-counted internal representation, these strings are fast and efficient. <BR>
-	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi. <BR>
-	KString does not support for multiple zero terminated strings. <BR>
+	Using a reference-counted internal representation, these strings are fast and efficient.
+	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi.
+	KString does not support for multiple zero terminated strings.
 
-	Optimization tips: <BR>
-	use CONST_TXT macro when using statically typed text. <BR>
-	use constructor instead of assignment (if can). <BR>
-	use "Append" method instead of "+" operator. <BR>
-	use "AppendStaticText" method instead of "Append" if you are using statically typed text. <BR>
-	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text. <BR>
-	define RFC_NO_SAFE_ANSI_STR if your app is not casting KString to ansi string within multiple threads. <BR>
+	Optimization tips:
+	use CONST_TXT macro when using statically typed text.
+	use constructor instead of assignment (if can).
+	use "Append" method instead of "+" operator.
+	use "AppendStaticText" method instead of "Append" if you are using statically typed text.
+	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text.
 
 	@code
 	KString result1 = str1 + L"1234"; // slow
@@ -57,8 +56,6 @@ protected:
 	mutable bool isStaticText; // staticText & staticTextLength are valid only if this field is true. stringHolder can be zero even this filed is false.
 	wchar_t *staticText;
 	int staticTextLength;
-
-	void ConvertToRefCountedStringIfStatic()const; // generates StringHolder object from static text
 
 public:
 
@@ -122,10 +119,6 @@ public:
 		@returns     the concatenated string
 	*/
 	const KString operator+ (const wchar_t* const textToAppend);
-	/**
-		Returns ansi version of this string
-	*/
-	operator const char*()const;
 
 	/**
 		Returns const unicode version of this string
@@ -141,7 +134,7 @@ public:
 		Returns a character from the string.
 		@returns -1 if index is out of range
 	*/
-	const char operator[](const int index)const;
+	const wchar_t operator[](const int index)const;
 
 	/**
 		Appends a string at the end of this one.
@@ -201,19 +194,9 @@ public:
 	bool StartsWithChar(wchar_t character)const;
 
 	/**
-		Compare first character with given ansi character
-	*/
-	bool StartsWithChar(char character)const;
-
-	/**
 		Compare last character with given unicode character
 	*/
 	bool EndsWithChar(wchar_t character)const;
-
-	/**
-		Compare last character with given ansi character
-	*/
-	bool EndsWithChar(char character)const;
 
 	/**
 		Check if string is quoted or not
@@ -253,7 +236,7 @@ public:
 	*/
 	KString ToLowerCase()const;
 
-	// free returned buffer when done.
+	// free the returned buffer when done.
 	static char* ToAnsiString(const wchar_t* text);
 	static wchar_t* ToUnicodeString(const char* text);
 

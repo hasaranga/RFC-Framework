@@ -30,6 +30,6 @@ public:
 
 	virtual ~KButtonListener();
 
-	virtual void OnButtonPress(KButton *button);
+	virtual void OnButtonPress(KButton* button);
 };
 

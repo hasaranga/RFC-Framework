@@ -22,6 +22,7 @@
 #pragma once
 
 #include "../core/CoreModule.h"
+#include <shlwapi.h>
 
 // macro to specify file format type in the first 4 bytes of file.
 // use with KSettingsReader/Writer classes.
@@ -112,6 +113,11 @@ public:
 	static bool IsFileExists(const KString& fileName);
 
 	static bool CopyFile(const KString& sourceFileName, const KString& destFileName);
+
+	/**
+		returns the file name part of the path.
+	*/
+	static KString GetFileNameFromPath(const KString& path);
 
 	virtual ~KFile();
 

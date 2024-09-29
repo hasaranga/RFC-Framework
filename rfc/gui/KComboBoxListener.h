@@ -30,6 +30,6 @@ public:
 
 	virtual ~KComboBoxListener();
 
-	virtual void OnComboBoxItemSelect(KComboBox *comboBox);
+	virtual void OnComboBoxItemSelect(KComboBox* comboBox);
 };
 

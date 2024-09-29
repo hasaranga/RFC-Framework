@@ -25,4 +25,4 @@ KTrackBarListener::KTrackBarListener(){}
 
 KTrackBarListener::~KTrackBarListener(){}
 
-void KTrackBarListener::OnTrackBarChange(KTrackBar *trackBar){}
+void KTrackBarListener::OnTrackBarChange(KTrackBar* trackBar){}

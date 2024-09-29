@@ -25,4 +25,4 @@ KComboBoxListener::KComboBoxListener(){}
 
 KComboBoxListener::~KComboBoxListener(){}
 
-void KComboBoxListener::OnComboBoxItemSelect(KComboBox *comboBox){}
+void KComboBoxListener::OnComboBoxItemSelect(KComboBox* comboBox){}

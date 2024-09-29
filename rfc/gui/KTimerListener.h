@@ -30,6 +30,6 @@ public:
 
 	virtual ~KTimerListener();
 
-	virtual void OnTimer(KTimer *timer);
+	virtual void OnTimer(KTimer* timer);
 };
 

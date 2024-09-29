@@ -26,7 +26,7 @@
 
 KComboBox::KComboBox(bool sort) : KComponent(false)
 {
-	listener = 0;
+	listener = nullptr;
 	selectedItemIndex = -1;
 
 	compClassName.AssignStaticText(TXT_WITH_LEN("COMBOBOX"));

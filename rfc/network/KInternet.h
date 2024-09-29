@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2024 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,8 +28,6 @@
 #include "../core/CoreModule.h"
 #include <winhttp.h>
 
-#pragma comment(lib, "Winhttp.lib")
-
 class KInternet
 {
 public:
@@ -53,8 +51,25 @@ public:
 	static KString UrlDecodeString(const KString &text);
 
 	/**
+		url is domain name without "http(s)://" prefix.
+		objectName is prefixed with "/".
+		ignoreCertificateErros parameter will be ignored if isHttps is false.
+		if no post data then pass NULL and set postDataLength to 0.
+		this method automatically applies the browser proxy settings if available.
+	*/
+	static KString SendRequest(const wchar_t* url,
+		const wchar_t* objectName,
+		const bool isHttps,
+		const wchar_t* headersData,
+		const char* postData,
+		const int postDataLength,
+		const bool ignoreCertificateErros,
+		const wchar_t* userAgent,
+		const wchar_t* verb);
+
+	/**
 		this method posts data to given url. post data must be in url enocoded format.
-		url is domain name without "http://" prefix.
+		url is domain name without "http(s)://" prefix.
 		objectName is prefixed with "/".
 		postData should be like this "data1=Hello&data2=World".
 		ignoreCertificateErros parameter will be ignored if isHttps is false.
@@ -65,6 +80,34 @@ public:
 		const bool isHttps,
 		const char* postData,
 		const int postDataLength,
+		const bool ignoreCertificateErros = true,
+		const wchar_t* userAgent = L"RFC Application/1.0");
+
+	// each extraHeaderData must end with \r\n
+	static KString PostJSONData(const wchar_t* url,
+		const wchar_t* objectName,
+		const bool isHttps,
+		const char* postData,
+		const int postDataLength,
+		const wchar_t* extraHeaderData = nullptr,
+		const bool ignoreCertificateErros = true,
+		const wchar_t* userAgent = L"RFC Application/1.0");
+
+	// each extraHeaderData must end with \r\n
+	static KString GetJSONData(const wchar_t* url,
+		const wchar_t* objectName,
+		const bool isHttps,
+		const wchar_t* extraHeaderData = nullptr,
+		const bool ignoreCertificateErros = true,
+		const wchar_t* userAgent = L"RFC Application/1.0");
+
+	// fileSize will become zero on error or stopped
+	static void DownloadFile(const wchar_t* url,
+		const wchar_t* objectName,
+		const bool isHttps,
+		const wchar_t* outFilePath,
+		volatile bool* shouldStop,
+		volatile unsigned int* fileSize,
 		const bool ignoreCertificateErros = true,
 		const wchar_t* userAgent = L"RFC Application/1.0");
 

@@ -48,8 +48,8 @@ protected:
 public:
 	KPointerQueue(const bool isThreadSafe = true)
 	{
-		firstNode = NULL;
-		lastNode = NULL;
+		firstNode = nullptr;
+		lastNode = nullptr;
 
 		this->isThreadSafe = isThreadSafe;
 		if (isThreadSafe)
@@ -60,12 +60,12 @@ public:
 	{
 		KQueueNode<T>* newNode = new KQueueNode<T>();
 		newNode->data = value;
-		newNode->next = NULL;
+		newNode->next = nullptr;
 
 		if (isThreadSafe)
 			::EnterCriticalSection(&criticalSection);
 
-		if (firstNode == NULL)
+		if (firstNode == nullptr)
 		{
 			firstNode = newNode;
 			lastNode = newNode;
@@ -85,12 +85,12 @@ public:
 		if (isThreadSafe)
 			::EnterCriticalSection(&criticalSection);
 
-		if (firstNode == NULL)
+		if (firstNode == nullptr)
 		{
 			if (isThreadSafe)
 				::LeaveCriticalSection(&criticalSection);
 
-			return NULL;
+			return nullptr;
 		}
 
 		T value = firstNode->data;
@@ -98,8 +98,8 @@ public:
 		// remove the item
 		KQueueNode<T>* tmp = firstNode;
 		firstNode = firstNode->next;
-		if (firstNode == NULL) // we had only one item
-			lastNode = NULL;
+		if (firstNode == nullptr) // we had only one item
+			lastNode = nullptr;
 
 		delete tmp;
 
@@ -115,7 +115,7 @@ public:
 		if (isThreadSafe)
 			::EnterCriticalSection(&criticalSection);
 
-		if (firstNode == NULL)
+		if (firstNode == nullptr)
 		{
 			if (isThreadSafe)
 				::LeaveCriticalSection(&criticalSection);
@@ -132,8 +132,8 @@ public:
 			delete tmp;
 		}
 
-		firstNode = NULL;
-		lastNode = NULL;
+		firstNode = nullptr;
+		lastNode = nullptr;
 
 		if (isThreadSafe)
 			::LeaveCriticalSection(&criticalSection);
@@ -143,7 +143,7 @@ public:
 	{
 		// delete all nodes
 
-		if (firstNode == NULL)
+		if (firstNode == nullptr)
 			return;
 
 		KQueueNode<T>* nextNode = firstNode;

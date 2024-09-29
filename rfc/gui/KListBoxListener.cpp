@@ -24,6 +24,6 @@
 KListBoxListener::KListBoxListener(){}
 KListBoxListener::~KListBoxListener(){}
 
-void KListBoxListener::OnListBoxItemSelect(KListBox *listBox){}
+void KListBoxListener::OnListBoxItemSelect(KListBox* listBox){}
 
-void KListBoxListener::OnListBoxItemDoubleClick(KListBox *listBox){}
+void KListBoxListener::OnListBoxItemDoubleClick(KListBox* listBox){}

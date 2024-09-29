@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2024 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -159,13 +159,15 @@ KString KInternet::UrlDecodeString(const KString &text)
 	return ret;
 }
 
-KString KInternet::PostText(const wchar_t* url,
+KString KInternet::SendRequest(const wchar_t* url,
 	const wchar_t* objectName,
 	const bool isHttps,
+	const wchar_t* headersData,
 	const char* postData,
 	const int postDataLength,
 	const bool ignoreCertificateErros,
-	const wchar_t* userAgent)
+	const wchar_t* userAgent,
+	const wchar_t* verb)
 {
 	HINTERNET hInternet = 0, hConnect = 0, hRequest = 0;
 	BOOL resultOK = FALSE;
@@ -181,7 +183,7 @@ KString KInternet::PostText(const wchar_t* url,
 		hConnect = ::WinHttpConnect(hInternet, url, INTERNET_DEFAULT_PORT, 0);
 
 	if (hConnect)
-		hRequest = ::WinHttpOpenRequest(hConnect, L"POST", objectName, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, isHttps ? (WINHTTP_FLAG_REFRESH | WINHTTP_FLAG_SECURE) : WINHTTP_FLAG_REFRESH);
+		hRequest = ::WinHttpOpenRequest(hConnect, verb, objectName, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, isHttps ? (WINHTTP_FLAG_REFRESH | WINHTTP_FLAG_SECURE) : WINHTTP_FLAG_REFRESH);
 
 	if (hRequest)
 	{
@@ -191,7 +193,7 @@ KString KInternet::PostText(const wchar_t* url,
 			::WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS, &dwFlags, sizeof(DWORD));
 		}
 
-		resultOK = ::WinHttpSendRequest(hRequest, L"Content-Type: application/x-www-form-urlencoded\r\n", -1, (LPVOID)postData, postDataLength, postDataLength, 0); // Send a request
+		resultOK = ::WinHttpSendRequest(hRequest, headersData, -1, (LPVOID)postData, postDataLength, postDataLength, 0); // Send a request
 	}
 
 	if (resultOK)
@@ -231,6 +233,140 @@ KString KInternet::PostText(const wchar_t* url,
 		::WinHttpCloseHandle(hInternet);
 
 	return receivedText;
+}
+
+KString KInternet::PostText(const wchar_t* url,
+	const wchar_t* objectName,
+	const bool isHttps,
+	const char* postData,
+	const int postDataLength,
+	const bool ignoreCertificateErros,
+	const wchar_t* userAgent)
+{
+	return KInternet::SendRequest(url, objectName, isHttps,
+		L"Content-Type: application/x-www-form-urlencoded\r\n", postData,
+		postDataLength, ignoreCertificateErros, userAgent, L"POST");
+}
+
+KString KInternet::PostJSONData(const wchar_t* url,
+	const wchar_t* objectName,
+	const bool isHttps,
+	const char* postData,
+	const int postDataLength,
+	const wchar_t* extraHeaderData,
+	const bool ignoreCertificateErros,
+	const wchar_t* userAgent)
+{
+	KString headers(L"accept: application/json\r\ncontent-type: application/json\r\n");
+	if (extraHeaderData)
+		headers = headers + KString(extraHeaderData);
+
+	return KInternet::SendRequest(url, objectName, isHttps, headers, postData, postDataLength,
+		ignoreCertificateErros, userAgent, L"POST");
+}
+
+KString KInternet::GetJSONData(const wchar_t* url,
+	const wchar_t* objectName,
+	const bool isHttps,
+	const wchar_t* extraHeaderData,
+	const bool ignoreCertificateErros,
+	const wchar_t* userAgent)
+{
+	KString headers(L"accept: application/json\r\n");
+	if (extraHeaderData)
+		headers = headers + KString(extraHeaderData);
+
+	return KInternet::SendRequest(url, objectName, isHttps, headers, NULL, 0,
+		ignoreCertificateErros, userAgent, L"GET");
+}
+
+void KInternet::DownloadFile(const wchar_t* url,
+	const wchar_t* objectName,
+	const bool isHttps,
+	const wchar_t* outFilePath,
+	volatile bool* shouldStop,
+	volatile unsigned int* fileSize,
+	const bool ignoreCertificateErros,
+	const wchar_t* userAgent)
+{
+	*fileSize = 0;
+
+	::DeleteFileW(outFilePath);
+	HANDLE fileHandle = ::CreateFileW(outFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL,
+		CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	HINTERNET hInternet = 0, hConnect = 0, hRequest = 0;
+	BOOL resultOK = FALSE;
+
+	hInternet = ::WinHttpOpen(userAgent, WINHTTP_ACCESS_TYPE_NO_PROXY, 0, WINHTTP_NO_PROXY_BYPASS, 0);
+
+	if (hInternet)
+		KInternet::ApplyProxySettings(url, hInternet);
+
+	if (hInternet)
+		hConnect = ::WinHttpConnect(hInternet, url, INTERNET_DEFAULT_PORT, 0);
+
+	if (hConnect)
+		hRequest = ::WinHttpOpenRequest(hConnect, L"GET", objectName, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, isHttps ? (WINHTTP_FLAG_REFRESH | WINHTTP_FLAG_SECURE) : WINHTTP_FLAG_REFRESH);
+
+	if (hRequest)
+	{
+		if (ignoreCertificateErros)
+		{
+			DWORD dwFlags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
+			::WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS, &dwFlags, sizeof(DWORD));
+		}
+
+		resultOK = ::WinHttpSendRequest(hRequest, NULL, 0, NULL, 0, 0, 0); // Send a request
+	}
+
+	if (resultOK)
+		resultOK = ::WinHttpReceiveResponse(hRequest, NULL);
+
+	if (resultOK)
+	{
+		DWORD dwSize = 0;
+		DWORD dwDownloaded = 0;
+
+		do
+		{
+			dwSize = 0;
+			if (::WinHttpQueryDataAvailable(hRequest, &dwSize))
+			{
+				char* outBuffer = new char[dwSize];
+
+				if (::WinHttpReadData(hRequest, (LPVOID)outBuffer, dwSize, &dwDownloaded))
+				{
+					*fileSize = (*fileSize) + dwSize;
+					DWORD written = 0;
+					::WriteFile(fileHandle, outBuffer, dwSize, &written, NULL);
+				}
+
+				delete[] outBuffer;
+			}
+
+			if (*shouldStop)
+				break;
+
+		} while (dwSize > 0);
+	}
+
+	if (hRequest)
+		::WinHttpCloseHandle(hRequest);
+
+	if (hConnect)
+		::WinHttpCloseHandle(hConnect);
+
+	if (hInternet)
+		::WinHttpCloseHandle(hInternet);
+
+	::CloseHandle(fileHandle);
+
+	if (*shouldStop)
+	{
+		::DeleteFileW(outFilePath);
+		*fileSize = 0;
+	}
 }
 
 #endif

@@ -63,7 +63,7 @@ private:
 public:
 	inline KScopedStructPointer()
 	{
-		structPointer = NULL;
+		structPointer = nullptr;
 	}
 
 	inline KScopedStructPointer(StructType* structPointer)
@@ -74,12 +74,12 @@ public:
 	KScopedStructPointer(KScopedStructPointer& structPointerToTransferFrom)
 	{
 		this->structPointer = structPointerToTransferFrom.structPointer;
-		structPointerToTransferFrom.structPointer = NULL;
+		structPointerToTransferFrom.structPointer = nullptr;
 	}
 
 	bool IsNull()
 	{
-		return (structPointer == NULL);
+		return (structPointer == nullptr);
 	}
 
 	/** 
@@ -89,7 +89,7 @@ public:
 	StructType* Detach()
 	{ 
 		StructType* m = structPointer;
-		structPointer = NULL;
+		structPointer = nullptr;
 		return m; 
 	}
 

@@ -25,6 +25,6 @@ KTimerListener::KTimerListener(){}
 
 KTimerListener::~KTimerListener(){}
 
-void KTimerListener::OnTimer(KTimer *timer){}
+void KTimerListener::OnTimer(KTimer* timer){}
 
 

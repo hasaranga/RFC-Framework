@@ -28,7 +28,10 @@ KIcon::KIcon()
 
 bool KIcon::LoadFromResource(WORD resourceID)
 {
-	hIcon = (HICON)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hIcon = (HICON)::LoadImageW(KApplication::hInstance, 
+		MAKEINTRESOURCEW(resourceID), IMAGE_ICON, 0, 0, 
+		LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+
 	if(hIcon)
 		return true;	
 	return false;
@@ -36,7 +39,10 @@ bool KIcon::LoadFromResource(WORD resourceID)
 
 bool KIcon::LoadFromFile(const KString& filePath)
 {
-	hIcon = (HICON)::LoadImageW(KApplication::hInstance, filePath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hIcon = (HICON)::LoadImageW(KApplication::hInstance, 
+		filePath, IMAGE_ICON, 0, 0, 
+		LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+
 	if(hIcon)
 		return true;	
 	return false;

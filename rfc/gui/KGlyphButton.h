@@ -26,8 +26,8 @@
 class KGlyphButton : public KButton
 {
 protected:
-	KFont *glyphFont;
-	const wchar_t *glyphChar;
+	KFont* glyphFont;
+	const wchar_t* glyphChar;
 	COLORREF glyphColor;
 	int glyphLeft;
 
@@ -41,10 +41,10 @@ public:
 		You can use "Character Map" tool get character codes.
 		Default text color will be used if glyphColor not specified.
 	*/
-	virtual void SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
+	virtual void SetGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
-	virtual void SetDPI(int newDPI);
+	virtual void SetDPI(int newDPI) override;
 };
 

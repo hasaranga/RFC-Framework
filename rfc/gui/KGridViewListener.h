@@ -30,9 +30,9 @@ public:
 
 	virtual ~KGridViewListener();
 
-	virtual void OnGridViewItemSelect(KGridView *gridView);
+	virtual void OnGridViewItemSelect(KGridView* gridView);
 
-	virtual void OnGridViewItemRightClick(KGridView *gridView);
+	virtual void OnGridViewItemRightClick(KGridView* gridView);
 
-	virtual void OnGridViewItemDoubleClick(KGridView *gridView);
+	virtual void OnGridViewItemDoubleClick(KGridView* gridView);
 };

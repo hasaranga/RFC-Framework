@@ -30,7 +30,7 @@ public:
 
 	virtual ~KListBoxListener();
 
-	virtual void OnListBoxItemSelect(KListBox *listBox);
+	virtual void OnListBoxItemSelect(KListBox* listBox);
 
-	virtual void OnListBoxItemDoubleClick(KListBox *listBox);
+	virtual void OnListBoxItemDoubleClick(KListBox* listBox);
 };

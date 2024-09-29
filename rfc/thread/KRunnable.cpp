@@ -25,4 +25,4 @@ KRunnable::KRunnable(){}
 
 KRunnable::~KRunnable(){}
 
-void KRunnable::Run(KThread *thread){}
+void KRunnable::Run(KThread* thread){}

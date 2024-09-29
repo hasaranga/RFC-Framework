@@ -19,16 +19,14 @@
 	3. This notice may not be removed or altered from any source distribution.
 */
 
-#pragma once
-
 #include "KDPIUtility.h"
 #include "KApplication.h"
 
-KGetDpiForMonitor KDPIUtility::pGetDpiForMonitor = NULL;
-KSetProcessDpiAwarenessContext KDPIUtility::pSetProcessDpiAwarenessContext = NULL;
-KSetProcessDpiAwareness KDPIUtility::pSetProcessDpiAwareness = NULL;
-KSetProcessDPIAware KDPIUtility::pSetProcessDPIAware = NULL;
-KSetThreadDpiAwarenessContext KDPIUtility::pSetThreadDpiAwarenessContext = NULL;
+KGetDpiForMonitor KDPIUtility::pGetDpiForMonitor = nullptr;
+KSetProcessDpiAwarenessContext KDPIUtility::pSetProcessDpiAwarenessContext = nullptr;
+KSetProcessDpiAwareness KDPIUtility::pSetProcessDpiAwareness = nullptr;
+KSetProcessDPIAware KDPIUtility::pSetProcessDPIAware = nullptr;
+KSetThreadDpiAwarenessContext KDPIUtility::pSetThreadDpiAwarenessContext = nullptr;
 
 void KDPIUtility::InitDPIFunctions()
 {
@@ -64,7 +62,7 @@ void KDPIUtility::InitDPIFunctions()
 // https://building.enlyze.com/posts/writing-win32-apps-like-its-2020-part-3/
 WORD KDPIUtility::GetWindowDPI(HWND hWnd)
 {
-	if (KDPIUtility::pGetDpiForMonitor != 0)
+	if (KDPIUtility::pGetDpiForMonitor != nullptr)
 	{
 		HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY);
 		UINT uiDpiX, uiDpiY;
@@ -112,4 +110,31 @@ void KDPIUtility::MakeProcessDPIAware(KDPIAwareness dpiAwareness)
 			KApplication::dpiAwareAPICalled = true;
 		}
 	}
+}
+
+// https://stackoverflow.com/questions/70976583/get-real-screen-resolution-using-win32-api
+float KDPIUtility::GetMonitorScalingRatio(HMONITOR monitor)
+{
+	MONITORINFOEXW info = {};
+	info.cbSize = sizeof(MONITORINFOEXW);
+	::GetMonitorInfoW(monitor, &info);
+	DEVMODEW devmode = {};
+	devmode.dmSize = sizeof(DEVMODEW);
+	::EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
+	return (info.rcMonitor.right - info.rcMonitor.left) / static_cast<float>(devmode.dmPelsWidth);
+}
+
+float KDPIUtility::GetScaleForMonitor(HMONITOR monitor)
+{
+	return (float)(::GetDpiForSystem() / 96.0 / GetMonitorScalingRatio(monitor));
+}
+
+int KDPIUtility::ScaleToWindowDPI(int valueFor96DPI, HWND window)
+{
+	return KDPIUtility::ScaleToNewDPI(valueFor96DPI, KDPIUtility::GetWindowDPI(window));
+}
+
+int KDPIUtility::ScaleToNewDPI(int valueFor96DPI, int newDPI)
+{
+	return ::MulDiv(valueFor96DPI, newDPI, USER_DEFAULT_SCREEN_DPI);
 }

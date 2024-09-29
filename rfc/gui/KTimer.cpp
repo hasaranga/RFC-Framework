@@ -26,7 +26,7 @@ KTimer::KTimer()
 {
 	resolution = 1000;
 	started = false;
-	listener = 0;
+	listener = nullptr;
 	timerID = KIDGenerator::GetInstance()->GenerateTimerID(this);
 }
 
@@ -40,7 +40,7 @@ int KTimer::GetInterval()
 	return resolution;
 }
 
-void KTimer::SetTimerWindow(KWindow *window)
+void KTimer::SetTimerWindow(KWindow* window)
 {
 	this->window = window;
 }
@@ -97,7 +97,7 @@ void KTimer::OnTimer()
 		listener->OnTimer(this);
 }
 
-void KTimer::SetListener(KTimerListener *listener)
+void KTimer::SetListener(KTimerListener* listener)
 {
 	this->listener = listener;
 }

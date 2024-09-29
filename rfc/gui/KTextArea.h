@@ -28,7 +28,7 @@ class KTextArea : public KTextBox
 public:
 	KTextArea(bool autoScroll = false, bool readOnly = false);
 
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
 
 	virtual ~KTextArea();
 };

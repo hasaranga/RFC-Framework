@@ -4557,7 +4557,7 @@ namespace lunasvg {
     }
 
     Paint::Paint(const std::string& ref, const Color& color)
-        : m_ref(ref), m_color(color)
+        : m_color(color), m_ref(ref)
     {
     }
 

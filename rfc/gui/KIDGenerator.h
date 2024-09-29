@@ -37,7 +37,7 @@ class KIDGenerator
 private:
 	RFC_LEAK_DETECTOR(KIDGenerator)
 
-	static KIDGenerator*_instance;
+	static KIDGenerator* _instance;
 	KIDGenerator();
 
 protected:
@@ -46,8 +46,8 @@ protected:
 	volatile int controlCount;
 	volatile UINT menuItemCount;
 
-	KPointerList<KMenuItem*> *menuItemList;
-	KPointerList<KTimer*> *timerList;
+	KPointerList<KMenuItem*>* menuItemList;
+	KPointerList<KTimer*>* timerList;
 
 public:
 
@@ -58,10 +58,10 @@ public:
 	// KApplication:hInstance must be valid before calling this method
 	KString GenerateClassName();
 
-	UINT GenerateMenuItemID(KMenuItem *menuItem);
+	UINT GenerateMenuItemID(KMenuItem* menuItem);
 	KMenuItem* GetMenuItemByID(UINT id);
 
-	UINT GenerateTimerID(KTimer *timer);
+	UINT GenerateTimerID(KTimer* timer);
 	KTimer* GetTimerByID(UINT id);
 
 	~KIDGenerator();

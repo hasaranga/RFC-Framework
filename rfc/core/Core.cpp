@@ -21,7 +21,7 @@
 
 #include "Core.h"
 
-void InitRFC()
+void InitRFCModules()
 {
 	// initialize modules
 	RFCModuleInitFunc* initFuncList = KModuleManager::RFCModuleInitFuncList();
@@ -43,7 +43,7 @@ void InitRFC()
 	}
 }
 
-void DeInitRFC()
+void DeInitRFCModules()
 {
 	// free modules
 	RFCModuleFreeFunc* freeFuncList = KModuleManager::RFCModuleFreeFuncList();
@@ -52,4 +52,17 @@ void DeInitRFC()
 		if (freeFuncList[i])
 			freeFuncList[i]();
 	}
+}
+
+void RFCDllInit()
+{
+	CoreModuleInitParams::hInstance = 0;
+	CoreModuleInitParams::initCOMAsSTA = false;
+	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE;
+	::InitRFCModules();
+}
+
+void RFCDllFree()
+{
+	::DeInitRFCModules();
 }

@@ -135,12 +135,21 @@ void* KFile::ReadAsData()
 
 bool KFile::WriteString(const KString& text, bool isUnicode)
 {
-	void* buffer = isUnicode ? (void*)(const wchar_t*)text : (void*)(const char*)text;
-	const DWORD numberOfBytesToWrite = text.GetLength() * ( isUnicode ? sizeof(wchar_t) : sizeof(char) );
-
-	const DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
-
-	return (numberOfBytesWritten == numberOfBytesToWrite);
+	if (isUnicode)
+	{
+		void* buffer = (void*)(const wchar_t*)text;
+		const DWORD numberOfBytesToWrite = text.GetLength() * sizeof(wchar_t);
+		const DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
+		return (numberOfBytesWritten == numberOfBytesToWrite);
+	}
+	else
+	{
+		void* buffer = (void*)KString::ToAnsiString(text);
+		const DWORD numberOfBytesToWrite = text.GetLength() * sizeof(char);
+		const DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
+		::free(buffer);
+		return (numberOfBytesWritten == numberOfBytesToWrite);
+	}
 }
 
 KString KFile::ReadAsString(bool isUnicode)
@@ -183,6 +192,17 @@ bool KFile::DeleteFile(const KString& fileName)
 bool KFile::CopyFile(const KString& sourceFileName, const KString& destFileName)
 {
 	return (::CopyFileW(sourceFileName, destFileName, FALSE) == 0) ? false : true;
+}
+
+KString KFile::GetFileNameFromPath(const KString& path)
+{
+	const wchar_t* pathStr = (const wchar_t*)path;
+	const wchar_t* fileNamePtr = ::PathFindFileNameW(pathStr);
+
+	if (pathStr != fileNamePtr)
+		return KString(fileNamePtr);
+
+	return KString();
 }
 
 bool KFile::IsFileExists(const KString& fileName)

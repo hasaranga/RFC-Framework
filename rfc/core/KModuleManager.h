@@ -34,4 +34,4 @@ public:
 };
 
 #define REGISTER_RFC_MODULE(index, ModuleObjectType) \
-static bool ModuleObjectType##_Registered = KModuleManager::RegisterRFCModule( index , ModuleObjectType##::RFCModuleInit, ModuleObjectType##::RFCModuleFree);
+static bool ModuleObjectType##_Registered = KModuleManager::RegisterRFCModule( index , ModuleObjectType::RFCModuleInit, ModuleObjectType::RFCModuleFree);

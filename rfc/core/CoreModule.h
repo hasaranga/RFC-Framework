@@ -30,6 +30,15 @@
 #include "KString.h"
 #include <windows.h>
 
+// link default libs here so we don't need to link them from commandline(Clang).
+
+#pragma comment(lib,"user32.lib")
+#pragma comment(lib,"Shell32.lib")
+#pragma comment(lib,"Ole32.lib")
+#pragma comment(lib,"Gdi32.lib")
+#pragma comment(lib,"Advapi32.lib")
+#pragma comment(lib,"Comdlg32.lib")
+
 class CoreModuleInitParams {
 public:
 	/**

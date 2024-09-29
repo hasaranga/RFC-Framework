@@ -43,13 +43,13 @@ public:
 
 	virtual int GetValue();
 
-	virtual void SetListener(KTrackBarListener *listener);
+	virtual void SetListener(KTrackBarListener* listener);
 
 	virtual void OnChange();
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
 	virtual ~KTrackBar();
 };

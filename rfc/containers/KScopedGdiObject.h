@@ -30,8 +30,6 @@
 	If you need to get a gdi object out of a KScopedGdiObject without it being freed, you
 	can use the Release() method.
 
-	(ref: ScopedPointer class of JUCE)
-
 	e.g. @code
 	KScopedGdiObject<HBRUSH> a = ::CreateSolidBrush(RGB(255, 255, 255)); // slow
 	KScopedGdiObject<HBRUSH> b(::CreateSolidBrush(RGB(255, 0, 0))); // fast

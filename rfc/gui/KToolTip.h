@@ -38,14 +38,14 @@ public:
 		"attachedComponent" must be added to a window before you call this method.
 		do not attach same tooltip into multiple components.
 	*/
-	virtual void AttachToComponent(KWindow *parentWindow, KComponent *attachedComponent);
+	virtual void AttachToComponent(KWindow* parentWindow, KComponent* attachedComponent);
 
 	/**
 		calling this method has no effect.
 	*/
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
-	virtual void SetText(const KString& compText);
+	virtual void SetText(const KString& compText) override;
 };
 
 

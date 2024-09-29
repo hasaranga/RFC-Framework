@@ -48,6 +48,7 @@ public:
 	*/
 	bool LoadFromFile(const KString& filePath);
 
+	// does not scale
 	void DrawOnHDC(HDC hdc, int x, int y, int width, int height);
 
 	/**

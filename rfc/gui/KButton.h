@@ -39,9 +39,9 @@ public:
 
 	virtual void OnPress();
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
 	virtual ~KButton();
 };

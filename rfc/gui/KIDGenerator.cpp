@@ -35,8 +35,8 @@ KIDGenerator::KIDGenerator()
 	menuItemCount = 0;
 	classCount = 0;
 	controlCount = 0;
-	menuItemList = 0;
-	timerList = 0;
+	menuItemList = nullptr;
+	timerList = nullptr;
 }
 
 KIDGenerator* KIDGenerator::GetInstance()
@@ -53,9 +53,9 @@ UINT KIDGenerator::GenerateControlID()
 	return controlCount + rfc_InitialControlID;
 }
 
-UINT KIDGenerator::GenerateMenuItemID(KMenuItem *menuItem)
+UINT KIDGenerator::GenerateMenuItemID(KMenuItem* menuItem)
 {
-	if (menuItemList == 0) // generate on first call
+	if (menuItemList == nullptr) // generate on first call
 		menuItemList = new KPointerList<KMenuItem*>(rfc_InitialMenuItemCount);
 
 	++menuItemCount;
@@ -103,9 +103,9 @@ KString KIDGenerator::GenerateClassName()
 	return KString(className, KString::FREE_TEXT_WHEN_DONE);
 }
 
-UINT KIDGenerator::GenerateTimerID(KTimer *timer)
+UINT KIDGenerator::GenerateTimerID(KTimer* timer)
 {
-	if (timerList == 0) // generate on first call
+	if (timerList == nullptr) // generate on first call
 		timerList = new KPointerList<KTimer*>(rfc_InitialTimerCount);
 
 	++timerCount;

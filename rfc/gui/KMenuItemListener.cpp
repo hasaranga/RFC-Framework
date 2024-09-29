@@ -25,4 +25,4 @@ KMenuItemListener::KMenuItemListener(){}
 
 KMenuItemListener::~KMenuItemListener(){}
 
-void KMenuItemListener::OnMenuItemPress(KMenuItem *menuItem){}
+void KMenuItemListener::OnMenuItemPress(KMenuItem* menuItem){}

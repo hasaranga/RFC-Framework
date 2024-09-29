@@ -106,7 +106,9 @@ void KLabel::SetDPI(int newDPI)
 
 	if (compHWND)
 	{
-		::SetWindowPos(compHWND, 0, compX, compY, compWidth, compHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+		::SetWindowPos(compHWND, 0, compX, compY, compWidth, 
+			compHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+
 		if ((!compFont->IsDefaultFont()) && (compDwStyle & WS_CHILD))
 			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0));
 	}
@@ -121,7 +123,9 @@ bool KLabel::Create(bool requireInitialMessages)
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, 
+			(WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)

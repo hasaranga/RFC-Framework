@@ -34,6 +34,8 @@ public:
 	virtual void OnDPIChange(HWND hwnd, int newDPI) = 0;
 };
 
+enum class KCloseOperation { DestroyAndExit, Hide, Nothing };
+
 class KWindow : public KComponent
 {
 protected:
@@ -41,15 +43,20 @@ protected:
 	KDPIChangeListener* dpiChangeListener;
 	bool enableDPIUnawareMode;
 	KPointerList<KComponent*> componentList;
+	KCloseOperation closeOperation;
+	DPI_AWARENESS_CONTEXT prevDPIContext;
+	bool dpiAwarenessContextChanged;
 
 public:
 	KWindow();
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
 	virtual void Flash();
 
 	virtual void SetIcon(KIcon *icon);
+
+	virtual void SetCloseOperation(KCloseOperation closeOperation);
 
 	virtual void OnClose();
 
@@ -61,6 +68,9 @@ public:
 	virtual void OnCustomMessage(WPARAM msgID, LPARAM param);
 
 	virtual void CenterScreen();
+
+	// puts our window on same monitor as given window + centered
+	virtual void CenterOnSameMonitor(HWND window);
 
 	/**
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
@@ -82,6 +92,15 @@ public:
 	// Only works with Win10 or higher
 	virtual void SetEnableDPIUnawareMode(bool enable);
 
+	// In mixed-mode dpi unaware window, before adding any child we need to set current thread dpi mode to unaware mode.
+	// by default this method automatically called with AddComponent method.
+	// if you add a child without calling AddComponent then you have to call ApplyDPIUnawareModeToThread method first.
+	virtual void ApplyDPIUnawareModeToThread();
+
+	// after adding the child, we need to restore the last dpi mode of the thread.
+	// Mixed-Mode only
+	virtual void RestoreDPIModeOfThread();
+
 	static bool IsOffScreen(int posX, int posY);
 
 	virtual bool GetClientAreaSize(int* width, int* height);
@@ -93,7 +112,7 @@ public:
 	// Do not change the control positions/sizes in here if the window and controls are in different dpi scale. (use KDPIChangeListener)
 	virtual void OnResized();
 
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
 
 	virtual ~KWindow();
 };

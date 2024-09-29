@@ -29,12 +29,12 @@ class KListBoxListener;
 class KListBox : public KComponent
 {
 protected:
-	KPointerList<KString*> *stringList;
+	KPointerList<KString*>* stringList;
 	int selectedItemIndex;
 	int selectedItemEnd;
 	bool multipleSelection;
 
-	KListBoxListener *listener;
+	KListBoxListener* listener;
 
 public:
 	KListBox(bool multipleSelection=false, bool sort=false, bool vscroll=true);
@@ -63,9 +63,9 @@ public:
 
 	virtual void SelectItems(int start, int end);
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
 	virtual void OnItemSelect();
 

@@ -58,6 +58,7 @@ KDialog::KDialog()
 {
 	compText.AssignStaticText(TXT_WITH_LEN("KDialog"));
 	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU;
+	compDwExStyle = WS_EX_DLGMODALFRAME;
 }
 
 KDialog::~KDialog(){}

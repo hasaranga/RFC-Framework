@@ -30,18 +30,18 @@ class KGridView : public KComponent
 protected:
 	int colCount;
 	int itemCount;
-	KGridViewListener *listener;
+	KGridViewListener* listener;
 
 public:
 	KGridView(bool sortItems = false);
 
-	virtual void SetListener(KGridViewListener *listener);
+	virtual void SetListener(KGridViewListener* listener);
 
 	virtual KGridViewListener* GetListener();
 
-	virtual void InsertRecord(KString **columnsData);
+	virtual void InsertRecord(KString** columnsData);
 
-	virtual void InsertRecordTo(int rowIndex, KString **columnsData);
+	virtual void InsertRecordTo(int rowIndex, KString** columnsData);
 
 	virtual KString GetRecordAt(int rowIndex, int columnIndex);
 
@@ -62,9 +62,9 @@ public:
 
 	virtual void CreateColumn(const KString& text, int columnWidth = 100);
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
 	virtual void OnItemSelect();
 

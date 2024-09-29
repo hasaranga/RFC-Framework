@@ -28,7 +28,7 @@ KGridView::KGridView(bool sortItems) : KComponent(false)
 {
 	itemCount = 0;
 	colCount = 0;
-	listener = 0;
+	listener = nullptr;
 
 	compClassName.AssignStaticText(TXT_WITH_LEN("SysListView32"));
 
@@ -38,7 +38,9 @@ KGridView::KGridView(bool sortItems) : KComponent(false)
 	compX = 0;
 	compY = 0;
 
-	compDwStyle = WS_CHILD | WS_TABSTOP | WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
+	compDwStyle = WS_CHILD | WS_TABSTOP | WS_BORDER | 
+		LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
+
 	compDwExStyle = WS_EX_WINDOWEDGE;
 
 	if (sortItems)
@@ -47,7 +49,7 @@ KGridView::KGridView(bool sortItems) : KComponent(false)
 
 KGridView::~KGridView(){}
 
-void KGridView::SetListener(KGridViewListener *listener)
+void KGridView::SetListener(KGridViewListener* listener)
 {
 	this->listener = listener;
 }
@@ -57,22 +59,24 @@ KGridViewListener* KGridView::GetListener()
 	return listener;
 }
 
-void KGridView::InsertRecord(KString **columnsData)
+void KGridView::InsertRecord(KString** columnsData)
 {
-	LVITEMW lvi = { 0 };
+	LVITEMW lvi = {};
 	lvi.mask = LVIF_TEXT;
 	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = itemCount;
 
-	const int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
+	const int row = (int)::SendMessageW(compHWND, 
+		LVM_INSERTITEMW, 0, (LPARAM)&lvi);
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvItem = { 0 };
+		LV_ITEMW lvItem = {};
 		lvItem.iSubItem = i;
 		lvItem.pszText = (*columnsData[i]);
 
-		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvItem);
+		::SendMessageW(compHWND, LVM_SETITEMTEXTW, 
+			(WPARAM)row, (LPARAM)&lvItem);
 	}
 
 	++itemCount;
@@ -80,20 +84,22 @@ void KGridView::InsertRecord(KString **columnsData)
 
 void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 {
-	LVITEMW lvi = { 0 };
+	LVITEMW lvi = {};
 	lvi.mask = LVIF_TEXT;
 	lvi.pszText = (*columnsData[0]);
 	lvi.iItem = rowIndex;
 
-	const int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
+	const int row = (int)::SendMessageW(compHWND, 
+		LVM_INSERTITEMW, 0, (LPARAM)&lvi);
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvItem= { 0 };
+		LV_ITEMW lvItem= {};
 		lvItem.iSubItem = i;
 		lvItem.pszText = (*columnsData[i]);
 
-		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvItem);
+		::SendMessageW(compHWND, LVM_SETITEMTEXTW, 
+			(WPARAM)row, (LPARAM)&lvItem);
 	}
 
 	++itemCount;
@@ -104,12 +110,13 @@ KString KGridView::GetRecordAt(int rowIndex, int columnIndex)
 	wchar_t *buffer = (wchar_t*)::malloc(512 * sizeof(wchar_t));
 	buffer[0] = 0;
 
-	LV_ITEMW lvi = { 0 };
+	LV_ITEMW lvi = {};
 	lvi.iSubItem = columnIndex;
 	lvi.cchTextMax = 512;
 	lvi.pszText = buffer;
 
-	::SendMessageW(compHWND, LVM_GETITEMTEXTW, (WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_GetItemText macro. it relies on preprocessor defs.
+	::SendMessageW(compHWND, LVM_GETITEMTEXTW, 
+		(WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_GetItemText macro. it relies on preprocessor defs.
 
 	return KString(buffer, KString::FREE_TEXT_WHEN_DONE);
 }
@@ -133,11 +140,12 @@ void KGridView::RemoveAll()
 
 void KGridView::UpdateRecordAt(int rowIndex, int columnIndex, const KString& text)
 {
-	LV_ITEMW lvi = { 0 };
+	LV_ITEMW lvi = {};
 	lvi.iSubItem = columnIndex;
 	lvi.pszText = text;
 
-	::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_SetItemText macro. it relies on preprocessor defs.
+	::SendMessageW(compHWND, LVM_SETITEMTEXTW, 
+		(WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_SetItemText macro. it relies on preprocessor defs.
 }
 
 void KGridView::SetColumnWidth(int columnIndex, int columnWidth)
@@ -152,7 +160,7 @@ int KGridView::GetColumnWidth(int columnIndex)
 
 void KGridView::CreateColumn(const KString& text, int columnWidth)
 {
-	LVCOLUMN lvc = { 0 };
+	LVCOLUMNW lvc = {};
 
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 	lvc.fmt = LVCFMT_LEFT;
@@ -160,7 +168,8 @@ void KGridView::CreateColumn(const KString& text, int columnWidth)
 	lvc.pszText = text;
 	lvc.iSubItem = colCount;
 
-	::SendMessageW(compHWND, LVM_INSERTCOLUMNW, (WPARAM)colCount, (LPARAM)&lvc);
+	::SendMessageW(compHWND, LVM_INSERTCOLUMNW, 
+		(WPARAM)colCount, (LPARAM)&lvc);
 
 	++colCount;
 }
@@ -205,8 +214,12 @@ bool KGridView::Create(bool requireInitialMessages)
 
 	if (compHWND)
 	{
-		ListView_SetExtendedListViewStyle(compHWND, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		ListView_SetExtendedListViewStyle(compHWND, 
+			LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
+		::SendMessageW(compHWND, WM_SETFONT, 
+			(WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)

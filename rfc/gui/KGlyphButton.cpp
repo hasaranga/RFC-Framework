@@ -25,8 +25,8 @@
 
 KGlyphButton::KGlyphButton()
 {
-	glyphFont = 0;
-	glyphChar = 0;
+	glyphFont = nullptr;
+	glyphChar = nullptr;
 	glyphLeft = 6;
 }
 
@@ -34,7 +34,7 @@ KGlyphButton::~KGlyphButton()
 {
 }
 
-void KGlyphButton::SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor, int glyphLeft)
+void KGlyphButton::SetGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor, int glyphLeft)
 {
 	this->glyphChar = glyphChar;
 	this->glyphFont = glyphFont;
@@ -52,7 +52,7 @@ void KGlyphButton::SetDPI(int newDPI)
 	KButton::SetDPI(newDPI);
 }
 
-bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if (glyphFont)
 	{

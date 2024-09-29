@@ -22,3 +22,6 @@
 #pragma once
 
 #include "KSignCheck.h"
+
+#pragma comment(lib,"Bcrypt.lib")
+#pragma comment(lib,"Crypt32.lib")

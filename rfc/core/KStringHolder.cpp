@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2024 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,20 +25,13 @@
 KStringHolder::KStringHolder(wchar_t *w_text, int count)
 {
 	refCount = 1;
-	a_text = 0;
 	this->w_text = w_text;
 	this->count = count;
-
-	#ifndef RFC_NO_SAFE_ANSI_STR
-	::InitializeCriticalSection(&cs_a_text);
-	#endif
 }
 
 KStringHolder::~KStringHolder()
 {
-	#ifndef RFC_NO_SAFE_ANSI_STR
-	::DeleteCriticalSection(&cs_a_text);
-	#endif
+
 }
 
 void KStringHolder::AddReference()
@@ -51,48 +44,9 @@ void KStringHolder::ReleaseReference()
 	const LONG res = ::InterlockedDecrement(&refCount);
 	if(res == 0)
 	{
-		if(a_text)
-			::free(a_text);
-
 		if(w_text)
 			::free(w_text);
 
 		delete this;
-	}
-}
-
-const char* KStringHolder::GetAnsiVersion(UINT codePage)
-{
-	#ifndef RFC_NO_SAFE_ANSI_STR
-	::EnterCriticalSection(&cs_a_text);
-	#endif
-
-	if(a_text)
-	{
-		#ifndef RFC_NO_SAFE_ANSI_STR
-		::LeaveCriticalSection(&cs_a_text);
-		#endif
-		return a_text;
-	}else
-	{
-		const int length = ::WideCharToMultiByte(codePage, 0, w_text, -1, 0, 0, 0, 0);
-		if (length)
-		{
-			a_text = (char*)::malloc(length);
-			if (::WideCharToMultiByte(codePage, 0, w_text, -1, a_text, length, 0, 0))
-			{
-				#ifndef RFC_NO_SAFE_ANSI_STR
-				::LeaveCriticalSection(&cs_a_text);
-				#endif
-				return a_text;
-			}
-			::free(a_text);
-			a_text = 0;
-		}
-
-		#ifndef RFC_NO_SAFE_ANSI_STR
-		::LeaveCriticalSection(&cs_a_text);
-		#endif
-		return 0; // conversion error
 	}
 }

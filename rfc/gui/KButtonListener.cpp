@@ -25,4 +25,4 @@ KButtonListener::KButtonListener(){}
 
 KButtonListener::~KButtonListener(){}
 
-void KButtonListener::OnButtonPress(KButton *button){}
+void KButtonListener::OnButtonPress(KButton* button){}

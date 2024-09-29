@@ -30,9 +30,9 @@ class KComboBoxListener;
 class KComboBox : public KComponent
 {
 protected:
-	KPointerList<KString*> *stringList;
+	KPointerList<KString*>* stringList;
 	int selectedItemIndex;
-	KComboBoxListener *listener;
+	KComboBoxListener* listener;
 
 public:
 	KComboBox(bool sort=false);
@@ -55,9 +55,9 @@ public:
 
 	virtual void SelectItem(int index);
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
 	virtual void SetListener(KComboBoxListener *listener);
 

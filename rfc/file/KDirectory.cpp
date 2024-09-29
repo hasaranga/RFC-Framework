@@ -59,6 +59,17 @@ KString KDirectory::GetModuleDir(HMODULE hModule)
 	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
+KString KDirectory::GetModuleFilePath(HMODULE hModule)
+{
+	// assumes MAX_PATH * 2 is enough!
+
+	wchar_t* path = (wchar_t*)::malloc((MAX_PATH * 2) * sizeof(wchar_t));
+	path[0] = 0;
+	::GetModuleFileNameW(hModule, path, MAX_PATH * 2);
+
+	return KString(path, KString::FREE_TEXT_WHEN_DONE);
+}
+
 KString KDirectory::GetParentDir(const KString& filePath)
 {
 	wchar_t *path = ::_wcsdup(filePath);
@@ -117,4 +128,30 @@ KString KDirectory::GetRoamingFolder()
 KString KDirectory::GetNonRoamingFolder()
 {
 	return KDirectory::GetLoggedInUserFolderPath(CSIDL_LOCAL_APPDATA);
+}
+
+KPointerList<KString*>* KDirectory::ScanFolderForExtension(const KString& folderPath, const KString& extension)
+{
+	KPointerList<KString*>* result = new KPointerList<KString*>(32, false);
+	WIN32_FIND_DATAW findData;
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+
+	KString searchPath = folderPath + L"\\*." + extension;
+
+	hFind = ::FindFirstFileW(searchPath, &findData);
+
+	if (hFind == INVALID_HANDLE_VALUE)
+		return result;
+
+	do
+	{
+		if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+		{
+			result->AddPointer(new KString(findData.cFileName));
+		}
+	} while (::FindNextFileW(hFind, &findData) != 0);
+
+	::FindClose(hFind);
+
+	return result;
 }

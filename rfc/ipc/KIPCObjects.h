@@ -62,7 +62,7 @@ protected:
 		clientStartedEvent = NULL;
 		serverLiveMutex = NULL;
 		clientLiveMutex = NULL;
-		dataBuffer = NULL;
+		dataBuffer = nullptr;
 		dataPosition = 0;
 	}
 
@@ -110,7 +110,7 @@ public:
 			0,
 			sharedMemSize);
 
-		if (dataBuffer == NULL)
+		if (dataBuffer == nullptr)
 		{
 			::CloseHandle(hMapFile);
 			hMapFile = NULL;
@@ -283,7 +283,7 @@ protected:
 		clientStartedEvent = NULL;
 		serverLiveMutex = NULL;
 		clientLiveMutex = NULL;
-		dataBuffer = NULL;
+		dataBuffer = nullptr;
 		dataPosition = 0;
 	}
 

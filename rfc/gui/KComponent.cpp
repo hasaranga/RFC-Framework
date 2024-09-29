@@ -278,7 +278,7 @@ void KComponent::SetDPI(int newDPI)
 	if (newDPI == compDPI)
 		return;
 
-	int oldDPI = compDPI;
+	const int oldDPI = compDPI;
 	compDPI = newDPI;
 
 	if (compDwStyle & WS_CHILD) // do not change position and font size of top level windows.

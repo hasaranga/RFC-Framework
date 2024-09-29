@@ -32,7 +32,9 @@ public:
 		if (!CoreModuleInitParams::hInstance)
 		{
 			//hInstance = ::GetModuleHandleW(NULL); // not work for dll
-			::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&InitRFC, &CoreModuleInitParams::hInstance);
+			::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | 
+				GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, 
+				(LPCWSTR)&InitRFCModules, &CoreModuleInitParams::hInstance);
 		}
 
 		KApplication::hInstance = CoreModuleInitParams::hInstance;

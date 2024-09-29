@@ -25,9 +25,9 @@
 
 KMenuButton::KMenuButton()
 {
-	buttonMenu = 0;
-	glyphFont = 0;
-	glyphChar = 0;
+	buttonMenu = nullptr;
+	glyphFont = nullptr;
+	glyphChar = nullptr;
 	glyphLeft = 6;
 	arrowFont = new KFont(CONST_TXT("Webdings"), 18, false, false, false, false, USER_DEFAULT_SCREEN_DPI);
 }	
@@ -37,12 +37,12 @@ KMenuButton::~KMenuButton()
 	delete arrowFont;
 }
 
-void KMenuButton::SetMenu(KMenu *buttonMenu)
+void KMenuButton::SetMenu(KMenu* buttonMenu)
 {
 	this->buttonMenu = buttonMenu;
 }
 
-void KMenuButton::SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor, int glyphLeft)
+void KMenuButton::SetGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor, int glyphLeft)
 {
 	this->glyphChar = glyphChar;
 	this->glyphFont = glyphFont;
@@ -69,11 +69,13 @@ void KMenuButton::OnPress()
 		POINT point = {compX, compY};
 		::ClientToScreen(compParentHWND, &point); // get screen cordinates
 
-		::TrackPopupMenu(buttonMenu->GetMenuHandle(), TPM_LEFTBUTTON, point.x, point.y + compHeight, 0, compParentHWND, NULL);
+		::TrackPopupMenu(buttonMenu->GetMenuHandle(), 
+			TPM_LEFTBUTTON, point.x, point.y + compHeight, 
+			0, compParentHWND, NULL);
 	}
 }
 
-bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if (msg == WM_NOTIFY)
 	{		

@@ -31,6 +31,6 @@ public:
 
 	virtual ~KMenuItemListener();
 
-	virtual void OnMenuItemPress(KMenuItem *menuItem);
+	virtual void OnMenuItemPress(KMenuItem* menuItem);
 };
 

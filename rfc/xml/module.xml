@@ -1,0 +1,7 @@
+<xml>
+	<name>XML</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>Vista or higher</platform>
+	<description>KXMLReader</description>
+</xml>

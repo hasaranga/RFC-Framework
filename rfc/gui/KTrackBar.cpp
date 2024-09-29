@@ -38,7 +38,10 @@ KTrackBar::KTrackBar(bool showTicks, bool vertical) : KComponent(false)
 	compX = 0;
 	compY = 0;
 
-	compDwStyle = (WS_TABSTOP | WS_CHILD | WS_CLIPSIBLINGS) | (showTicks ? TBS_AUTOTICKS : TBS_NOTICKS) | (vertical ? TBS_VERT : TBS_HORZ);
+	compDwStyle = (WS_TABSTOP | WS_CHILD | WS_CLIPSIBLINGS) | 
+		(showTicks ? TBS_AUTOTICKS : TBS_NOTICKS) | 
+		(vertical ? TBS_VERT : TBS_HORZ);
+
 	compDwExStyle = WS_EX_WINDOWEDGE;
 
 	compClassName.AssignStaticText(TXT_WITH_LEN("msctls_trackbar32"));
@@ -66,7 +69,7 @@ void KTrackBar::OnChange()
 		listener->OnTrackBarChange(this);
 }
 
-void KTrackBar::SetListener(KTrackBarListener *listener)
+void KTrackBar::SetListener(KTrackBarListener* listener)
 {
 	this->listener = listener;
 }
@@ -76,7 +79,7 @@ int KTrackBar::GetValue()
 	return value;
 }
 
-bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if( (msg == WM_HSCROLL) || (msg == WM_VSCROLL) )
 	{

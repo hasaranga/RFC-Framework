@@ -26,10 +26,10 @@
 
 const wchar_t* const RFC_OSD_REG_LOCATION = L"Software\\CrownSoft\\RFC\\OSD";
 
-bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, 
+bool KCommonDialogBox::ShowOpenFileDialog(KWindow* window, 
 	const KString& title, 
 	const wchar_t* filter, 
-	KString *fileName, 
+	KString* fileName, 
 	bool saveLastLocation, 
 	const wchar_t* dialogGuid)
 {
@@ -79,10 +79,10 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window,
 	}
 }
 
-bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, 
+bool KCommonDialogBox::ShowSaveFileDialog(KWindow* window, 
 	const KString& title, 
 	const wchar_t* filter, 
-	KString *fileName,
+	KString* fileName,
 	bool saveLastLocation,
 	const wchar_t* dialogGuid)
 {

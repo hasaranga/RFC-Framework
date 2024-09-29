@@ -62,7 +62,7 @@ class KThread
 protected:
 	HANDLE handle;
 	volatile bool threadShouldStop;
-	KRunnable *runnable;
+	KRunnable* runnable;
 
 public:
 	KThread();
@@ -75,7 +75,7 @@ public:
 	/**
 		Sets runnable object for this thread.
 	*/
-	virtual void SetRunnable(KRunnable *runnable);
+	virtual void SetRunnable(KRunnable* runnable);
 
 	/**
 		Returns handle of the thread

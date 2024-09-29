@@ -31,9 +31,9 @@ protected:
 public:
 	KCheckBox();
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool Create(bool requireInitialMessages = false) override;
 
-	virtual void OnPress();
+	virtual void OnPress() override;
 
 	virtual bool IsChecked();
 

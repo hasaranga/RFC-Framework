@@ -42,7 +42,7 @@ private:
 public:
 	inline KScopedComPointer()
 	{
-		object = NULL;
+		object = nullptr;
 	}
 
 	inline KScopedComPointer(T* object)
@@ -63,7 +63,7 @@ public:
 
 	bool IsNull()
 	{
-		return (object == NULL);
+		return (object == nullptr);
 	}
 
 	/** 
@@ -73,7 +73,7 @@ public:
 	T* Detach()
 	{ 
 		T* o = object; 
-		object = NULL; 
+		object = nullptr;
 		return o; 
 	}
 
@@ -82,7 +82,7 @@ public:
 		if (object)
 			object->Release();
 
-		object = NULL;
+		object = nullptr;
 	}
 
 	inline T** operator&() { return &object; }

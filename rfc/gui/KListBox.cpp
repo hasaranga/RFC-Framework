@@ -26,7 +26,7 @@
 KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent(false)
 {
 	this->multipleSelection = multipleSelection;
-	listener = 0;
+	listener = nullptr;
 
 	selectedItemIndex = -1;
 	selectedItemEnd = -1;
@@ -52,7 +52,7 @@ KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent
 	stringList = new KPointerList<KString*>(100);
 }
 
-void KListBox::SetListener(KListBoxListener *listener)
+void KListBox::SetListener(KListBoxListener* listener)
 {
 	this->listener = listener;
 }
@@ -127,7 +127,9 @@ int KListBox::GetSelectedItems(int* itemArray, int itemCountInArray)
 {
 	if(compHWND)
 	{	 
-		const int items = (int)::SendMessageW(compHWND, LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
+		const int items = (int)::SendMessageW(compHWND, 
+			LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
+
 		if(items != LB_ERR)
 			return items;
 	}
@@ -162,7 +164,7 @@ void KListBox::SelectItems(int start, int end)
 	}
 }
 
-bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if (msg == WM_COMMAND) 
 	{
@@ -192,7 +194,9 @@ bool KListBox::Create(bool requireInitialMessages)
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, 
+			(WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::EnableWindow(compHWND, compEnabled);
 
 		const int listSize = stringList->GetSize();

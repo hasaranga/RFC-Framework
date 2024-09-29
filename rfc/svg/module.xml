@@ -2,6 +2,6 @@
 	<name>SVG</name>
 	<fixed>false</fixed>
 	<dependencies>Core</dependencies>
-	<platform>Win XP or higher</platform>
+	<platform>Win XP or higher. requires STL.</platform>
 	<description>KSVGImage</description>
 </xml>

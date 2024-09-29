@@ -62,5 +62,7 @@
 #include "KGridView.h"
 #include "KListBoxListener.h"
 #include "KListBox.h"
+#include "KNotifyIconHandler.h"
 
 #pragma comment(lib, "Comctl32.lib")
+#pragma comment(lib, "Shell32.lib")

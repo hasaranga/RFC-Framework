@@ -33,32 +33,45 @@ KWindow::KWindow() : KComponent(true), componentList(50, false)
 
 	compVisible = false;
 	enableDPIUnawareMode = false;
+	prevDPIContext = 0;
+	dpiAwarenessContextChanged = false;
 	compDwStyle = WS_POPUP;
 	compDwExStyle = WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	compCtlID = 0; // control id is zero for top level window
 	lastFocusedChild = 0;
 	dpiChangeListener = NULL;
+
+	closeOperation = KCloseOperation::DestroyAndExit;
 }
 
-bool KWindow::Create(bool requireInitialMessages)
+void KWindow::ApplyDPIUnawareModeToThread()
 {
-	DPI_AWARENESS_CONTEXT prevContext = 0;
-	bool dpiAwarenessContextChanged = false;
-
 	if ((KApplication::dpiAwareness == KDPIAwareness::MIXEDMODE_ONLY) && KApplication::dpiAwareAPICalled && enableDPIUnawareMode)
 	{
 		if (KDPIUtility::pSetThreadDpiAwarenessContext)
 		{
-			prevContext = KDPIUtility::pSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
+			prevDPIContext = KDPIUtility::pSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
 			dpiAwarenessContextChanged = true;
 		}
 	}
+}
+
+void KWindow::RestoreDPIModeOfThread()
+{
+	if (dpiAwarenessContextChanged)
+		KDPIUtility::pSetThreadDpiAwarenessContext(prevDPIContext);
+}
+
+bool KWindow::Create(bool requireInitialMessages)
+{
+	if (enableDPIUnawareMode)
+		this->ApplyDPIUnawareModeToThread();
 
 	bool retVal = KComponent::Create(requireInitialMessages);
 
-	if(dpiAwarenessContextChanged)
-		KDPIUtility::pSetThreadDpiAwarenessContext(prevContext);
+	if (enableDPIUnawareMode)
+		this->RestoreDPIModeOfThread();
 
 	if(retVal && (KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
 	{
@@ -75,9 +88,14 @@ void KWindow::Flash()
 	::FlashWindow(compHWND, TRUE);
 }
 
-void KWindow::SetIcon(KIcon *icon)
+void KWindow::SetIcon(KIcon* icon)
 {
 	::SetClassLongPtrW(compHWND, GCLP_HICON, (LONG_PTR)icon->GetHandle());
+}
+
+void KWindow::SetCloseOperation(KCloseOperation closeOperation)
+{
+	this->closeOperation = closeOperation;
 }
 
 void KWindow::SetDPIChangeListener(KDPIChangeListener* dpiChangeListener)
@@ -92,12 +110,16 @@ void KWindow::SetEnableDPIUnawareMode(bool enable)
 
 void KWindow::OnClose()
 {
-	this->Destroy();
+	if (closeOperation == KCloseOperation::DestroyAndExit)
+		this->Destroy();
+	else if (closeOperation == KCloseOperation::Hide)
+		this->SetVisible(false);
 }
 
 void KWindow::OnDestroy()
 {
-	::PostQuitMessage(0);
+	if (closeOperation == KCloseOperation::DestroyAndExit)
+		::PostQuitMessage(0);
 }
 
 void KWindow::PostCustomMessage(WPARAM msgID, LPARAM param)
@@ -115,6 +137,32 @@ void KWindow::CenterScreen()
 	this->SetPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
 }
 
+void KWindow::CenterOnSameMonitor(HWND window)
+{
+	if (window)
+	{
+		HMONITOR hmon = ::MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+
+		if (hmon != NULL)
+		{
+			MONITORINFO monitorInfo;
+			::ZeroMemory(&monitorInfo, sizeof(MONITORINFO));
+			monitorInfo.cbSize = sizeof(MONITORINFO);
+
+			if (::GetMonitorInfoW(hmon, &monitorInfo))
+			{
+				const int posX = monitorInfo.rcMonitor.left + (((monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) - compWidth) / 2);
+				const int posY = monitorInfo.rcMonitor.top + (((monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top) - compHeight) / 2);
+				this->SetPosition(posX, posY);
+
+				return;
+			}
+		}
+	}
+
+	this->CenterScreen();
+}
+
 bool KWindow::AddComponent(KComponent* component, bool requireInitialMessages)
 {
 	if(component)
@@ -128,7 +176,15 @@ bool KWindow::AddComponent(KComponent* component, bool requireInitialMessages)
 
 			componentList.AddPointer(component);
 
-			return component->Create(requireInitialMessages);
+			if (enableDPIUnawareMode)
+				this->ApplyDPIUnawareModeToThread();
+
+			bool retVal = component->Create(requireInitialMessages);
+
+			if (enableDPIUnawareMode)
+				this->RestoreDPIModeOfThread();
+
+			return retVal;
 		}
 	}
 	return false;
@@ -181,7 +237,7 @@ bool KWindow::IsOffScreen(int posX, int posY)
 	return (::MonitorFromPoint(point, MONITOR_DEFAULTTONULL) == NULL);
 }
 
-bool KWindow::GetClientAreaSize(int *width, int *height)
+bool KWindow::GetClientAreaSize(int* width, int* height)
 {
 	if (compHWND)
 	{
@@ -217,7 +273,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
+					KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -230,7 +286,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(KGUIProc::AtomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -250,7 +306,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
 		case WM_CTLCOLORSTATIC: // static controls
 			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -264,7 +320,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::AtomComponent));
+					KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::AtomComponent));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -277,7 +333,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -289,7 +345,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_TIMER:
 			{
-				KTimer *timer = KIDGenerator::GetInstance()->GetTimerByID((UINT)wParam);
+				KTimer* timer = KIDGenerator::GetInstance()->GetTimerByID((UINT)wParam);
 				if(timer)
 				{
 					timer->OnTimer();
@@ -360,7 +416,7 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if( (HIWORD(wParam) == 0) && (lParam == 0) ) // its menu item! unfortunately windows does not send menu handle with clicked event!
 				{
-					KMenuItem *menuItem = KIDGenerator::GetInstance()->GetMenuItemByID(LOWORD(wParam));
+					KMenuItem* menuItem = KIDGenerator::GetInstance()->GetMenuItemByID(LOWORD(wParam));
 					if(menuItem)
 					{
 						menuItem->OnPress();
@@ -369,7 +425,9 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				}
 				else if(lParam)// send to appropriate component
 				{
-					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
+					KComponent* component = (KComponent*)::GetPropW((HWND)lParam, 
+						MAKEINTATOM(KGUIProc::AtomComponent));
+
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
@@ -410,9 +468,19 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		case WM_SETFOCUS:
 			if (this->lastFocusedChild) // set focus to last item
+			{
 				::SetFocus(this->lastFocusedChild);
+			}
 			else // set focus to first child
-				::SetFocus(::GetNextDlgTabItem(this->compHWND, NULL, FALSE));
+			{
+				// if hCtl is NULL, GetNextDlgTabItem returns first control of the window.
+				HWND hFirstControl = ::GetNextDlgTabItem(this->compHWND, NULL, FALSE);
+				if (hFirstControl)
+				{
+					if (::GetWindowLongPtrW(hFirstControl, GWL_STYLE) & WS_TABSTOP)
+						::SetFocus(hFirstControl);
+				}
+			}
 			break;
 
 		case WM_CLOSE:

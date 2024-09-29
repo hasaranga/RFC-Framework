@@ -24,9 +24,6 @@
 
 #include <windows.h>
 
-#pragma comment(lib,"Bcrypt.lib")
-#pragma comment(lib,"Crypt32.lib")
-
 /*
 
 ======================================================================================
@@ -72,7 +69,7 @@ public:
 
     inline static ULONG BOOL_TO_ERROR(BOOL f)
     {
-        return f ? NOERROR : ::GetLastError();
+        return (f ? NOERROR : ::GetLastError());
     }
 
     HRESULT static StringToBin(_Out_ PDATA_BLOB pdb, _In_ ULONG dwFlags, _In_ PCSTR pszString, _In_ ULONG cchString = 0)

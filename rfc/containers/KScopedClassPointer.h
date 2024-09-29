@@ -42,8 +42,6 @@
 	If you need to get a pointer out of a KScopedClassPointer without it being deleted, you
 	can use the Release() method.
 
-	(ref: ScopedPointer class of JUCE)
-
 	e.g. @code
 	KScopedClassPointer<MyClass> a = new MyClass(); // slow
 	a->myMethod();
@@ -67,7 +65,7 @@ private:
 public:
 	inline KScopedClassPointer()
 	{
-		object = 0;
+		object = nullptr;
 	}
 
 	inline KScopedClassPointer(T* object)
@@ -78,12 +76,12 @@ public:
 	KScopedClassPointer(KScopedClassPointer& objectToTransferFrom)
 	{
 		this->object = objectToTransferFrom.object;
-		objectToTransferFrom.object = 0;
+		objectToTransferFrom.object = nullptr;
 	}
 
 	bool IsNull()
 	{
-		return (object == NULL);
+		return (object == nullptr);
 	}
 
 	/** 
@@ -93,7 +91,7 @@ public:
 	T* Detach()
 	{ 
 		T* o = object; 
-		object = 0; 
+		object = nullptr;
 		return o; 
 	}
 

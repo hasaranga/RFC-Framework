@@ -92,7 +92,7 @@ bool KLogger::EndEvent()
 
 bool KLogger::AddTextParam(const char *text, unsigned char textLength)
 {
-	if( (textLength < 256) && (!bufferFull) )
+	if( (textLength < 255) && (!bufferFull) )
 	{
 		buffer[bufferIndex] = PARAM_STRING; // write param type
 		bufferIndex += sizeof(unsigned char);
