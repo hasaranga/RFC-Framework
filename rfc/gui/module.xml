@@ -2,6 +2,6 @@
 	<name>GUI</name>
 	<fixed>false</fixed>
 	<dependencies>Core,Containers,Utils,File</dependencies>
-	<platform>Win XP or higher</platform>
+	<platform>Vista or higher</platform>
 	<description>KBitmap, KButton, KButtonListener, KCheckBox, KComboBox, KComboBoxListener, KCommonDialogBox, KComponent, KCursor, KFont, KGlyphButton, KGraphics, KGridView, KGridViewListener, KGroupBox, KGUIProc, KIcon, KIDGenerator, KLabel, KListBox, KListBoxListener, KMenu, KMenuBar, KMenuItem, KMenuItemListener, KNumericField, KPasswordBox KProgressBar, KPushButton, KRadioButton, KMenuButton, KTextArea, KTextBox, KTimer, KTimerListener, KToolTip, KTrackBar, KTrackBarListener, KTransparentBitmap, KWindow, KHotPluggedDialog, KOverlappedWindow, KFrame, KDialog, KToolWindow, KDraggable, KDrawable, KWidget, KNotifyIconHandler</description>
 </xml>

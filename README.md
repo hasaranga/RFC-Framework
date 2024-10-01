@@ -12,7 +12,7 @@ Run the "Generator.exe" and select required modules. Browse the output location 
 
 Checkout examples dir for usage of this framework.
 
-The minimum supported OS is Windows XP.
+The minimum supported OS is Windows Vista.
 
 Send your bug reports/suggestions to support@crownsoft.net
 

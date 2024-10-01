@@ -46,6 +46,10 @@ protected:
 	KCloseOperation closeOperation;
 	DPI_AWARENESS_CONTEXT prevDPIContext;
 	bool dpiAwarenessContextChanged;
+	KIcon* windowIcon;
+	HICON largeIconHandle, smallIconHandle;
+
+	void UpdateWindowIconForNewDPI();
 
 public:
 	KWindow();
@@ -54,7 +58,8 @@ public:
 
 	virtual void Flash();
 
-	virtual void SetIcon(KIcon *icon);
+	// can only call after create.
+	virtual void SetIcon(KIcon* icon);
 
 	virtual void SetCloseOperation(KCloseOperation closeOperation);
 

@@ -20,14 +20,33 @@
 */
 
 #include "KIcon.h"
+#include <commctrl.h>
 
 KIcon::KIcon()
 {
+	resourceID = 0;
 	hIcon = 0;
+}
+
+void KIcon::SetResource(WORD resourceID)
+{
+	this->resourceID = resourceID;
+}
+
+HICON KIcon::GetScaledIcon(int size)
+{
+	HICON icon = 0;
+	::LoadIconWithScaleDown(KApplication::hInstance,
+		MAKEINTRESOURCEW(resourceID), size, size,
+		&icon);
+
+	return icon;
 }
 
 bool KIcon::LoadFromResource(WORD resourceID)
 {
+	this->resourceID = resourceID;
+
 	hIcon = (HICON)::LoadImageW(KApplication::hInstance, 
 		MAKEINTRESOURCEW(resourceID), IMAGE_ICON, 0, 0, 
 		LR_DEFAULTSIZE | LR_DEFAULTCOLOR);

@@ -102,7 +102,8 @@ public:
 	// maximum tooltip text size is 128
 	virtual void AddNotifyIcon(WORD iconResourceID, const KString& tooltipText)
 	{
-		// supports high dpi
+		// supports high dpi.
+		// LoadIconMetric: only for system tray. cannot use for a window. because multiple window can have different dpi.
 		::LoadIconMetric(KApplication::hInstance,
 			MAKEINTRESOURCEW(iconResourceID), LIM_SMALL, &notifyIconHandle);
 

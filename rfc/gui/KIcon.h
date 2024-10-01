@@ -30,19 +30,28 @@ class KIcon
 {
 protected:
 	HICON hIcon;
+	WORD resourceID;
 
 public:
 	KIcon();
 
+	// does not load. to be use with GetScaledIcon method.
+	void SetResource(WORD resourceID);
+
+	// this method scales down a larger image instead of scaling up a smaller image.
+	// can be use for high-dpi requirements.
+	// must destroy returned icon by calling DestroyIcon
+	HICON GetScaledIcon(int size);
+
 	/**
-		Loads icon from resource
+		Loads icon from resource with default size given by the system
 		@param resourceID resource ID of icon file
 		@returns false if icon load fails
 	*/
 	bool LoadFromResource(WORD resourceID);
 
 	/**
-		Loads icon from file
+		Loads icon from file with default size given by the system
 		@param filePath path to icon file
 		@returns false if icon load fails
 	*/

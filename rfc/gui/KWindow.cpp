@@ -40,7 +40,10 @@ KWindow::KWindow() : KComponent(true), componentList(50, false)
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	compCtlID = 0; // control id is zero for top level window
 	lastFocusedChild = 0;
-	dpiChangeListener = NULL;
+	dpiChangeListener = nullptr;
+	windowIcon = nullptr;
+	largeIconHandle = 0;
+	smallIconHandle = 0;
 
 	closeOperation = KCloseOperation::DestroyAndExit;
 }
@@ -88,9 +91,41 @@ void KWindow::Flash()
 	::FlashWindow(compHWND, TRUE);
 }
 
+void KWindow::UpdateWindowIconForNewDPI()
+{
+	if (windowIcon == nullptr)
+		return;
+
+	if (largeIconHandle)
+		::DestroyIcon(largeIconHandle);
+
+	if (smallIconHandle)
+		::DestroyIcon(smallIconHandle);
+
+	// 32x32 for large icon
+	// 16x16 for small icon
+
+	if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
+	{
+		largeIconHandle = windowIcon->GetScaledIcon(KDPIUtility::ScaleToNewDPI(32, compDPI));
+		smallIconHandle = windowIcon->GetScaledIcon(KDPIUtility::ScaleToNewDPI(16, compDPI));
+	}
+	else
+	{
+		largeIconHandle = windowIcon->GetScaledIcon(32);
+		smallIconHandle = windowIcon->GetScaledIcon(16);
+	}
+
+	::SetClassLongPtrW(compHWND, GCLP_HICON, (LONG_PTR)largeIconHandle);
+	::SetClassLongPtrW(compHWND, GCLP_HICONSM, (LONG_PTR)smallIconHandle);
+}
+
 void KWindow::SetIcon(KIcon* icon)
 {
-	::SetClassLongPtrW(compHWND, GCLP_HICON, (LONG_PTR)icon->GetHandle());
+	windowIcon = icon;
+
+	if (compHWND)
+		this->UpdateWindowIconForNewDPI();
 }
 
 void KWindow::SetCloseOperation(KCloseOperation closeOperation)
@@ -399,6 +434,8 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					this->compHeight,
 					SWP_NOZORDER | SWP_NOACTIVATE);
 
+				this->UpdateWindowIconForNewDPI();
+
 				::InvalidateRect(compHWND, NULL, TRUE);
 
 				for (int i = 0; i < componentList.GetSize(); i++)
@@ -504,5 +541,9 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 KWindow::~KWindow()
 {
+	if (largeIconHandle)
+		::DestroyIcon(largeIconHandle);
 
+	if (smallIconHandle)
+		::DestroyIcon(smallIconHandle);
 }
