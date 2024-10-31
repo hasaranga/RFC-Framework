@@ -22,14 +22,18 @@
 #pragma once
 
 #include"../core/CoreModule.h"
+#include "KWindow.h"
 #include <shellapi.h>
 #include <commctrl.h>
+#include <type_traits> // std::is_base_of
 
 #define RFC_NOTIFY_ICON_MESSAGE WM_APP + 101
 
 // adds an icon into the systemtray and handles mouse messages.
 // detects taskbar re-creation and adds the icon again.
-template <class T>
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
 class KNotifyIconHandler : public T
 {
 protected:

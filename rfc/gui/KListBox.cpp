@@ -70,12 +70,13 @@ void KListBox::RemoveItem(int index)
 {
 	KString *text = stringList->GetPointer(index);
 	if (text)
+	{
 		delete text;
+		stringList->RemovePointer(index);
 
-	stringList->RemovePointer(index);
-
-	if(compHWND)	 
-		::SendMessageW(compHWND, LB_DELETESTRING, index, 0);
+		if (compHWND)
+			::SendMessageW(compHWND, LB_DELETESTRING, index, 0);
+	}
 }
 
 void KListBox::RemoveItem(const KString& text)
@@ -83,6 +84,22 @@ void KListBox::RemoveItem(const KString& text)
 	const int itemIndex = this->GetItemIndex(text);
 	if(itemIndex > -1)
 		this->RemoveItem(itemIndex);
+}
+
+void KListBox::UpdateItem(int index, const KString& text)
+{
+	KString* oldText = stringList->GetPointer(index);
+	if (oldText)
+	{
+		stringList->SetPointer(index, new KString(text));
+		delete oldText;
+
+		if (compHWND)
+		{
+			::SendMessageW(compHWND, LB_DELETESTRING, index, 0);
+			::SendMessageW(compHWND, LB_INSERTSTRING, index, (LPARAM)(const wchar_t*)text);
+		}
+	}
 }
 
 int KListBox::GetItemIndex(const KString& text)

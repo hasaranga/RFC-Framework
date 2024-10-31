@@ -257,7 +257,10 @@ private:
 #define ON_KMSG(_KMsg,_KMsgHandler) \
 	case _KMsg: return _KMsgHandler(wParam,lParam);
 
-#define END_KMSG_HANDLER(_KComponentParentClass) \
-	default: return _KComponentParentClass::WindowProc(hwnd,msg,wParam,lParam); \
+// msvc & clang supports __super keyword
+
+#define END_KMSG_HANDLER \
+	default: return __super::WindowProc(hwnd,msg,wParam,lParam); \
 	}\
 	}
+

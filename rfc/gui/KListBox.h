@@ -47,6 +47,8 @@ public:
 
 	virtual void RemoveItem(const KString& text);
 
+	virtual void UpdateItem(int index, const KString& text);
+
 	virtual int GetItemIndex(const KString& text);
 
 	virtual int GetItemCount();

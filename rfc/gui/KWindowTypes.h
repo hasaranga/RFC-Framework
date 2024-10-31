@@ -23,6 +23,7 @@
 
 #include "KWindow.h"
 #include <Windowsx.h> // GET_X_LPARAM
+#include <type_traits> // std::is_base_of
 
 class KHotPluggedDialog : public KWindow
 {
@@ -69,7 +70,9 @@ public:
 };
 
 // enables client area dragging
-template <class T>
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
 class KDraggable : public T
 {
 protected:
@@ -142,8 +145,10 @@ public:
 	END_KMSG_HANDLER(T)
 };
 
-// provides flicker free double buffered drawing method
-template <class T>
+// provides flicker free double buffered drawing method.
+// T must be derived from KComponent
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KComponent, T>::value>::type>
 class KDrawable : public T
 {
 protected:
