@@ -33,14 +33,17 @@ KString KSHA1::GenerateFromString(const KString& text)
 	if (text.GetLength() == 0)
 		return KString();
 
+	char* ansiTxt = KString::ToAnsiString(text);
+
 	ExtLibs::CSHA1 sha1;
-	sha1.Update((const UINT_8*)(const char*)text, text.GetLength());
+	sha1.Update((const UINT_8*)ansiTxt, (unsigned int)::strlen(ansiTxt));
 	sha1.Final();
 
 	char szReport[256];
 	szReport[0] = 0;
 	sha1.ReportHash(szReport, ExtLibs::CSHA1::REPORT_HEX);
 
+	::free(ansiTxt);
 	return KString(szReport);
 }
 
@@ -61,14 +64,17 @@ KString KSHA1::GenerateFromFile(const KString& fileName)
 	if (fileSize == 0) // empty file
 		return KString();
 
+	char* ansiFileName = KString::ToAnsiString(fileName);
+
 	ExtLibs::CSHA1 sha1;
-	sha1.HashFile((const char*)fileName);
+	sha1.HashFile(ansiFileName);
 	sha1.Final();
 
 	char szReport[256];
 	szReport[0] = 0;
 	sha1.ReportHash(szReport, ExtLibs::CSHA1::REPORT_HEX);
 
+	::free(ansiFileName);
 	return KString(szReport);
 }
 

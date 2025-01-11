@@ -205,6 +205,14 @@ KString KFile::GetFileNameFromPath(const KString& path)
 	return KString();
 }
 
+KString KFile::GetFileExtension(const KString& path)
+{
+	const wchar_t* pathStr = (const wchar_t*)path;
+	const wchar_t* extPtr = ::PathFindExtensionW(pathStr);
+
+	return KString(extPtr);
+}
+
 bool KFile::IsFileExists(const KString& fileName)
 {
 	const DWORD dwAttrib = ::GetFileAttributesW(fileName);

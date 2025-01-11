@@ -33,4 +33,6 @@ public:
 	virtual void OnListBoxItemSelect(KListBox* listBox);
 
 	virtual void OnListBoxItemDoubleClick(KListBox* listBox);
+
+	virtual void OnListBoxItemRightClick(KListBox* listBox);
 };

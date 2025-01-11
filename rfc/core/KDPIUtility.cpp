@@ -27,6 +27,7 @@ KSetProcessDpiAwarenessContext KDPIUtility::pSetProcessDpiAwarenessContext = nul
 KSetProcessDpiAwareness KDPIUtility::pSetProcessDpiAwareness = nullptr;
 KSetProcessDPIAware KDPIUtility::pSetProcessDPIAware = nullptr;
 KSetThreadDpiAwarenessContext KDPIUtility::pSetThreadDpiAwarenessContext = nullptr;
+KAdjustWindowRectExForDpi KDPIUtility::pAdjustWindowRectExForDpi = nullptr;
 
 void KDPIUtility::InitDPIFunctions()
 {
@@ -53,6 +54,10 @@ void KDPIUtility::InitDPIFunctions()
 			reinterpret_cast<KSetProcessDpiAwarenessContext>
 			(::GetProcAddress(hUser32, "SetProcessDpiAwarenessContext")); // win10
 
+		KDPIUtility::pAdjustWindowRectExForDpi =
+			reinterpret_cast<KAdjustWindowRectExForDpi>
+			(::GetProcAddress(hUser32, "AdjustWindowRectExForDpi")); // win10
+
 		KDPIUtility::pSetProcessDPIAware =
 			reinterpret_cast<KSetProcessDPIAware>
 			(::GetProcAddress(hUser32, "SetProcessDPIAware")); // win7,8
@@ -78,6 +83,14 @@ WORD KDPIUtility::GetWindowDPI(HWND hWnd)
 	::ReleaseDC(0, hScreenDC);
 
 	return static_cast<WORD>(iDpiX);
+}
+
+BOOL KDPIUtility::AdjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi)
+{
+	if (KDPIUtility::pAdjustWindowRectExForDpi)
+		return pAdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi);
+
+	return ::AdjustWindowRectEx(lpRect, dwStyle, bMenu, dwExStyle);
 }
 
 void KDPIUtility::MakeProcessDPIAware(KDPIAwareness dpiAwareness)

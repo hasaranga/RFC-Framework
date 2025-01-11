@@ -119,6 +119,8 @@ public:
 	*/
 	static KString GetFileNameFromPath(const KString& path);
 
+	static KString GetFileExtension(const KString& path);
+
 	virtual ~KFile();
 
 private:

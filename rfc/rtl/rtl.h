@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../core/CoreModule.h"
+#include <windows.h>
 
 // RTL v1.0
 // Instead of handling all control messages(WM_COMMAND) within TWindow, we handle them within subclasses.
@@ -366,7 +367,7 @@ protected:
         if(uMsg == NC_DESTROY)
             ::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)defaultProc);
 
-        return ::CallWindowProc(defaultProc, hwnd, msg, wParam, lParam);
+        return ::CallWindowProc(defaultProc, hwnd, uMsg, wParam, lParam);
     }
 
 public:

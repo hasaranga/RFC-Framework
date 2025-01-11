@@ -24,12 +24,13 @@
 #include <windows.h>
 #include <shellscalingapi.h>
 
-
 typedef HRESULT(WINAPI* KGetDpiForMonitor)(HMONITOR hmonitor, int dpiType, UINT* dpiX, UINT* dpiY);
 typedef BOOL(WINAPI* KSetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT value);
 typedef HRESULT(STDAPICALLTYPE* KSetProcessDpiAwareness)(PROCESS_DPI_AWARENESS value);
 typedef BOOL (WINAPI* KSetProcessDPIAware)(VOID);
 typedef DPI_AWARENESS_CONTEXT (WINAPI* KSetThreadDpiAwarenessContext) (DPI_AWARENESS_CONTEXT dpiContext);
+typedef BOOL(WINAPI* KAdjustWindowRectExForDpi)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+
 
 /*
 MIXEDMODE_ONLY:	on win10 - all windows are scaled according to the dpi and the mixed mode windows are scaled by the system. 
@@ -55,10 +56,15 @@ public:
 	static KSetProcessDpiAwareness pSetProcessDpiAwareness;
 	static KSetProcessDPIAware pSetProcessDPIAware;
 	static KSetThreadDpiAwarenessContext pSetThreadDpiAwarenessContext;
+    static KAdjustWindowRectExForDpi pAdjustWindowRectExForDpi;
 
 	static void InitDPIFunctions();
 
+    // returns dpi of monitor which our window is in. returns 96 if application is not dpi aware.
 	static WORD GetWindowDPI(HWND hWnd);
+
+    // automatically fall back to AdjustWindowRectEx when lower than win10
+    static BOOL AdjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
 	static void MakeProcessDPIAware(KDPIAwareness dpiAwareness);
 

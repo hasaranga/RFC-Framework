@@ -142,7 +142,7 @@ public:
 		ON_KMSG(WM_LBUTTONDOWN, OnLButtonDown)
 		ON_KMSG(WM_MOUSEMOVE, OnMouseMove)
 		ON_KMSG(WM_LBUTTONUP, OnLButtonUp)
-	END_KMSG_HANDLER(T)
+	END_KMSG_HANDLER
 };
 
 // provides flicker free double buffered drawing method.
@@ -201,7 +201,7 @@ public:
 	BEGIN_KMSG_HANDLER
 		ON_KMSG(WM_PAINT, OnWMPaint)
 		ON_KMSG(WM_ERASEBKGND, OnEraseBackground)
-	END_KMSG_HANDLER(T)
+	END_KMSG_HANDLER
 };
 
 class KWidget : public KDrawable<KDraggable<KWindow>>

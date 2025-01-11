@@ -86,7 +86,7 @@ KString KInternet::UrlEncodeString(const KString &text)
 	KString new_str;
 	char c;
 	int ic;
-	const char* chars = text;
+	char* chars = KString::ToAnsiString(text);
 	char bufHex[10];
 	int len = text.GetLength();
 
@@ -116,6 +116,7 @@ KString KInternet::UrlEncodeString(const KString &text)
 			new_str = new_str.Append(KString(bufHex));
 		}
 	}
+	::free(chars);
 	return new_str;
 }
 
@@ -125,7 +126,7 @@ KString KInternet::UrlDecodeString(const KString &text)
 		return KString();
 
 	KString ret;
-	const char* str = text;
+	char* str = KString::ToAnsiString(text);
 
 	char ch;
 	int i, ii, len = text.GetLength();
@@ -146,16 +147,19 @@ KString KInternet::UrlDecodeString(const KString &text)
 		}
 		else
 		{
-			KString sub(text.SubString(i + 1, i + 2));
+			char* sub = KString::ToAnsiString(text.SubString(i + 1, i + 2));
 			::sscanf_s(sub, "%x", &ii);
 			ch = static_cast<char>(ii);
 
 			char tmp[] = { ch, 0 };
 			ret = ret.Append(KString(tmp));
 
+			::free(sub);
+
 			i = i + 2;
 		}
 	}
+	::free(str);
 	return ret;
 }
 

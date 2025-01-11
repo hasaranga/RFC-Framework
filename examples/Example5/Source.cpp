@@ -184,9 +184,9 @@ public:
 
 	BEGIN_KMSG_HANDLER
 		ON_KMSG(WM_RBUTTONUP, OnRClickWindow)
-	END_KMSG_HANDLER(KFrame)
+	END_KMSG_HANDLER
 
-	void OnButtonPress(KButton* button)
+	void OnButtonPress(KButton* button) override
 	{
 		if (button == &btn1)
 		{

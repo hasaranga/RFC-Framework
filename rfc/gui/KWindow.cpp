@@ -256,7 +256,9 @@ bool KWindow::SetClientAreaSize(int width, int height)
 		wndRect.right = wndRect.left + width;
 		wndRect.bottom = wndRect.top + height;
 
-		::AdjustWindowRect(&wndRect, compDwStyle, ::GetMenu(compHWND) == NULL ? FALSE : TRUE);
+		KDPIUtility::AdjustWindowRectExForDpi(&wndRect, compDwStyle,
+			::GetMenu(compHWND) == NULL ? FALSE : TRUE, compDwExStyle, compDPI);
+
 		this->SetSize(wndRect.right - wndRect.left, wndRect.bottom - wndRect.top);
 
 		return true;
@@ -493,6 +495,18 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					::SendMessageW(currentComponent, WM_CHAR, VK_ESCAPE, 0); 
 
 					return 0;
+				}
+			}
+			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CONTEXTMENU:
+			{
+				KComponent* component = (KComponent*)::GetPropW((HWND)wParam, MAKEINTATOM(KGUIProc::AtomComponent));
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->EventProc(msg, wParam, lParam, &result))
+						return result;
 				}
 			}
 			return KComponent::WindowProc(hwnd, msg, wParam, lParam);

@@ -33,9 +33,11 @@ KString KMD5::GenerateFromString(const KString& text)
 	if (text.GetLength() == 0)
 		return KString();
 
+	char* ansiTxt = KString::ToAnsiString(text);
 	ExtLibs::MD5 md5;
-	char *strMD5 = md5.digestString((char*)(const char*)text);
+	char *strMD5 = md5.digestString(ansiTxt);
 
+	::free(ansiTxt);
 	return KString(strMD5);
 }
 
@@ -56,9 +58,11 @@ KString KMD5::GenerateFromFile(const KString& fileName)
 	if (fileSize==0) // empty file
 		return KString();
 
+	char* ansiFileName = KString::ToAnsiString(fileName);
 	ExtLibs::MD5 md5;
-	char *strMD5 = md5.digestFile((char*)(const char*)fileName);
+	char *strMD5 = md5.digestFile(ansiFileName);
 
+	::free(ansiFileName);
 	return KString(strMD5);
 }
 

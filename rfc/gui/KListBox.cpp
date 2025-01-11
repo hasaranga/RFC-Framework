@@ -49,7 +49,7 @@ KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent
 	if(vscroll)
 		compDwStyle = compDwStyle | WS_VSCROLL;
 
-	stringList = new KPointerList<KString*>(100);
+	stringList = new KPointerList<KString*>(10);
 }
 
 void KListBox::SetListener(KListBoxListener* listener)
@@ -198,6 +198,29 @@ bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result
 			return true;
 		}
 	}
+	else if (msg == WM_CONTEXTMENU)
+	{
+		POINT pt;
+		pt.x = GET_X_LPARAM(lParam);
+		pt.y = GET_Y_LPARAM(lParam);
+
+		// Convert screen coordinates to client coordinates for the ListBox
+		::ScreenToClient(compHWND, &pt);
+
+		// Determine which item is at the clicked position
+		DWORD index = (DWORD)::SendMessageW(compHWND, LB_ITEMFROMPOINT, 0, MAKELPARAM(pt.x, pt.y));
+
+		// HIWORD is 0 if the click is on a valid item
+		if (HIWORD(index) == 0)
+		{
+			DWORD itemIndex = LOWORD(index);
+			::SendMessageW(compHWND, LB_SETCURSEL, itemIndex, 0); // select it
+
+			this->OnItemRightClick();
+			*result = 0;
+			return true;
+		}
+	}
 
 	return KComponent::EventProc(msg, wParam, lParam, result);
 }
@@ -252,6 +275,12 @@ void KListBox::OnItemDoubleClick()
 {
 	if(listener)
 		listener->OnListBoxItemDoubleClick(this);
+}
+
+void KListBox::OnItemRightClick()
+{
+	if (listener)
+		listener->OnListBoxItemRightClick(this);
 }
 
 KListBox::~KListBox()

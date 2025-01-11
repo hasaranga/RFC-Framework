@@ -69,7 +69,7 @@ public:
 	// macro to handle window messages...
 	BEGIN_KMSG_HANDLER
 		ON_KMSG(WM_RBUTTONUP, OnRClickWindow) // calls OnRClickWindow method when WM_RBUTTONUP msg received
-	END_KMSG_HANDLER(KFrame) // KFrame is our parent!
+	END_KMSG_HANDLER
 
 	~MyWindow()
 	{

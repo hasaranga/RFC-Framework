@@ -11,7 +11,7 @@ protected:
 	KScopedClassPointer<KFont> font1;
 
 public:
-	CustomComponent() : KComponent(true)
+	CustomComponent() : KComponent(true) // we are generating a new class name.
 	{
 		this->SetStyle(WS_CHILD); // don't forget this!
 		this->SetSize(100, 25);
@@ -76,7 +76,7 @@ public:
 	BEGIN_KMSG_HANDLER
 		ON_KMSG(WM_PAINT, OnPaint)
 		ON_KMSG(WM_ERASEBKGND, OnEraseBackground)
-	END_KMSG_HANDLER(KComponent)
+	END_KMSG_HANDLER
 
 };
 

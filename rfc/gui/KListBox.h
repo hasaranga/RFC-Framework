@@ -73,6 +73,8 @@ public:
 
 	virtual void OnItemDoubleClick();
 
+	virtual void OnItemRightClick();
+
 	virtual ~KListBox();
 };
 
