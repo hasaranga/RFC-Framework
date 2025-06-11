@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -20,26 +20,25 @@
 */
 
 #include "KCheckBox.h"
-#include "KButtonListener.h"
 #include "KGUIProc.h"
 
 KCheckBox::KCheckBox()
 {
 	checked = false;
-	compText.AssignStaticText(TXT_WITH_LEN("CheckBox"));
+	compText.assignStaticText(TXT_WITH_LEN("CheckBox"));
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP;
 }
 
-bool KCheckBox::Create(bool requireInitialMessages)
+bool KCheckBox::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::SendMessageW(compHWND, BM_SETCHECK, checked, 0);
 		::EnableWindow(compHWND, compEnabled);
 
@@ -51,23 +50,23 @@ bool KCheckBox::Create(bool requireInitialMessages)
 	return false;
 }
 
-void KCheckBox::OnPress()
+void KCheckBox::_onPress()
 {
 	if(::SendMessageW(compHWND, BM_GETCHECK, 0, 0) == BST_CHECKED)
 		checked = true;
 	else
 		checked = false;
 
-	if(listener)
-		listener->OnButtonPress(this);
+	if(onClick)
+		onClick(this);
 }
 
-bool KCheckBox::IsChecked()
+bool KCheckBox::isChecked()
 {
 	return checked;
 }
 
-void KCheckBox::SetCheckedState(bool state)
+void KCheckBox::setCheckedState(bool state)
 {
 	checked = state;
 

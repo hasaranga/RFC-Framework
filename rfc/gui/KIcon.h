@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -35,32 +35,32 @@ protected:
 public:
 	KIcon();
 
-	// does not load. to be use with GetScaledIcon method.
-	void SetResource(WORD resourceID);
+	// does not load. to be use with getScaledIcon method.
+	void setResource(WORD resourceID);
 
 	// this method scales down a larger image instead of scaling up a smaller image.
 	// can be use for high-dpi requirements.
 	// must destroy returned icon by calling DestroyIcon
-	HICON GetScaledIcon(int size);
+	HICON getScaledIcon(int size);
 
 	/**
 		Loads icon from resource with default size given by the system
 		@param resourceID resource ID of icon file
 		@returns false if icon load fails
 	*/
-	bool LoadFromResource(WORD resourceID);
+	bool loadFromResource(WORD resourceID);
 
 	/**
 		Loads icon from file with default size given by the system
 		@param filePath path to icon file
 		@returns false if icon load fails
 	*/
-	bool LoadFromFile(const KString& filePath);
+	bool loadFromFile(const KString& filePath);
 
 	/**
 		Returns icon handle
 	*/
-	HICON GetHandle();
+	HICON getHandle();
 
 	operator HICON()const;
 

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2024  CrownSoft
+	Copyright (C) 2013-2025  CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -35,38 +35,36 @@ void DeInitRFCModules();
 void RFCDllInit();
 void RFCDllFree();
 
+#define RFC_MAX_PATH 512
+
 #define START_RFC_CONSOLE_APP(AppClass) \
 int main() \
 { \
 	CoreModuleInitParams::hInstance = 0; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
 	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE; \
-	AppClass* application = new AppClass(); \
-	application->ModifyModuleInitParams(); \
+	int retVal = 0; \
+	LPWSTR* args = nullptr; \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
 	::InitRFCModules(); \
 	int argc = 0; \
-	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
-	KString **str_argv = (KString**)::malloc(argc * RFC_PTR_SIZE); \
-	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);} \
-	int retVal = 0; \
-	if (application->AllowMultipleInstances()){ \
-		retVal = application->Main(str_argv, argc); \
+	args = ::CommandLineToArgvW(::GetCommandLineW(), &argc); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(args, argc); \
 	}else{ \
-		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->Main(str_argv, argc); \
+			retVal = application.main(args, argc); \
 		}else{ \
-			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
+			retVal = application.anotherInstanceIsRunning(args, argc); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
 		} \
 	} \
-	delete application; \
-	for(int i = 0; i < argc; i++){delete str_argv[i];} \
-	::DeInitRFCModules(); \
-	::free((void*)str_argv); \
-	::GlobalFree(args); \
+	} ::DeInitRFCModules(); \
+	::LocalFree(args); \
 	return retVal; \
 }
 
@@ -77,25 +75,24 @@ int WINAPI main() \
 	CoreModuleInitParams::hInstance = 0; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
 	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE; \
-	AppClass* application = new AppClass(); \
-	application->ModifyModuleInitParams(); \
-	::InitRFCModules(); \
 	int retVal = 0; \
-	if (application->AllowMultipleInstances()){ \
-		retVal = application->Main(0, 0); \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(0, 0); \
 	}else{ \
-		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->Main(0, 0); \
+			retVal = application.main(0, 0); \
 		}else{ \
-			retVal = application->AnotherInstanceIsRunning(0, 0); \
+			retVal = application.anotherInstanceIsRunning(0, 0); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
 		} \
 	} \
-	delete application; \
-	::DeInitRFCModules(); \
+	}::DeInitRFCModules(); \
 	return retVal; \
 }
 
@@ -105,32 +102,29 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	CoreModuleInitParams::hInstance = hInstance; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
 	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
-	AppClass* application = new AppClass(); \
-	application->ModifyModuleInitParams(); \
+	int retVal = 0; \
+	LPWSTR* args = nullptr; \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
 	::InitRFCModules(); \
 	int argc = 0; \
-	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
-	KString **str_argv = (KString**)::malloc(argc * RFC_PTR_SIZE); \
-	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);} \
-	int retVal = 0; \
-	if (application->AllowMultipleInstances()){ \
-		retVal = application->Main(str_argv, argc); \
+	args = ::CommandLineToArgvW(::GetCommandLineW(), &argc); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(args, argc); \
 	}else{ \
-		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->Main(str_argv, argc); \
+			retVal = application.main(args, argc); \
 		}else{ \
-			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
+			retVal = application.anotherInstanceIsRunning(args, argc); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
 		} \
 	} \
-	delete application; \
-	for(int i = 0; i < argc; i++){delete str_argv[i];} \
+	}\
 	::DeInitRFCModules(); \
-	::free((void*)str_argv); \
-	::GlobalFree(args); \
+	::LocalFree(args); \
 	return retVal; \
 }
 
@@ -141,25 +135,24 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	CoreModuleInitParams::hInstance = hInstance; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
 	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
-	AppClass* application = new AppClass(); \
-	application->ModifyModuleInitParams(); \
-	::InitRFCModules(); \
 	int retVal = 0; \
-	if (application->AllowMultipleInstances()){ \
-		retVal = application->Main(0, 0); \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(0, 0); \
 	}else{ \
-		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->Main(0, 0); \
+			retVal = application.main(0, 0); \
 		}else{ \
-			retVal = application->AnotherInstanceIsRunning(0, 0); \
+			retVal = application.anotherInstanceIsRunning(0, 0); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
 		} \
 	} \
-	delete application; \
-	::DeInitRFCModules(); \
+	} ::DeInitRFCModules(); \
 	return retVal; \
 }
 

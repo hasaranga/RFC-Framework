@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -20,11 +20,12 @@
 */
 
 #include "Core.h"
+#include "CoreModule.h"
 
 void InitRFCModules()
 {
 	// initialize modules
-	RFCModuleInitFunc* initFuncList = KModuleManager::RFCModuleInitFuncList();
+	RFCModuleInitFunc* initFuncList = KModuleManager::rfcModuleInitFuncList();
 	for (int i = 0; i < MAX_RFC_MODULE_COUNT; ++i)
 	{
 		if (initFuncList[i])
@@ -46,7 +47,7 @@ void InitRFCModules()
 void DeInitRFCModules()
 {
 	// free modules
-	RFCModuleFreeFunc* freeFuncList = KModuleManager::RFCModuleFreeFuncList();
+	RFCModuleFreeFunc* freeFuncList = KModuleManager::rfcModuleFreeFuncList();
 	for (int i = (MAX_RFC_MODULE_COUNT-1); i >= 0; --i)
 	{
 		if (freeFuncList[i])

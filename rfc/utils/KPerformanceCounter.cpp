@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -29,7 +29,7 @@ KPerformanceCounter::KPerformanceCounter()
 	this->pcFreq = double(li.QuadPart) / 1000.0;
 }
 
-void KPerformanceCounter::StartCounter()
+void KPerformanceCounter::startCounter()
 {
 	LARGE_INTEGER li;
 	::QueryPerformanceCounter(&li);
@@ -37,7 +37,7 @@ void KPerformanceCounter::StartCounter()
 	this->counterStart = li.QuadPart;
 }
 
-double KPerformanceCounter::EndCounter()
+double KPerformanceCounter::endCounter()
 {
 	LARGE_INTEGER li;
 	::QueryPerformanceCounter(&li);

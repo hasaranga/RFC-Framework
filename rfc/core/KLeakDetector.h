@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -36,8 +36,6 @@
 	To use it, simply declare RFC_LEAK_DETECTOR(YourClassName) inside a private section
 	of the class declaration.
 
-	(ref: LeakedObjectDetector class of JUCE)
-
 	@code
 	class MyClass
 	{
@@ -56,17 +54,17 @@ class KLeakDetector
 public:
 	KLeakDetector()
 	{
-		::InterlockedIncrement(&GetCounter().numObjects);
+		::InterlockedIncrement(&getCounter().numObjects);
 	}
 
 	KLeakDetector(const KLeakDetector&)
 	{
-		::InterlockedIncrement(&GetCounter().numObjects);
+		::InterlockedIncrement(&getCounter().numObjects);
 	}
 
 	~KLeakDetector()
 	{
-		::InterlockedDecrement(&GetCounter().numObjects);
+		::InterlockedDecrement(&getCounter().numObjects);
 	}
 
 private:
@@ -90,7 +88,7 @@ private:
 
 				::strcat_s(textBuffer, intBuffer);
 				::strcat_s(textBuffer, " instance(s) of class ");
-				::strcat_s(textBuffer, GetLeakedClassName());
+				::strcat_s(textBuffer, getLeakedClassName());
 
 				::MessageBoxA(0, textBuffer, "Warning", MB_ICONWARNING);
 			}
@@ -99,12 +97,12 @@ private:
 		volatile long numObjects;
 	};
 
-	static const char* GetLeakedClassName()
+	static const char* getLeakedClassName()
 	{
 		return T::rfc_GetLeakedClassName();
 	}
 
-	static LeakCounter& GetCounter()
+	static LeakCounter& getCounter()
 	{
 		static LeakCounter counter;
 		return counter;

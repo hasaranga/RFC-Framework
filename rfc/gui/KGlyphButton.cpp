@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -34,25 +34,25 @@ KGlyphButton::~KGlyphButton()
 {
 }
 
-void KGlyphButton::SetGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor, int glyphLeft)
+void KGlyphButton::setGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor, int glyphLeft)
 {
 	this->glyphChar = glyphChar;
 	this->glyphFont = glyphFont;
 	this->glyphColor = glyphColor;
 	this->glyphLeft = glyphLeft;
 
-	this->Repaint();
+	this->repaint();
 }
 
-void KGlyphButton::SetDPI(int newDPI)
+void KGlyphButton::setDPI(int newDPI)
 {
 	if (glyphFont)
-		glyphFont->SetDPI(newDPI);
+		glyphFont->setDPI(newDPI);
 
-	KButton::SetDPI(newDPI);
+	KButton::setDPI(newDPI);
 }
 
-bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
+bool KGlyphButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if (glyphFont)
 	{
@@ -73,7 +73,7 @@ bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* re
 					const RECT rc = lpNMCD->rc;
 					const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED | CDIS_GRAYED)) != 0;
 
-					HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, glyphFont->GetFontHandle());
+					HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, glyphFont->getFontHandle());
 					const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
 					const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
@@ -92,5 +92,5 @@ bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* re
 		}
 	}
 
-	return KButton::EventProc(msg, wParam, lParam, result); // pass unprocessed messages to parent
+	return KButton::eventProc(msg, wParam, lParam, result); // pass unprocessed messages to parent
 }

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -37,7 +37,7 @@
 			MyApp(){}
 			~MyApp(){}
 
-			int Main(KString **argv,int argc)
+			int main(wchar_t** argv,int argc)
 			{
 				// your app code goes here...
 				return 0;
@@ -69,37 +69,37 @@ public:
 		Called before InitRFC function call. Use this method to modify each module InitParams.
 		Do not call framework APIs here. Only modify InitParams.
 	*/
-	virtual void ModifyModuleInitParams();
+	virtual void modifyModuleInitParams();
 
 	/** 
 		Called when the application starts.
 		Put your application code here and if you create a window, 
-		then make sure to call DoMessagePump method before you return.
+		then make sure to call messageLoop method before you return.
 
-		@param argv array of command-line arguments! access them like this KString* arg1=argv[0];
+		@param argv array of command-line arguments! access them like this wchar_t* arg1=argv[0];
 		@param argc number of arguments
 	*/
-	virtual int Main(KString **argv, int argc);
+	virtual int main(wchar_t** argv, int argc);
 
 	/**
 		Return false if your application is single instance only.
-		Single instance applications must implement "GetApplicationID" method.
+		Single instance applications must implement "getApplicationID" method.
 	*/
-	virtual bool AllowMultipleInstances();
+	virtual bool allowMultipleInstances();
 
 	/**
 		This method will be called if the application is single instance only and another instance is already running.
-		("Main" method will not be called.)
+		("main" method will not be called.)
 	*/
-	virtual int AnotherInstanceIsRunning(KString **argv, int argc);
+	virtual int anotherInstanceIsRunning(wchar_t** argv, int argc);
 
 	/**
 		Unique id of your application which is limited to MAX_PATH characters.
 		Single instance applications must implement this method.
 	*/
-	virtual const wchar_t* GetApplicationID();
+	virtual const wchar_t* getApplicationID();
 
-	static void MessageLoop(bool handleTabKey = true);
+	static void messageLoop(bool handleTabKey = true);
 
 	/** 
 		Destructs an Application object.

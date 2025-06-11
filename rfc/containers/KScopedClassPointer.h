@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -40,7 +40,7 @@
 	It calls delete on its payload, not delete[], so do not give it an array to hold!
 
 	If you need to get a pointer out of a KScopedClassPointer without it being deleted, you
-	can use the Release() method.
+	can use the detach() method.
 
 	e.g. @code
 	KScopedClassPointer<MyClass> a = new MyClass(); // slow
@@ -79,7 +79,7 @@ public:
 		objectToTransferFrom.object = nullptr;
 	}
 
-	bool IsNull()
+	bool isNull()
 	{
 		return (object == nullptr);
 	}
@@ -88,7 +88,7 @@ public:
 		Removes the current object from this KScopedClassPointer without deleting it.
 		This will return the current object, and set the KScopedClassPointer to a null pointer.
 	*/
-	T* Detach()
+	T* detach()
 	{ 
 		T* o = object; 
 		object = nullptr;

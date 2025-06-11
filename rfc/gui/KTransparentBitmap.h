@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -38,8 +38,8 @@ protected:
 	HBITMAP hbmPrev;
 	void* pvBits;
 
-	void ReleaseResources();
-	void CreateEmptyBitmap(int width, int height);
+	void releaseResources();
+	void createEmptyBitmap(int width, int height);
 
 public:
 	// data must be in 0xaarrggbb format with premultiplied alpha.
@@ -50,28 +50,28 @@ public:
 	KTransparentBitmap(int width, int height);
 
 	// color format: 0xaarrggbb
-	unsigned int GetPixel(int x, int y);
+	unsigned int getPixel(int x, int y);
 
-	bool HitTest(int x, int y);
+	bool hitTest(int x, int y);
 
-	int GetWidth();
+	int getWidth();
 
-	int GetHeight();
+	int getHeight();
 
 	// also clears the content
-	void Resize(int width, int height);
+	void resize(int width, int height);
 
 	// use AlphaBlend to draw
 	// standard gdi drawing commands may not work with the returned hdc. (content has premultiplied alpha)
 	// copy to secondary hdc using AlphaBlend or use gdi+ with PixelFormat32bppPARGB
-	HDC GetDC();
+	HDC getDC();
 
-	void Draw(HDC destHdc, int destX, int destY, BYTE alpha = 255);
+	void draw(HDC destHdc, int destX, int destY, BYTE alpha = 255);
 
-	void Draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha = 255);
+	void draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha = 255);
 
 	// can copy/scale specific part of the image
-	void Draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha = 255);
+	void draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha = 255);
 
 	virtual ~KTransparentBitmap();
 

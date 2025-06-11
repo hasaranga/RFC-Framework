@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -34,27 +34,27 @@ public:
 
 	KGuid(){}
 
-	static bool GenerateGUID(GUID* pGUID)
+	static bool generateGUID(GUID* pGUID)
 	{
 		return (::CoCreateGuid(pGUID) == S_OK);
 	}
 
-	static KString GenerateGUID()
+	static KString generateGUID()
 	{
 		GUID guid;
 
-		if (KGuid::GenerateGUID(&guid))
-			return KGuid::GUIDToString(&guid);
+		if (KGuid::generateGUID(&guid))
+			return KGuid::guidToString(&guid);
 
 		return KString();
 	}
 
-	static KString GUIDToString(GUID* pGUID)
+	static KString guidToString(GUID* pGUID)
 	{
 		wchar_t* strGuid = nullptr;
 		::UuidToStringW(pGUID, (RPC_WSTR*)&strGuid);
 
-		KString result(strGuid, KString::USE_COPY_OF_TEXT);
+		KString result(strGuid, KStringBehaviour::MAKE_A_COPY);
 		RpcStringFreeW((RPC_WSTR*)&strGuid);
 
 		return result;

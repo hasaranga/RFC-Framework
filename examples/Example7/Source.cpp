@@ -11,81 +11,84 @@ class MyWindow : public KOverlappedWindow, public KDPIChangeListener
 protected:
 	KTextArea textArea;
 	KString settingsFile;
-	KScopedClassPointer<KFont> font;
+	KFont font;
 
 public:
 	MyWindow()
 	{
-		this->SetDPIChangeListener(this);
-		this->SetText(L"My Window");
-		this->Create();
+		setDPIChangeListener(this);
+		setText(L"My Window");
+		create();
 
-		font = new KFont(L"Segoe UI", 16, false, false, false, true, this->GetDPI());
+		font.load(L"Segoe UI", 16, false, false, false, true, this->GetDPI());
 		textArea.SetPosition(0, 0);
 		textArea.SetFont(font);
 
-		this->AddComponent(&textArea);
+		addComponent(textArea);
 
-		KString appDataDir = KDirectory::GetApplicationDataDir() + L"\\TestRFCApp1";
-		KDirectory::CreateDir(appDataDir);
+		wchar_t pathBuffer[MAX_PATH];
+		KDirectory::getRoamingFolder(pathBuffer);
+
+		KString appDataDir =  KString(pathBuffer, KStringBehaviour::DO_NOT_FREE) + L"\\TestRFCApp1";
+		KDirectory::createDir(appDataDir);
 
 		settingsFile = appDataDir + L"\\settings.test";
 
 		// load settings
 		KSettingsReader settingsReader;
-		if (settingsReader.OpenFile(settingsFile, MY_FORMAT_ID))
+		if (settingsReader.openFile(settingsFile, MY_FORMAT_ID))
 		{
-			textArea.SetText(settingsReader.ReadString());
+			textArea.setText(settingsReader.readString());
 
-			int x = settingsReader.ReadInt();
-			int y = settingsReader.ReadInt();
-			if(!KWindow::IsOffScreen(x, y)) // position is not on turned off monitor.
-				this->SetPosition(x, y);	
+			int x = settingsReader.readInt();
+			int y = settingsReader.readInt();
+			if(!KWindow::isOffScreen(x, y)) // position is not on turned off monitor.
+				setPosition(x, y);	
 
-			int width = settingsReader.ReadInt();
-			int height = settingsReader.ReadInt();
-			this->SetSize(width, height);
+			int width = settingsReader.readInt();
+			int height = settingsReader.readInt();
+			setSize(width, height);
 		}
 	}
 
 	// This method will be called on window resize and dpi change.
 	// Note: if this method called as a result of dpi change, the dpi of controls in this window are still in old dpi scale.
 	// Do not change the control positions/sizes in here if the window and controls are in different dpi scale. (use KDPIChangeListener)
-	void OnResized() override
+	void onResized() override
 	{
-		if (this->GetDPI() == textArea.GetDPI())
+		if (this->getDPI() == textArea.getDPI())
 		{
 			int width, height;
-			this->GetClientAreaSize(&width, &height);
-			textArea.SetSize(width, height);
+			this->getClientAreaSize(&width, &height);
+			textArea.setSize(width, height);
 		}
 	}
 
 	// this method will be called after the dpi change. (KDPIChangeListener)
-	void OnDPIChange(HWND hwnd, int newDPI) override
+	void onDPIChange(HWND hwnd, int newDPI) override
 	{
 		// on dpi change, the textArea will be automatically resized by the framework. 
 		// But we want the size of textArea to be exact size of the client area!
 		int width, height;
-		this->GetClientAreaSize(&width, &height);
-		textArea.SetSize(width, height);
+		this->getClientAreaSize(&width, &height);
+		textArea.setSize(width, height);
 	}
 
-	void OnClose() override
+	void onClose() override
 	{
 		KSettingsWriter settingsWriter;
 
 		// save settings
-		if (settingsWriter.OpenFile(settingsFile, MY_FORMAT_ID))
+		if (settingsWriter.openFile(settingsFile, MY_FORMAT_ID))
 		{
-			settingsWriter.WriteString(textArea.GetText());
-			settingsWriter.WriteInt(this->compX);
-			settingsWriter.WriteInt(this->compY);
-			settingsWriter.WriteInt(this->compWidth);
-			settingsWriter.WriteInt(this->compHeight);
+			settingsWriter.writeString(textArea.getText());
+			settingsWriter.writeInt(this->compX);
+			settingsWriter.writeInt(this->compY);
+			settingsWriter.writeInt(this->compWidth);
+			settingsWriter.writeInt(this->compHeight);
 		}
 
-		KOverlappedWindow::OnClose();
+		KOverlappedWindow::onClose();
 	}
 };
 
@@ -93,12 +96,12 @@ class MyApplication : public KApplication
 {
 public:
 
-	int Main(KString** argv, int argc)
+	int main(wchar_t** argv, int argc)
 	{
 		MyWindow wnd;
-		wnd.SetVisible(true);
+		wnd.setVisible(true);
 
-		KApplication::MessageLoop();
+		KApplication::messageLoop();
 
 		return 0;
 	}

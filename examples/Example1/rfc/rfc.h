@@ -1,5 +1,5 @@
 
-// ========== RFC Generator v1.0 - 2022-11-08 08:07 AM ==========
+// ========== RFC Generator v1.0 - 2025-06-10 18:04 PM ==========
 
 #ifndef _RFC_H_
 #define _RFC_H_ 
@@ -10,7 +10,7 @@
 // =========== Architecture.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -31,21 +31,59 @@
 
 #pragma once
 
+#define RFC_PTR_SIZE sizeof(void*) 
+
 #ifdef _WIN64
 	#define RFC64
-	#define RFC_PTR_SIZE 8
 	#define RFC_NATIVE_INT __int64
 #else
 	#define RFC32
-	#define RFC_PTR_SIZE 4
 	#define RFC_NATIVE_INT int
 #endif
 
 
+// =========== KAssert.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+#pragma once
+
+#include <crtdbg.h>
+
+// spawns crt assertion error gui if condition is false.
+#ifdef _DEBUG
+#define K_ASSERT(cond, msg) \
+    do { \
+        if (!(cond)) { \
+            _CrtDbgReport(_CRT_ASSERT, __FILE__, __LINE__, nullptr, msg); \
+            _CrtDbgBreak(); \
+        } \
+    } while (0)
+#else
+#define K_ASSERT(cond, msg) ((void)0)
+#endif
+
 // =========== KDPIUtility.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -69,12 +107,13 @@
 #include <windows.h>
 #include <shellscalingapi.h>
 
-
 typedef HRESULT(WINAPI* KGetDpiForMonitor)(HMONITOR hmonitor, int dpiType, UINT* dpiX, UINT* dpiY);
 typedef BOOL(WINAPI* KSetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT value);
 typedef HRESULT(STDAPICALLTYPE* KSetProcessDpiAwareness)(PROCESS_DPI_AWARENESS value);
 typedef BOOL (WINAPI* KSetProcessDPIAware)(VOID);
 typedef DPI_AWARENESS_CONTEXT (WINAPI* KSetThreadDpiAwarenessContext) (DPI_AWARENESS_CONTEXT dpiContext);
+typedef BOOL(WINAPI* KAdjustWindowRectExForDpi)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+
 
 /*
 MIXEDMODE_ONLY:	on win10 - all windows are scaled according to the dpi and the mixed mode windows are scaled by the system. 
@@ -92,25 +131,52 @@ enum class KDPIAwareness
 
 class KDPIUtility
 {
+private: 
+    static float getMonitorScalingRatio(HMONITOR monitor);
 public:		
 	static KGetDpiForMonitor pGetDpiForMonitor;
 	static KSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext;
 	static KSetProcessDpiAwareness pSetProcessDpiAwareness;
 	static KSetProcessDPIAware pSetProcessDPIAware;
 	static KSetThreadDpiAwarenessContext pSetThreadDpiAwarenessContext;
+    static KAdjustWindowRectExForDpi pAdjustWindowRectExForDpi;
 
-	static void InitDPIFunctions();
+	static void initDPIFunctions();
 
-	static WORD GetWindowDPI(HWND hWnd);
+    // returns dpi of monitor which our window is in. returns 96 if application is not dpi aware.
+	static WORD getWindowDPI(HWND hWnd);
 
-	static void MakeProcessDPIAware(KDPIAwareness dpiAwareness);
+    // automatically fall back to AdjustWindowRectEx when lower than win10
+    static BOOL adjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+
+	static void makeProcessDPIAware(KDPIAwareness dpiAwareness);
+
+    // gives real value regardless of the process dpi awareness state.
+    // if the process is dpi unaware, os will always give 96dpi.
+    // so, this method will return correct scale value.
+    // it can be used with dpi unaware apps to get the scale of a monitor.
+    // https://stackoverflow.com/questions/70976583/get-real-screen-resolution-using-win32-api
+    /*
+        Example:
+        float monitorScale = 1.0f;
+     	HMONITOR hmon = ::MonitorFromWindow(compHWND, MONITOR_DEFAULTTONEAREST);
+		if (hmon != NULL)
+			monitorScale = KDPIUtility::getScaleForMonitor(hmon);
+    */
+    static float getScaleForMonitor(HMONITOR monitor);
+
+    // scale given 96dpi value according to window current dpi.
+    static int scaleToWindowDPI(int valueFor96DPI, HWND window);
+
+    // scale given 96dpi value according to new dpi.
+    static int scaleToNewDPI(int valueFor96DPI, int newDPI);
 };
 
 
 // =========== KLeakDetector.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -146,8 +212,6 @@ public:
 	To use it, simply declare RFC_LEAK_DETECTOR(YourClassName) inside a private section
 	of the class declaration.
 
-	(ref: LeakedObjectDetector class of JUCE)
-
 	@code
 	class MyClass
 	{
@@ -166,17 +230,17 @@ class KLeakDetector
 public:
 	KLeakDetector()
 	{
-		::InterlockedIncrement(&GetCounter().numObjects);
+		::InterlockedIncrement(&getCounter().numObjects);
 	}
 
 	KLeakDetector(const KLeakDetector&)
 	{
-		::InterlockedIncrement(&GetCounter().numObjects);
+		::InterlockedIncrement(&getCounter().numObjects);
 	}
 
 	~KLeakDetector()
 	{
-		::InterlockedDecrement(&GetCounter().numObjects);
+		::InterlockedDecrement(&getCounter().numObjects);
 	}
 
 private:
@@ -200,7 +264,7 @@ private:
 
 				::strcat_s(textBuffer, intBuffer);
 				::strcat_s(textBuffer, " instance(s) of class ");
-				::strcat_s(textBuffer, GetLeakedClassName());
+				::strcat_s(textBuffer, getLeakedClassName());
 
 				::MessageBoxA(0, textBuffer, "Warning", MB_ICONWARNING);
 			}
@@ -209,12 +273,12 @@ private:
 		volatile long numObjects;
 	};
 
-	static const char* GetLeakedClassName()
+	static const char* getLeakedClassName()
 	{
 		return T::rfc_GetLeakedClassName();
 	}
 
-	static LeakCounter& GetCounter()
+	static LeakCounter& getCounter()
 	{
 		static LeakCounter counter;
 		return counter;
@@ -234,7 +298,7 @@ private:
 // =========== KModuleManager.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -258,22 +322,22 @@ private:
 typedef bool (*RFCModuleInitFunc)();
 typedef void (*RFCModuleFreeFunc)();
 
-#define MAX_RFC_MODULE_COUNT 2
+#define MAX_RFC_MODULE_COUNT 3
 
 class KModuleManager {
 public:
-	static bool RegisterRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc);
-	static RFCModuleInitFunc* RFCModuleInitFuncList();
-	static RFCModuleFreeFunc* RFCModuleFreeFuncList();
+	static bool registerRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc);
+	static RFCModuleInitFunc* rfcModuleInitFuncList();
+	static RFCModuleFreeFunc* rfcModuleFreeFuncList();
 };
 
 #define REGISTER_RFC_MODULE(index, ModuleObjectType) \
-static bool ModuleObjectType##_Registered = KModuleManager::RegisterRFCModule( index , ModuleObjectType##::RFCModuleInit, ModuleObjectType##::RFCModuleFree);
+static bool ModuleObjectType##_Registered = KModuleManager::registerRFCModule( index , ModuleObjectType::rfcModuleInit, ModuleObjectType::rfcModuleFree);
 
-// =========== KStringHolder.h ===========
+// =========== KRefCountedMemory.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -297,50 +361,56 @@ static bool ModuleObjectType##_Registered = KModuleManager::RegisterRFCModule( i
 #include <windows.h>
 
 /**
-	This class holds reference counted string.
+	This class holds reference counted heap memory which is allocated using malloc.
+	when ref count reach zero, the memory will be released using ::free.
 */
-class KStringHolder
+template<class T>
+class KRefCountedMemory
 {
-	volatile LONG refCount;
-	char *a_text; // ansi version
+private:
+	~KRefCountedMemory() {}
 
-	#ifndef RFC_NO_SAFE_ANSI_STR
-	CRITICAL_SECTION cs_a_text; // to guard ansi string creation
-	#endif
+protected:
+	volatile LONG refCount;
 
 public:
-	wchar_t *w_text; // unicode version
-	int count; // character count
+	T buffer;
 
-	KStringHolder(wchar_t *w_text, int count);
-
-	~KStringHolder();
+	KRefCountedMemory(T buffer) : refCount(1), buffer(buffer) {}
+	
+	/**
+		Make sure to call this method if you construct new KRefCountedMemory or keep reference to another KRefCountedMemory object.
+	*/
+	void addReference()
+	{
+		::InterlockedIncrement(&refCount);
+	}
 
 	/**
-		Make sure to call this method if you contruct new KStringHolder or keep reference to another KStringHolder object.
+		Make sure to call this method if you clear reference to KRefCountedMemory object. 
+		it will release allocated memory for string if ref count is zero.
 	*/
-	void AddReference();
+	void releaseReference()
+	{
+		const LONG res = ::InterlockedDecrement(&refCount);
+		if (res == 0)
+		{
+			if (buffer)
+				::free(buffer);
 
-	/**
-		Make sure to call this method if you clear reference to KStringHolder object. it will release allocated memory for string.
-	*/
-	void ReleaseReference();
-
-	/**
-		ANSI version available only when needed.
-	*/
-	const char* GetAnsiVersion(UINT codePage = CP_UTF8);
+			delete this;
+		}
+	}
 
 private:
-	RFC_LEAK_DETECTOR(KStringHolder)
+	RFC_LEAK_DETECTOR(KRefCountedMemory)
 };
 
 
 
 // =========== KString.h ===========
-
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -366,46 +436,68 @@ private:
 #include <string.h>
 #include <malloc.h>
 
+/*
+	DO_NOT_FREE: supplied pointer is a static string literal(always available). it will not freed on destroy.
+	FREE_ON_DESTROY: supplied pointer is a heap memory created using malloc. it will be freed on destroy.
+	MAKE_A_COPY: make a copy of supplied string. if string length is larger than 11, heap memory will be allocated.
+*/
+enum class KStringBehaviour { DO_NOT_FREE,
+	FREE_ON_DESTROY, 
+	MAKE_A_COPY
+};
+
+// define RFC_NO_CHECK_ARRAY_AS_LITERAL if you want to disable the check for array passed as string literal at debug mode.
+#ifndef RFC_NO_CHECK_ARRAY_AS_LITERAL
+#define RFC_CHECK_ARRAY_AS_LITERAL(literal,N) K_ASSERT(wcslen(literal) == (N - 1), "array used as a string literal. please use the array with KString constructor that accepts a behavior parameter.");
+#else
+#define RFC_CHECK_ARRAY_AS_LITERAL(literal,N) 
+#endif
+
+enum class KStringBufferType : unsigned char { StaticText, SSOText, HeapText };
+
 /**
-	Using a reference-counted internal representation, these strings are fast and efficient. <BR>
-	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi. <BR>
-	KString does not support for multiple zero terminated strings. <BR>
+	Using a reference-counted internal representation for long strings and Small String Optimization (SSO) for short strings.
+	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi.
+	KString does not support for multiple zero terminated strings.
 
-	Optimization tips: <BR>
-	use CONST_TXT macro when using statically typed text. <BR>
-	use constructor instead of assignment (if can). <BR>
-	use "Append" method instead of "+" operator. <BR>
-	use "AppendStaticText" method instead of "Append" if you are using statically typed text. <BR>
-	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text. <BR>
-	define RFC_NO_SAFE_ANSI_STR if your app is not casting KString to ansi string within multiple threads. <BR>
+	SSO Implementation:
+	- Strings with 11 characters or fewer are stored directly in the object (Small String Optimization)
+	- Longer strings use the heap with KRefCountedMemory mechanism
+	- Static text references just use pointer assignment
 
-	@code
-	KString result1 = str1 + L"1234"; // slow
-	KString result2 = str1 + CONST_TXT("1234"); // fast
-	KString result3( str1 + CONST_TXT("1234") ); // more fast
-	KString result4( str1.Append(CONST_TXT("1234")) ); // bit more fast
-	KString result5( str1.AppendStaticText(TXT_WITH_LEN("1234")) ); // that's all you can have ;-)
-	@endcode
+	Optimization tips:
+	use unicode strings instead of ansi.
+	try to use strings with length less than 12.
+	L"hello"_st is same as CONST_TXT("hello") or KString(L"hello",KString::STATIC_TEXT_DO_NOT_FREE,5)
+	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text.
+
 */
 class KString
 {
-protected:
-	mutable KStringHolder *stringHolder; // for empty string: stringHolder=0 && isStaticText=false
-	bool isZeroLength; // true if empty string or staticText, stringHolder are zero length
-	mutable bool isStaticText; // staticText & staticTextLength are valid only if this field is true. stringHolder can be zero even this filed is false.
-	wchar_t *staticText;
-	int staticTextLength;
-
-	void ConvertToRefCountedStringIfStatic()const; // generates StringHolder object from static text
-
 public:
+	// SSO buffer size: can fit up to 11 wchar_t characters + null terminator in 24 bytes
+	static const int SSO_BUFFER_SIZE = 12;
 
-	enum TextTypes
-	{
-		STATIC_TEXT_DO_NOT_FREE = 1,
-		FREE_TEXT_WHEN_DONE = 2,
-		USE_COPY_OF_TEXT = 3,
-	};
+protected:
+	// we try to make sizeof KString to be 32 bytes for better cache align.
+
+	// you can use either data.ssoBuffer or data.staticText or data.refCountedMem. 
+	// can use only one at a time. selected by the bufferType.
+	union {
+		KRefCountedMemory<wchar_t*>* refCountedMem;
+		const wchar_t* staticText;
+		wchar_t ssoBuffer[SSO_BUFFER_SIZE]; // for small strings
+	} data; 
+
+	int characterCount; // character count (empty string has zero characterCount)
+	KStringBufferType bufferType;
+
+	inline void markAsEmptyString();
+
+	void initFromLiteral(const wchar_t* literal, size_t N);
+	void assignFromLiteral(const wchar_t* literal, size_t N);
+	void copyFromOther(const KString& other);
+public:
 
 	/**
 		Constructs an empty string
@@ -413,9 +505,15 @@ public:
 	KString();
 
 	/**
-		Constructs copy of another string
+		Constructs copy of another string.
+		Same performance as move. lightweight!
 	*/
 	KString(const KString& other);
+
+	/**
+		Move constructor. Same performance as copy. other string will be cleared.
+	*/
+	KString(KString&& other) noexcept;
 
 	/**
 		Constructs String object using ansi string
@@ -423,9 +521,19 @@ public:
 	KString(const char* const text, UINT codePage = CP_UTF8);
 
 	/**
-		Constructs String object using unicode string
+		Constructs String object using unicode string literal
 	*/
-	KString(const wchar_t* const text, unsigned char behaviour = USE_COPY_OF_TEXT, int length = -1);
+	template<size_t N>
+	KString(const wchar_t(&literal)[N])
+	{
+		RFC_CHECK_ARRAY_AS_LITERAL(literal, N);
+		initFromLiteral(literal, N);
+	}
+
+	/**
+		Constructs String object using unicode string pointer
+	*/
+	KString(const wchar_t* const text, KStringBehaviour behaviour, int length = -1);
 
 	/**
 		Constructs String object using integer
@@ -443,11 +551,22 @@ public:
 	*/
 	const KString& operator= (const KString& other);
 
-	/** 
-		Replaces this string's contents with unicode string. 
-	*/
-	const KString& operator= (const wchar_t* const other);
+	// Move assignment. clears other string.
+	KString& operator= (KString&& other);
 
+	/**
+		Replaces this string's contents with static unicode string literal.
+	*/
+	template<size_t N>
+	const KString& operator= (const wchar_t(&literal)[N])
+	{
+		RFC_CHECK_ARRAY_AS_LITERAL(literal, N);
+		assignFromLiteral(literal, N);
+		return *this;
+	}
+
+	// compare with other string
+	bool operator==(const KString& other) const;
 
 	/** 
 		Appends a string at the end of this one.
@@ -455,53 +574,56 @@ public:
 	*/
 	const KString operator+ (const KString& stringToAppend);
 
-	/** 
-		Appends a unicode string at the end of this one.
+	/**
+		Appends a unicode string literal at the end of this one.
 		@returns     the concatenated string
 	*/
-	const KString operator+ (const wchar_t* const textToAppend);
-	/**
-		Returns ansi version of this string
-	*/
-	operator const char*()const;
+	template<size_t N>
+	const KString operator+ (const wchar_t(&literalToAppend)[N])
+	{
+		RFC_CHECK_ARRAY_AS_LITERAL(literalToAppend, N);
+		return appendStaticText(literalToAppend, (int)N - 1);
+	}
 
 	/**
 		Returns const unicode version of this string
 	*/
 	operator const wchar_t*()const;
 
-	/**
-		Returns unicode version of this string
-	*/
-	operator wchar_t*()const;
-
 	/** 
 		Returns a character from the string.
 		@returns -1 if index is out of range
 	*/
-	const char operator[](const int index)const;
+	const wchar_t operator[](const int index)const;
 
 	/**
 		Appends a string at the end of this one.
 		@returns     the concatenated string
 	*/
-	KString Append(const KString& otherString)const;
+	KString append(const KString& otherString)const;
 
 	/**
-		Appends a statically typed string to begining or end of this one.
+		Appends a statically typed string to beginning or end of this one.
 		@param text			statically typed text
 		@param length		text length. should not be zero.
-		@param appendToEnd	appends to begining if false
+		@param appendToEnd	appends to beginning if false
 		@returns			the concatenated string
 	*/
-	KString AppendStaticText(const wchar_t* const text, int length, bool appendToEnd = true)const;
+	KString appendStaticText(const wchar_t* const text, int length, bool appendToEnd = true)const;
 
 	/**
 		Assigns a statically typed string.
 		@param text			statically typed text
 		@param length		text length. should not be zero.
 	*/
-	void AssignStaticText(const wchar_t* const text, int length);
+	void assignStaticText(const wchar_t* const text, int length);
+
+	// clears the content of the string.
+	void clear();
+
+	// the string automatically clears and converted to SSOText when you call accessRawSSOBuffer.
+	// sso buffer size is KString::SSO_BUFFER_SIZE in wchars.
+	void accessRawSSOBuffer(wchar_t** ssoBuffer, int** ppLength);
 
 	/** 
 		Returns a subsection of the string.
@@ -512,94 +634,98 @@ public:
 		@param start   the index of the start of the substring needed
 		@param end     all characters from start up to this index are returned
 	*/
-	KString SubString(int start, int end)const;
+	KString subString(int start, int end)const;
 
 	/**
 		Case-insensitive comparison with another string. Slower than "Compare" method.
 		@returns     true if the two strings are identical, false if not
 	*/
-	bool CompareIgnoreCase(const KString& otherString)const;
+	bool compareIgnoreCase(const KString& otherString)const;
 
 	/** 
 		Case-sensitive comparison with another string.
 		@returns     true if the two strings are identical, false if not
 	*/
-	bool Compare(const KString& otherString)const;
+	bool compare(const KString& otherString)const;
 
 	/** 
 		Case-sensitive comparison with statically typed string.
 		@param text		statically typed text.
 		@returns		true if the two strings are identical, false if not
 	*/
-	bool CompareWithStaticText(const wchar_t* const text)const;
+	bool compareWithStaticText(const wchar_t* const text)const;
 
 	/**
 		Compare first character with given unicode character
 	*/
-	bool StartsWithChar(wchar_t character)const;
-
-	/**
-		Compare first character with given ansi character
-	*/
-	bool StartsWithChar(char character)const;
+	bool startsWithChar(wchar_t character)const;
 
 	/**
 		Compare last character with given unicode character
 	*/
-	bool EndsWithChar(wchar_t character)const;
-
-	/**
-		Compare last character with given ansi character
-	*/
-	bool EndsWithChar(char character)const;
+	bool endsWithChar(wchar_t character)const;
 
 	/**
 		Check if string is quoted or not
 	*/
-	bool IsQuotedString()const;
+	bool isQuotedString()const;
 
 	/** 
 		Returns a character from the string.
 		@returns -1 if index is out of range
 	*/
-	wchar_t GetCharAt(int index)const;
+	wchar_t getCharAt(int index)const;
+
+	KStringBufferType getBufferType()const;
 
 	/**
 		Returns number of characters in string
 	*/
-	int GetLength()const;
+	int length()const;
 
 	/**
 		Returns true if string is empty
 	*/
-	bool IsEmpty()const;
+	bool isEmpty()const;
 
-	bool IsNotEmpty()const;
+	bool isNotEmpty()const;
 
 	/**
 		Returns value of string
 	*/
-	int GetIntValue()const;
+	int getIntValue()const;
 
 	/** 
 		Returns an upper-case version of this string.
 	*/
-	KString ToUpperCase()const;
+	KString toUpperCase()const;
 
 	/** 
 		Returns an lower-case version of this string. 
 	*/
-	KString ToLowerCase()const;
+	KString toLowerCase()const;
 
-	// free returned buffer when done.
-	static char* ToAnsiString(const wchar_t* text);
-	static wchar_t* ToUnicodeString(const char* text);
+	// free the returned buffer when done.
+	static char* toAnsiString(const wchar_t* text);
+	static wchar_t* toUnicodeString(const char* text);
 
-	virtual ~KString();
+	~KString();
 
 private:
+	/**
+		Returns pointer to the actual string data regardless of storage type
+	*/
+	const wchar_t* getStringPtr() const;
+
 	RFC_LEAK_DETECTOR(KString)
 };
+
+// static text literal operator
+namespace kstring_literals {
+	KString operator"" _st(const wchar_t* str, size_t len);
+}
+
+using namespace kstring_literals;
 
 const KString operator+ (const char* const string1, const KString& string2);
 
@@ -612,23 +738,23 @@ const KString operator+ (const KString& string1, const KString& string2);
 #define LEN_ANSI_STR(X) (sizeof(X) / sizeof(char)) - 1
 
 // do not make a copy + do not free + do not calculate length
-#define CONST_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE, LEN_UNI_STR(L##X))
+#define CONST_TXT(X) KString(L##X, KStringBehaviour::DO_NOT_FREE, LEN_UNI_STR(L##X))
 
 // do not make a copy + do not free + calculate length
-#define STATIC_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE, -1)
+#define STATIC_TXT(X) KString(L##X, KStringBehaviour::DO_NOT_FREE, -1)
 
 // do not make a copy + free when done + calculate length
-#define BUFFER_TXT(X) KString(X, KString::FREE_TEXT_WHEN_DONE, -1)
+#define BUFFER_TXT(X) KString(X, KStringBehaviour::FREE_ON_DESTROY, -1)
 
 // can be use like this: KString str(CONST_TXT_PARAMS("Hello World"));
-#define CONST_TXT_PARAMS(X) L##X, KString::STATIC_TEXT_DO_NOT_FREE, LEN_UNI_STR(L##X)
+#define CONST_TXT_PARAMS(X) L##X, KStringBehaviour::DO_NOT_FREE, LEN_UNI_STR(L##X)
 
 #define TXT_WITH_LEN(X) L##X, LEN_UNI_STR(L##X)
 
 // =========== KApplication.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -663,7 +789,7 @@ const KString operator+ (const KString& string1, const KString& string2);
 			MyApp(){}
 			~MyApp(){}
 
-			int Main(KString **argv,int argc)
+			int main(wchar_t** argv,int argc)
 			{
 				// your app code goes here...
 				return 0;
@@ -695,37 +821,37 @@ public:
 		Called before InitRFC function call. Use this method to modify each module InitParams.
 		Do not call framework APIs here. Only modify InitParams.
 	*/
-	virtual void ModifyModuleInitParams();
+	virtual void modifyModuleInitParams();
 
 	/** 
 		Called when the application starts.
 		Put your application code here and if you create a window, 
-		then make sure to call DoMessagePump method before you return.
+		then make sure to call messageLoop method before you return.
 
-		@param argv array of command-line arguments! access them like this KString* arg1=argv[0];
+		@param argv array of command-line arguments! access them like this wchar_t* arg1=argv[0];
 		@param argc number of arguments
 	*/
-	virtual int Main(KString **argv, int argc);
+	virtual int main(wchar_t** argv, int argc);
 
 	/**
 		Return false if your application is single instance only.
-		Single instance applications must implement "GetApplicationID" method.
+		Single instance applications must implement "getApplicationID" method.
 	*/
-	virtual bool AllowMultipleInstances();
+	virtual bool allowMultipleInstances();
 
 	/**
 		This method will be called if the application is single instance only and another instance is already running.
-		("Main" method will not be called.)
+		("main" method will not be called.)
 	*/
-	virtual int AnotherInstanceIsRunning(KString **argv, int argc);
+	virtual int anotherInstanceIsRunning(wchar_t** argv, int argc);
 
 	/**
 		Unique id of your application which is limited to MAX_PATH characters.
 		Single instance applications must implement this method.
 	*/
-	virtual const wchar_t* GetApplicationID();
+	virtual const wchar_t* getApplicationID();
 
-	static void MessageLoop(bool handleTabKey = true);
+	static void messageLoop(bool handleTabKey = true);
 
 	/** 
 		Destructs an Application object.
@@ -740,7 +866,7 @@ private:
 // =========== Core.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025  CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -763,8 +889,73 @@ private:
 
 #include <windows.h>
 
-void InitRFC();
-void DeInitRFC();
+void InitRFCModules();
+void DeInitRFCModules();
+
+// use within a dll functions. do not use inside of DllMain.
+void RFCDllInit();
+void RFCDllFree();
+
+#define RFC_MAX_PATH 512
+
+#define START_RFC_CONSOLE_APP(AppClass) \
+int main() \
+{ \
+	CoreModuleInitParams::hInstance = 0; \
+	CoreModuleInitParams::initCOMAsSTA = true; \
+	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE; \
+	int retVal = 0; \
+	LPWSTR* args = nullptr; \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	int argc = 0; \
+	args = ::CommandLineToArgvW(::GetCommandLineW(), &argc); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(args, argc); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application.main(args, argc); \
+		}else{ \
+			retVal = application.anotherInstanceIsRunning(args, argc); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	} ::DeInitRFCModules(); \
+	::LocalFree(args); \
+	return retVal; \
+}
+
+// use this macro if you are not using commandline arguments in your app.
+#define START_RFC_CONSOLE_APP_NO_CMD_ARGS(AppClass) \
+int WINAPI main() \
+{ \
+	CoreModuleInitParams::hInstance = 0; \
+	CoreModuleInitParams::initCOMAsSTA = true; \
+	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE; \
+	int retVal = 0; \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(0, 0); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application.main(0, 0); \
+		}else{ \
+			retVal = application.anotherInstanceIsRunning(0, 0); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	}::DeInitRFCModules(); \
+	return retVal; \
+}
 
 #define START_RFC_APPLICATION(AppClass, DPIAwareness) \
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
@@ -772,32 +963,29 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	CoreModuleInitParams::hInstance = hInstance; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
 	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
-	AppClass* application = new AppClass(); \
-	application->ModifyModuleInitParams(); \
-	::InitRFC(); \
-	int argc = 0; \
-	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
-	KString **str_argv = (KString**)::malloc(argc * RFC_PTR_SIZE); \
-	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);} \
 	int retVal = 0; \
-	if (application->AllowMultipleInstances()){ \
-		retVal = application->Main(str_argv, argc); \
+	LPWSTR* args = nullptr; \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	int argc = 0; \
+	args = ::CommandLineToArgvW(::GetCommandLineW(), &argc); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(args, argc); \
 	}else{ \
-		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->Main(str_argv, argc); \
+			retVal = application.main(args, argc); \
 		}else{ \
-			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
+			retVal = application.anotherInstanceIsRunning(args, argc); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
 		} \
 	} \
-	delete application; \
-	for(int i = 0; i < argc; i++){delete str_argv[i];} \
-	::DeInitRFC(); \
-	::free((void*)str_argv); \
-	::GlobalFree(args); \
+	}\
+	::DeInitRFCModules(); \
+	::LocalFree(args); \
 	return retVal; \
 }
 
@@ -808,25 +996,24 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	CoreModuleInitParams::hInstance = hInstance; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
 	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
-	AppClass* application = new AppClass(); \
-	application->ModifyModuleInitParams(); \
-	::InitRFC(); \
 	int retVal = 0; \
-	if (application->AllowMultipleInstances()){ \
-		retVal = application->Main(0, 0); \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(0, 0); \
 	}else{ \
-		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->Main(0, 0); \
+			retVal = application.main(0, 0); \
 		}else{ \
-			retVal = application->AnotherInstanceIsRunning(0, 0); \
+			retVal = application.anotherInstanceIsRunning(0, 0); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
 		} \
 	} \
-	delete application; \
-	::DeInitRFC(); \
+	} ::DeInitRFCModules(); \
 	return retVal; \
 }
 
@@ -844,10 +1031,17 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	#endif
 #endif
 
+
+#ifdef _DEBUG
+	#define DEBUG_PRINT(x) OutputDebugStringA(x);
+#else 
+	#define DEBUG_PRINT(x) 
+#endif
+
 // =========== CoreModule.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -869,6 +1063,15 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 #pragma once
 
 #include <windows.h>
+
+// link default libs here so we don't need to link them from commandline(Clang).
+
+#pragma comment(lib,"user32.lib")
+#pragma comment(lib,"Shell32.lib")
+#pragma comment(lib,"Ole32.lib")
+#pragma comment(lib,"Gdi32.lib")
+#pragma comment(lib,"Advapi32.lib")
+#pragma comment(lib,"Comdlg32.lib")
 
 class CoreModuleInitParams {
 public:

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -34,45 +34,47 @@ class KDirectory
 public:
 	KDirectory();
 
-	static bool IsDirExists(const KString& dirName);
+	static bool isDirExists(const KString& dirName);
 
 	/**
 		returns false if directory already exists.
 	*/
-	static bool CreateDir(const KString& dirName);
+	static bool createDir(const KString& dirName);
 
 	/**
 		deletes an existing empty directory.
 	*/
-	static bool RemoveDir(const KString& dirName);
+	static bool removeDir(const KString& dirName);
 
 	/**
 		returns the directory of given module. if HModule is NULL this function will return dir of exe.
 		returns empty string on error.
 	*/
-	static KString GetModuleDir(HMODULE hModule);
+	static void getModuleDir(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars);
 
-	static KString GetModuleFilePath(HMODULE hModule);
+	static void getModuleFilePath(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars);
 
 	/**
 		returns the parent directory of given file.
 	*/
-	static KString GetParentDir(const KString& filePath);
+	static void getParentDir(const wchar_t* filePath, wchar_t* outBuffer, int bufferSizeInWChars);
 
 	/**
 		returns the the directory for temporary files.
 		returns empty string on error.
 	*/
-	static KString GetTempDir();
+	static void getTempDir(wchar_t* outBuffer, int bufferSizeInWChars);
 
 	/**
 		returns the all user data directory. Requires admin priviledges for writing to this dir.
 		returns empty string on error.
+		outBuffer size must be MAX_PATH
 	*/
-	static KString GetAllUserDataDir();
+	static void getAllUserDataDir(wchar_t* outBuffer);
 
-	// known path for the logged in user of the pc. (not affected by right click -> run as admin)
 	/*
+		known path for the logged in user of the pc. (not affected by right click -> run as admin)
+		outBuffer size must be MAX_PATH
 		CSIDL_ADMINTOOLS
 		CSIDL_APPDATA
 		CSIDL_COMMON_ADMINTOOLS
@@ -91,20 +93,22 @@ public:
 		CSIDL_SYSTEM
 		CSIDL_WINDOWS
 	*/
-	static KString GetLoggedInUserFolderPath(int csidl);
+	static void getLoggedInUserFolderPath(int csidl, wchar_t* outBuffer);
 
 	// path for logged in user of pc (not affected by right click -> run as admin)
-	static KString GetRoamingFolder();
+	// outBuffer size must be MAX_PATH
+	static void getRoamingFolder(wchar_t* outBuffer);
 
 	// path for logged in user of pc (not affected by right click -> run as admin)
-	static KString GetNonRoamingFolder();
+	// outBuffer size must be MAX_PATH
+	static void getNonRoamingFolder(wchar_t* outBuffer);
 
 	// must delete returned strings and list.
 	// extension without dot. ex: "mp3"
 	// folderPath is without ending slash
 	// returns only file names. not full path.
 	// does not scan for child folders.
-	static KPointerList<KString*>* ScanFolderForExtension(const KString& folderPath, const KString& extension);
+	static KPointerList<KString*, 32, false>* scanFolderForExtension(const KString& folderPath, const KString& extension);
 
 	virtual ~KDirectory();
 

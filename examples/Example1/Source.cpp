@@ -7,7 +7,7 @@
 class MyApplication : public KApplication
 {
 public:
-	int Main(KString** argv, int argc)
+	int main(wchar_t** argv, int argc)
 	{
 		return 0;
 	}

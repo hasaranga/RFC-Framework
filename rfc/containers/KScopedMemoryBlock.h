@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -37,7 +37,7 @@
 	KScopedMemoryBlock, the old one will be automatically freed.
 
 	If you need to get a memory block out of a KScopedClassPointer without it being freed, you
-	can use the Release() method.
+	can use the detach() method.
 
 	e.g. @code
 	KScopedMemoryBlock<float*> a = (float*)malloc(512 * sizeof(float)); // slow
@@ -73,7 +73,7 @@ public:
 		memoryBlockToTransferFrom.memoryBlock = nullptr;
 	}
 
-	bool IsNull()
+	bool isNull()
 	{
 		return (memoryBlock == nullptr);
 	}
@@ -82,7 +82,7 @@ public:
 		Removes the current memory block from this KScopedMemoryBlock without freeing it.
 		This will return the current memory block, and set the KScopedMemoryBlock to a null pointer.
 	*/
-	T Detach()
+	T detach()
 	{ 
 		T m = memoryBlock;
 		memoryBlock = nullptr;

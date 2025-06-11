@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -32,17 +32,17 @@ protected:
 public:
 	KMenu();
 
-	virtual void AddMenuItem(KMenuItem* menuItem);
+	virtual void addMenuItem(KMenuItem* menuItem);
 
-	virtual void AddSubMenu(const KString& text, KMenu* menu);
+	virtual void addSubMenu(const KString& text, KMenu* menu);
 
-	virtual void AddSeperator();
+	virtual void addSeperator();
 
-	virtual HMENU GetMenuHandle();
+	virtual HMENU getMenuHandle();
 
 	// set bringWindowToForeground when showing popup menu for notify icon(systray).
 	// does not return until the menu close.
-	virtual void PopUpMenu(HWND window, bool bringWindowToForeground = false);
+	virtual void popUpMenu(HWND window, bool bringWindowToForeground = false);
 
 	virtual ~KMenu();
 

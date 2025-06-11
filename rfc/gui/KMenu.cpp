@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,18 +26,18 @@ KMenu::KMenu()
 	hMenu = ::CreatePopupMenu();
 }
 
-void KMenu::AddMenuItem(KMenuItem* menuItem)
+void KMenu::addMenuItem(KMenuItem* menuItem)
 {
-	menuItem->AddToMenu(hMenu);
+	menuItem->addToMenu(hMenu);
 }
 
-void KMenu::AddSubMenu(const KString& text, KMenu* menu)
+void KMenu::addSubMenu(const KString& text, KMenu* menu)
 {
 	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, 
-		(UINT_PTR)menu->GetMenuHandle(), text);
+		(UINT_PTR)menu->getMenuHandle(), text);
 }
 
-void KMenu::AddSeperator()
+void KMenu::addSeperator()
 {
 	MENUITEMINFOW mii;
 	::ZeroMemory(&mii, sizeof(mii));
@@ -49,12 +49,12 @@ void KMenu::AddSeperator()
 	::InsertMenuItemW(hMenu, 0xFFFFFFFF, FALSE, &mii);
 }
 
-HMENU KMenu::GetMenuHandle()
+HMENU KMenu::getMenuHandle()
 {
 	return hMenu;
 }
 
-void KMenu::PopUpMenu(HWND window, bool bringWindowToForeground)
+void KMenu::popUpMenu(HWND window, bool bringWindowToForeground)
 {
 	if (bringWindowToForeground)
 		::SetForegroundWindow(window);

@@ -1,7 +1,7 @@
 
 /*
 	RFC - KComponent.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,8 +30,8 @@ KComponent::KComponent(bool generateWindowClassDetails)
 {
 	isRegistered = false;
 
-	KIDGenerator *idGenerator = KIDGenerator::GetInstance();
-	compCtlID = idGenerator->GenerateControlID();
+	KIDGenerator *idGenerator = KIDGenerator::getInstance();
+	compCtlID = idGenerator->generateControlID();
 
 	compHWND = 0;
 	compParentHWND = 0;
@@ -48,7 +48,7 @@ KComponent::KComponent(bool generateWindowClassDetails)
 
 	if (generateWindowClassDetails)
 	{
-		compClassName = idGenerator->GenerateClassName();
+		idGenerator->generateClassName(compClassName);
 		wc.cbSize = sizeof(WNDCLASSEX);
 		wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
 		wc.hIcon = 0;
@@ -61,10 +61,10 @@ KComponent::KComponent(bool generateWindowClassDetails)
 		wc.hInstance = KApplication::hInstance;
 		wc.lpszClassName = compClassName;
 
-		wc.lpfnWndProc = KGUIProc::WindowProc;
+		wc.lpfnWndProc = KGUIProc::windowProc;
 	}
 
-	compFont = KFont::GetDefaultFont();
+	compFont = KFont::getDefaultFont();
 }
 
 KComponent::operator HWND()const
@@ -72,12 +72,12 @@ KComponent::operator HWND()const
 	return compHWND;
 }
 
-void KComponent::OnHotPlug()
+void KComponent::onHotPlug()
 {
 
 }
 
-void KComponent::HotPlugInto(HWND component, bool fetchInfo)
+void KComponent::hotPlugInto(HWND component, bool fetchInfo)
 {
 	compHWND = component;
 
@@ -86,7 +86,7 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 		wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));  // assume 256 is enough
 		clsName[0] = 0;
 		::GetClassNameW(compHWND, clsName, 256);
-		compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
+		compClassName = KString(clsName, KStringBehaviour::FREE_ON_DESTROY);
 
 		::GetClassInfoExW(KApplication::hInstance, compClassName, &wc);
 
@@ -110,170 +110,178 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 		wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t)); // assume 256 is enough
 		buff[0] = 0;
 		::GetWindowTextW(compHWND, buff, 256);
-		compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
+		compText = KString(buff, KStringBehaviour::FREE_ON_DESTROY);
 	}
 
-	KGUIProc::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);	
+	KGUIProc::attachRFCPropertiesToHWND(compHWND, (KComponent*)this);	
 
-	this->OnHotPlug();
+	this->onHotPlug();
 }
 
-UINT KComponent::GetControlID()
+UINT KComponent::getControlID()
 {
 	return compCtlID;
 }
 
-void KComponent::SetMouseCursor(KCursor *cursor)
+void KComponent::setMouseCursor(KCursor *cursor)
 {
 	this->cursor = cursor;
 	if(compHWND)
-		::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->GetHandle());
+		::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->getHandle());
 }
 
-KString KComponent::GetComponentClassName()
+KString KComponent::getComponentClassName()
 {
 	return compClassName;
 }
 
-bool KComponent::Create(bool requireInitialMessages)
+bool KComponent::create(bool requireInitialMessages)
 {
 	if(!::RegisterClassExW(&wc))
 		return false;
 
 	isRegistered = true;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages);
+	KGUIProc::createComponent(this, requireInitialMessages);
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled ? TRUE : FALSE);
 		::ShowWindow(compHWND, compVisible ? SW_SHOW : SW_HIDE);
 
 		if(cursor)
-			::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->GetHandle());
+			::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->getHandle());
 
 		return true;
 	}
 	return false;
 }
 
-void KComponent::Destroy()
+void KComponent::destroy()
 {
 	if (compHWND)
+	{
 		::DestroyWindow(compHWND);
+		compHWND = 0;
+	}
 }
 
-LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KComponent::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::AtomOldProc));
+	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::atomOldProc));
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc != (void*)KGUIProc::WindowProc) // it's a subclassed common control or hot-plugged dialog! RFCOldProc property of subclassed control|dialog is not KGUIProc::WindowProc function.
+		if((void*)lpfnOldWndProc != (void*)KGUIProc::windowProc) // it's a subclassed common control or hot-plugged dialog! RFCOldProc property of subclassed control|dialog is not KGUIProc::windowProc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }
 
-bool KComponent::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KComponent::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 {
 	return false;
 }
 
-void KComponent::SetFont(KFont *compFont)
+void KComponent::setFont(KFont *compFont)
 {
 	this->compFont = compFont;
 	if(compHWND)
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0));
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
 }
 
-KFont* KComponent::GetFont()
+void KComponent::setFont(KFont& compFont)
+{
+	setFont(&compFont);
+}
+
+KFont* KComponent::getFont()
 {
 	return compFont;
 }
 
-KString KComponent::GetText()
+KString KComponent::getText()
 {
 	return compText;
 }
 
-void KComponent::SetText(const KString& compText)
+void KComponent::setText(const KString& compText)
 {
 	this->compText = compText;
 	if(compHWND)
 		::SetWindowTextW(compHWND, this->compText);
 }
 
-void KComponent::SetHWND(HWND compHWND)
+void KComponent::setHWND(HWND compHWND)
 {
 	this->compHWND = compHWND;
 }
 
-HWND KComponent::GetHWND()
+HWND KComponent::getHWND()
 {
 	return compHWND;
 }
 
-void KComponent::SetParentHWND(HWND compParentHWND)
+void KComponent::setParentHWND(HWND compParentHWND)
 {
 	this->compParentHWND = compParentHWND;
 	if(compHWND)
 		::SetParent(compHWND, compParentHWND);
 }
 
-HWND KComponent::GetParentHWND()
+HWND KComponent::getParentHWND()
 {
 	return compParentHWND;
 }
 
-DWORD KComponent::GetStyle()
+DWORD KComponent::getStyle()
 {
 	return compDwStyle;
 }
 
-void KComponent::SetStyle(DWORD compStyle)
+void KComponent::setStyle(DWORD compStyle)
 {
 	this->compDwStyle = compStyle;
 	if(compHWND)
 		::SetWindowLongPtrW(compHWND, GWL_STYLE, compStyle);
 }
 
-DWORD KComponent::GetExStyle()
+DWORD KComponent::getExStyle()
 {
 	return compDwExStyle;
 }
 
-void KComponent::SetExStyle(DWORD compDwExStyle)
+void KComponent::setExStyle(DWORD compDwExStyle)
 {
 	this->compDwExStyle = compDwExStyle;
 	if(compHWND)
 		::SetWindowLongPtrW(compHWND, GWL_EXSTYLE, compDwExStyle);
 }
 
-int KComponent::GetDPI()
+int KComponent::getDPI()
 {
 	return compDPI;
 }
 
-int KComponent::GetX()
+int KComponent::getX()
 {
 	return compX; 
 }
 
-int KComponent::GetY()
+int KComponent::getY()
 {
 	return compY;
 }
 
-int KComponent::GetWidth()
+int KComponent::getWidth()
 {
 	return compWidth;
 }
 
-int KComponent::GetHeight()
+int KComponent::getHeight()
 {
 	return compHeight;
 }
 
-void KComponent::SetDPI(int newDPI)
+void KComponent::setDPI(int newDPI)
 {
 	if (newDPI == compDPI)
 		return;
@@ -286,8 +294,8 @@ void KComponent::SetDPI(int newDPI)
 		this->compX = ::MulDiv(compX, newDPI, oldDPI);
 		this->compY = ::MulDiv(compY, newDPI, oldDPI);
 
-		if (!compFont->IsDefaultFont())
-			compFont->SetDPI(newDPI);
+		if (!compFont->isDefaultFont())
+			compFont->setDPI(newDPI);
 	}
 
 	this->compWidth = ::MulDiv(compWidth, newDPI, oldDPI);
@@ -296,12 +304,12 @@ void KComponent::SetDPI(int newDPI)
 	if (compHWND)
 	{
 		::SetWindowPos(compHWND, 0, compX, compY, compWidth, compHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
-		if((!compFont->IsDefaultFont()) && (compDwStyle & WS_CHILD))
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0));
+		if((!compFont->isDefaultFont()) && (compDwStyle & WS_CHILD))
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
 	}
 }
 
-void KComponent::SetSize(int compWidth, int compHeight)
+void KComponent::setSize(int compWidth, int compHeight)
 {
 	this->compWidth = compWidth;
 	this->compHeight = compHeight;
@@ -310,7 +318,7 @@ void KComponent::SetSize(int compWidth, int compHeight)
 		::SetWindowPos(compHWND, 0, 0, 0, compWidth, compHeight, SWP_NOMOVE | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
-void KComponent::SetPosition(int compX, int compY)
+void KComponent::setPosition(int compX, int compY)
 {
 	this->compX = compX;
 	this->compY = compY;
@@ -319,14 +327,14 @@ void KComponent::SetPosition(int compX, int compY)
 		::SetWindowPos(compHWND, 0, compX, compY, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
-void KComponent::SetVisible(bool state)
+void KComponent::setVisible(bool state)
 {
 	compVisible = state;
 	if(compHWND)
 		::ShowWindow(compHWND, state ? SW_SHOW : SW_HIDE);
 }
 
-bool KComponent::IsVisible()
+bool KComponent::isVisible()
 {
 	if (compHWND)
 	{
@@ -337,7 +345,7 @@ bool KComponent::IsVisible()
 	return false;
 }
 
-bool KComponent::IsEnabled()
+bool KComponent::isEnabled()
 {
 	if (compHWND)
 		compEnabled = (::IsWindowEnabled(compHWND) == TRUE);
@@ -345,7 +353,7 @@ bool KComponent::IsEnabled()
 	return compEnabled;
 }
 
-void KComponent::SetEnabled(bool state)
+void KComponent::setEnabled(bool state)
 {
 	compEnabled = state;
 
@@ -353,19 +361,19 @@ void KComponent::SetEnabled(bool state)
 		::EnableWindow(compHWND, compEnabled);
 }
 
-void KComponent::BringToFront()
+void KComponent::bringToFront()
 {
 	if(compHWND)
 		::BringWindowToTop(compHWND);
 }
 
-void KComponent::SetKeyboardFocus()
+void KComponent::setKeyboardFocus()
 {
 	if(compHWND)
 		::SetFocus(compHWND);
 }
 
-void KComponent::Repaint()
+void KComponent::repaint()
 {
 	if (compHWND)
 	{

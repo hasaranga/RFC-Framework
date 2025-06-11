@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,7 @@
 class KMenuButton : public KButton
 {
 protected:
-	KFont* arrowFont;
+	KFont arrowFont;
 	KFont* glyphFont;
 	KMenu* buttonMenu;
 	const wchar_t* glyphChar;
@@ -39,19 +39,19 @@ public:
 
 	virtual ~KMenuButton();
 
-	virtual void SetMenu(KMenu* buttonMenu);
+	virtual void setMenu(KMenu* buttonMenu);
 
 	/**
 		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
 		You can use "Character Map" tool get character codes.
 		Default text color will be used if glyphColor not specified.
 	*/
-	virtual void SetGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
+	virtual void setGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
 
-	virtual void SetDPI(int newDPI) override;
+	virtual void setDPI(int newDPI) override;
 
-	virtual void OnPress() override;
+	virtual void _onPress() override;
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 };
 

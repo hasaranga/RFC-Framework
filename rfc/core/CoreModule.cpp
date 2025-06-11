@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,7 @@ KDPIAwareness CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE;
 
 class RFC_CoreModule {
 public:
-	static bool RFCModuleInit()
+	static bool rfcModuleInit()
 	{
 		if (!CoreModuleInitParams::hInstance)
 		{
@@ -42,8 +42,8 @@ public:
 
 		if (KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE)
 		{
-			KDPIUtility::InitDPIFunctions();
-			KDPIUtility::MakeProcessDPIAware(KApplication::dpiAwareness);
+			KDPIUtility::initDPIFunctions();
+			KDPIUtility::makeProcessDPIAware(KApplication::dpiAwareness);
 		}
 
 		if (CoreModuleInitParams::initCOMAsSTA)
@@ -52,7 +52,7 @@ public:
 		return true;
 	}
 
-	static void RFCModuleFree()
+	static void rfcModuleFree()
 	{
 		if (CoreModuleInitParams::initCOMAsSTA)
 			::CoUninitialize();

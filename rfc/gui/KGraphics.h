@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -29,30 +29,30 @@ public:
 
 	virtual ~KGraphics();
 
-	static void Draw3dVLine(HDC hdc, int startX, int startY, int height);
+	static void draw3dVLine(HDC hdc, int startX, int startY, int height);
 
-	static void Draw3dHLine(HDC hdc, int startX, int startY, int width);
+	static void draw3dHLine(HDC hdc, int startX, int startY, int width);
 
-	static void Draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight);
+	static void draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight);
 
-	static void Draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight);
+	static void draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight);
 
-	static void FillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color);
+	static void fillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color);
 
-	static void FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
+	static void fillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
 
-	static RECT CalculateTextSize(const wchar_t* text, HFONT hFont);
+	static RECT calculateTextSize(const wchar_t* text, HFONT hFont);
 
-	static int CalculateTextHeight(const wchar_t* text, HFONT hFont, int width);
+	static int calculateTextHeight(const wchar_t* text, HFONT hFont, int width);
 
 	// This function sets the alpha channel to 255 without affecting any of the color channels.
 	// hdc is a memory DC with a 32bpp bitmap selected into it.
 	// can be use to fix 32bit bitmap alpha which is destroyed by the gdi operations.
-	static void MakeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy);
+	static void makeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy);
 
 	// hdc is a memory DC with a 32bpp bitmap selected into it.
 	// This function sets the alpha channel without affecting any of the color channels.
-	static void SetBitmapAlphaChannel(HDC hdc, int x, int y, int cx, int cy, BYTE alpha);
+	static void setBitmapAlphaChannel(HDC hdc, int x, int y, int cx, int cy, BYTE alpha);
 
 private:
 	RFC_LEAK_DETECTOR(KGraphics)

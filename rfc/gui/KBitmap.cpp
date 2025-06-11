@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -31,7 +31,7 @@ KBitmap::operator HBITMAP()const
 	return hBitmap;
 }
 
-bool KBitmap::LoadFromResource(WORD resourceID)
+bool KBitmap::loadFromResource(WORD resourceID)
 {
 	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
@@ -39,7 +39,7 @@ bool KBitmap::LoadFromResource(WORD resourceID)
 	return false;
 }
 
-bool KBitmap::LoadFromFile(const KString& filePath)
+bool KBitmap::loadFromFile(const KString& filePath)
 {
 	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
@@ -47,7 +47,7 @@ bool KBitmap::LoadFromFile(const KString& filePath)
 	return false;
 }
 
-void KBitmap::DrawOnHDC(HDC hdc, int x, int y, int width, int height)
+void KBitmap::drawOnHDC(HDC hdc, int x, int y, int width, int height)
 {
 	HDC memHDC = ::CreateCompatibleDC(hdc);
 
@@ -57,7 +57,7 @@ void KBitmap::DrawOnHDC(HDC hdc, int x, int y, int width, int height)
 	::DeleteDC(memHDC);
 }
 
-HBITMAP KBitmap::GetHandle()
+HBITMAP KBitmap::getHandle()
 {
 	return hBitmap;
 }

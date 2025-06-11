@@ -5,7 +5,7 @@
 #include"resource.h"
 
 
-class ExampleWindow : public KHotPluggedDialog, public KButtonListener
+class ExampleWindow : public KHotPluggedDialog
 {
 protected:
 	KButton btn1, btn2;
@@ -16,51 +16,44 @@ protected:
 public:
 	void OnHotPlug()
 	{
-		btn1.HotPlugInto(GetDlgItem(compHWND, IDOK));
-		btn1.SetListener(this);
-
-		btn2.HotPlugInto(GetDlgItem(compHWND, IDCANCEL));
-		btn2.SetListener(this);
-
-		txt.HotPlugInto(GetDlgItem(compHWND, IDC_EDIT1));
-
-		combo.HotPlugInto(GetDlgItem(compHWND, IDC_COMBO1));
-		combo.AddItem(L"Item1");
-		combo.AddItem(L"Item2");
-		combo.AddItem(L"Item3");
-		combo.AddItem(L"Item4");
-		combo.SelectItem(0);
-
-		this->SetText(L"RFC Subclassed Dialog & Controls");
-
-		icon.LoadFromResource(IDI_ICON1);
-		this->SetIcon(&icon);
-
-		this->CenterScreen();
-	}
-
-	void OnButtonPress(KButton *button)
-	{
-		if (button == &btn1)
-		{
+		btn1.hotPlugInto(::GetDlgItem(compHWND, IDOK));
+		btn1.onClick = [this](KButton* button) {
 			::MessageBoxW(compHWND, txt.GetText(), L"yow...", 0);
-		}
-		else if (button == &btn2)
-		{
-			this->OnClose();
-		}
+		};
+
+		btn2.hotPlugInto(::GetDlgItem(compHWND, IDCANCEL));
+		btn2.onClick = [this](KButton* button) {
+			this->onClose();
+		};
+
+		txt.hotPlugInto(::GetDlgItem(compHWND, IDC_EDIT1));
+
+		combo.hotPlugInto(::GetDlgItem(compHWND, IDC_COMBO1));
+		combo.addItem(L"Item1");
+		combo.addItem(L"Item2");
+		combo.addItem(L"Item3");
+		combo.addItem(L"Item4");
+		combo.selectItem(0);
+
+		setText(L"RFC Subclassed Dialog & Controls");
+
+		icon.loadFromResource(IDI_ICON1);
+		setIcon(&icon);
+
+		centerScreen();
 	}
+
 };
 
 
 class ExampleApp : public KApplication
 {
 public:
-	int Main(KString **argv, int argc)
+	int main(wchar_t** argv, int argc)
 	{
 		ExampleWindow wnd;
 
-		KGUIProc::HotPlugAndRunDialogBox(IDD_DIALOG1, 0, &wnd);
+		KGUIProc::hotPlugAndRunDialogBox(IDD_DIALOG1, 0, &wnd);
 
 		return 0;
 	}

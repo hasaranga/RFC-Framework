@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,19 +25,19 @@
 KHotPluggedDialog::KHotPluggedDialog(){}
 
 
-void KHotPluggedDialog::OnClose()
+void KHotPluggedDialog::onClose()
 {
 	::EndDialog(compHWND, 0);
 }
 
-void KHotPluggedDialog::OnDestroy(){}
+void KHotPluggedDialog::onDestroy(){}
 
 KHotPluggedDialog::~KHotPluggedDialog(){}
 
 
 KOverlappedWindow::KOverlappedWindow()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KOverlapped Window"));
+	compText.assignStaticText(TXT_WITH_LEN("KOverlapped Window"));
 	compDwStyle = WS_OVERLAPPEDWINDOW;
 }
 
@@ -46,7 +46,7 @@ KOverlappedWindow::~KOverlappedWindow(){}
 
 KFrame::KFrame()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KFrame"));
+	compText.assignStaticText(TXT_WITH_LEN("KFrame"));
 	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 }
 
@@ -56,7 +56,7 @@ KFrame::~KFrame(){}
 
 KDialog::KDialog()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KDialog"));
+	compText.assignStaticText(TXT_WITH_LEN("KDialog"));
 	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU;
 	compDwExStyle = WS_EX_DLGMODALFRAME;
 }
@@ -67,7 +67,7 @@ KDialog::~KDialog(){}
 
 KToolWindow::KToolWindow()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KTool Window"));
+	compText.assignStaticText(TXT_WITH_LEN("KTool Window"));
 	compDwStyle = WS_OVERLAPPED | WS_SYSMENU;
 	compDwExStyle = WS_EX_TOOLWINDOW;
 }

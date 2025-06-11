@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -37,7 +37,6 @@
 class KFile
 {
 protected:
-	KString fileName;
 	HANDLE fileHandle;
 	bool autoCloseHandle;
 	DWORD desiredAccess;
@@ -58,68 +57,68 @@ public:
 	/** 
 		If the file does not exist, it will be created.
 	*/
-	KFile(const KString& fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
+	KFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
 
 	/** 
 		If the file does not exist, it will be created.
 	*/
-	virtual bool OpenFile(const KString& fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
+	virtual bool openFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
 
-	virtual bool CloseFile();
+	virtual bool closeFile();
 
-	virtual HANDLE GetFileHandle();
+	virtual HANDLE getFileHandle();
 
 	operator HANDLE()const;
 
 	/** 
 		fills given buffer and returns number of bytes read.
 	*/
-	virtual DWORD ReadFile(void* buffer, DWORD numberOfBytesToRead);
+	virtual DWORD readFile(void* buffer, DWORD numberOfBytesToRead);
 
 	/** 
-		You must free the returned buffer yourself. To get the size of buffer, use GetFileSize method. return value will be null on read error.
+		You must free the returned buffer yourself. To get the size of buffer, use getFileSize method. return value will be null on read error.
 	*/
-	virtual void* ReadAsData();
+	virtual void* readAsData();
 
-	virtual KString ReadAsString(bool isUnicode = true);
+	virtual KString readAsString(bool isUnicode = true);
 
 	/**
 		returns number of bytes written.
 	*/
-	virtual DWORD WriteFile(void* buffer, DWORD numberOfBytesToWrite);
+	virtual DWORD writeFile(const void* buffer, DWORD numberOfBytesToWrite);
 
-	virtual bool WriteString(const KString& text, bool isUnicode = true);
+	virtual bool writeString(const KString& text, bool isUnicode = true);
 
-	virtual bool SetFilePointerToStart();
+	virtual bool setFilePointerToStart();
 
 	/**
 		moves file pointer to given distance from "startingPoint".
 		"startingPoint" can be FILE_BEGIN, FILE_CURRENT or FILE_END
 		"distance" can be negative.
 	*/
-	virtual bool SetFilePointerTo(long distance, DWORD startingPoint = FILE_BEGIN);
+	virtual bool setFilePointerTo(long distance, DWORD startingPoint = FILE_BEGIN);
 
-	virtual DWORD GetFilePointerPosition();
+	virtual DWORD getFilePointerPosition();
 
-	virtual bool SetFilePointerToEnd();
+	virtual bool setFilePointerToEnd();
 
 	/**
 		returns zero on error
 	*/
-	virtual DWORD GetFileSize();
+	virtual DWORD getFileSize();
 
-	static bool DeleteFile(const KString& fileName);
+	static bool deleteFile(const wchar_t* fileName);
 
-	static bool IsFileExists(const KString& fileName);
+	static bool isFileExists(const wchar_t* fileName);
 
-	static bool CopyFile(const KString& sourceFileName, const KString& destFileName);
+	static bool copyFile(const wchar_t* sourceFileName, const wchar_t* destFileName);
 
 	/**
 		returns the file name part of the path.
 	*/
-	static KString GetFileNameFromPath(const KString& path);
+	static KString getFileNameFromPath(const wchar_t* path);
 
-	static KString GetFileExtension(const KString& path);
+	static KString getFileExtension(const wchar_t* path);
 
 	virtual ~KFile();
 

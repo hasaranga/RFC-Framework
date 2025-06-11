@@ -1,5 +1,5 @@
 
-// ========== RFC Generator v1.0 - 2022-11-12 12:16 PM ==========
+// ========== RFC Generator v1.0 - 2025-06-10 18:04 PM ==========
 
 #ifndef _RFC_H_
 #define _RFC_H_ 
@@ -7,11 +7,11 @@
 #define AMALGAMATED_VERSION
 
 
-// =========== KListBoxListener.h ===========
+// =========== KAssert.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
-  
+	Copyright (C) 2013-2025 CrownSoft
+
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
 	arising from the use of this software.
@@ -26,29 +26,29 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
+	3. This notice may not be removed or altered from any source distribution.
 */
-
 #pragma once
 
-class KListBox;
+#include <crtdbg.h>
 
-class KListBoxListener
-{
-public:
-	KListBoxListener();
-
-	virtual ~KListBoxListener();
-
-	virtual void OnListBoxItemSelect(KListBox *listBox);
-
-	virtual void OnListBoxItemDoubleClick(KListBox *listBox);
-};
+// spawns crt assertion error gui if condition is false.
+#ifdef _DEBUG
+#define K_ASSERT(cond, msg) \
+    do { \
+        if (!(cond)) { \
+            _CrtDbgReport(_CRT_ASSERT, __FILE__, __LINE__, nullptr, msg); \
+            _CrtDbgBreak(); \
+        } \
+    } while (0)
+#else
+#define K_ASSERT(cond, msg) ((void)0)
+#endif
 
 // =========== KModuleManager.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -72,22 +72,22 @@ public:
 typedef bool (*RFCModuleInitFunc)();
 typedef void (*RFCModuleFreeFunc)();
 
-#define MAX_RFC_MODULE_COUNT 2
+#define MAX_RFC_MODULE_COUNT 3
 
 class KModuleManager {
 public:
-	static bool RegisterRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc);
-	static RFCModuleInitFunc* RFCModuleInitFuncList();
-	static RFCModuleFreeFunc* RFCModuleFreeFuncList();
+	static bool registerRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc);
+	static RFCModuleInitFunc* rfcModuleInitFuncList();
+	static RFCModuleFreeFunc* rfcModuleFreeFuncList();
 };
 
 #define REGISTER_RFC_MODULE(index, ModuleObjectType) \
-static bool ModuleObjectType##_Registered = KModuleManager::RegisterRFCModule( index , ModuleObjectType##::RFCModuleInit, ModuleObjectType##::RFCModuleFree);
+static bool ModuleObjectType##_Registered = KModuleManager::registerRFCModule( index , ModuleObjectType::rfcModuleInit, ModuleObjectType::rfcModuleFree);
 
 // =========== KLeakDetector.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -123,8 +123,6 @@ static bool ModuleObjectType##_Registered = KModuleManager::RegisterRFCModule( i
 	To use it, simply declare RFC_LEAK_DETECTOR(YourClassName) inside a private section
 	of the class declaration.
 
-	(ref: LeakedObjectDetector class of JUCE)
-
 	@code
 	class MyClass
 	{
@@ -143,17 +141,17 @@ class KLeakDetector
 public:
 	KLeakDetector()
 	{
-		::InterlockedIncrement(&GetCounter().numObjects);
+		::InterlockedIncrement(&getCounter().numObjects);
 	}
 
 	KLeakDetector(const KLeakDetector&)
 	{
-		::InterlockedIncrement(&GetCounter().numObjects);
+		::InterlockedIncrement(&getCounter().numObjects);
 	}
 
 	~KLeakDetector()
 	{
-		::InterlockedDecrement(&GetCounter().numObjects);
+		::InterlockedDecrement(&getCounter().numObjects);
 	}
 
 private:
@@ -177,7 +175,7 @@ private:
 
 				::strcat_s(textBuffer, intBuffer);
 				::strcat_s(textBuffer, " instance(s) of class ");
-				::strcat_s(textBuffer, GetLeakedClassName());
+				::strcat_s(textBuffer, getLeakedClassName());
 
 				::MessageBoxA(0, textBuffer, "Warning", MB_ICONWARNING);
 			}
@@ -186,12 +184,12 @@ private:
 		volatile long numObjects;
 	};
 
-	static const char* GetLeakedClassName()
+	static const char* getLeakedClassName()
 	{
 		return T::rfc_GetLeakedClassName();
 	}
 
-	static LeakCounter& GetCounter()
+	static LeakCounter& getCounter()
 	{
 		static LeakCounter counter;
 		return counter;
@@ -211,7 +209,7 @@ private:
 // =========== KDPIUtility.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -235,12 +233,13 @@ private:
 #include <windows.h>
 #include <shellscalingapi.h>
 
-
 typedef HRESULT(WINAPI* KGetDpiForMonitor)(HMONITOR hmonitor, int dpiType, UINT* dpiX, UINT* dpiY);
 typedef BOOL(WINAPI* KSetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT value);
 typedef HRESULT(STDAPICALLTYPE* KSetProcessDpiAwareness)(PROCESS_DPI_AWARENESS value);
 typedef BOOL (WINAPI* KSetProcessDPIAware)(VOID);
 typedef DPI_AWARENESS_CONTEXT (WINAPI* KSetThreadDpiAwarenessContext) (DPI_AWARENESS_CONTEXT dpiContext);
+typedef BOOL(WINAPI* KAdjustWindowRectExForDpi)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+
 
 /*
 MIXEDMODE_ONLY:	on win10 - all windows are scaled according to the dpi and the mixed mode windows are scaled by the system. 
@@ -258,137 +257,52 @@ enum class KDPIAwareness
 
 class KDPIUtility
 {
+private: 
+    static float getMonitorScalingRatio(HMONITOR monitor);
 public:		
 	static KGetDpiForMonitor pGetDpiForMonitor;
 	static KSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext;
 	static KSetProcessDpiAwareness pSetProcessDpiAwareness;
 	static KSetProcessDPIAware pSetProcessDPIAware;
 	static KSetThreadDpiAwarenessContext pSetThreadDpiAwarenessContext;
+    static KAdjustWindowRectExForDpi pAdjustWindowRectExForDpi;
 
-	static void InitDPIFunctions();
+	static void initDPIFunctions();
 
-	static WORD GetWindowDPI(HWND hWnd);
+    // returns dpi of monitor which our window is in. returns 96 if application is not dpi aware.
+	static WORD getWindowDPI(HWND hWnd);
 
-	static void MakeProcessDPIAware(KDPIAwareness dpiAwareness);
-};
+    // automatically fall back to AdjustWindowRectEx when lower than win10
+    static BOOL adjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
+	static void makeProcessDPIAware(KDPIAwareness dpiAwareness);
 
-// =========== KComboBoxListener.h ===========
+    // gives real value regardless of the process dpi awareness state.
+    // if the process is dpi unaware, os will always give 96dpi.
+    // so, this method will return correct scale value.
+    // it can be used with dpi unaware apps to get the scale of a monitor.
+    // https://stackoverflow.com/questions/70976583/get-real-screen-resolution-using-win32-api
+    /*
+        Example:
+        float monitorScale = 1.0f;
+     	HMONITOR hmon = ::MonitorFromWindow(compHWND, MONITOR_DEFAULTTONEAREST);
+		if (hmon != NULL)
+			monitorScale = KDPIUtility::getScaleForMonitor(hmon);
+    */
+    static float getScaleForMonitor(HMONITOR monitor);
 
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
+    // scale given 96dpi value according to window current dpi.
+    static int scaleToWindowDPI(int valueFor96DPI, HWND window);
 
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
-*/
-
-#pragma once
-
-class KComboBox;
-
-class KComboBoxListener
-{
-public:
-	KComboBoxListener();
-
-	virtual ~KComboBoxListener();
-
-	virtual void OnComboBoxItemSelect(KComboBox *comboBox);
-};
-
-
-// =========== KMenuItemListener.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-#pragma once
-
-
-class KMenuItem;
-
-class KMenuItemListener
-{
-public:
-	KMenuItemListener();
-
-	virtual ~KMenuItemListener();
-
-	virtual void OnMenuItemPress(KMenuItem *menuItem);
-};
-
-
-// =========== KTrackBarListener.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-#pragma once
-
-class KTrackBar;
-
-class KTrackBarListener
-{
-public:
-	KTrackBarListener();
-
-	virtual ~KTrackBarListener();
-
-	virtual void OnTrackBarChange(KTrackBar *trackBar);
+    // scale given 96dpi value according to new dpi.
+    static int scaleToNewDPI(int valueFor96DPI, int newDPI);
 };
 
 
 // =========== Architecture.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -409,61 +323,21 @@ public:
 
 #pragma once
 
+#define RFC_PTR_SIZE sizeof(void*) 
+
 #ifdef _WIN64
 	#define RFC64
-	#define RFC_PTR_SIZE 8
 	#define RFC_NATIVE_INT __int64
 #else
 	#define RFC32
-	#define RFC_PTR_SIZE 4
 	#define RFC_NATIVE_INT int
 #endif
 
 
-// =========== KGridViewListener.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-#pragma once
-
-class KGridView;
-
-class KGridViewListener
-{
-public:
-	KGridViewListener();
-
-	virtual ~KGridViewListener();
-
-	virtual void OnGridViewItemSelect(KGridView *gridView);
-
-	virtual void OnGridViewItemRightClick(KGridView *gridView);
-
-	virtual void OnGridViewItemDoubleClick(KGridView *gridView);
-};
-
 // =========== KScopedStructPointer.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -491,7 +365,7 @@ template<class StructType>
 class KReleaseUsingFree
 {
 public:
-	static void Release(StructType* structPtr)
+	static void release(StructType* structPtr)
 	{
 		::free(structPtr);
 	}
@@ -501,7 +375,7 @@ template<class StructType>
 class KReleaseUsingTaskMemFree
 {
 public:
-	static void Release(StructType* memory)
+	static void release(StructType* memory)
 	{
 		::CoTaskMemFree(memory);
 	}
@@ -526,7 +400,7 @@ private:
 public:
 	inline KScopedStructPointer()
 	{
-		structPointer = NULL;
+		structPointer = nullptr;
 	}
 
 	inline KScopedStructPointer(StructType* structPointer)
@@ -537,29 +411,29 @@ public:
 	KScopedStructPointer(KScopedStructPointer& structPointerToTransferFrom)
 	{
 		this->structPointer = structPointerToTransferFrom.structPointer;
-		structPointerToTransferFrom.structPointer = NULL;
+		structPointerToTransferFrom.structPointer = nullptr;
 	}
 
-	bool IsNull()
+	bool isNull()
 	{
-		return (structPointer == NULL);
+		return (structPointer == nullptr);
 	}
 
 	/** 
 		Removes the current struct pointer from this KScopedStructPointer without freeing it.
 		This will return the current struct pointer, and set the KScopedStructPointer to a null pointer.
 	*/
-	StructType* Detach()
+	StructType* detach()
 	{ 
 		StructType* m = structPointer;
-		structPointer = NULL;
+		structPointer = nullptr;
 		return m; 
 	}
 
 	~KScopedStructPointer()
 	{
 		if (structPointer)
-			ReleaseMethod::Release(structPointer);
+			ReleaseMethod::release(structPointer);
 	}
 
 	/** 
@@ -578,7 +452,7 @@ public:
 			structPointer = newStructPointer;
 
 			if (oldStructPointer)
-				ReleaseMethod::Release(oldStructPointer);
+				ReleaseMethod::release(oldStructPointer);
 		}
 
 		return *this;
@@ -598,10 +472,136 @@ public:
 };
 
 
+// =========== KScopedMemoryBlock.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+#include <malloc.h>
+
+/**
+	This class holds a memory which is automatically freed when this object goes
+	out of scope.
+
+	Once a memory has been passed to a KScopedMemoryBlock, it will make sure that the memory
+	gets freed when the KScopedMemoryBlock is deleted. Using the KScopedMemoryBlock on the stack or
+	as member variables is a good way to use RAII to avoid accidentally leaking dynamically
+	allocated memory.
+
+	A KScopedMemoryBlock can be used in pretty much the same way that you'd use a normal pointer
+	to a memory block. If you use the assignment operator to assign a different memory to a
+	KScopedMemoryBlock, the old one will be automatically freed.
+
+	If you need to get a memory block out of a KScopedClassPointer without it being freed, you
+	can use the detach() method.
+
+	e.g. @code
+	KScopedMemoryBlock<float*> a = (float*)malloc(512 * sizeof(float)); // slow
+	KScopedMemoryBlock<float*> b( (float*)malloc(512 * sizeof(float)) ); // fast
+	@endcode
+*/
+template<class T>
+class KScopedMemoryBlock
+{
+private:
+	T memoryBlock;
+
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
+public:
+	inline KScopedMemoryBlock()
+	{
+		memoryBlock = nullptr;
+	}
+
+	inline KScopedMemoryBlock(T memoryBlock)
+	{
+		this->memoryBlock = memoryBlock;
+	}
+
+	KScopedMemoryBlock(KScopedMemoryBlock& memoryBlockToTransferFrom)
+	{
+		this->memoryBlock = memoryBlockToTransferFrom.memoryBlock;
+		memoryBlockToTransferFrom.memoryBlock = nullptr;
+	}
+
+	bool isNull()
+	{
+		return (memoryBlock == nullptr);
+	}
+
+	/** 
+		Removes the current memory block from this KScopedMemoryBlock without freeing it.
+		This will return the current memory block, and set the KScopedMemoryBlock to a null pointer.
+	*/
+	T detach()
+	{ 
+		T m = memoryBlock;
+		memoryBlock = nullptr;
+		return m; 
+	}
+
+	~KScopedMemoryBlock()
+	{
+		if (memoryBlock)
+			::free(memoryBlock);
+	}
+
+	/** 
+		Changes this KScopedMemoryBlock to point to a new memory block.
+
+		If this KScopedMemoryBlock already points to a memory, that memory
+		will first be freed.
+
+		The pointer that you pass in may be a nullptr.
+	*/
+	KScopedMemoryBlock& operator= (T const newMemoryBlock)
+	{
+		if (memoryBlock != newMemoryBlock)
+		{
+			T const oldMemoryBlock = memoryBlock;
+			memoryBlock = newMemoryBlock;
+
+			if (oldMemoryBlock)
+				::free(oldMemoryBlock);
+		}
+
+		return *this;
+	}
+
+	/** Returns the memory block that this KScopedMemoryBlock refers to. */
+	inline operator T() const { return memoryBlock; }
+
+};
+
+
 // =========== KScopedMallocPointer.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -645,7 +645,7 @@ private:
 public:
 	inline KScopedMallocPointer()
 	{
-		pointer = NULL;
+		pointer = nullptr;
 	}
 
 	inline KScopedMallocPointer(PointerType* pointer)
@@ -656,22 +656,22 @@ public:
 	KScopedMallocPointer(KScopedMallocPointer& pointerToTransferFrom)
 	{
 		this->pointer = pointerToTransferFrom.pointer;
-		pointerToTransferFrom.pointer = NULL;
+		pointerToTransferFrom.pointer = nullptr;
 	}
 
-	bool IsNull()
+	bool isNull()
 	{
-		return (pointer == NULL);
+		return (pointer == nullptr);
 	}
 
 	/** 
 		Removes the current pointer from this KScopedMallocPointer without freeing it.
 		This will return the current pointer, and set the KScopedMallocPointer to a null pointer.
 	*/
-	PointerType* Detach()
+	PointerType* detach()
 	{ 
 		PointerType* m = pointer;
-		pointer = NULL;
+		pointer = nullptr;
 		return m; 
 	}
 
@@ -714,10 +714,476 @@ public:
 };
 
 
+// =========== KStaticAllocator.h ===========
+
+/*
+    Copyright (C) 2013-2025 CrownSoft
+
+    This software is provided 'as-is', without any express or implied
+    warranty.  In no event will the authors be held liable for any damages
+    arising from the use of this software.
+
+    Permission is granted to anyone to use this software for any purpose,
+    including commercial applications, and to alter it and redistribute it
+    freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+       claim that you wrote the original software. If you use this software
+       in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+    2. Altered source versions must be plainly marked as such, and must not be
+       misrepresented as being the original software.
+    3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+#include <cstddef>
+#include <new>
+#include <atomic>
+
+#ifndef KSTATIC_POOL_SIZE
+    #define KSTATIC_POOL_SIZE 520
+#endif
+
+// thread-safe static allocation. (Lock-free)
+class KStaticAllocator
+{
+private:
+    static constexpr size_t POOL_SIZE = KSTATIC_POOL_SIZE; // 1MB pool
+    static char memory_pool[POOL_SIZE];
+    static std::atomic<size_t> current_offset;
+
+public:
+    // once allocated, returned buffer will stay until the application exit.
+    // returns nullptr if KSTATIC_POOL_SIZE is not enough.
+    static void* allocate(size_t size, size_t alignment = alignof(std::max_align_t));
+    
+    static void reset();
+};
+
+
+// =========== KScopedGdiObject.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+#include <windows.h>
+
+/**
+	This class holds a gdi object which is automatically freed when this object goes
+	out of scope.
+
+	If you need to get a gdi object out of a KScopedGdiObject without it being freed, you
+	can use the detach() method.
+
+	e.g. @code
+	KScopedGdiObject<HBRUSH> a = ::CreateSolidBrush(RGB(255, 255, 255)); // slow
+	KScopedGdiObject<HBRUSH> b(::CreateSolidBrush(RGB(255, 0, 0))); // fast
+	@endcode,
+*/
+template<class T>
+class KScopedGdiObject
+{
+private:
+	T gdiObject;
+
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
+public:
+	inline KScopedGdiObject()
+	{
+		gdiObject = 0;
+	}
+
+	inline KScopedGdiObject(T gdiObject)
+	{
+		this->gdiObject = gdiObject;
+	}
+
+	KScopedGdiObject(KScopedGdiObject& gdiObjectToTransferFrom)
+	{
+		this->gdiObject = gdiObjectToTransferFrom.gdiObject;
+		gdiObjectToTransferFrom.gdiObject = 0;
+	}
+
+	/** 
+		Removes the current gdi object from this KScopedGdiObject without freeing it.
+		This will return the current gdi object, and set the KScopedGdiObject to a null value.
+	*/
+	T detach()
+	{ 
+		T g = gdiObject;
+		gdiObject = 0;
+		return g; 
+	}
+
+	~KScopedGdiObject()
+	{
+		if (gdiObject)
+			::DeleteObject(gdiObject);
+	}
+
+	/** 
+		Changes this KScopedGdiObject to point to a new gdi object.
+
+		If this KScopedGdiObject already points to a gdi object, that object
+		will first be freed.
+
+		The object that you pass in may be a zero.
+	*/
+	KScopedGdiObject& operator= (T const newGdiObject)
+	{
+		if (gdiObject != newGdiObject)
+		{
+			T const oldgdiObject = gdiObject;
+			gdiObject = newGdiObject;
+
+			if (oldgdiObject)
+				::DeleteObject(oldgdiObject);
+		}
+
+		return *this;
+	}
+
+	/** Returns the gdi object that this KScopedGdiObject refers to. */
+	inline operator T() const { return gdiObject; }
+
+};
+
+
+// =========== KScopedCriticalSection.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+#include <windows.h>
+
+/**
+	This class holds a pointer to CRITICAL_SECTION which is automatically released when this object goes
+	out of scope.
+*/
+class KScopedCriticalSection
+{
+private:
+	CRITICAL_SECTION* criticalSection;
+
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
+public:
+	KScopedCriticalSection(CRITICAL_SECTION* criticalSection)
+	{
+		this->criticalSection = criticalSection;
+		::EnterCriticalSection(criticalSection);
+	}
+
+	// does not call LeaveCriticalSection
+	CRITICAL_SECTION* detach()
+	{ 
+		CRITICAL_SECTION* c = criticalSection;
+		criticalSection = nullptr;
+		return c; 
+	}
+
+	~KScopedCriticalSection()
+	{
+		if (criticalSection)
+			::LeaveCriticalSection(criticalSection);
+	}
+
+	inline operator CRITICAL_SECTION*() const { return criticalSection; }
+
+};
+
+
+// =========== KScopedComPointer.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+#include <windows.h>
+
+/**
+	This class holds a COM pointer which is automatically released when this object goes
+	out of scope.
+*/
+template<class T>
+class KScopedComPointer
+{
+private:
+	T* object;
+
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
+public:
+	inline KScopedComPointer()
+	{
+		object = nullptr;
+	}
+
+	inline KScopedComPointer(T* object)
+	{
+		this->object = object;
+
+		if (this->object)
+			this->object->AddRef();
+	}
+
+	KScopedComPointer(KScopedComPointer& objectToTransferFrom)
+	{
+		object = objectToTransferFrom.object;
+
+		if (object)
+			object->AddRef();
+	}
+
+	bool isNull()
+	{
+		return (object == nullptr);
+	}
+
+	/** 
+		Removes the current COM object from this KScopedComPointer without releasing it.
+		This will return the current object, and set the KScopedComPointer to a null pointer.
+	*/
+	T* detach()
+	{ 
+		T* o = object; 
+		object = nullptr;
+		return o; 
+	}
+
+	~KScopedComPointer()
+	{
+		if (object)
+			object->Release();
+
+		object = nullptr;
+	}
+
+	inline T** operator&() { return &object; }
+
+	/** Returns the object that this KScopedComPointer refers to. */
+	inline operator T*() const { return object; }
+
+	/** Returns the object that this KScopedComPointer refers to. */
+	inline T& operator*() const { return *object; }
+
+	/** Lets you access methods and properties of the object that this KScopedComPointer refers to. */
+	inline T* operator->() const { return object; }
+
+};
+
+
+// =========== KScopedClassPointer.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+#include <windows.h>
+
+/**
+	This class holds a pointer which is automatically deleted when this object goes
+	out of scope.
+
+	Once a pointer has been passed to a KScopedClassPointer, it will make sure that the pointer
+	gets deleted when the KScopedClassPointer is deleted. Using the KScopedClassPointer on the stack or
+	as member variables is a good way to use RAII to avoid accidentally leaking dynamically
+	created objects.
+
+	A KScopedClassPointer can be used in pretty much the same way that you'd use a normal pointer
+	to an object. If you use the assignment operator to assign a different object to a
+	KScopedClassPointer, the old one will be automatically deleted.
+
+	Important note: The class is designed to hold a pointer to an object, NOT to an array!
+	It calls delete on its payload, not delete[], so do not give it an array to hold!
+
+	If you need to get a pointer out of a KScopedClassPointer without it being deleted, you
+	can use the detach() method.
+
+	e.g. @code
+	KScopedClassPointer<MyClass> a = new MyClass(); // slow
+	a->myMethod();
+	a = new MyClass(); // old object will be deleted
+	KScopedClassPointer<MyClass> b( new MyClass() ); // fast
+	@endcode
+
+*/
+template<class T>
+class KScopedClassPointer
+{
+private:
+	T* object;
+
+	// Prevent heap allocation
+	void* operator new(size_t);
+	void* operator new[](size_t);
+	void  operator delete(void*);
+	void  operator delete[](void*);
+
+public:
+	inline KScopedClassPointer()
+	{
+		object = nullptr;
+	}
+
+	inline KScopedClassPointer(T* object)
+	{
+		this->object = object;
+	}
+
+	KScopedClassPointer(KScopedClassPointer& objectToTransferFrom)
+	{
+		this->object = objectToTransferFrom.object;
+		objectToTransferFrom.object = nullptr;
+	}
+
+	bool isNull()
+	{
+		return (object == nullptr);
+	}
+
+	/** 
+		Removes the current object from this KScopedClassPointer without deleting it.
+		This will return the current object, and set the KScopedClassPointer to a null pointer.
+	*/
+	T* detach()
+	{ 
+		T* o = object; 
+		object = nullptr;
+		return o; 
+	}
+
+	~KScopedClassPointer()
+	{
+		if (object)
+			delete object;
+	}
+
+	/** 
+		Changes this KScopedClassPointer to point to a new object.
+
+		If this KScopedClassPointer already points to an object, that object
+		will first be deleted.
+
+		The pointer that you pass in may be a nullptr.
+	*/
+	KScopedClassPointer& operator= (T* const newObject)
+	{
+		if (object != newObject)
+		{
+			T* const oldObject = object;
+			object = newObject;
+
+			if (oldObject)
+				delete oldObject;
+		}
+
+		return *this;
+	}
+
+	/** Returns the object that this KScopedClassPointer refers to. */
+	inline operator T*() const { return object; }
+
+	/** Returns the object that this KScopedClassPointer refers to. */
+	inline T& operator*() const { return *object; }
+
+	/** Lets you access methods and properties of the object that this KScopedClassPointer refers to. */
+	inline T* operator->() const { return object; }
+};
+
 // =========== KScopedHandle.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -766,7 +1232,7 @@ public:
 		this->handle = handle;
 	}
 
-	HANDLE Detach()
+	HANDLE detach()
 	{
 		HANDLE h = handle;
 		handle = 0;
@@ -787,7 +1253,7 @@ public:
 		return *this;
 	}
 
-	bool IsNull()
+	bool isNull()
 	{
 		return (handle == 0);
 	}
@@ -805,633 +1271,10 @@ public:
 };
 
 
-// =========== KScopedGdiObject.h ===========
+// =========== KRefCountedMemory.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
-
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-*/
-
-#pragma once
-
-#include <windows.h>
-
-/**
-	This class holds a gdi object which is automatically freed when this object goes
-	out of scope.
-
-	If you need to get a gdi object out of a KScopedGdiObject without it being freed, you
-	can use the Release() method.
-
-	(ref: ScopedPointer class of JUCE)
-
-	e.g. @code
-	KScopedGdiObject<HBRUSH> a = ::CreateSolidBrush(RGB(255, 255, 255)); // slow
-	KScopedGdiObject<HBRUSH> b(::CreateSolidBrush(RGB(255, 0, 0))); // fast
-	@endcode,
-*/
-template<class T>
-class KScopedGdiObject
-{
-private:
-	T gdiObject;
-
-	// Prevent heap allocation
-	void* operator new(size_t);
-	void* operator new[](size_t);
-	void  operator delete(void*);
-	void  operator delete[](void*);
-
-public:
-	inline KScopedGdiObject()
-	{
-		gdiObject = 0;
-	}
-
-	inline KScopedGdiObject(T gdiObject)
-	{
-		this->gdiObject = gdiObject;
-	}
-
-	KScopedGdiObject(KScopedGdiObject& gdiObjectToTransferFrom)
-	{
-		this->gdiObject = gdiObjectToTransferFrom.gdiObject;
-		gdiObjectToTransferFrom.gdiObject = 0;
-	}
-
-	/** 
-		Removes the current gdi object from this KScopedGdiObject without freeing it.
-		This will return the current gdi object, and set the KScopedGdiObject to a null value.
-	*/
-	T Detach()
-	{ 
-		T g = gdiObject;
-		gdiObject = 0;
-		return g; 
-	}
-
-	~KScopedGdiObject()
-	{
-		if (gdiObject)
-			::DeleteObject(gdiObject);
-	}
-
-	/** 
-		Changes this KScopedGdiObject to point to a new gdi object.
-
-		If this KScopedGdiObject already points to a gdi object, that object
-		will first be freed.
-
-		The object that you pass in may be a zero.
-	*/
-	KScopedGdiObject& operator= (T const newGdiObject)
-	{
-		if (gdiObject != newGdiObject)
-		{
-			T const oldgdiObject = gdiObject;
-			gdiObject = newGdiObject;
-
-			if (oldgdiObject)
-				::DeleteObject(oldgdiObject);
-		}
-
-		return *this;
-	}
-
-	/** Returns the gdi object that this KScopedGdiObject refers to. */
-	inline operator T() const { return gdiObject; }
-
-};
-
-
-// =========== KScopedCriticalSection.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-*/
-
-#pragma once
-
-#include <windows.h>
-
-/**
-	This class holds a pointer to CRITICAL_SECTION which is automatically released when this object goes
-	out of scope.
-*/
-class KScopedCriticalSection
-{
-private:
-	CRITICAL_SECTION *criticalSection;
-
-	// Prevent heap allocation
-	void* operator new(size_t);
-	void* operator new[](size_t);
-	void  operator delete(void*);
-	void  operator delete[](void*);
-
-public:
-	KScopedCriticalSection(CRITICAL_SECTION *criticalSection)
-	{
-		this->criticalSection = criticalSection;
-		::EnterCriticalSection(criticalSection);
-	}
-
-	// does not call LeaveCriticalSection
-	CRITICAL_SECTION* Detach()
-	{ 
-		CRITICAL_SECTION *c = criticalSection;
-		criticalSection = NULL;
-		return c; 
-	}
-
-	~KScopedCriticalSection()
-	{
-		if (criticalSection)
-			::LeaveCriticalSection(criticalSection);
-	}
-
-	inline operator CRITICAL_SECTION*() const { return criticalSection; }
-
-};
-
-
-// =========== KScopedComPointer.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-*/
-
-#pragma once
-
-#include <windows.h>
-
-/**
-	This class holds a COM pointer which is automatically released when this object goes
-	out of scope.
-*/
-template<class T>
-class KScopedComPointer
-{
-private:
-	T* object;
-
-	// Prevent heap allocation
-	void* operator new(size_t);
-	void* operator new[](size_t);
-	void  operator delete(void*);
-	void  operator delete[](void*);
-
-public:
-	inline KScopedComPointer()
-	{
-		object = NULL;
-	}
-
-	inline KScopedComPointer(T* object)
-	{
-		this->object = object;
-
-		if (this->object)
-			this->object->AddRef();
-	}
-
-	KScopedComPointer(KScopedComPointer& objectToTransferFrom)
-	{
-		object = objectToTransferFrom.object;
-
-		if (object)
-			object->AddRef();
-	}
-
-	bool IsNull()
-	{
-		return (object == NULL);
-	}
-
-	/** 
-		Removes the current COM object from this KScopedComPointer without releasing it.
-		This will return the current object, and set the KScopedComPointer to a null pointer.
-	*/
-	T* Detach()
-	{ 
-		T* o = object; 
-		object = NULL; 
-		return o; 
-	}
-
-	~KScopedComPointer()
-	{
-		if (object)
-			object->Release();
-
-		object = NULL;
-	}
-
-	inline T** operator&() { return &object; }
-
-	/** Returns the object that this KScopedComPointer refers to. */
-	inline operator T*() const { return object; }
-
-	/** Returns the object that this KScopedComPointer refers to. */
-	inline T& operator*() const { return *object; }
-
-	/** Lets you access methods and properties of the object that this KScopedComPointer refers to. */
-	inline T* operator->() const { return object; }
-
-};
-
-
-// =========== KScopedClassPointer.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-*/
-
-#pragma once
-
-#include <windows.h>
-
-/**
-	This class holds a pointer which is automatically deleted when this object goes
-	out of scope.
-
-	Once a pointer has been passed to a KScopedClassPointer, it will make sure that the pointer
-	gets deleted when the KScopedClassPointer is deleted. Using the KScopedClassPointer on the stack or
-	as member variables is a good way to use RAII to avoid accidentally leaking dynamically
-	created objects.
-
-	A KScopedClassPointer can be used in pretty much the same way that you'd use a normal pointer
-	to an object. If you use the assignment operator to assign a different object to a
-	KScopedClassPointer, the old one will be automatically deleted.
-
-	Important note: The class is designed to hold a pointer to an object, NOT to an array!
-	It calls delete on its payload, not delete[], so do not give it an array to hold!
-
-	If you need to get a pointer out of a KScopedClassPointer without it being deleted, you
-	can use the Release() method.
-
-	(ref: ScopedPointer class of JUCE)
-
-	e.g. @code
-	KScopedClassPointer<MyClass> a = new MyClass(); // slow
-	a->myMethod();
-	a = new MyClass(); // old object will be deleted
-	KScopedClassPointer<MyClass> b( new MyClass() ); // fast
-	@endcode
-
-*/
-template<class T>
-class KScopedClassPointer
-{
-private:
-	T* object;
-
-	// Prevent heap allocation
-	void* operator new(size_t);
-	void* operator new[](size_t);
-	void  operator delete(void*);
-	void  operator delete[](void*);
-
-public:
-	inline KScopedClassPointer()
-	{
-		object = 0;
-	}
-
-	inline KScopedClassPointer(T* object)
-	{
-		this->object = object;
-	}
-
-	KScopedClassPointer(KScopedClassPointer& objectToTransferFrom)
-	{
-		this->object = objectToTransferFrom.object;
-		objectToTransferFrom.object = 0;
-	}
-
-	bool IsNull()
-	{
-		return (object == NULL);
-	}
-
-	/** 
-		Removes the current object from this KScopedClassPointer without deleting it.
-		This will return the current object, and set the KScopedClassPointer to a null pointer.
-	*/
-	T* Detach()
-	{ 
-		T* o = object; 
-		object = 0; 
-		return o; 
-	}
-
-	~KScopedClassPointer()
-	{
-		if (object)
-			delete object;
-	}
-
-	/** 
-		Changes this KScopedClassPointer to point to a new object.
-
-		If this KScopedClassPointer already points to an object, that object
-		will first be deleted.
-
-		The pointer that you pass in may be a nullptr.
-	*/
-	KScopedClassPointer& operator= (T* const newObject)
-	{
-		if (object != newObject)
-		{
-			T* const oldObject = object;
-			object = newObject;
-
-			if (oldObject)
-				delete oldObject;
-		}
-
-		return *this;
-	}
-
-	/** Returns the object that this KScopedClassPointer refers to. */
-	inline operator T*() const { return object; }
-
-	/** Returns the object that this KScopedClassPointer refers to. */
-	inline T& operator*() const { return *object; }
-
-	/** Lets you access methods and properties of the object that this KScopedClassPointer refers to. */
-	inline T* operator->() const { return object; }
-};
-
-// =========== KTimerListener.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
-*/
-
-#pragma once
-
-class KTimer;
-
-class KTimerListener
-{
-public:
-	KTimerListener();
-
-	virtual ~KTimerListener();
-
-	virtual void OnTimer(KTimer *timer);
-};
-
-
-// =========== KScopedMemoryBlock.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-*/
-
-#pragma once
-
-#include <malloc.h>
-
-/**
-	This class holds a memory which is automatically freed when this object goes
-	out of scope.
-
-	Once a memory has been passed to a KScopedMemoryBlock, it will make sure that the memory
-	gets freed when the KScopedMemoryBlock is deleted. Using the KScopedMemoryBlock on the stack or
-	as member variables is a good way to use RAII to avoid accidentally leaking dynamically
-	allocated memory.
-
-	A KScopedMemoryBlock can be used in pretty much the same way that you'd use a normal pointer
-	to a memory block. If you use the assignment operator to assign a different memory to a
-	KScopedMemoryBlock, the old one will be automatically freed.
-
-	If you need to get a memory block out of a KScopedClassPointer without it being freed, you
-	can use the Release() method.
-
-	(ref: ScopedPointer class of JUCE)
-
-	e.g. @code
-	KScopedMemoryBlock<float*> a = (float*)malloc(512 * sizeof(float)); // slow
-	KScopedMemoryBlock<float*> b( (float*)malloc(512 * sizeof(float)) ); // fast
-	@endcode
-*/
-template<class T>
-class KScopedMemoryBlock
-{
-private:
-	T memoryBlock;
-
-	// Prevent heap allocation
-	void* operator new(size_t);
-	void* operator new[](size_t);
-	void  operator delete(void*);
-	void  operator delete[](void*);
-
-public:
-	inline KScopedMemoryBlock()
-	{
-		memoryBlock = NULL;
-	}
-
-	inline KScopedMemoryBlock(T memoryBlock)
-	{
-		this->memoryBlock = memoryBlock;
-	}
-
-	KScopedMemoryBlock(KScopedMemoryBlock& memoryBlockToTransferFrom)
-	{
-		this->memoryBlock = memoryBlockToTransferFrom.memoryBlock;
-		memoryBlockToTransferFrom.memoryBlock = NULL;
-	}
-
-	bool IsNull()
-	{
-		return (memoryBlock == NULL);
-	}
-
-	/** 
-		Removes the current memory block from this KScopedMemoryBlock without freeing it.
-		This will return the current memory block, and set the KScopedMemoryBlock to a null pointer.
-	*/
-	T Detach()
-	{ 
-		T m = memoryBlock;
-		memoryBlock = NULL;
-		return m; 
-	}
-
-	~KScopedMemoryBlock()
-	{
-		if (memoryBlock)
-			::free(memoryBlock);
-	}
-
-	/** 
-		Changes this KScopedMemoryBlock to point to a new memory block.
-
-		If this KScopedMemoryBlock already points to a memory, that memory
-		will first be freed.
-
-		The pointer that you pass in may be a nullptr.
-	*/
-	KScopedMemoryBlock& operator= (T const newMemoryBlock)
-	{
-		if (memoryBlock != newMemoryBlock)
-		{
-			T const oldMemoryBlock = memoryBlock;
-			memoryBlock = newMemoryBlock;
-
-			if (oldMemoryBlock)
-				::free(oldMemoryBlock);
-		}
-
-		return *this;
-	}
-
-	/** Returns the memory block that this KScopedMemoryBlock refers to. */
-	inline operator T() const { return memoryBlock; }
-
-};
-
-
-// =========== KButtonListener.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-#pragma once
-
-class KButton;
-
-class KButtonListener
-{
-public:
-	KButtonListener();
-
-	virtual ~KButtonListener();
-
-	virtual void OnButtonPress(KButton *button);
-};
-
-
-// =========== KStringHolder.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1455,50 +1298,56 @@ public:
 #include <windows.h>
 
 /**
-	This class holds reference counted string.
+	This class holds reference counted heap memory which is allocated using malloc.
+	when ref count reach zero, the memory will be released using ::free.
 */
-class KStringHolder
+template<class T>
+class KRefCountedMemory
 {
+private:
+	~KRefCountedMemory() {}
+
+protected:
 	volatile LONG refCount;
-	char *a_text; // ansi version
-
-	#ifndef RFC_NO_SAFE_ANSI_STR
-	CRITICAL_SECTION cs_a_text; // to guard ansi string creation
-	#endif
 
 public:
-	wchar_t *w_text; // unicode version
-	int count; // character count
+	T buffer;
 
-	KStringHolder(wchar_t *w_text, int count);
-
-	~KStringHolder();
+	KRefCountedMemory(T buffer) : refCount(1), buffer(buffer) {}
+	
+	/**
+		Make sure to call this method if you construct new KRefCountedMemory or keep reference to another KRefCountedMemory object.
+	*/
+	void addReference()
+	{
+		::InterlockedIncrement(&refCount);
+	}
 
 	/**
-		Make sure to call this method if you contruct new KStringHolder or keep reference to another KStringHolder object.
+		Make sure to call this method if you clear reference to KRefCountedMemory object. 
+		it will release allocated memory for string if ref count is zero.
 	*/
-	void AddReference();
+	void releaseReference()
+	{
+		const LONG res = ::InterlockedDecrement(&refCount);
+		if (res == 0)
+		{
+			if (buffer)
+				::free(buffer);
 
-	/**
-		Make sure to call this method if you clear reference to KStringHolder object. it will release allocated memory for string.
-	*/
-	void ReleaseReference();
-
-	/**
-		ANSI version available only when needed.
-	*/
-	const char* GetAnsiVersion(UINT codePage = CP_UTF8);
+			delete this;
+		}
+	}
 
 private:
-	RFC_LEAK_DETECTOR(KStringHolder)
+	RFC_LEAK_DETECTOR(KRefCountedMemory)
 };
 
 
 
 // =========== KString.h ===========
-
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1524,46 +1373,68 @@ private:
 #include <string.h>
 #include <malloc.h>
 
+/*
+	DO_NOT_FREE: supplied pointer is a static string literal(always available). it will not freed on destroy.
+	FREE_ON_DESTROY: supplied pointer is a heap memory created using malloc. it will be freed on destroy.
+	MAKE_A_COPY: make a copy of supplied string. if string length is larger than 11, heap memory will be allocated.
+*/
+enum class KStringBehaviour { DO_NOT_FREE,
+	FREE_ON_DESTROY, 
+	MAKE_A_COPY
+};
+
+// define RFC_NO_CHECK_ARRAY_AS_LITERAL if you want to disable the check for array passed as string literal at debug mode.
+#ifndef RFC_NO_CHECK_ARRAY_AS_LITERAL
+#define RFC_CHECK_ARRAY_AS_LITERAL(literal,N) K_ASSERT(wcslen(literal) == (N - 1), "array used as a string literal. please use the array with KString constructor that accepts a behavior parameter.");
+#else
+#define RFC_CHECK_ARRAY_AS_LITERAL(literal,N) 
+#endif
+
+enum class KStringBufferType : unsigned char { StaticText, SSOText, HeapText };
+
 /**
-	Using a reference-counted internal representation, these strings are fast and efficient. <BR>
-	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi. <BR>
-	KString does not support for multiple zero terminated strings. <BR>
+	Using a reference-counted internal representation for long strings and Small String Optimization (SSO) for short strings.
+	KString was optimized to use with unicode strings. So, use unicode strings instead of ansi.
+	KString does not support for multiple zero terminated strings.
 
-	Optimization tips: <BR>
-	use CONST_TXT macro when using statically typed text. <BR>
-	use constructor instead of assignment (if can). <BR>
-	use "Append" method instead of "+" operator. <BR>
-	use "AppendStaticText" method instead of "Append" if you are using statically typed text. <BR>
-	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text. <BR>
-	define RFC_NO_SAFE_ANSI_STR if your app is not casting KString to ansi string within multiple threads. <BR>
+	SSO Implementation:
+	- Strings with 11 characters or fewer are stored directly in the object (Small String Optimization)
+	- Longer strings use the heap with KRefCountedMemory mechanism
+	- Static text references just use pointer assignment
 
-	@code
-	KString result1 = str1 + L"1234"; // slow
-	KString result2 = str1 + CONST_TXT("1234"); // fast
-	KString result3( str1 + CONST_TXT("1234") ); // more fast
-	KString result4( str1.Append(CONST_TXT("1234")) ); // bit more fast
-	KString result5( str1.AppendStaticText(TXT_WITH_LEN("1234")) ); // that's all you can have ;-)
-	@endcode
+	Optimization tips:
+	use unicode strings instead of ansi.
+	try to use strings with length less than 12.
+	L"hello"_st is same as CONST_TXT("hello") or KString(L"hello",KString::STATIC_TEXT_DO_NOT_FREE,5)
+	use "CompareWithStaticText" method instead of "Compare" if you are comparing statically typed text.
+
 */
 class KString
 {
-protected:
-	mutable KStringHolder *stringHolder; // for empty string: stringHolder=0 && isStaticText=false
-	bool isZeroLength; // true if empty string or staticText, stringHolder are zero length
-	mutable bool isStaticText; // staticText & staticTextLength are valid only if this field is true. stringHolder can be zero even this filed is false.
-	wchar_t *staticText;
-	int staticTextLength;
-
-	void ConvertToRefCountedStringIfStatic()const; // generates StringHolder object from static text
-
 public:
+	// SSO buffer size: can fit up to 11 wchar_t characters + null terminator in 24 bytes
+	static const int SSO_BUFFER_SIZE = 12;
 
-	enum TextTypes
-	{
-		STATIC_TEXT_DO_NOT_FREE = 1,
-		FREE_TEXT_WHEN_DONE = 2,
-		USE_COPY_OF_TEXT = 3,
-	};
+protected:
+	// we try to make sizeof KString to be 32 bytes for better cache align.
+
+	// you can use either data.ssoBuffer or data.staticText or data.refCountedMem. 
+	// can use only one at a time. selected by the bufferType.
+	union {
+		KRefCountedMemory<wchar_t*>* refCountedMem;
+		const wchar_t* staticText;
+		wchar_t ssoBuffer[SSO_BUFFER_SIZE]; // for small strings
+	} data; 
+
+	int characterCount; // character count (empty string has zero characterCount)
+	KStringBufferType bufferType;
+
+	inline void markAsEmptyString();
+
+	void initFromLiteral(const wchar_t* literal, size_t N);
+	void assignFromLiteral(const wchar_t* literal, size_t N);
+	void copyFromOther(const KString& other);
+public:
 
 	/**
 		Constructs an empty string
@@ -1571,9 +1442,15 @@ public:
 	KString();
 
 	/**
-		Constructs copy of another string
+		Constructs copy of another string.
+		Same performance as move. lightweight!
 	*/
 	KString(const KString& other);
+
+	/**
+		Move constructor. Same performance as copy. other string will be cleared.
+	*/
+	KString(KString&& other) noexcept;
 
 	/**
 		Constructs String object using ansi string
@@ -1581,9 +1458,19 @@ public:
 	KString(const char* const text, UINT codePage = CP_UTF8);
 
 	/**
-		Constructs String object using unicode string
+		Constructs String object using unicode string literal
 	*/
-	KString(const wchar_t* const text, unsigned char behaviour = USE_COPY_OF_TEXT, int length = -1);
+	template<size_t N>
+	KString(const wchar_t(&literal)[N])
+	{
+		RFC_CHECK_ARRAY_AS_LITERAL(literal, N);
+		initFromLiteral(literal, N);
+	}
+
+	/**
+		Constructs String object using unicode string pointer
+	*/
+	KString(const wchar_t* const text, KStringBehaviour behaviour, int length = -1);
 
 	/**
 		Constructs String object using integer
@@ -1601,11 +1488,22 @@ public:
 	*/
 	const KString& operator= (const KString& other);
 
-	/** 
-		Replaces this string's contents with unicode string. 
-	*/
-	const KString& operator= (const wchar_t* const other);
+	// Move assignment. clears other string.
+	KString& operator= (KString&& other);
 
+	/**
+		Replaces this string's contents with static unicode string literal.
+	*/
+	template<size_t N>
+	const KString& operator= (const wchar_t(&literal)[N])
+	{
+		RFC_CHECK_ARRAY_AS_LITERAL(literal, N);
+		assignFromLiteral(literal, N);
+		return *this;
+	}
+
+	// compare with other string
+	bool operator==(const KString& other) const;
 
 	/** 
 		Appends a string at the end of this one.
@@ -1613,53 +1511,56 @@ public:
 	*/
 	const KString operator+ (const KString& stringToAppend);
 
-	/** 
-		Appends a unicode string at the end of this one.
+	/**
+		Appends a unicode string literal at the end of this one.
 		@returns     the concatenated string
 	*/
-	const KString operator+ (const wchar_t* const textToAppend);
-	/**
-		Returns ansi version of this string
-	*/
-	operator const char*()const;
+	template<size_t N>
+	const KString operator+ (const wchar_t(&literalToAppend)[N])
+	{
+		RFC_CHECK_ARRAY_AS_LITERAL(literalToAppend, N);
+		return appendStaticText(literalToAppend, (int)N - 1);
+	}
 
 	/**
 		Returns const unicode version of this string
 	*/
 	operator const wchar_t*()const;
 
-	/**
-		Returns unicode version of this string
-	*/
-	operator wchar_t*()const;
-
 	/** 
 		Returns a character from the string.
 		@returns -1 if index is out of range
 	*/
-	const char operator[](const int index)const;
+	const wchar_t operator[](const int index)const;
 
 	/**
 		Appends a string at the end of this one.
 		@returns     the concatenated string
 	*/
-	KString Append(const KString& otherString)const;
+	KString append(const KString& otherString)const;
 
 	/**
-		Appends a statically typed string to begining or end of this one.
+		Appends a statically typed string to beginning or end of this one.
 		@param text			statically typed text
 		@param length		text length. should not be zero.
-		@param appendToEnd	appends to begining if false
+		@param appendToEnd	appends to beginning if false
 		@returns			the concatenated string
 	*/
-	KString AppendStaticText(const wchar_t* const text, int length, bool appendToEnd = true)const;
+	KString appendStaticText(const wchar_t* const text, int length, bool appendToEnd = true)const;
 
 	/**
 		Assigns a statically typed string.
 		@param text			statically typed text
 		@param length		text length. should not be zero.
 	*/
-	void AssignStaticText(const wchar_t* const text, int length);
+	void assignStaticText(const wchar_t* const text, int length);
+
+	// clears the content of the string.
+	void clear();
+
+	// the string automatically clears and converted to SSOText when you call accessRawSSOBuffer.
+	// sso buffer size is KString::SSO_BUFFER_SIZE in wchars.
+	void accessRawSSOBuffer(wchar_t** ssoBuffer, int** ppLength);
 
 	/** 
 		Returns a subsection of the string.
@@ -1670,94 +1571,98 @@ public:
 		@param start   the index of the start of the substring needed
 		@param end     all characters from start up to this index are returned
 	*/
-	KString SubString(int start, int end)const;
+	KString subString(int start, int end)const;
 
 	/**
 		Case-insensitive comparison with another string. Slower than "Compare" method.
 		@returns     true if the two strings are identical, false if not
 	*/
-	bool CompareIgnoreCase(const KString& otherString)const;
+	bool compareIgnoreCase(const KString& otherString)const;
 
 	/** 
 		Case-sensitive comparison with another string.
 		@returns     true if the two strings are identical, false if not
 	*/
-	bool Compare(const KString& otherString)const;
+	bool compare(const KString& otherString)const;
 
 	/** 
 		Case-sensitive comparison with statically typed string.
 		@param text		statically typed text.
 		@returns		true if the two strings are identical, false if not
 	*/
-	bool CompareWithStaticText(const wchar_t* const text)const;
+	bool compareWithStaticText(const wchar_t* const text)const;
 
 	/**
 		Compare first character with given unicode character
 	*/
-	bool StartsWithChar(wchar_t character)const;
-
-	/**
-		Compare first character with given ansi character
-	*/
-	bool StartsWithChar(char character)const;
+	bool startsWithChar(wchar_t character)const;
 
 	/**
 		Compare last character with given unicode character
 	*/
-	bool EndsWithChar(wchar_t character)const;
-
-	/**
-		Compare last character with given ansi character
-	*/
-	bool EndsWithChar(char character)const;
+	bool endsWithChar(wchar_t character)const;
 
 	/**
 		Check if string is quoted or not
 	*/
-	bool IsQuotedString()const;
+	bool isQuotedString()const;
 
 	/** 
 		Returns a character from the string.
 		@returns -1 if index is out of range
 	*/
-	wchar_t GetCharAt(int index)const;
+	wchar_t getCharAt(int index)const;
+
+	KStringBufferType getBufferType()const;
 
 	/**
 		Returns number of characters in string
 	*/
-	int GetLength()const;
+	int length()const;
 
 	/**
 		Returns true if string is empty
 	*/
-	bool IsEmpty()const;
+	bool isEmpty()const;
 
-	bool IsNotEmpty()const;
+	bool isNotEmpty()const;
 
 	/**
 		Returns value of string
 	*/
-	int GetIntValue()const;
+	int getIntValue()const;
 
 	/** 
 		Returns an upper-case version of this string.
 	*/
-	KString ToUpperCase()const;
+	KString toUpperCase()const;
 
 	/** 
 		Returns an lower-case version of this string. 
 	*/
-	KString ToLowerCase()const;
+	KString toLowerCase()const;
 
-	// free returned buffer when done.
-	static char* ToAnsiString(const wchar_t* text);
-	static wchar_t* ToUnicodeString(const char* text);
+	// free the returned buffer when done.
+	static char* toAnsiString(const wchar_t* text);
+	static wchar_t* toUnicodeString(const char* text);
 
-	virtual ~KString();
+	~KString();
 
 private:
+	/**
+		Returns pointer to the actual string data regardless of storage type
+	*/
+	const wchar_t* getStringPtr() const;
+
 	RFC_LEAK_DETECTOR(KString)
 };
+
+// static text literal operator
+namespace kstring_literals {
+	KString operator"" _st(const wchar_t* str, size_t len);
+}
+
+using namespace kstring_literals;
 
 const KString operator+ (const char* const string1, const KString& string2);
 
@@ -1770,23 +1675,23 @@ const KString operator+ (const KString& string1, const KString& string2);
 #define LEN_ANSI_STR(X) (sizeof(X) / sizeof(char)) - 1
 
 // do not make a copy + do not free + do not calculate length
-#define CONST_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE, LEN_UNI_STR(L##X))
+#define CONST_TXT(X) KString(L##X, KStringBehaviour::DO_NOT_FREE, LEN_UNI_STR(L##X))
 
 // do not make a copy + do not free + calculate length
-#define STATIC_TXT(X) KString(L##X, KString::STATIC_TEXT_DO_NOT_FREE, -1)
+#define STATIC_TXT(X) KString(L##X, KStringBehaviour::DO_NOT_FREE, -1)
 
 // do not make a copy + free when done + calculate length
-#define BUFFER_TXT(X) KString(X, KString::FREE_TEXT_WHEN_DONE, -1)
+#define BUFFER_TXT(X) KString(X, KStringBehaviour::FREE_ON_DESTROY, -1)
 
 // can be use like this: KString str(CONST_TXT_PARAMS("Hello World"));
-#define CONST_TXT_PARAMS(X) L##X, KString::STATIC_TEXT_DO_NOT_FREE, LEN_UNI_STR(L##X)
+#define CONST_TXT_PARAMS(X) L##X, KStringBehaviour::DO_NOT_FREE, LEN_UNI_STR(L##X)
 
 #define TXT_WITH_LEN(X) L##X, LEN_UNI_STR(L##X)
 
 // =========== KApplication.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1821,7 +1726,7 @@ const KString operator+ (const KString& string1, const KString& string2);
 			MyApp(){}
 			~MyApp(){}
 
-			int Main(KString **argv,int argc)
+			int main(wchar_t** argv,int argc)
 			{
 				// your app code goes here...
 				return 0;
@@ -1853,37 +1758,37 @@ public:
 		Called before InitRFC function call. Use this method to modify each module InitParams.
 		Do not call framework APIs here. Only modify InitParams.
 	*/
-	virtual void ModifyModuleInitParams();
+	virtual void modifyModuleInitParams();
 
 	/** 
 		Called when the application starts.
 		Put your application code here and if you create a window, 
-		then make sure to call DoMessagePump method before you return.
+		then make sure to call messageLoop method before you return.
 
-		@param argv array of command-line arguments! access them like this KString* arg1=argv[0];
+		@param argv array of command-line arguments! access them like this wchar_t* arg1=argv[0];
 		@param argc number of arguments
 	*/
-	virtual int Main(KString **argv, int argc);
+	virtual int main(wchar_t** argv, int argc);
 
 	/**
 		Return false if your application is single instance only.
-		Single instance applications must implement "GetApplicationID" method.
+		Single instance applications must implement "getApplicationID" method.
 	*/
-	virtual bool AllowMultipleInstances();
+	virtual bool allowMultipleInstances();
 
 	/**
 		This method will be called if the application is single instance only and another instance is already running.
-		("Main" method will not be called.)
+		("main" method will not be called.)
 	*/
-	virtual int AnotherInstanceIsRunning(KString **argv, int argc);
+	virtual int anotherInstanceIsRunning(wchar_t** argv, int argc);
 
 	/**
 		Unique id of your application which is limited to MAX_PATH characters.
 		Single instance applications must implement this method.
 	*/
-	virtual const wchar_t* GetApplicationID();
+	virtual const wchar_t* getApplicationID();
 
-	static void MessageLoop(bool handleTabKey = true);
+	static void messageLoop(bool handleTabKey = true);
 
 	/** 
 		Destructs an Application object.
@@ -1898,7 +1803,7 @@ private:
 // =========== Core.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025  CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1921,8 +1826,73 @@ private:
 
 #include <windows.h>
 
-void InitRFC();
-void DeInitRFC();
+void InitRFCModules();
+void DeInitRFCModules();
+
+// use within a dll functions. do not use inside of DllMain.
+void RFCDllInit();
+void RFCDllFree();
+
+#define RFC_MAX_PATH 512
+
+#define START_RFC_CONSOLE_APP(AppClass) \
+int main() \
+{ \
+	CoreModuleInitParams::hInstance = 0; \
+	CoreModuleInitParams::initCOMAsSTA = true; \
+	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE; \
+	int retVal = 0; \
+	LPWSTR* args = nullptr; \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	int argc = 0; \
+	args = ::CommandLineToArgvW(::GetCommandLineW(), &argc); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(args, argc); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application.main(args, argc); \
+		}else{ \
+			retVal = application.anotherInstanceIsRunning(args, argc); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	} ::DeInitRFCModules(); \
+	::LocalFree(args); \
+	return retVal; \
+}
+
+// use this macro if you are not using commandline arguments in your app.
+#define START_RFC_CONSOLE_APP_NO_CMD_ARGS(AppClass) \
+int WINAPI main() \
+{ \
+	CoreModuleInitParams::hInstance = 0; \
+	CoreModuleInitParams::initCOMAsSTA = true; \
+	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE; \
+	int retVal = 0; \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(0, 0); \
+	}else{ \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
+		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
+			retVal = application.main(0, 0); \
+		}else{ \
+			retVal = application.anotherInstanceIsRunning(0, 0); \
+		} \
+		if (hMutex){ \
+			::ReleaseMutex(hMutex); \
+		} \
+	} \
+	}::DeInitRFCModules(); \
+	return retVal; \
+}
 
 #define START_RFC_APPLICATION(AppClass, DPIAwareness) \
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow) \
@@ -1930,32 +1900,29 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	CoreModuleInitParams::hInstance = hInstance; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
 	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
-	AppClass* application = new AppClass(); \
-	application->ModifyModuleInitParams(); \
-	::InitRFC(); \
-	int argc = 0; \
-	LPWSTR *args = ::CommandLineToArgvW(GetCommandLineW(), &argc); \
-	KString **str_argv = (KString**)::malloc(argc * RFC_PTR_SIZE); \
-	for(int i = 0; i < argc; i++){str_argv[i] = new KString(args[i], KString::STATIC_TEXT_DO_NOT_FREE);} \
 	int retVal = 0; \
-	if (application->AllowMultipleInstances()){ \
-		retVal = application->Main(str_argv, argc); \
+	LPWSTR* args = nullptr; \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	int argc = 0; \
+	args = ::CommandLineToArgvW(::GetCommandLineW(), &argc); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(args, argc); \
 	}else{ \
-		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->Main(str_argv, argc); \
+			retVal = application.main(args, argc); \
 		}else{ \
-			retVal = application->AnotherInstanceIsRunning(str_argv, argc); \
+			retVal = application.anotherInstanceIsRunning(args, argc); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
 		} \
 	} \
-	delete application; \
-	for(int i = 0; i < argc; i++){delete str_argv[i];} \
-	::DeInitRFC(); \
-	::free((void*)str_argv); \
-	::GlobalFree(args); \
+	}\
+	::DeInitRFCModules(); \
+	::LocalFree(args); \
 	return retVal; \
 }
 
@@ -1966,25 +1933,24 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	CoreModuleInitParams::hInstance = hInstance; \
 	CoreModuleInitParams::initCOMAsSTA = true; \
 	CoreModuleInitParams::dpiAwareness = DPIAwareness; \
-	AppClass* application = new AppClass(); \
-	application->ModifyModuleInitParams(); \
-	::InitRFC(); \
 	int retVal = 0; \
-	if (application->AllowMultipleInstances()){ \
-		retVal = application->Main(0, 0); \
+	{AppClass application; \
+	application.modifyModuleInitParams(); \
+	::InitRFCModules(); \
+	if (application.allowMultipleInstances()){ \
+		retVal = application.main(0, 0); \
 	}else{ \
-		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application->GetApplicationID()); \
+		HANDLE hMutex = ::CreateMutexW(NULL, TRUE, application.getApplicationID()); \
 		if ((hMutex != NULL) && (GetLastError() != ERROR_ALREADY_EXISTS)) { \
-			retVal = application->Main(0, 0); \
+			retVal = application.main(0, 0); \
 		}else{ \
-			retVal = application->AnotherInstanceIsRunning(0, 0); \
+			retVal = application.anotherInstanceIsRunning(0, 0); \
 		} \
 		if (hMutex){ \
 			::ReleaseMutex(hMutex); \
 		} \
 	} \
-	delete application; \
-	::DeInitRFC(); \
+	} ::DeInitRFCModules(); \
 	return retVal; \
 }
 
@@ -2002,10 +1968,17 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 	#endif
 #endif
 
+
+#ifdef _DEBUG
+	#define DEBUG_PRINT(x) OutputDebugStringA(x);
+#else 
+	#define DEBUG_PRINT(x) 
+#endif
+
 // =========== CoreModule.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -2028,6 +2001,15 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 
 #include <windows.h>
 
+// link default libs here so we don't need to link them from commandline(Clang).
+
+#pragma comment(lib,"user32.lib")
+#pragma comment(lib,"Shell32.lib")
+#pragma comment(lib,"Ole32.lib")
+#pragma comment(lib,"Gdi32.lib")
+#pragma comment(lib,"Advapi32.lib")
+#pragma comment(lib,"Comdlg32.lib")
+
 class CoreModuleInitParams {
 public:
 	/**
@@ -2042,10 +2024,148 @@ public:
 	static KDPIAwareness dpiAwareness; // default value is UNAWARE_MODE
 };
 
+// =========== KMenuItem.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.  
+*/
+
+#pragma once
+
+#include <functional>
+
+class KMenuItem
+{
+protected:
+	HMENU hMenu;
+	UINT itemID;
+	KString itemText;
+	bool enabled;
+	bool checked;
+	void* param;
+	int intParam;
+
+public:
+	std::function<void(KMenuItem*)> onPress;
+
+	KMenuItem();
+
+	virtual void addToMenu(HMENU hMenu);
+
+	virtual void setParam(void* param);
+
+	virtual void setIntParam(int intParam);
+
+	virtual int getIntParam();
+
+	virtual void* getParam();
+
+	virtual bool isChecked();
+
+	virtual void setCheckedState(bool state);
+
+	virtual bool isEnabled();
+
+	virtual void setEnabled(bool state);
+
+	virtual void setText(const KString& text);
+
+	virtual KString getText();
+
+	virtual UINT getItemID();
+
+	virtual HMENU getMenuHandle();
+
+	virtual void _onPress();
+
+	virtual ~KMenuItem();
+
+private:
+	RFC_LEAK_DETECTOR(KMenuItem)
+};
+
+
+// =========== KGraphics.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.  
+*/
+
+#pragma once
+
+class KGraphics
+{
+public:
+	KGraphics();
+
+	virtual ~KGraphics();
+
+	static void draw3dVLine(HDC hdc, int startX, int startY, int height);
+
+	static void draw3dHLine(HDC hdc, int startX, int startY, int width);
+
+	static void draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight);
+
+	static void draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight);
+
+	static void fillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color);
+
+	static void fillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
+
+	static RECT calculateTextSize(const wchar_t* text, HFONT hFont);
+
+	static int calculateTextHeight(const wchar_t* text, HFONT hFont, int width);
+
+	// This function sets the alpha channel to 255 without affecting any of the color channels.
+	// hdc is a memory DC with a 32bpp bitmap selected into it.
+	// can be use to fix 32bit bitmap alpha which is destroyed by the gdi operations.
+	static void makeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy);
+
+	// hdc is a memory DC with a 32bpp bitmap selected into it.
+	// This function sets the alpha channel without affecting any of the color channels.
+	static void setBitmapAlphaChannel(HDC hdc, int x, int y, int cx, int cy, BYTE alpha);
+
+private:
+	RFC_LEAK_DETECTOR(KGraphics)
+};
+
+
 // =========== KIcon.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2074,28 +2194,37 @@ class KIcon
 {
 protected:
 	HICON hIcon;
+	WORD resourceID;
 
 public:
 	KIcon();
 
+	// does not load. to be use with getScaledIcon method.
+	void setResource(WORD resourceID);
+
+	// this method scales down a larger image instead of scaling up a smaller image.
+	// can be use for high-dpi requirements.
+	// must destroy returned icon by calling DestroyIcon
+	HICON getScaledIcon(int size);
+
 	/**
-		Loads icon from resource
+		Loads icon from resource with default size given by the system
 		@param resourceID resource ID of icon file
 		@returns false if icon load fails
 	*/
-	bool LoadFromResource(WORD resourceID);
+	bool loadFromResource(WORD resourceID);
 
 	/**
-		Loads icon from file
+		Loads icon from file with default size given by the system
 		@param filePath path to icon file
 		@returns false if icon load fails
 	*/
-	bool LoadFromFile(const KString& filePath);
+	bool loadFromFile(const KString& filePath);
 
 	/**
 		Returns icon handle
 	*/
-	HICON GetHandle();
+	HICON getHandle();
 
 	operator HICON()const;
 
@@ -2106,146 +2235,10 @@ private:
 };
 
 
-// =========== KGraphics.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
-*/
-
-#pragma once
-
-class KGraphics
-{
-public:
-	KGraphics();
-
-	virtual ~KGraphics();
-
-	static void Draw3dVLine(HDC hdc, int startX, int startY, int height);
-
-	static void Draw3dHLine(HDC hdc, int startX, int startY, int width);
-
-	static void Draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight);
-
-	static void Draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight);
-
-	static void FillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color);
-
-	static void FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
-
-	static RECT CalculateTextSize(const wchar_t *text, HFONT hFont);
-
-	static int CalculateTextHeight(wchar_t* text, HFONT hFont, int width);
-
-private:
-	RFC_LEAK_DETECTOR(KGraphics)
-};
-
-
-// =========== KTransparentBitmap.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-*/
-
-#pragma once
-
-
-#pragma comment(lib, "Msimg32.lib") // AlphaBlend
-
-/**
-	Can be use to create 32bit bitmap image from data.
-*/
-class KTransparentBitmap
-{
-protected:
-	int width;
-	int height;
-	HDC hdcMem;
-	HBITMAP hbm;
-	HBITMAP hbmPrev;
-	void* pvBits;
-
-	void ReleaseResources();
-	void CreateEmptyBitmap(int width, int height);
-
-public:
-	// data must be in 0xaarrggbb format with premultiplied alpha.
-	// stride must be equal to width * 4
-	KTransparentBitmap(void* data, int width, int height, int stride);
-
-	// creates a transparent empty image
-	KTransparentBitmap(int width, int height);
-
-	// color format: 0xaarrggbb
-	unsigned int GetPixel(int x, int y);
-
-	bool HitTest(int x, int y);
-
-	int GetWidth();
-
-	int GetHeight();
-
-	// also clears the content
-	void Resize(int width, int height);
-
-	// use AlphaBlend to draw
-	// standard gdi drawing commands may not work with the returned hdc. (content has premultiplied alpha)
-	// copy to secondary hdc using AlphaBlend or use gdi+ with PixelFormat32bppPARGB
-	HDC GetDC();
-
-	void Draw(HDC destHdc, int destX, int destY, BYTE alpha = 255);
-
-	void Draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha = 255);
-
-	// can copy/scale specific part of the image
-	void Draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha = 255);
-
-	virtual ~KTransparentBitmap();
-
-private:
-	RFC_LEAK_DETECTOR(KTransparentBitmap)
-};
-
-
-
-
 // =========== KFont.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2272,9 +2265,6 @@ private:
 */
 class KFont
 {
-private:
-	static KFont* defaultInstance;
-
 protected:
 	HFONT hFont;
 	bool customFont;
@@ -2298,252 +2288,54 @@ public:
 		antiAliased = false, 
 		requiredDPI = USER_DEFAULT_SCREEN_DPI
 	*/
-	KFont(const KString& face, int sizeFor96DPI, bool bold, 
-		bool italic, bool underline, bool antiAliased, int requiredDPI);
+	KFont(const KString& face, int sizeFor96DPI, bool bold = false,
+		bool italic = false, bool underline = false, bool antiAliased = true, int requiredDPI = USER_DEFAULT_SCREEN_DPI);
 
-	virtual void SetDPI(int newDPI);
+	// destroys the existing font handle.
+	virtual bool load(const KString& face, int sizeFor96DPI, bool bold = false,
+		bool italic = false, bool underline = false, bool antiAliased = true, int requiredDPI = USER_DEFAULT_SCREEN_DPI);
 
-	/**
-		If you want to use system default font, then use this static method. Do not delete returned object!
-	*/
-	static KFont* GetDefaultFont();
-
-	// deletes the default font if it already created. for internal use only!
-	static void DeleteDefaultFont();
-
-	virtual bool IsDefaultFont();
+	virtual void setDPI(int newDPI);
 
 	/**
-		Loads font from a file. make sure to call RemoveFont when done.
+		If you want to use system default font, then use this static method. Do not delete the returned instance!
 	*/
-	static bool LoadFont(const KString& path);
+	static KFont* getDefaultFont();
 
-	static void RemoveFont(const KString& path);
+	virtual bool isDefaultFont();
+
+	/**
+		Load a font from a file. loaded font only available to this application.
+		make sure to call removePrivateFont when done.
+	*/
+	static bool loadPrivateFont(const KString& path);
+
+	static void removePrivateFont(const KString& path);
 
 	/**
 		Returns font handle.
 	*/
-	virtual HFONT GetFontHandle();
+	virtual HFONT getFontHandle();
 
 	operator HFONT()const;
 
 	virtual ~KFont();
+
+	// Delete copy/move operations to prevent duplication
+	KFont(const KFont&) = delete;
+	KFont& operator=(const KFont&) = delete;
+	KFont(KFont&&) = delete;
+	KFont& operator=(KFont&&) = delete;
 
 private:
 	RFC_LEAK_DETECTOR(KFont)
 };
 
 
-// =========== KMenuItem.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
-*/
-
-#pragma once
-
-
-class KMenuItemListener;
-
-class KMenuItem
-{
-protected:
-	HMENU hMenu;
-	UINT itemID;
-	KMenuItemListener *listener;
-	KString itemText;
-	bool enabled;
-	bool checked;
-
-public:
-	KMenuItem();
-
-	virtual void AddToMenu(HMENU hMenu);
-
-	virtual bool IsChecked();
-
-	virtual void SetCheckedState(bool state);
-
-	virtual bool IsEnabled();
-
-	virtual void SetEnabled(bool state);
-
-	virtual void SetText(const KString& text);
-
-	virtual KString GetText();
-
-	virtual UINT GetItemID();
-
-	virtual HMENU GetMenuHandle();
-
-	virtual void SetListener(KMenuItemListener *listener);
-
-	virtual KMenuItemListener* GetListener();
-
-	virtual void OnPress();
-
-	virtual ~KMenuItem();
-
-private:
-	RFC_LEAK_DETECTOR(KMenuItem)
-};
-
-
-// =========== KTime.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.
-*/
-
-#pragma once
-
-
-// __int64 is not defined in mingw.
-#ifdef __MINGW32__
-	#include <stdint.h>
-	typedef int64_t _int64;
-#endif
-
-class KTime
-{
-public:
-
-	KTime(){}
-
-	// Returns time difference in units of 100 us.
-	static _int64 Delta100us(const SYSTEMTIME &time1, const SYSTEMTIME &time2)
-	{
-		union timeunion {
-			FILETIME fileTime;
-			ULARGE_INTEGER ul;
-		};
-
-		timeunion ft1;
-		timeunion ft2;
-
-		SystemTimeToFileTime(&time1, &ft1.fileTime);
-		SystemTimeToFileTime(&time2, &ft2.fileTime);
-
-		return ft2.ul.QuadPart - ft1.ul.QuadPart;
-	}
-
-	// Returns time difference in seconds.
-	static _int64 DeltaSeconds(const SYSTEMTIME &time1, const SYSTEMTIME &time2)
-	{
-		return (Delta100us(time1, time2) / 10000000);
-	}
-
-	// Returns time difference in minutes.
-	static _int64 DeltaMinutes(const SYSTEMTIME &time1, const SYSTEMTIME &time2)
-	{
-		return (DeltaSeconds(time1, time2) / 60);
-	}
-
-	// Returns time difference in hours.
-	static _int64 DeltaHours(const SYSTEMTIME &time1, const SYSTEMTIME &time2)
-	{
-		return (DeltaMinutes(time1, time2) / 60);
-	}
-
-	static void GetNow(SYSTEMTIME* time, const bool isLocalTime = true)
-	{
-		if (isLocalTime)
-			::GetLocalTime(time);
-		else
-			::GetSystemTime(time);
-	}
-
-	virtual ~KTime(){}
-
-private:
-	RFC_LEAK_DETECTOR(KTime)
-};
-
-
-// =========== KPerformanceCounter.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-#pragma once
-
-
-class KPerformanceCounter
-{
-protected:
-	double pcFreq;
-	__int64 counterStart;
-
-public:
-	KPerformanceCounter();
-
-	virtual void StartCounter();
-
-	/**
-		returns delta time(milliseconds) between StartCounter and EndCounter calls.
-	*/
-	virtual double EndCounter();
-
-	virtual ~KPerformanceCounter();
-
-private:
-	RFC_LEAK_DETECTOR(KPerformanceCounter)
-};
-
-
 // =========== KCursor.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2581,19 +2373,19 @@ public:
 		@param resourceID resource ID of cursor file
 		@returns false if cursor load fails
 	*/
-	bool LoadFromResource(WORD resourceID);
+	bool loadFromResource(WORD resourceID);
 
 	/**
 		Loads cursor from file
 		@param filePath path to cursor file
 		@returns false if cursor load fails
 	*/
-	bool LoadFromFile(const KString& filePath);
+	bool loadFromFile(const KString& filePath);
 
 	/**
 		Returns cursor handle
 	*/
-	HCURSOR GetHandle();
+	HCURSOR getHandle();
 
 	/**
 		Returns cursor handle
@@ -2607,10 +2399,94 @@ private:
 };
 
 
-// =========== KGuid.h ===========
+// =========== KTransparentBitmap.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+
+#pragma comment(lib, "Msimg32.lib") // AlphaBlend
+
+/**
+	Can be use to create 32bit bitmap image from data.
+*/
+class KTransparentBitmap
+{
+protected:
+	int width;
+	int height;
+	HDC hdcMem;
+	HBITMAP hbm;
+	HBITMAP hbmPrev;
+	void* pvBits;
+
+	void releaseResources();
+	void createEmptyBitmap(int width, int height);
+
+public:
+	// data must be in 0xaarrggbb format with premultiplied alpha.
+	// stride must be equal to width * 4
+	KTransparentBitmap(void* data, int width, int height, int stride);
+
+	// creates a transparent empty image
+	KTransparentBitmap(int width, int height);
+
+	// color format: 0xaarrggbb
+	unsigned int getPixel(int x, int y);
+
+	bool hitTest(int x, int y);
+
+	int getWidth();
+
+	int getHeight();
+
+	// also clears the content
+	void resize(int width, int height);
+
+	// use AlphaBlend to draw
+	// standard gdi drawing commands may not work with the returned hdc. (content has premultiplied alpha)
+	// copy to secondary hdc using AlphaBlend or use gdi+ with PixelFormat32bppPARGB
+	HDC getDC();
+
+	void draw(HDC destHdc, int destX, int destY, BYTE alpha = 255);
+
+	void draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha = 255);
+
+	// can copy/scale specific part of the image
+	void draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha = 255);
+
+	virtual ~KTransparentBitmap();
+
+private:
+	RFC_LEAK_DETECTOR(KTransparentBitmap)
+};
+
+
+
+
+// =========== KTime.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2632,132 +2508,139 @@ private:
 #pragma once
 
 
-#pragma comment(lib, "Rpcrt4.lib")
-
-// RPC_WSTR is not defined in mingw.
+// __int64 is not defined in mingw.
 #ifdef __MINGW32__
-	typedef unsigned short* RPC_WSTR;
+	#include <stdint.h>
+	typedef int64_t _int64;
 #endif
 
-class KGuid
+class KTime
 {
 public:
 
-	KGuid(){}
+	KTime(){}
 
-	static bool GenerateGUID(GUID *pGUID)
+	// Returns time difference in units of 100 us.
+	static _int64 delta100us(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
-		return (::CoCreateGuid(pGUID) == S_OK);
+		union timeunion {
+			FILETIME fileTime;
+			ULARGE_INTEGER ul;
+		};
+
+		timeunion ft1;
+		timeunion ft2;
+
+		::SystemTimeToFileTime(&time1, &ft1.fileTime);
+		::SystemTimeToFileTime(&time2, &ft2.fileTime);
+
+		return ft2.ul.QuadPart - ft1.ul.QuadPart;
 	}
 
-	static KString GenerateGUID()
+	// Returns time difference in seconds.
+	static _int64 deltaSeconds(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
-		GUID guid;
-
-		if (KGuid::GenerateGUID(&guid))
-			return KGuid::GUIDToString(&guid);
-
-		return KString();
+		return (delta100us(time1, time2) / 10000000);
 	}
 
-	static KString GUIDToString(GUID *pGUID)
+	// Returns time difference in minutes.
+	static _int64 deltaMinutes(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
-		wchar_t* strGuid = NULL;
-		::UuidToStringW(pGUID, (RPC_WSTR*)&strGuid);
-
-		KString result(strGuid, KString::USE_COPY_OF_TEXT);
-		RpcStringFreeW((RPC_WSTR*)&strGuid);
-
-		return result;
+		return (deltaSeconds(time1, time2) / 60);
 	}
 
-	virtual ~KGuid(){}
+	// Returns time difference in hours.
+	static _int64 deltaHours(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
+	{
+		return (deltaMinutes(time1, time2) / 60);
+	}
+
+	static void getNow(SYSTEMTIME* time, const bool isLocalTime = true)
+	{
+		if (isLocalTime)
+			::GetLocalTime(time);
+		else
+			::GetSystemTime(time);
+	}
+
+	virtual ~KTime(){}
 
 private:
-	RFC_LEAK_DETECTOR(KGuid)
+	RFC_LEAK_DETECTOR(KTime)
 };
 
 
-// =========== KDirectory.h ===========
+// =========== KStackInfo.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
+    Copyright (C) 2013-2025 CrownSoft
 
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
+    This software is provided 'as-is', without any express or implied
+    warranty.  In no event will the authors be held liable for any damages
+    arising from the use of this software.
 
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution. 
+    Permission is granted to anyone to use this software for any purpose,
+    including commercial applications, and to alter it and redistribute it
+    freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+       claim that you wrote the original software. If you use this software
+       in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+    2. Altered source versions must be plainly marked as such, and must not be
+       misrepresented as being the original software.
+    3. This notice may not be removed or altered from any source distribution.
 */
 
 #pragma once
 
-#include <shlobj.h>
+#include <stdio.h>
 
-/**
-Can be use to manipulate dirs.
-*/
-class KDirectory
+// shows current thread stack usage.
+class KStackInfo
 {
+    static void _printUsage(size_t used, size_t total)
+    {
+        char buf[256];
+        sprintf_s(buf, sizeof(buf),
+            "Stack: %zu/%zu bytes (%.1f%% used, %.1f MB total)\n",
+            used, total, (double)used / total * 100.0, total / (1024.0 * 1024.0));
+
+        ::OutputDebugStringA(buf);
+    }
+
 public:
-	KDirectory();
+    static size_t getTotalStackSize()
+    {
+        ULONG_PTR low, high;
+        ::GetCurrentThreadStackLimits(&low, &high);
+        return high - low;
+    }
 
-	static bool IsDirExists(const KString& dirName);
+    static size_t getCurrentStackUsage()
+    {
+        ULONG_PTR low, high;
+        ::GetCurrentThreadStackLimits(&low, &high);
 
-	/**
-		returns false if directory already exists.
-	*/
-	static bool CreateDir(const KString& dirName);
+        volatile char dummy;
+        void* currentSP = (void*)&dummy;
 
-	/**
-		deletes an existing empty directory.
-	*/
-	static bool RemoveDir(const KString& dirName);
+        return high - (ULONG_PTR)currentSP;
+    }
 
-	/**
-		returns the directory of given module. if HModule is NULL this function will return dir of exe.
-		returns empty string on error.
-	*/
-	static KString GetModuleDir(HMODULE hModule);
+    static void showStackInfo()
+    {    
+        size_t total = KStackInfo::getTotalStackSize();
+        size_t used = KStackInfo::getCurrentStackUsage();
 
-	/**
-		returns the parent directory of given file.
-	*/
-	static KString GetParentDir(const KString& filePath);
-
-	/**
-		returns the the directory for temporary files.
-		returns empty string on error.
-	*/
-	static KString GetTempDir();
-
-	/**
-		returns the the Application Data directory. if isAllUsers is true this function will return dir shared across all users.
-		returns empty string on error.
-	*/
-	static KString GetApplicationDataDir(bool isAllUsers = false);
-
-	virtual ~KDirectory();
-
-private:
-	RFC_LEAK_DETECTOR(KDirectory)
+        KStackInfo::_printUsage(used, total);
+    }
 };
 
-
-// =========== KFile.h ===========
+// =========== KPerformanceCounter.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2779,108 +2662,33 @@ private:
 #pragma once
 
 
-// macro to specify file format type in the first 4 bytes of file.
-// use with KSettingsReader/Writer classes.
-#define KFORMAT_ID(ch4) ((((DWORD)(ch4) & 0xFF) << 24) |     \
-	(((DWORD)(ch4)& 0xFF00) << 8) | \
-	(((DWORD)(ch4)& 0xFF0000) >> 8) | \
-	(((DWORD)(ch4)& 0xFF000000) >> 24))
-
-/**
-	Can be use to read/write data from a file easily.
-*/
-class KFile
+class KPerformanceCounter
 {
 protected:
-	KString fileName;
-	HANDLE fileHandle;
-	bool autoCloseHandle;
-	DWORD desiredAccess;
+	double pcFreq;
+	__int64 counterStart;
 
 public:
-	KFile();
+	KPerformanceCounter();
 
-	/** 
-		Used in file opening, to specify whether to open as read or write or both.
-	*/
-	enum FileAccessTypes
-	{
-		KREAD = GENERIC_READ,
-		KWRITE = GENERIC_WRITE,
-		KBOTH = GENERIC_READ | GENERIC_WRITE,
-	};
-
-	/** 
-		If the file does not exist, it will be created.
-	*/
-	KFile(const KString& fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
-
-	/** 
-		If the file does not exist, it will be created.
-	*/
-	virtual bool OpenFile(const KString& fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
-
-	virtual bool CloseFile();
-
-	virtual HANDLE GetFileHandle();
-
-	operator HANDLE()const;
-
-	/** 
-		fills given buffer and returns number of bytes read.
-	*/
-	virtual DWORD ReadFile(void* buffer, DWORD numberOfBytesToRead);
-
-	/** 
-		You must free the returned buffer yourself. To get the size of buffer, use GetFileSize method. return value will be null on read error.
-	*/
-	virtual void* ReadAsData();
-
-	virtual KString ReadAsString(bool isUnicode = true);
+	virtual void startCounter();
 
 	/**
-		returns number of bytes written.
+		returns delta time(milliseconds) between startCounter and endCounter calls.
 	*/
-	virtual DWORD WriteFile(void* buffer, DWORD numberOfBytesToWrite);
+	virtual double endCounter();
 
-	virtual bool WriteString(const KString& text, bool isUnicode = true);
-
-	virtual bool SetFilePointerToStart();
-
-	/**
-		moves file pointer to given distance from "startingPoint".
-		"startingPoint" can be FILE_BEGIN, FILE_CURRENT or FILE_END
-		"distance" can be negative.
-	*/
-	virtual bool SetFilePointerTo(long distance, DWORD startingPoint = FILE_BEGIN);
-
-	virtual DWORD GetFilePointerPosition();
-
-	virtual bool SetFilePointerToEnd();
-
-	/**
-		returns zero on error
-	*/
-	virtual DWORD GetFileSize();
-
-	static bool DeleteFile(const KString& fileName);
-
-	static bool IsFileExists(const KString& fileName);
-
-	static bool CopyFile(const KString& sourceFileName, const KString& destFileName);
-
-	virtual ~KFile();
+	virtual ~KPerformanceCounter();
 
 private:
-	RFC_LEAK_DETECTOR(KFile)
+	RFC_LEAK_DETECTOR(KPerformanceCounter)
 };
-
 
 
 // =========== KRegistry.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
   
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -2909,18 +2717,18 @@ public:
 	KRegistry();
 
 	// returns true on success or if the key already exists.
-	static bool CreateKey(HKEY hKeyRoot, const KString& subKey);
+	static bool createKey(HKEY hKeyRoot, const KString& subKey);
 
 	// the subkey to be deleted must not have subkeys. 
-	static bool DeleteKey(HKEY hKeyRoot, const KString& subKey);
+	static bool deleteKey(HKEY hKeyRoot, const KString& subKey);
 
-	static bool ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString *result);
+	static bool readString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString* result);
 
-	static bool WriteString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
+	static bool writeString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
 
-	static bool ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD *result);
+	static bool readDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD* result);
 
-	static bool WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
+	static bool writeDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
 
 	/**
 		you must free the buffer when you are done with it.
@@ -2928,7 +2736,7 @@ public:
 		e.g. @code
 		void *buffer;
 		DWORD bufferSize;
-		if(KRegistry::ReadBinary(xxx, xxx, xxx, &buffer, &buffSize))
+		if(KRegistry::readBinary(xxx, xxx, xxx, &buffer, &buffSize))
 		{
 			// do your thing here...
 
@@ -2936,18 +2744,18 @@ public:
 		}
 		@endcode
 	*/
-	static bool ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void **buffer, DWORD *buffSize);
+	static bool readBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void** buffer, DWORD* buffSize);
 
-	static bool WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void *buffer, DWORD buffSize);
+	static bool writeBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize);
 
 	virtual ~KRegistry();
 
 };
 
-// =========== KPointerList.h ===========
+// =========== KFile.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2966,299 +2774,187 @@ public:
 	3. This notice may not be removed or altered from any source distribution.	  
 */
 
+#pragma once
+
+#include <shlwapi.h>
+
+// macro to specify file format type in the first 4 bytes of file.
+// use with KSettingsReader/Writer classes.
+#define KFORMAT_ID(ch4) ((((DWORD)(ch4) & 0xFF) << 24) |     \
+	(((DWORD)(ch4)& 0xFF00) << 8) | \
+	(((DWORD)(ch4)& 0xFF0000) >> 8) | \
+	(((DWORD)(ch4)& 0xFF000000) >> 24))
+
+/**
+	Can be use to read/write data from a file easily.
+*/
+class KFile
+{
+protected:
+	HANDLE fileHandle;
+	bool autoCloseHandle;
+	DWORD desiredAccess;
+
+public:
+	KFile();
+
+	/** 
+		Used in file opening, to specify whether to open as read or write or both.
+	*/
+	enum FileAccessTypes
+	{
+		KREAD = GENERIC_READ,
+		KWRITE = GENERIC_WRITE,
+		KBOTH = GENERIC_READ | GENERIC_WRITE,
+	};
+
+	/** 
+		If the file does not exist, it will be created.
+	*/
+	KFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
+
+	/** 
+		If the file does not exist, it will be created.
+	*/
+	virtual bool openFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
+
+	virtual bool closeFile();
+
+	virtual HANDLE getFileHandle();
+
+	operator HANDLE()const;
+
+	/** 
+		fills given buffer and returns number of bytes read.
+	*/
+	virtual DWORD readFile(void* buffer, DWORD numberOfBytesToRead);
+
+	/** 
+		You must free the returned buffer yourself. To get the size of buffer, use getFileSize method. return value will be null on read error.
+	*/
+	virtual void* readAsData();
+
+	virtual KString readAsString(bool isUnicode = true);
+
+	/**
+		returns number of bytes written.
+	*/
+	virtual DWORD writeFile(const void* buffer, DWORD numberOfBytesToWrite);
+
+	virtual bool writeString(const KString& text, bool isUnicode = true);
+
+	virtual bool setFilePointerToStart();
+
+	/**
+		moves file pointer to given distance from "startingPoint".
+		"startingPoint" can be FILE_BEGIN, FILE_CURRENT or FILE_END
+		"distance" can be negative.
+	*/
+	virtual bool setFilePointerTo(long distance, DWORD startingPoint = FILE_BEGIN);
+
+	virtual DWORD getFilePointerPosition();
+
+	virtual bool setFilePointerToEnd();
+
+	/**
+		returns zero on error
+	*/
+	virtual DWORD getFileSize();
+
+	static bool deleteFile(const wchar_t* fileName);
+
+	static bool isFileExists(const wchar_t* fileName);
+
+	static bool copyFile(const wchar_t* sourceFileName, const wchar_t* destFileName);
+
+	/**
+		returns the file name part of the path.
+	*/
+	static KString getFileNameFromPath(const wchar_t* path);
+
+	static KString getFileExtension(const wchar_t* path);
+
+	virtual ~KFile();
+
+private:
+	RFC_LEAK_DETECTOR(KFile)
+};
+
+
+
+// =========== KGuid.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
 
 #pragma once
 
-#include <malloc.h>
 
-/**
-	Holds a resizable list of pointers.
-	To make all the methods thread-safe, pass true for isThreadSafe parameter of constructor.
-	Duplicated items allowed!
-	index is between 0 to (item count-1)
+// RPC_WSTR is not defined in mingw.
+#ifdef __MINGW32__
+	typedef unsigned short* RPC_WSTR;
+#endif
 
-	e.g. @code
-	KButton btn1;
-	KPointerList<KButton*> btnList(1024,true);
-	btnList.AddPointer(&btn1);
-	btnList.AddPointer(&btn1);
-	@endcode
-*/
-template<class T>
-class KPointerList
+class KGuid
 {
-protected:
-	int size;
-	int roomCount;
-	int roomIncrement;
-	T* list;
-
-	CRITICAL_SECTION criticalSection;
-	volatile bool isThreadSafe;
-
 public:
-	/**
-		Constructs PointerList object.
-		@param roomIncrement initial and reallocation size of internal memory block in DWORDS
-		@param isThreadSafe make all the methods thread-safe
-	*/
-	KPointerList(const int roomIncrement = 1024, const bool isThreadSafe = false) // 1024*4=4096 = default alignment!
+
+	KGuid(){}
+
+	static bool generateGUID(GUID* pGUID)
 	{
-		roomCount = roomIncrement;
-		this->roomIncrement = roomIncrement;
-		this->isThreadSafe = isThreadSafe;
-		size = 0;
-		list = (T*)::malloc(roomCount * RFC_PTR_SIZE);
-		
-		if(isThreadSafe)
-			::InitializeCriticalSection(&criticalSection);
+		return (::CoCreateGuid(pGUID) == S_OK);
 	}
 
-	/**
-		Adds new item to the list.
-		@returns false if memory allocation failed!
-	*/
-	bool AddPointer(T pointer)
+	static KString generateGUID()
 	{
-		if(isThreadSafe)
-			::EnterCriticalSection(&criticalSection); // thread safe!
+		GUID guid;
 
-		if(roomCount >= (size + 1) ) // no need reallocation. coz room count is enough!
-		{
-			list[size] = pointer;
-			size++;
+		if (KGuid::generateGUID(&guid))
+			return KGuid::guidToString(&guid);
 
-			if(isThreadSafe)
-				::LeaveCriticalSection(&criticalSection);
-
-			return true;
-		}
-		else // require reallocation!
-		{
-			roomCount += roomIncrement;
-			void* retVal = ::realloc((void*)list, roomCount * RFC_PTR_SIZE);
-			if(retVal)
-			{
-				list = (T*)retVal;
-				list[size] = pointer;
-				size++;
-
-				if(isThreadSafe)
-					::LeaveCriticalSection(&criticalSection);
-
-				return true;
-			}
-			else // memory allocation failed!
-			{
-				if(isThreadSafe)
-					::LeaveCriticalSection(&criticalSection);
-
-				return false;
-			}
-		}
+		return KString();
 	}
 
-	/**
-		Get pointer at id.
-		@returns 0 if id is out of range!
-	*/
-	T GetPointer(const int id)
+	static KString guidToString(GUID* pGUID)
 	{
-		if(isThreadSafe)
-			::EnterCriticalSection(&criticalSection);
+		wchar_t* strGuid = nullptr;
+		::UuidToStringW(pGUID, (RPC_WSTR*)&strGuid);
 
-		if( (0 <= id) & (id < size) ) // checks for valid range!
-		{	
-			T object = list[id];
+		KString result(strGuid, KStringBehaviour::MAKE_A_COPY);
+		RpcStringFreeW((RPC_WSTR*)&strGuid);
 
-			if(isThreadSafe)
-				::LeaveCriticalSection(&criticalSection);
-
-			return object;
-		}
-		else // out of range!
-		{
-			if(isThreadSafe)
-				::LeaveCriticalSection(&criticalSection);
-
-			return NULL;
-		}
+		return result;
 	}
 
-	/**
-		Get pointer at id.
-		@returns 0 if id is out of range!
-	*/
-	T operator[](const int id)
-	{
-		return GetPointer(id);
-	}
-
-	/**
-		Replace pointer of given id with new pointer
-		@returns false if id is out of range!
-	*/
-	bool SetPointer(const int id, T pointer)
-	{
-		if(isThreadSafe)
-			::EnterCriticalSection(&criticalSection);
-
-		if( (0 <= id) & (id < size) )
-		{	
-			list[id] = pointer;
-
-			if(isThreadSafe)
-				::LeaveCriticalSection(&criticalSection);
-
-			return true;
-		}
-		else // out of range!
-		{
-			if(isThreadSafe)
-				::LeaveCriticalSection(&criticalSection);
-
-			return false;
-		}
-	}
-
-	/**
-		Remove pointer of given id
-		@returns false if id is out of range!
-	*/
-	bool RemovePointer(const int id)
-	{
-		if(isThreadSafe)
-			::EnterCriticalSection(&criticalSection);
-
-		if( (0 <= id) & (id < size) )
-		{	
-			const int newRoomCount = (((size - 1) / roomIncrement) + 1) * roomIncrement;
-			T* newList = (T*)::malloc(newRoomCount * RFC_PTR_SIZE);
-
-			for(int i = 0, j = 0; i < size; i++)
-			{
-				if(i != id)
-				{
-					newList[j] = list[i];
-					j++;
-				}	
-			}
-			::free((void*)list); // free old list!
-			list = newList;
-			roomCount = newRoomCount;
-			size--;
-
-			if(isThreadSafe)
-				::LeaveCriticalSection(&criticalSection);
-
-			return true;
-
-		}
-		else // out of range!
-		{
-			if(isThreadSafe)
-				::LeaveCriticalSection(&criticalSection);
-
-			return false;
-		}
-
-	}
-
-	/**
-		Clears the list!
-	*/
-	void RemoveAll(bool reallocate = true)// remove all pointers from list!
-	{
-		if(isThreadSafe)
-			::EnterCriticalSection(&criticalSection);
-
-		::free((void*)list);
-		roomCount = roomIncrement;
-		list = reallocate ? (T*)::malloc(roomCount * RFC_PTR_SIZE) : NULL;
-		size = 0;
-
-		if(isThreadSafe)
-			::LeaveCriticalSection(&criticalSection);
-	}
-
-	/**
-		Call destructors of all objects which are pointed by pointers in the list.
-		Also clears the list.
-	*/
-	void DeleteAll(bool reallocate = true)
-	{
-		if(isThreadSafe)
-			::EnterCriticalSection(&criticalSection);
-
-		for(int i = 0; i < size; i++)
-		{
-			T object = list[i];
-			delete object;
-		}
-
-		::free((void*)list);
-
-		roomCount = roomIncrement;
-		list = reallocate ? (T*)::malloc(roomCount * RFC_PTR_SIZE) : NULL;
-		size = 0;
-
-		if(isThreadSafe)
-			::LeaveCriticalSection(&criticalSection);
-	}
-
-	/**
-		Finds the id of the first pointer which matches the pointer passed in.
-		@returns -1 if not found!
-	*/
-	int GetID(T pointer)
-	{
-		if(isThreadSafe)
-			::EnterCriticalSection(&criticalSection);
-
-		for(int i = 0; i < size; i++)
-		{
-			if (list[i] == pointer)
-			{
-				if(isThreadSafe)
-					::LeaveCriticalSection(&criticalSection);
-
-				return i;
-			}
-		}
-
-		if(isThreadSafe)
-			::LeaveCriticalSection(&criticalSection);
-
-		return -1;
-	}
-
-	/**
-		@returns item count in the list
-	*/
-	int GetSize()
-	{
-		return size;
-	}
-
-	/** Destructs PointerList object.*/
-	~KPointerList()
-	{
-		if (list)
-			::free((void*)list);
-
-		if(isThreadSafe)
-			::DeleteCriticalSection(&criticalSection);
-	}
+	virtual ~KGuid(){}
 
 private:
-	RFC_LEAK_DETECTOR(KPointerList)
+	RFC_LEAK_DETECTOR(KGuid)
 };
 
 
 // =========== KBitmap.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3296,21 +2992,22 @@ public:
 		@param resourceID resource ID of image
 		@returns false if image load fails
 	*/
-	bool LoadFromResource(WORD resourceID);
+	bool loadFromResource(WORD resourceID);
 
 	/**
 		Loads bitmap image from file
 		@param filePath path to image
 		@returns false if image load fails
 	*/
-	bool LoadFromFile(const KString& filePath);
+	bool loadFromFile(const KString& filePath);
 
-	void DrawOnHDC(HDC hdc, int x, int y, int width, int height);
+	// does not scale
+	void drawOnHDC(HDC hdc, int x, int y, int width, int height);
 
 	/**
 		Returns bitmap handle
 	*/
-	HBITMAP GetHandle();
+	HBITMAP getHandle();
 
 	/**
 		Returns bitmap handle
@@ -3326,10 +3023,1106 @@ private:
 
 
 
+// =========== KPointerList.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+
+#pragma once
+
+#include <malloc.h>
+#include <functional>
+
+/**
+	Helper base class for thread safety - only contains critical section when needed
+*/
+template<bool IsThreadSafe>
+struct KThreadSafetyBase
+{
+	// Empty base class when thread safety is not needed. ("empty base optimization")
+};
+
+template<>
+struct KThreadSafetyBase<true>
+{
+	CRITICAL_SECTION criticalSection;
+
+	KThreadSafetyBase()
+	{
+		::InitializeCriticalSection(&criticalSection);
+	}
+
+	~KThreadSafetyBase()
+	{
+		::DeleteCriticalSection(&criticalSection);
+	}
+};
+
+/**
+	Holds a resizable list of pointers with small buffer optimization.
+	Thread safety is determined at compile time via template parameter.
+	Duplicated items allowed!
+	index is between 0 to (item count-1)
+
+	@param T The pointer type to store
+	@param SmallBufferSize Number of items to store in stack buffer before allocating heap memory
+	@param IsThreadSafe Compile-time flag for thread safety
+
+	e.g. @code
+	KButton btn1;
+	KPointerList<KButton*, 8, false> btnList; // 8 items in small buffer, not thread safe
+	KPointerList<KButton*, 8, true> threadSafeBtnList; // 8 items in small buffer, thread safe
+	btnList.addPointer(&btn1);
+	btnList.addPointer(&btn1);
+	@endcode
+*/
+template<class T, int SmallBufferSize, bool IsThreadSafe>
+class KPointerList : private KThreadSafetyBase<IsThreadSafe>
+{
+protected:
+	int itemCount; // current element count in the list
+	int roomCount; // maximum element count
+	T* list;
+	T smallBuffer[SmallBufferSize]; // Stack-allocated small buffer
+	bool usingSmallBuffer;
+
+	void resetToSmallBuffer()
+	{
+		usingSmallBuffer = true;
+		list = smallBuffer;
+		roomCount = SmallBufferSize;
+		itemCount = 0;
+	}
+
+	// Thread safety helper methods
+	inline void enterCriticalSectionIfNeeded()
+	{
+		if constexpr (IsThreadSafe)
+		{
+			::EnterCriticalSection(&this->criticalSection);
+		}
+	}
+
+	inline void leaveCriticalSectionIfNeeded()
+	{
+		if constexpr (IsThreadSafe)
+		{
+			::LeaveCriticalSection(&this->criticalSection);
+		}
+	}
+
+public:
+	/**
+		Constructs PointerList object.
+		Thread safety is determined at compile time via template parameter.
+	*/
+	KPointerList()
+	{
+		resetToSmallBuffer();
+		// Critical section initialization is handled by base class constructor
+	}
+
+	/**
+		Adds new item to the list.
+		@returns false if memory allocation failed!
+	*/
+	bool add(T pointer)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if (roomCount >= (itemCount + 1)) // no need reallocation. room count is enough!
+		{
+			list[itemCount] = pointer;
+			itemCount++;
+
+			leaveCriticalSectionIfNeeded();
+			return true;
+		}
+		else // require reallocation!
+		{
+			if (usingSmallBuffer)
+			{
+				// Switch from small buffer to heap buffer
+				roomCount += SmallBufferSize;
+				T* newList = (T*)::malloc(roomCount * sizeof(T));
+
+				if (newList)
+				{
+					// Copy from small buffer to heap buffer
+					::memcpy(newList, smallBuffer, SmallBufferSize * sizeof(T));
+
+					list = newList;
+					usingSmallBuffer = false;
+
+					list[itemCount] = pointer;
+					itemCount++;
+
+					leaveCriticalSectionIfNeeded();
+					return true;
+				}
+				else // memory allocation failed!
+				{
+					roomCount -= SmallBufferSize;
+					leaveCriticalSectionIfNeeded();
+					return false;
+				}
+			}
+			else
+			{
+				// Already using heap buffer, just reallocate
+				roomCount += SmallBufferSize;
+				void* retVal = ::realloc((void*)list, roomCount * sizeof(T));
+				if (retVal)
+				{
+					list = (T*)retVal;
+					list[itemCount] = pointer;
+					itemCount++;
+
+					leaveCriticalSectionIfNeeded();
+					return true;
+				}
+				else // memory allocation failed!
+				{
+					roomCount -= SmallBufferSize;
+					leaveCriticalSectionIfNeeded();
+					return false;
+				}
+			}
+		}
+	}
+
+	/**
+		Get pointer at index.
+		@returns 0 if index is out of range!
+	*/
+	T get(const int index)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if ((0 <= index) && (index < itemCount)) // checks for valid range!
+		{
+			T object = list[index];
+			leaveCriticalSectionIfNeeded();
+			return object;
+		}
+		else // out of range!
+		{
+			leaveCriticalSectionIfNeeded();
+			return nullptr;
+		}
+	}
+
+	/**
+		Get pointer at index.
+		@returns 0 if index is out of range!
+	*/
+	T operator[](const int index)
+	{
+		return get(index);
+	}
+
+	/**
+		Replace pointer of given index with new pointer
+		@returns false if index is out of range!
+	*/
+	bool set(const int index, T pointer)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if ((0 <= index) && (index < itemCount))
+		{
+			list[index] = pointer;
+			leaveCriticalSectionIfNeeded();
+			return true;
+		}
+		else // out of range!
+		{
+			leaveCriticalSectionIfNeeded();
+			return false;
+		}
+	}
+
+	/**
+		Remove pointer of given index
+		@returns false if index is out of range!
+	*/
+	bool remove(const int index)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if ((0 <= index) && (index < itemCount))
+		{
+			// Shift all elements after 'index' one position to the left
+			for (int i = index; i < itemCount - 1; i++)
+			{
+				list[i] = list[i + 1];
+			}
+			itemCount--;
+
+			leaveCriticalSectionIfNeeded();
+			return true;
+		}
+		else // out of range!
+		{
+			leaveCriticalSectionIfNeeded();
+			return false;
+		}
+	}
+
+	bool remove(T pointer)
+	{
+		enterCriticalSectionIfNeeded();
+
+		bool retVal = false;
+		const int index = getIndex(pointer);
+		if (index != -1)
+			retVal = remove(index);
+
+		leaveCriticalSectionIfNeeded();
+		return retVal;
+	}
+
+	/**
+		Removes all pointers from the list! Falls back to small buffer.
+	*/
+	void removeAll()
+	{
+		enterCriticalSectionIfNeeded();
+
+		if (!usingSmallBuffer)
+			::free((void*)list);
+
+		resetToSmallBuffer();
+
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+		Call destructors of all objects which are pointed by pointers in the list.
+		Also clears the list. Falls back to small buffer.
+	*/
+	void deleteAll()
+	{
+		enterCriticalSectionIfNeeded();
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			T object = list[i];
+			delete object;
+		}
+
+		if (!usingSmallBuffer)
+			::free((void*)list);
+
+		resetToSmallBuffer();
+
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+	 * Safely iterate through all pointers in the list with thread synchronization.
+	 * The entire iteration is protected by critical section if thread safety is enabled.
+	 * @param func Function/lambda to call for each pointer in the list
+	*/
+	void forEach(std::function<void(T)> func)
+	{
+		enterCriticalSectionIfNeeded();
+		for (int i = 0; i < itemCount; i++) 
+		{
+			func(list[i]);
+		}
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+	 * Safely iterate with index access. Useful when you need the index as well.
+	 * @param func Function/lambda that takes (pointer, index) as parameters
+	*/
+	void forEachWithIndex(std::function<void(T, int)> func)
+	{
+		enterCriticalSectionIfNeeded();
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			func(list[i], i);
+		}
+
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+	 * Safely iterate with early termination support.
+	 * @param func Function/lambda that returns bool (true = continue, false = stop)
+	 * @returns true if iteration completed, false if stopped early
+	 * Example: Early termination (find first disabled button)
+		KButton* foundBtn = nullptr;
+		buttonList.forEachUntil([&foundBtn](KButton* btn) -> bool {
+			if (btn && !btn->isEnabled()) {
+				foundBtn = btn;
+				return false; // Stop iteration
+			}
+			return true; // Continue
+		});
+	*/
+	bool forEachUntil(std::function<bool(T)> func)
+	{
+		enterCriticalSectionIfNeeded();
+
+		bool completed = true;
+		for (int i = 0; i < itemCount; i++)
+		{
+			if (!func(list[i]))
+			{
+				completed = false;
+				break;
+			}
+		}
+
+		leaveCriticalSectionIfNeeded();
+		return completed;
+	}
+
+	/**
+		Finds the index of the first pointer which matches the pointer passed in.
+		@returns -1 if not found!
+	*/
+	int getIndex(T pointer)
+	{
+		enterCriticalSectionIfNeeded();
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			if (list[i] == pointer)
+			{
+				leaveCriticalSectionIfNeeded();
+				return i;
+			}
+		}
+
+		leaveCriticalSectionIfNeeded();
+		return -1;
+	}
+
+	/**
+		@returns item count in the list
+	*/
+	int size()
+	{
+		return itemCount;
+	}
+
+	/**
+		@returns whether the list is currently using the small buffer optimization
+	*/
+	bool isUsingSmallBuffer() const
+	{
+		return usingSmallBuffer;
+	}
+
+	/**
+		@returns the size of the small buffer
+	*/
+	static constexpr int getSmallBufferSize()
+	{
+		return SmallBufferSize;
+	}
+
+	/**
+		@returns whether this instance is thread-safe (compile-time constant)
+	*/
+	static constexpr bool isThreadSafeInstance()
+	{
+		return IsThreadSafe;
+	}
+
+	/** Destructs PointerList object.*/
+	~KPointerList()
+	{
+		if (!usingSmallBuffer)
+			::free((void*)list);
+
+		// Critical section cleanup is handled by base class destructor
+	}
+
+private:
+	RFC_LEAK_DETECTOR(KPointerList)
+};
+
+// =========== KPointerQueue.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+
+#pragma once
+
+
+#ifndef _KQUEUE_H_
+#define _KQUEUE_H_
+
+template<class T>
+class KQueueNode {
+public:
+	T data;
+	KQueueNode* next;
+};
+
+// Queue implemented using a linked list. Can hold unlimited number of items. (assumes T is a pointer type which is allocated using new)
+template<class T>
+class KPointerQueue
+{
+protected:
+	KQueueNode<T>* firstNode;
+	KQueueNode<T>* lastNode;
+
+	CRITICAL_SECTION criticalSection;
+	volatile bool isThreadSafe;
+
+public:
+	KPointerQueue(const bool isThreadSafe = true)
+	{
+		firstNode = nullptr;
+		lastNode = nullptr;
+
+		this->isThreadSafe = isThreadSafe;
+		if (isThreadSafe)
+			::InitializeCriticalSection(&criticalSection);
+	}
+
+	virtual void push(T value)
+	{
+		KQueueNode<T>* newNode = new KQueueNode<T>();
+		newNode->data = value;
+		newNode->next = nullptr;
+
+		if (isThreadSafe)
+			::EnterCriticalSection(&criticalSection);
+
+		if (firstNode == nullptr)
+		{
+			firstNode = newNode;
+			lastNode = newNode;
+		}
+		else
+		{
+			lastNode->next = newNode;
+			lastNode = newNode;
+		}
+
+		if (isThreadSafe)
+			::LeaveCriticalSection(&criticalSection);
+	}
+
+	virtual T pop()
+	{
+		if (isThreadSafe)
+			::EnterCriticalSection(&criticalSection);
+
+		if (firstNode == nullptr)
+		{
+			if (isThreadSafe)
+				::LeaveCriticalSection(&criticalSection);
+
+			return nullptr;
+		}
+
+		T value = firstNode->data;
+
+		// remove the item
+		KQueueNode<T>* tmp = firstNode;
+		firstNode = firstNode->next;
+		if (firstNode == nullptr) // we had only one item
+			lastNode = nullptr;
+
+		delete tmp;
+
+		if (isThreadSafe)
+			::LeaveCriticalSection(&criticalSection);
+
+		return value;
+	}
+
+	// calls desctructor of all the T objects in the queue. also clear the queue.
+	virtual void deleteAllObjects()
+	{
+		if (isThreadSafe)
+			::EnterCriticalSection(&criticalSection);
+
+		if (firstNode == nullptr)
+		{
+			if (isThreadSafe)
+				::LeaveCriticalSection(&criticalSection);
+			return;
+		}
+
+		KQueueNode<T>* nextNode = firstNode;
+		while (nextNode)
+		{
+			KQueueNode<T>* tmp = nextNode;
+			nextNode = nextNode->next;
+
+			delete tmp->data;
+			delete tmp;
+		}
+
+		firstNode = nullptr;
+		lastNode = nullptr;
+
+		if (isThreadSafe)
+			::LeaveCriticalSection(&criticalSection);
+	}
+
+	virtual ~KPointerQueue()
+	{
+		// delete all nodes
+
+		if (firstNode == nullptr)
+			return;
+
+		KQueueNode<T>* nextNode = firstNode;
+		while (nextNode)
+		{
+			KQueueNode<T>* tmp = nextNode;
+			nextNode = nextNode->next;
+			delete tmp;
+		}
+
+		if (isThreadSafe)
+			::DeleteCriticalSection(&criticalSection);
+	}
+};
+
+#endif
+
+// =========== KVector.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+#include <malloc.h>
+#include <utility>
+
+/**
+	Holds a resizable list of classes with small buffer optimization.
+	item removing can be expensive if T's move is expensive.
+	Thread safety is determined at compile time via template parameter.
+	Duplicated items allowed!
+	index is between 0 to (item count-1)
+
+	@param T The class type to store. T should implement copy/move constructor, (move)assign & compare operators.
+	@param SmallBufferSize Number of items to store in stack buffer before allocating heap memory
+	@param IsThreadSafe Compile-time flag for thread safety
+
+	e.g. @code
+	KString str1, str2;
+	KVector<KString, 8, false> strList; // 8 items in small buffer, not thread safe
+	strList.add(str1);
+	strList.add(str2);
+	@endcode
+*/
+template<class T, int SmallBufferSize, bool IsThreadSafe>
+class KVector : private KThreadSafetyBase<IsThreadSafe>
+{
+protected:
+	int itemCount; // current element count in the list
+	int roomCount; // maximum element count
+	T* list;
+	T smallBuffer[SmallBufferSize]; // Stack-allocated small buffer
+	bool usingSmallBuffer;
+
+	void resetToSmallBuffer()
+	{
+		usingSmallBuffer = true;
+		list = smallBuffer;
+		roomCount = SmallBufferSize;
+		itemCount = 0;
+	}
+
+	// Thread safety helper methods
+	inline void enterCriticalSectionIfNeeded()
+	{
+		if constexpr (IsThreadSafe)
+		{
+			::EnterCriticalSection(&this->criticalSection);
+		}
+	}
+
+	inline void leaveCriticalSectionIfNeeded()
+	{
+		if constexpr (IsThreadSafe)
+		{
+			::LeaveCriticalSection(&this->criticalSection);
+		}
+	}
+
+public:
+	/**
+		Constructs KVector object.
+		Thread safety is determined at compile time via template parameter.
+	*/
+	KVector()
+	{
+		resetToSmallBuffer();
+		// Critical section initialization is handled by base class constructor
+	}
+
+	/**
+		Copy constructor
+	*/
+	KVector(const KVector& other)
+	{
+		resetToSmallBuffer();
+
+		enterCriticalSectionIfNeeded();
+
+		// If other has more items than our small buffer can hold
+		if (other.itemCount > SmallBufferSize)
+		{
+			roomCount = other.roomCount;
+			list = new T[roomCount];
+			usingSmallBuffer = false;
+		}
+
+		// Copy items
+		itemCount = other.itemCount;
+		for (int i = 0; i < itemCount; i++)
+		{
+			list[i] = other.list[i];
+		}
+
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+		Assignment operator
+	*/
+	KVector& operator=(const KVector& other)
+	{
+		if (this == &other)
+			return *this;
+
+		enterCriticalSectionIfNeeded();
+
+		// Clean up current data
+		if (!usingSmallBuffer)
+		{
+			delete[] list;
+		}
+
+		resetToSmallBuffer();
+
+		// If other has more items than our small buffer can hold
+		if (other.itemCount > SmallBufferSize)
+		{
+			roomCount = other.roomCount;
+			list = new T[roomCount];
+			usingSmallBuffer = false;
+		}
+
+		// Copy items
+		itemCount = other.itemCount;
+		for (int i = 0; i < itemCount; i++)
+		{
+			list[i] = other.list[i]; // copy
+		}
+
+		leaveCriticalSectionIfNeeded();
+		return *this;
+	}
+
+	/**
+		Adds new item to the list.
+		@returns false if memory allocation failed!
+	*/
+	bool add(const T& item)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if (roomCount >= (itemCount + 1)) // no need reallocation. room count is enough!
+		{
+			list[itemCount] = item; // copy
+			itemCount++;
+
+			leaveCriticalSectionIfNeeded();
+			return true;
+		}
+		else // require reallocation!
+		{
+			int newRoomCount = roomCount + SmallBufferSize;
+			T* newList = new T[newRoomCount];
+
+			// Copy existing items to new buffer
+			for (int i = 0; i < itemCount; i++)
+			{
+				newList[i] = std::move(list[i]);
+			}
+
+			// Add the new item
+			newList[itemCount] = item;
+			itemCount++;
+
+			// Free old buffer if it was heap allocated
+			if (!usingSmallBuffer)
+				delete[] list;
+
+			// Update to use new buffer
+			list = newList;
+			roomCount = newRoomCount;
+			usingSmallBuffer = false;
+
+			leaveCriticalSectionIfNeeded();
+			return true;
+		}
+	}
+
+	T get(const int index)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if ((0 <= index) && (index < itemCount)) // checks for valid range!
+		{
+			T object(list[index]);
+			leaveCriticalSectionIfNeeded();
+			return object;
+		}
+		else // out of range!
+		{
+			leaveCriticalSectionIfNeeded();
+			return T();
+		}
+	}
+
+	// avoids extra copy
+	bool get(const int index, T& outItem)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if ((0 <= index) && (index < itemCount)) // checks for valid range!
+		{
+			outItem = list[index];
+			leaveCriticalSectionIfNeeded();
+			return true;
+		}
+		else // out of range!
+		{
+			leaveCriticalSectionIfNeeded();
+			outItem = T();
+			return false;
+		}
+	}
+
+	T operator[](const int index)
+	{
+		return get(index);
+	}
+
+	/**
+		@returns false if index is out of range!
+	*/
+	bool set(const int index, const T& item)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if ((0 <= index) && (index < itemCount))
+		{
+			list[index] = item;
+			leaveCriticalSectionIfNeeded();
+			return true;
+		}
+		else // out of range!
+		{
+			leaveCriticalSectionIfNeeded();
+			return false;
+		}
+	}
+
+	/**
+		Remove item of given index
+		@returns false if index is out of range!
+	*/
+	bool remove(const int index)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if ((0 <= index) && (index < itemCount))
+		{
+			// Shift all elements after 'index' one position to the left
+			for (int i = index; i < itemCount - 1; i++)
+			{
+				list[i] = std::move(list[i + 1]);
+			}
+			itemCount--;
+
+			leaveCriticalSectionIfNeeded();
+			return true;
+		}
+		else // out of range!
+		{
+			leaveCriticalSectionIfNeeded();
+			return false;
+		}
+	}
+
+	bool remove(const T& item)
+	{
+		enterCriticalSectionIfNeeded();
+
+		bool retVal = false;
+		const int index = getIndex(item);
+		if (index != -1)
+			retVal = remove(index);
+
+		leaveCriticalSectionIfNeeded();
+		return retVal;
+	}
+
+	/**
+		Removes all items from the list! Falls back to small buffer.
+	*/
+	void removeAll()
+	{
+		enterCriticalSectionIfNeeded();
+
+		if (!usingSmallBuffer)
+			delete[] list;
+
+		// we don't clear smallBuffer. 
+		// remaining objects on smallBuffer will be destroyed at destructor or freed when adding new items.
+
+		resetToSmallBuffer();
+
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+		Finds the index of the first item which matches the item passed in.
+		@returns -1 if not found!
+	*/
+	int getIndex(const T& item)
+	{
+		enterCriticalSectionIfNeeded();
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			if (list[i] == item)
+			{
+				leaveCriticalSectionIfNeeded();
+				return i;
+			}
+		}
+
+		leaveCriticalSectionIfNeeded();
+		return -1;
+	}
+	/**
+		@returns item count in the list
+	*/
+	int size() const
+	{
+		return itemCount;
+	}
+
+	/**
+	 * Safely iterate through all items in the list with thread synchronization.
+	 * The entire iteration is protected by critical section if thread safety is enabled.
+	 * @param func Function/lambda to call for each item in the list
+	*/
+	void forEach(std::function<void(T&)> func)
+	{
+		enterCriticalSectionIfNeeded();
+		for (int i = 0; i < itemCount; i++)
+		{
+			func(list[i]);
+		}
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+	 * Safely iterate with index access. Useful when you need the index as well.
+	 * @param func Function/lambda that takes (item, index) as parameters
+	*/
+	void forEachWithIndex(std::function<void(T&, int)> func)
+	{
+		enterCriticalSectionIfNeeded();
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			func(list[i], i);
+		}
+
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+	 * Safely iterate with early termination support.
+	 * @param func Function/lambda that returns bool (true = continue, false = stop)
+	 * @returns true if iteration completed, false if stopped early
+	*/
+	bool forEachUntil(std::function<bool(T&)> func)
+	{
+		enterCriticalSectionIfNeeded();
+
+		bool completed = true;
+		for (int i = 0; i < itemCount; i++)
+		{
+			if (!func(list[i]))
+			{
+				completed = false;
+				break;
+			}
+		}
+
+		leaveCriticalSectionIfNeeded();
+		return completed;
+	}
+
+	/**
+		@returns whether the list is currently using the small buffer optimization
+	*/
+	bool isUsingSmallBuffer() const
+	{
+		return usingSmallBuffer;
+	}
+
+	/**
+		@returns the size of the small buffer
+	*/
+	static constexpr int getSmallBufferSize()
+	{
+		return SmallBufferSize;
+	}
+
+	/**
+		@returns whether this instance is thread-safe (compile-time constant)
+	*/
+	static constexpr bool isThreadSafeInstance()
+	{
+		return IsThreadSafe;
+	}
+
+	/** Destructs KVector object.*/
+	~KVector()
+	{
+		if (!usingSmallBuffer)
+			delete[] list;
+
+		// Critical section cleanup is handled by base class destructor
+	}
+
+private:
+	RFC_LEAK_DETECTOR(KVector)
+};
+
+// =========== KMenu.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.	  
+*/
+
+#pragma once
+
+
+class KMenu
+{
+protected:
+	HMENU hMenu;
+
+public:
+	KMenu();
+
+	virtual void addMenuItem(KMenuItem* menuItem);
+
+	virtual void addSubMenu(const KString& text, KMenu* menu);
+
+	virtual void addSeperator();
+
+	virtual HMENU getMenuHandle();
+
+	// set bringWindowToForeground when showing popup menu for notify icon(systray).
+	// does not return until the menu close.
+	virtual void popUpMenu(HWND window, bool bringWindowToForeground = false);
+
+	virtual ~KMenu();
+
+private:
+	RFC_LEAK_DETECTOR(KMenu)
+};
+
+
 // =========== KSettingsReader.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3362,22 +4155,22 @@ protected:
 public:
 	KSettingsReader();
 
-	virtual bool OpenFile(const KString& fileName, int formatID);
+	virtual bool openFile(const wchar_t* fileName, int formatID);
 
 	/**
 		read struct, array or whatever...
 	*/
-	virtual void ReadData(DWORD size, void *buffer);
+	virtual void readData(DWORD size, void *buffer);
 
-	virtual KString ReadString();
+	virtual KString readString();
 
-	virtual int ReadInt();
+	virtual int readInt();
 
-	virtual float ReadFloat();
+	virtual float readFloat();
 
-	virtual double ReadDouble();
+	virtual double readDouble();
 
-	virtual bool ReadBool();
+	virtual bool readBool();
 
 	virtual ~KSettingsReader();
 
@@ -3389,7 +4182,7 @@ private:
 // =========== KSettingsWriter.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3422,22 +4215,22 @@ protected:
 public:
 	KSettingsWriter();
 
-	virtual bool OpenFile(const KString& fileName, int formatID);
+	virtual bool openFile(const wchar_t* fileName, int formatID);
 
 	/**
 		save struct, array or whatever...
 	*/
-	virtual void WriteData(DWORD size, void *buffer);
+	virtual void writeData(DWORD size, void *buffer);
 
-	virtual void WriteString(const KString& text);
+	virtual void writeString(const KString& text);
 
-	virtual void WriteInt(int value);
+	virtual void writeInt(int value);
 
-	virtual void WriteFloat(float value);
+	virtual void writeFloat(float value);
 
-	virtual void WriteDouble(double value);
+	virtual void writeDouble(double value);
 
-	virtual void WriteBool(bool value);
+	virtual void writeBool(bool value);
 
 	virtual ~KSettingsWriter();
 
@@ -3446,35 +4239,10 @@ private:
 };
 
 
-// =========== UtilsModule.h ===========
-
-/*
-    Copyright (C) 2013-2022 CrownSoft
-
-    This software is provided 'as-is', without any express or implied
-    warranty.  In no event will the authors be held liable for any damages
-    arising from the use of this software.
-
-    Permission is granted to anyone to use this software for any purpose,
-    including commercial applications, and to alter it and redistribute it
-    freely, subject to the following restrictions:
-
-    1. The origin of this software must not be misrepresented; you must not
-       claim that you wrote the original software. If you use this software
-       in a product, an acknowledgment in the product documentation would be
-       appreciated but is not required.
-    2. Altered source versions must be plainly marked as such, and must not be
-       misrepresented as being the original software.
-    3. This notice may not be removed or altered from any source distribution.
-*/
-
-#pragma once
-
-
 // =========== KComponent.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3537,178 +4305,183 @@ public:
 	/**
 		Called after hotplugged into a given HWND.
 	*/
-	virtual void OnHotPlug();
+	virtual void onHotPlug();
 
 	/**
 		HotPlugs given HWND. this method does not update current compFont and cursor variables.
 		Set fetchInfo to true if you want to acquire all the information about this HWND. (width, height, position etc...)
 		Set fetchInfo to false if you just need to receive events. (button click etc...)
 	*/
-	virtual void HotPlugInto(HWND component, bool fetchInfo = true);
+	virtual void hotPlugInto(HWND component, bool fetchInfo = true);
 
 	/**
 		Sets mouse cursor of this component.
 	*/
-	virtual void SetMouseCursor(KCursor *cursor);
+	virtual void setMouseCursor(KCursor* cursor);
 
 	/**
 		@returns autogenerated unique class name for this component
 	*/
-	virtual KString GetComponentClassName();
+	virtual KString getComponentClassName();
 
 	/**
 		Registers the class name and creates the component. 
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 		@returns false if registration failed or component creation failed.
 	*/
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool create(bool requireInitialMessages = false);
 
-	virtual void Destroy();
+	virtual void destroy();
 
 	/**
 		Handles internal window messages. (subclassed window proc)
 		Important: Pass unprocessed messages to parent if you override this method.
 	*/
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	/**
 		Receives messages like WM_COMMAND, WM_NOTIFY, WM_DRAWITEM from the parent window. (if it belongs to this component)
 		Pass unprocessed messages to parent if you override this method.
 		@returns true if msg processed.
 	*/
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result);
 
 	/**
 		Identifier of the child component which can be used with WM_MEASUREITEM like messages.
 		@returns zero for top level windows
 	*/
-	virtual UINT GetControlID();
+	virtual UINT getControlID();
 
 	/**
-		Sets font of this component
+		Sets font of this component. passed font object must live until this component destroy.
 	*/
-	virtual void SetFont(KFont *compFont);
+	virtual void setFont(KFont* compFont);
+
+	/**
+		Sets font of this component. passed font object must live until this component destroy.
+	*/
+	virtual void setFont(KFont& compFont);
 
 	/**
 		Returns font of this component
 	*/
-	virtual KFont* GetFont();
+	virtual KFont* getFont();
 
 	/**
 		Returns caption of this component
 	*/
-	virtual KString GetText();
+	virtual KString getText();
 
 	/**
 		Sets caption of this component
 	*/
-	virtual void SetText(const KString& compText);
+	virtual void setText(const KString& compText);
 
-	virtual void SetHWND(HWND compHWND);
+	virtual void setHWND(HWND compHWND);
 
 	/**
 		Returns HWND of this component
 	*/
-	virtual HWND GetHWND();
+	virtual HWND getHWND();
 
 	/**
 		Changes parent of this component
 	*/
-	virtual void SetParentHWND(HWND compParentHWND);
+	virtual void setParentHWND(HWND compParentHWND);
 
 	/**
 		Returns parent of this component
 	*/
-	virtual HWND GetParentHWND();
+	virtual HWND getParentHWND();
 
 	/**
 		Returns style of this component
 	*/
-	virtual DWORD GetStyle();
+	virtual DWORD getStyle();
 
 	/**
 		Sets style of this component
 	*/
-	virtual void SetStyle(DWORD compStyle);
+	virtual void setStyle(DWORD compStyle);
 
 	/**
 		Returns exstyle of this component
 	*/
-	virtual DWORD GetExStyle();
+	virtual DWORD getExStyle();
 
 	/**
 		Sets exstyle of this component
 	*/
-	virtual void SetExStyle(DWORD compExStyle);
+	virtual void setExStyle(DWORD compExStyle);
 
 	/**
 		Returns x position of this component which is relative to parent component.
 	*/
-	virtual int GetX();
+	virtual int getX();
 
 	/**
 		Returns y position of this component which is relative to parent component.
 	*/
-	virtual int GetY();
+	virtual int getY();
 
 	/**
 		Returns width of the component.
 	*/
-	virtual int GetWidth();
+	virtual int getWidth();
 
 	/**
 		Returns height of the component.
 	*/
-	virtual int GetHeight();
+	virtual int getHeight();
 
-	virtual int GetDPI();
+	virtual int getDPI();
 
 	/**
 		Sets width and height of the component.
 	*/
-	virtual void SetSize(int compWidth, int compHeight);
+	virtual void setSize(int compWidth, int compHeight);
 
 	/**
 		Sets x and y position of the component. x and y are relative to parent component
 	*/
-	virtual void SetPosition(int compX, int compY);
+	virtual void setPosition(int compX, int compY);
 
-	virtual void SetDPI(int newDPI);
+	virtual void setDPI(int newDPI);
 
 	/**
 		Sets visible state of the component
 	*/
-	virtual void SetVisible(bool state);
+	virtual void setVisible(bool state);
 
 	/**
 		Returns visible state of the component
 	*/
-	virtual bool IsVisible();
+	virtual bool isVisible();
 
 	/**
 		Returns the component is ready for user input or not
 	*/
-	virtual bool IsEnabled();
+	virtual bool isEnabled();
 
 	/**
 		Sets component's user input reading state
 	*/
-	virtual void SetEnabled(bool state);
+	virtual void setEnabled(bool state);
 
 	/**
 		Brings component to front
 	*/
-	virtual void BringToFront();
+	virtual void bringToFront();
 
 	/**
 		Grabs keyboard focus into this component
 	*/
-	virtual void SetKeyboardFocus();
+	virtual void setKeyboardFocus();
 
 	/**
 		Repaints the component
 	*/
-	virtual void Repaint();
+	virtual void repaint();
 
 	virtual ~KComponent();
 
@@ -3720,7 +4493,7 @@ private:
 // macros to handle window messages
 
 #define BEGIN_KMSG_HANDLER \
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) \
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override \
 	{\
 	switch(msg)\
 	{
@@ -3728,15 +4501,45 @@ private:
 #define ON_KMSG(_KMsg,_KMsgHandler) \
 	case _KMsg: return _KMsgHandler(wParam,lParam);
 
-#define END_KMSG_HANDLER(_KComponentParentClass) \
-	default: return _KComponentParentClass::WindowProc(hwnd,msg,wParam,lParam); \
+// msvc & clang supports __super keyword
+
+#define END_KMSG_HANDLER \
+	default: return __super::windowProc(hwnd,msg,wParam,lParam); \
 	}\
 	}
+
+
+// =========== UtilsModule.h ===========
+
+/*
+    Copyright (C) 2013-2025 CrownSoft
+
+    This software is provided 'as-is', without any express or implied
+    warranty.  In no event will the authors be held liable for any damages
+    arising from the use of this software.
+
+    Permission is granted to anyone to use this software for any purpose,
+    including commercial applications, and to alter it and redistribute it
+    freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+       claim that you wrote the original software. If you use this software
+       in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+    2. Altered source versions must be plainly marked as such, and must not be
+       misrepresented as being the original software.
+    3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+
+#pragma comment(lib, "Rpcrt4.lib")
 
 // =========== ContainersModule.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -3761,7 +4564,83 @@ private:
 // =========== KGridView.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.	  
+*/
+
+#pragma once
+
+#include <functional>
+
+class KGridView : public KComponent
+{
+protected:
+	int colCount;
+	int itemCount;
+
+public:
+	std::function<void(KGridView*)> onItemSelect;
+	std::function<void(KGridView*)> onItemRightClick;
+	std::function<void(KGridView*)> onItemDoubleClick;
+
+	KGridView(bool sortItems = false);
+
+	virtual void insertRecord(KString** columnsData);
+
+	virtual void insertRecordTo(int rowIndex, KString** columnsData);
+
+	virtual KString getRecordAt(int rowIndex, int columnIndex);
+
+	/**
+		returns -1 if nothing selected.
+	*/
+	virtual int getSelectedRow();
+
+	virtual void removeRecordAt(int rowIndex);
+
+	virtual void removeAll();
+
+	virtual void updateRecordAt(int rowIndex, int columnIndex, const KString& text);
+
+	virtual void setColumnWidth(int columnIndex, int columnWidth);
+
+	virtual int getColumnWidth(int columnIndex);
+
+	virtual void createColumn(const KString& text, int columnWidth = 100);
+
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
+
+	virtual bool create(bool requireInitialMessages = false) override;
+
+	virtual void _onItemSelect();
+
+	virtual void _onItemRightClick();
+
+	virtual void _onItemDoubleClick();
+
+	virtual ~KGridView();
+};
+
+
+// =========== KLabel.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3783,63 +4662,31 @@ private:
 #pragma once
 
 
-class KGridViewListener;
-
-class KGridView : public KComponent
+class KLabel : public KComponent
 {
 protected:
-	int colCount;
-	int itemCount;
-	KGridViewListener *listener;
+	bool autoResize;
 
+	virtual void resizeToTextSize();
+	const int AUTOSIZE_EXTRA_GAP = 10;
 public:
-	KGridView(bool sortItems = false);
+	KLabel();
 
-	virtual void SetListener(KGridViewListener *listener);
+	virtual bool create(bool requireInitialMessages = false) override;
+	virtual void enableAutoResize(bool enable);
+	virtual void setText(const KString& compText) override;
+	virtual void setFont(KFont* compFont) override;
+	virtual void setFont(KFont& compFont) override;
+	virtual void setDPI(int newDPI) override;
 
-	virtual KGridViewListener* GetListener();
-
-	virtual void InsertRecord(KString **columnsData);
-
-	virtual void InsertRecordTo(int rowIndex, KString **columnsData);
-
-	virtual KString GetRecordAt(int rowIndex, int columnIndex);
-
-	/**
-		returns -1 if nothing selected.
-	*/
-	virtual int GetSelectedRow();
-
-	virtual void RemoveRecordAt(int rowIndex);
-
-	virtual void RemoveAll();
-
-	virtual void UpdateRecordAt(int rowIndex, int columnIndex, const KString& text);
-
-	virtual void SetColumnWidth(int columnIndex, int columnWidth);
-
-	virtual int GetColumnWidth(int columnIndex);
-
-	virtual void CreateColumn(const KString& text, int columnWidth = 100);
-
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-
-	virtual bool Create(bool requireInitialMessages = false);
-
-	virtual void OnItemSelect();
-
-	virtual void OnItemRightClick();
-
-	virtual void OnItemDoubleClick();
-
-	virtual ~KGridView();
+	virtual ~KLabel();
 };
 
 
 // =========== KProgressBar.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3869,11 +4716,11 @@ protected:
 public:
 	KProgressBar(bool smooth=true, bool vertical=false);
 
-	virtual int GetValue();
+	virtual int getValue();
 
-	virtual void SetValue(int value);
+	virtual void setValue(int value);
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool create(bool requireInitialMessages = false) override;
 
 	virtual ~KProgressBar();
 };
@@ -3882,7 +4729,7 @@ public:
 // =========== KTextBox.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3909,54 +4756,18 @@ class KTextBox : public KComponent
 public:
 	KTextBox(bool readOnly = false);
 
-	virtual KString GetText();
+	virtual KString getText() override;
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool create(bool requireInitialMessages = false) override;
 
 	virtual ~KTextBox();
-};
-
-
-// =========== KLabel.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-#pragma once
-
-
-class KLabel : public KComponent
-{
-public:
-	KLabel();
-
-	virtual bool Create(bool requireInitialMessages = false);
-
-	virtual ~KLabel();
 };
 
 
 // =========== KTrackBar.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3977,34 +4788,32 @@ public:
 
 #pragma once
 
-
-class KTrackBarListener;
+#include <functional>
 
 class KTrackBar : public KComponent
 {
 protected:
 	int rangeMin,rangeMax,value;
-	KTrackBarListener *listener;
 
 public:
+	std::function<void(KTrackBar*,int)> onChange;
+
 	KTrackBar(bool showTicks = false, bool vertical = false);
 
 	/**
 		Range between 0 to 100
 	*/
-	virtual void SetRange(int min, int max);
+	virtual void setRange(int min, int max);
 
-	virtual void SetValue(int value);
+	virtual void setValue(int value);
 
-	virtual int GetValue();
+	virtual int getValue();
 
-	virtual void SetListener(KTrackBarListener *listener);
+	virtual void _onChange();
 
-	virtual void OnChange();
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool create(bool requireInitialMessages = false) override;
 
 	virtual ~KTrackBar();
 };
@@ -4012,10 +4821,53 @@ public:
 
 
 
+// =========== KPasswordBox.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.	  
+*/
+
+#pragma once
+
+
+class KPasswordBox : public KTextBox
+{
+protected:
+	wchar_t pwdChar;
+
+public:
+	KPasswordBox(bool readOnly=false);
+
+	virtual void setPasswordChar(const wchar_t pwdChar);
+
+	virtual wchar_t getPasswordChar();
+
+	virtual bool create(bool requireInitialMessages = false) override;
+
+	virtual ~KPasswordBox();
+};
+
+
 // =========== KPropertyStorage.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -4129,15 +4981,15 @@ public:
     GUID objectID;
     // ============================================
 
-    KPointerList<KPSProperty*> propertyList;
+    KPointerList<KPSProperty*, 32, false> propertyList;
 
-    KPSObject(int initialPropertyCount) : propertyList(initialPropertyCount)
+    KPSObject()
     {
         name = NULL;
         nameLength = 0;     
     }
 
-    bool Compare(const GUID& objectID)
+    bool compare(const GUID& objectID)
     {
         return (::IsEqualGUID(objectID, this->objectID) == TRUE);
     }
@@ -4147,7 +4999,7 @@ public:
         if (name)
             ::free(name);
 
-        propertyList.DeleteAll(false);
+        propertyList.deleteAll();
     }
 };
 
@@ -4174,7 +5026,7 @@ public:
             ::RpcStringFreeW((RPC_WSTR*)&guidValueStr);
     }
 
-    void GenerateIntArrayString()
+    void generateIntArrayString()
     {
         if (intArrayStr)
             ::free(intArrayStr);
@@ -4199,7 +5051,7 @@ public:
         }
     }
 
-    void GenerateIntArrayByString(wchar_t* text)
+    void generateIntArrayByString(wchar_t* text)
     {
         if (intArray)
             ::free(intArray);
@@ -4237,10 +5089,10 @@ public:
             str = end;
         }
 
-        this->GenerateIntArrayString();
+        generateIntArrayString();
     }
 
-    void GenerateGUIDValueString()
+    void generateGUIDValueString()
     {
         if (guidValueStr)
             ::RpcStringFreeW((RPC_WSTR*)&guidValueStr);
@@ -4252,7 +5104,7 @@ public:
 
     // The string should be in the following form
     // 00000000-0000-0000-0000-000000000000
-    bool GenerateGUIDValueByString(const wchar_t* text)
+    bool generateGUIDValueByString(const wchar_t* text)
     {
         bool success = true;
 
@@ -4262,7 +5114,7 @@ public:
             success = false;
         }
 
-        this->GenerateGUIDValueString();
+        generateGUIDValueString();
         return success;
     }
 };
@@ -4272,17 +5124,17 @@ class KPSObjectView : public KPSObject
 public:
     wchar_t* objectIDStr; 
 
-    KPSObjectView(int initialPropertyCount) : KPSObject(initialPropertyCount)
+    KPSObjectView() : KPSObject()
     {
         objectIDStr = NULL;
     }
 
-    void GenerateObjectID()
+    void generateObjectID()
     {
         ::CoCreateGuid(&objectID);
     }
 
-    void GenerateObjectIDString()
+    void generateObjectIDString()
     {
         if (objectIDStr)
             ::RpcStringFreeW((RPC_WSTR*)&objectIDStr);
@@ -4294,12 +5146,12 @@ public:
 
     // The string should be in the following form
     // 00000000-0000-0000-0000-000000000000
-    bool GenerateIDByString(const wchar_t* text)
+    bool generateIDByString(const wchar_t* text)
     {
         if (::UuidFromStringW((RPC_WSTR)text, &objectID) != RPC_S_OK)
             return false;
 
-        this->GenerateObjectIDString();
+        generateObjectIDString();
         return true;
     }
 
@@ -4315,7 +5167,7 @@ class KPSReader
 protected:
 
 public:
-    KPointerList<KPSObject*> *psObjectList;
+    KPointerList<KPSObject*,16, false>* psObjectList;
 
     KPSReader()
     {
@@ -4323,23 +5175,23 @@ public:
     }
 
     // do not free returned object.
-    KPSObject* GetPSObject(const GUID& objectID)
+    KPSObject* getPSObject(const GUID& objectID)
     {
-        for (int i = 0; i < psObjectList->GetSize(); i++)
+        for (int i = 0; i < psObjectList->size(); i++)
         {
-            KPSObject* psObject = psObjectList->GetPointer(i);
-            if (psObject->Compare(objectID))
+            KPSObject* psObject = psObjectList->get(i);
+            if (psObject->compare(objectID))
                 return psObject;
         }
 
         return NULL;
     }
 
-    bool LoadFromFile(const wchar_t* path, bool readNames = true)
+    bool loadFromFile(const wchar_t* path, bool readNames = true)
     {
         if (psObjectList)
         {
-            psObjectList->DeleteAll(false);
+            psObjectList->deleteAll();
             delete psObjectList;
             psObjectList = NULL;
         }
@@ -4383,7 +5235,7 @@ public:
             return false;
         }
 
-        psObjectList = new KPointerList<KPSObject*>(objectCount);
+        psObjectList = new KPointerList<KPSObject*, 16, false>();
 
         for (unsigned int objectIndex = 0; objectIndex < objectCount; ++objectIndex)
         {
@@ -4417,7 +5269,7 @@ public:
                 continue;
             }
 
-            KPSObject* psObject = new KPSObject(propertyCount);
+            KPSObject* psObject = new KPSObject();
             psObject->objectID = objectID;
             psObject->nameLength = nameLength;
             psObject->name = objectName;
@@ -4487,10 +5339,10 @@ public:
                     }
                 }
 
-                psObject->propertyList.AddPointer(psProperty);
+                psObject->propertyList.add(psProperty);
             }
 
-            psObjectList->AddPointer(psObject);
+            psObjectList->add(psObject);
         }
 
         ::CloseHandle(fileHandle);
@@ -4501,7 +5353,7 @@ public:
     {
         if (psObjectList)
         {
-            psObjectList->DeleteAll(false);
+            psObjectList->deleteAll();
             delete psObjectList;
         }
     }
@@ -4511,7 +5363,7 @@ public:
 // =========== KButton.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4532,34 +5384,28 @@ public:
 
 #pragma once
 
-
-class KButtonListener;
+#include <functional>
 
 class KButton : public KComponent
 {
-protected:
-	KButtonListener *listener;
-
 public:
+	std::function<void(KButton*)> onClick;
+
 	KButton();
 
-	virtual void SetListener(KButtonListener *listener);
+	virtual void _onPress();
 
-	virtual KButtonListener* GetListener();
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
 
-	virtual void OnPress();
-
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool create(bool requireInitialMessages = false) override;
 
 	virtual ~KButton();
 };
 
-// =========== KCheckBox.h ===========
+// =========== KDirectory.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4575,36 +5421,174 @@ public:
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
+	3. This notice may not be removed or altered from any source distribution. 
 */
 
 #pragma once
 
 
-class KCheckBox : public KButton
+#include <shlobj.h>
+
+/**
+Can be use to manipulate dirs.
+*/
+class KDirectory
 {
-protected:
-	bool checked;
-
 public:
-	KCheckBox();
+	KDirectory();
 
-	virtual bool Create(bool requireInitialMessages = false);
+	static bool isDirExists(const KString& dirName);
 
-	virtual void OnPress();
+	/**
+		returns false if directory already exists.
+	*/
+	static bool createDir(const KString& dirName);
 
-	virtual bool IsChecked();
+	/**
+		deletes an existing empty directory.
+	*/
+	static bool removeDir(const KString& dirName);
 
-	virtual void SetCheckedState(bool state);
+	/**
+		returns the directory of given module. if HModule is NULL this function will return dir of exe.
+		returns empty string on error.
+	*/
+	static void getModuleDir(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars);
 
-	virtual ~KCheckBox();
+	static void getModuleFilePath(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars);
+
+	/**
+		returns the parent directory of given file.
+	*/
+	static void getParentDir(const wchar_t* filePath, wchar_t* outBuffer, int bufferSizeInWChars);
+
+	/**
+		returns the the directory for temporary files.
+		returns empty string on error.
+	*/
+	static void getTempDir(wchar_t* outBuffer, int bufferSizeInWChars);
+
+	/**
+		returns the all user data directory. Requires admin priviledges for writing to this dir.
+		returns empty string on error.
+		outBuffer size must be MAX_PATH
+	*/
+	static void getAllUserDataDir(wchar_t* outBuffer);
+
+	/*
+		known path for the logged in user of the pc. (not affected by right click -> run as admin)
+		outBuffer size must be MAX_PATH
+		CSIDL_ADMINTOOLS
+		CSIDL_APPDATA
+		CSIDL_COMMON_ADMINTOOLS
+		CSIDL_COMMON_APPDATA
+		CSIDL_COMMON_DOCUMENTS
+		CSIDL_COOKIES
+		CSIDL_FLAG_CREATE
+		CSIDL_FLAG_DONT_VERIFY
+		CSIDL_HISTORY
+		CSIDL_INTERNET_CACHE
+		CSIDL_LOCAL_APPDATA
+		CSIDL_MYPICTURES
+		CSIDL_PERSONAL
+		CSIDL_PROGRAM_FILES
+		CSIDL_PROGRAM_FILES_COMMON
+		CSIDL_SYSTEM
+		CSIDL_WINDOWS
+	*/
+	static void getLoggedInUserFolderPath(int csidl, wchar_t* outBuffer);
+
+	// path for logged in user of pc (not affected by right click -> run as admin)
+	// outBuffer size must be MAX_PATH
+	static void getRoamingFolder(wchar_t* outBuffer);
+
+	// path for logged in user of pc (not affected by right click -> run as admin)
+	// outBuffer size must be MAX_PATH
+	static void getNonRoamingFolder(wchar_t* outBuffer);
+
+	// must delete returned strings and list.
+	// extension without dot. ex: "mp3"
+	// folderPath is without ending slash
+	// returns only file names. not full path.
+	// does not scan for child folders.
+	static KPointerList<KString*, 32, false>* scanFolderForExtension(const KString& folderPath, const KString& extension);
+
+	virtual ~KDirectory();
+
+private:
+	RFC_LEAK_DETECTOR(KDirectory)
 };
 
 
 // =========== KComboBox.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.  
+*/
+
+#pragma once
+
+#include <functional>
+
+class KComboBox : public KComponent
+{
+protected:
+	KVector<KString, 10, false> stringList;
+	int selectedItemIndex;
+
+public:
+	std::function<void(KComboBox*)> onItemSelect;
+
+	KComboBox(bool sort=false);
+
+	virtual void addItem(const KString& text);
+
+	virtual void removeItem(int index);
+
+	virtual void removeItem(const KString& text);
+
+	virtual int getItemIndex(const KString& text);
+
+	virtual int getItemCount();
+
+	virtual int getSelectedItemIndex();
+
+	virtual KString getSelectedItem();
+
+	virtual void clearList();
+
+	virtual void selectItem(int index);
+
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
+
+	virtual bool create(bool requireInitialMessages = false) override;
+
+	virtual void _onItemSelect();
+
+	virtual ~KComboBox();
+};
+
+
+// =========== KMenuButton.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4626,53 +5610,42 @@ public:
 #pragma once
 
 
-
-class KComboBoxListener;
-
-class KComboBox : public KComponent
+class KMenuButton : public KButton
 {
 protected:
-	KPointerList<KString*> *stringList;
-	int selectedItemIndex;
-	KComboBoxListener *listener;
+	KFont arrowFont;
+	KFont* glyphFont;
+	KMenu* buttonMenu;
+	const wchar_t* glyphChar;
+	COLORREF glyphColor;
+	int glyphLeft;
 
 public:
-	KComboBox(bool sort=false);
+	KMenuButton();
 
-	virtual void AddItem(const KString& text);
+	virtual ~KMenuButton();
 
-	virtual void RemoveItem(int index);
+	virtual void setMenu(KMenu* buttonMenu);
 
-	virtual void RemoveItem(const KString& text);
+	/**
+		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
+		You can use "Character Map" tool get character codes.
+		Default text color will be used if glyphColor not specified.
+	*/
+	virtual void setGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
 
-	virtual int GetItemIndex(const KString& text);
+	virtual void setDPI(int newDPI) override;
 
-	virtual int GetItemCount();
+	virtual void _onPress() override;
 
-	virtual int GetSelectedItemIndex();
-
-	virtual KString GetSelectedItem();
-
-	virtual void ClearList();
-
-	virtual void SelectItem(int index);
-
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-
-	virtual bool Create(bool requireInitialMessages = false);
-
-	virtual void SetListener(KComboBoxListener *listener);
-
-	virtual void OnItemSelect();
-
-	virtual ~KComboBox();
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 };
 
 
 // =========== KListBox.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4693,113 +5666,65 @@ public:
 
 #pragma once
 
-
-class KListBoxListener;
+#include <functional>
 
 class KListBox : public KComponent
 {
 protected:
-	KPointerList<KString*> *stringList;
+	KVector<KString, 10, false> stringList;
 	int selectedItemIndex;
 	int selectedItemEnd;
 	bool multipleSelection;
 
-	KListBoxListener *listener;
-
 public:
+	std::function<void(KListBox*)> onItemSelect;
+	std::function<void(KListBox*)> onItemRightClick;
+	std::function<void(KListBox*)> onItemDoubleClick;
+
 	KListBox(bool multipleSelection=false, bool sort=false, bool vscroll=true);
 
-	virtual void SetListener(KListBoxListener *listener);
+	virtual void addItem(const KString& text);
 
-	virtual void AddItem(const KString& text);
+	virtual void removeItem(int index);
 
-	virtual void RemoveItem(int index);
+	virtual void removeItem(const KString& text);
 
-	virtual void RemoveItem(const KString& text);
+	virtual void updateItem(int index, const KString& text);
 
-	virtual int GetItemIndex(const KString& text);
+	virtual int getItemIndex(const KString& text);
 
-	virtual int GetItemCount();
+	virtual int getItemCount();
 
-	virtual int GetSelectedItemIndex();
+	virtual int getSelectedItemIndex();
 
-	virtual KString GetSelectedItem();
+	virtual KString getSelectedItem();
 
-	virtual int GetSelectedItems(int* itemArray, int itemCountInArray);
+	virtual int getSelectedItems(int* itemArray, int itemCountInArray);
 
-	virtual void ClearList();
+	virtual void clearList();
 
-	virtual void SelectItem(int index);
+	virtual void selectItem(int index);
 
-	virtual void SelectItems(int start, int end);
+	virtual void selectItems(int start, int end);
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool create(bool requireInitialMessages = false) override;
 
-	virtual void OnItemSelect();
+	virtual void _onItemSelect();
 
-	virtual void OnItemDoubleClick();
+	virtual void _onItemDoubleClick();
+
+	virtual void _onItemRightClick();
 
 	virtual ~KListBox();
-};
-
-
-// =========== KGUIProc.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
-*/
-
-#pragma once
-
-
-// all the methods must be called only from the gui thread.
-class KGUIProc
-{
-public:
-	static ATOM AtomComponent;
-	static ATOM AtomOldProc;
-
-	static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-	static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
-
-	/**
-		set requireInitialMessages to true to receive initial messages lke WM_CREATE... (installs a hook)
-	*/
-	static HWND CreateComponent(KComponent* component, bool requireInitialMessages);
-
-	/**
-		hwnd can be window, custom control, dialog or common control.
-		hwnd will be subclassed if it is a common control or dialog.
-	*/
-	static void AttachRFCPropertiesToHWND(HWND hwnd, KComponent* component);
-
-	static int HotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
-	static HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
 };
 
 
 // =========== KLogger.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4875,26 +5800,26 @@ public:
 
 	KLogger(DWORD bufferSize = (SZ_MEGABYTE * 10));
 
-	virtual bool WriteNewEvent(unsigned char eventType = EVT_INFORMATION);
+	virtual bool writeNewEvent(unsigned char eventType = EVT_INFORMATION);
 
-	virtual bool EndEvent();
+	virtual bool endEvent();
 
 	/**
 		textLength is number of chars. max value is 255.
 	*/
-	virtual bool AddTextParam(const char *text, unsigned char textLength);
+	virtual bool addTextParam(const char *text, unsigned char textLength);
 
-	virtual bool AddIntParam(int value);
+	virtual bool addIntParam(int value);
 
-	virtual bool AddShortParam(unsigned short value);
+	virtual bool addShortParam(unsigned short value);
 
-	virtual bool AddFloatParam(float value);
+	virtual bool addFloatParam(float value);
 	
-	virtual bool AddDoubleParam(double value);
+	virtual bool addDoubleParam(double value);
 
-	virtual bool IsBufferFull();
+	virtual bool isBufferFull();
 
-	virtual bool WriteToFile(const KString &filePath);
+	virtual bool writeToFile(const KString &filePath);
 
 	virtual ~KLogger();
 
@@ -4903,10 +5828,121 @@ private:
 };
 
 
+// =========== KHostPanel.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+
+class KHostPanel : public KComponent
+{
+protected:
+	bool enableDPIUnawareMode;
+	KPointerList<KComponent*, 24, false>* componentList;
+
+public:
+	KHostPanel();
+
+	// called by the parent
+	virtual void setComponentList(KPointerList<KComponent*, 24, false>* componentList);
+
+	// called by the parent
+	virtual void setEnableDPIUnawareMode(bool enable);
+
+	/**
+		add KHostPanel to window(call create) before adding items to it.
+		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
+	*/
+	virtual bool addComponent(KComponent* component, bool requireInitialMessages = false);
+
+	// Can be also use to remove a container. Also destroys the hwnd.
+	virtual void removeComponent(KComponent* component);
+
+	/**
+		add KHostPanel to window(call create) before adding items to it.
+		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
+	*/
+	virtual bool addContainer(KHostPanel* container, bool requireInitialMessages = false);
+
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
+
+	virtual ~KHostPanel();
+};
+
+// =========== KGUIProc.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.  
+*/
+
+#pragma once
+
+
+// all the methods must be called only from the gui thread.
+class KGUIProc
+{
+public:
+	static ATOM atomComponent;
+	static ATOM atomOldProc;
+
+	static LRESULT CALLBACK windowProc(HWND, UINT, WPARAM, LPARAM);
+	static INT_PTR CALLBACK dialogProc(HWND, UINT, WPARAM, LPARAM);
+
+	/**
+		set requireInitialMessages to true to receive initial messages lke WM_CREATE... (installs a hook)
+	*/
+	static HWND createComponent(KComponent* component, bool requireInitialMessages);
+
+	/**
+		hwnd can be window, custom control, dialog or common control.
+		hwnd will be subclassed if it is a common control or dialog.
+	*/
+	static void attachRFCPropertiesToHWND(HWND hwnd, KComponent* component);
+
+	static int hotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
+	static HWND hotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
+};
+
+
 // =========== KWindow.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4933,8 +5969,10 @@ private:
 class KDPIChangeListener
 {
 public:
-	virtual void OnDPIChange(HWND hwnd, int newDPI) = 0;
+	virtual void onDPIChange(HWND hwnd, int newDPI) = 0;
 };
+
+enum class KCloseOperation { DestroyAndExit, Hide, Nothing };
 
 class KWindow : public KComponent
 {
@@ -4942,220 +5980,101 @@ protected:
 	HWND lastFocusedChild;
 	KDPIChangeListener* dpiChangeListener;
 	bool enableDPIUnawareMode;
-	KPointerList<KComponent*> componentList;
+	KPointerList<KComponent*, 24, false> componentList; // KHostPanel is also using 24.
+	KCloseOperation closeOperation;
+	DPI_AWARENESS_CONTEXT prevDPIContext;
+	bool dpiAwarenessContextChanged;
+	KIcon* windowIcon;
+	HICON largeIconHandle, smallIconHandle;
+
+	void updateWindowIconForNewDPI();
 
 public:
 	KWindow();
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool create(bool requireInitialMessages = false) override;
 
-	virtual void Flash();
+	virtual void flash();
 
-	virtual void SetIcon(KIcon *icon);
+	// can only call after create.
+	virtual void setIcon(KIcon* icon);
 
-	virtual void OnClose();
+	virtual void setCloseOperation(KCloseOperation closeOperation);
 
-	virtual void OnDestroy();
+	virtual void onClose();
+
+	virtual void onDestroy();
 
 	// Custom messages are used to send a signal/data from worker thread to gui thread.
-	virtual void PostCustomMessage(WPARAM msgID, LPARAM param);
+	virtual void postCustomMessage(WPARAM msgID, LPARAM param);
 
-	virtual void OnCustomMessage(WPARAM msgID, LPARAM param);
+	virtual void onCustomMessage(WPARAM msgID, LPARAM param);
 
-	virtual void CenterScreen();
+	virtual void centerScreen();
+
+	// puts our window on same monitor as given window + centered
+	virtual void centerOnSameMonitor(HWND window);
 
 	/**
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
+		Adding a component does not mean that the window will own or delete the component - it's
+		your responsibility to delete the component. you need to remove the component if you are
+		deleting it before WM_DESTROY message arrived.
+.
 	*/
-	virtual bool AddComponent(KComponent *component, bool requireInitialMessages = false);
+	virtual bool addComponent(KComponent* component, bool requireInitialMessages = false);
 
-	virtual void RemoveComponent(KComponent* component);
+	virtual bool addComponent(KComponent& component, bool requireInitialMessages = false);
 
-	virtual bool SetClientAreaSize(int width, int height);
+	// Can be also use to remove a container. Also destroys the hwnd.
+	// you need to remove the component if you are deleting it before WM_DESTROY message arrived.
+	virtual void removeComponent(KComponent* component);
 
-	virtual void SetDPIChangeListener(KDPIChangeListener* dpiChangeListener);
+	// use this method to add KHostPanel to the window.
+	virtual bool addContainer(KHostPanel* container, bool requireInitialMessages = false);
+
+	virtual bool setClientAreaSize(int width, int height);
+
+	virtual void setDPIChangeListener(KDPIChangeListener* dpiChangeListener);
 
 	// Mixed-Mode DPI Scaling - window scaled by the system. can only call before create.
 	// InitRFC must be called with KDPIAwareness::MIXEDMODE_ONLY
 	// Only works with Win10 or higher
-	virtual void SetEnableDPIUnawareMode(bool enable);
+	virtual void setEnableDPIUnawareMode(bool enable);
 
-	static bool IsOffScreen(int posX, int posY);
+	// In mixed-mode dpi unaware window, before adding any child we need to set current thread dpi mode to unaware mode.
+	// by default this method automatically called with AddComponent method.
+	// if you add a child without calling AddComponent then you have to call ApplyDPIUnawareModeToThread method first.
+	virtual void applyDPIUnawareModeToThread();
 
-	virtual bool GetClientAreaSize(int *width, int *height);
+	// after adding the child, we need to restore the last dpi mode of the thread.
+	// Mixed-Mode only
+	virtual void restoreDPIModeOfThread();
 
-	virtual void OnMoved();
+	static bool isOffScreen(int posX, int posY);
+
+	virtual bool getClientAreaSize(int* width, int* height);
+
+	// can be use to get the window size even if it were minimized.
+	virtual void getNormalSize(int* width, int* height);
+
+	virtual void onMoved();
 
 	// This method will be called on window resize and dpi change.
 	// Note: if this method called as a result of dpi change, the dpi of controls in this window are still in old dpi scale.
 	// Do not change the control positions/sizes in here if the window and controls are in different dpi scale. (use KDPIChangeListener)
-	virtual void OnResized();
+	virtual void onResized();
 
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
 
 	virtual ~KWindow();
 };
 
 
-// =========== KTimer.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-#pragma once
-
-
-
-/**
-	Encapsulates a timer.
-
-	The timer can be started with the StartTimer() method
-	and controlled with various other methods. Before you start timer, you must set 
-	timer window by calling SetTimerWindow method.
-*/
-class KTimer
-{
-protected:
-	UINT timerID;
-	int resolution;
-	bool started;
-	KWindow *window;
-	KTimerListener *listener;
-
-public:
-
-	KTimer();
-
-	/**
-		@param resolution timer interval
-	*/
-	virtual void SetInterval(int resolution);
-
-	virtual int GetInterval();
-
-	/**
-		Call this method before you start timer
-	*/
-	virtual void SetTimerWindow(KWindow *window);
-
-	virtual void SetTimerID(UINT timerID);
-
-	/**
-		@returns unique id of this timer
-	*/
-	virtual UINT GetTimerID();
-
-	/**
-		Starts timer
-	*/
-	virtual void StartTimer();
-
-	/**
-		Stops the timer. You can restart it by calling StartTimer() method.
-	*/
-	virtual void StopTimer();
-
-	virtual void SetListener(KTimerListener *listener);
-
-	virtual bool IsTimerRunning();
-
-	virtual void OnTimer();
-
-	virtual ~KTimer();
-
-private:
-	RFC_LEAK_DETECTOR(KTimer)
-};
-
-
-// =========== KIDGenerator.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-#pragma once
-
-#include <stdio.h>
-
-/**
-	Singleton class which can be used to generate class names, timer ids etc...
-	Methods are not thread safe. So, only call from the gui thread.
-	(this class is for internal use)
-*/
-class KIDGenerator
-{
-private:
-	RFC_LEAK_DETECTOR(KIDGenerator)
-
-	static KIDGenerator*_instance;
-	KIDGenerator();
-
-protected:
-	volatile int classCount;
-	volatile int timerCount;
-	volatile int controlCount;
-	volatile UINT menuItemCount;
-
-	KPointerList<KMenuItem*> *menuItemList;
-	KPointerList<KTimer*> *timerList;
-
-public:
-
-	static KIDGenerator* GetInstance();
-
-	UINT GenerateControlID();
-
-	// KApplication:hInstance must be valid before calling this method
-	KString GenerateClassName();
-
-	UINT GenerateMenuItemID(KMenuItem *menuItem);
-	KMenuItem* GetMenuItemByID(UINT id);
-
-	UINT GenerateTimerID(KTimer *timer);
-	KTimer* GetTimerByID(UINT id);
-
-	~KIDGenerator();
-
-};
-
 // =========== FileModule.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -5177,12 +6096,14 @@ public:
 #pragma once
 
 
+#pragma comment(lib,"Shlwapi.lib")
+
 
 
 // =========== KGroupBox.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5204,6 +6125,11 @@ public:
 #pragma once
 
 
+/*
+* Win32 group box is designed to be placed around other controls. Do not use its hwnd
+* as a parent/host for other controls. Position other controls over it and then call 
+* BringToFront method.
+*/
 class KGroupBox : public KButton
 {
 public:
@@ -5213,10 +6139,10 @@ public:
 };
 
 
-// =========== KRadioButton.h ===========
+// =========== KGlyphButton.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5232,25 +6158,42 @@ public:
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
+	3. This notice may not be removed or altered from any source distribution.  
 */
 
 #pragma once
 
 
-class KRadioButton : public KCheckBox
+class KGlyphButton : public KButton
 {
-public:
-	KRadioButton();
+protected:
+	KFont* glyphFont;
+	const wchar_t* glyphChar;
+	COLORREF glyphColor;
+	int glyphLeft;
 
-	virtual ~KRadioButton();
+public:
+	KGlyphButton();
+
+	virtual ~KGlyphButton();
+
+	/**
+		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
+		You can use "Character Map" tool get character codes.
+		Default text color will be used if glyphColor not specified.
+	*/
+	virtual void setGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
+
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
+
+	virtual void setDPI(int newDPI) override;
 };
 
 
 // =========== KNumericField.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5281,10 +6224,10 @@ public:
 };
 
 
-// =========== KPasswordBox.h ===========
+// =========== KCheckBox.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5306,28 +6249,30 @@ public:
 #pragma once
 
 
-class KPasswordBox : public KTextBox
+class KCheckBox : public KButton
 {
 protected:
-	wchar_t pwdChar;
+	bool checked;
 
 public:
-	KPasswordBox(bool readOnly=false);
+	KCheckBox();
 
-	virtual void SetPasswordChar(const wchar_t pwdChar);
+	virtual bool create(bool requireInitialMessages = false) override;
 
-	virtual wchar_t GetPasswordChar();
+	virtual void _onPress() override;
 
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool isChecked();
 
-	virtual ~KPasswordBox();
+	virtual void setCheckedState(bool state);
+
+	virtual ~KCheckBox();
 };
 
 
 // =========== KPushButton.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5358,10 +6303,10 @@ public:
 };
 
 
-// =========== KGlyphButton.h ===========
+// =========== KRadioButton.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5377,42 +6322,25 @@ public:
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
+	3. This notice may not be removed or altered from any source distribution.	  
 */
 
 #pragma once
 
 
-class KGlyphButton : public KButton
+class KRadioButton : public KCheckBox
 {
-protected:
-	KFont *glyphFont;
-	const wchar_t *glyphChar;
-	COLORREF glyphColor;
-	int glyphLeft;
-
 public:
-	KGlyphButton();
+	KRadioButton();
 
-	virtual ~KGlyphButton();
-
-	/**
-		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
-		You can use "Character Map" tool get character codes.
-		Default text color will be used if glyphColor not specified.
-	*/
-	virtual void SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
-
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-
-	virtual void SetDPI(int newDPI);
+	virtual ~KRadioButton();
 };
 
 
 // =========== KTextArea.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5439,86 +6367,16 @@ class KTextArea : public KTextBox
 public:
 	KTextArea(bool autoScroll = false, bool readOnly = false);
 
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
 
 	virtual ~KTextArea();
-};
-
-
-// =========== KWindowTypes.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
-*/
-
-#pragma once
-
-
-class KHotPluggedDialog : public KWindow
-{
-public:
-	KHotPluggedDialog();
-
-	virtual void OnClose();
-
-	virtual void OnDestroy();
-
-	virtual ~KHotPluggedDialog();
-};
-
-class KOverlappedWindow : public KWindow
-{
-public:
-	KOverlappedWindow();
-
-	virtual ~KOverlappedWindow();
-};
-
-class KFrame : public KWindow
-{
-public:
-	KFrame();
-
-	virtual ~KFrame();
-};
-
-class KDialog : public KWindow
-{
-public:
-	KDialog();
-
-	virtual ~KDialog();
-};
-
-class KToolWindow : public KWindow
-{
-public:
-	KToolWindow();
-
-	virtual ~KToolWindow();
 };
 
 
 // =========== KToolTip.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5555,23 +6413,504 @@ public:
 		"attachedComponent" must be added to a window before you call this method.
 		do not attach same tooltip into multiple components.
 	*/
-	virtual void AttachToComponent(KWindow *parentWindow, KComponent *attachedComponent);
+	virtual void attachToComponent(KWindow* parentWindow, KComponent* attachedComponent);
 
 	/**
 		calling this method has no effect.
 	*/
-	virtual bool Create(bool requireInitialMessages = false);
+	virtual bool create(bool requireInitialMessages = false) override;
 
-	virtual void SetText(const KString& compText);
+	virtual void setText(const KString& compText) override;
 };
 
 
 
 
-// =========== KMenu.h ===========
+// =========== KWindowTypes.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.  
+*/
+
+#pragma once
+
+#include <Windowsx.h> // GET_X_LPARAM
+#include <type_traits> // std::is_base_of
+
+class KHotPluggedDialog : public KWindow
+{
+public:
+	KHotPluggedDialog();
+
+	virtual void onClose();
+
+	virtual void onDestroy();
+
+	virtual ~KHotPluggedDialog();
+};
+
+class KOverlappedWindow : public KWindow
+{
+public:
+	KOverlappedWindow();
+
+	virtual ~KOverlappedWindow();
+};
+
+class KFrame : public KWindow
+{
+public:
+	KFrame();
+
+	virtual ~KFrame();
+};
+
+class KDialog : public KWindow
+{
+public:
+	KDialog();
+
+	virtual ~KDialog();
+};
+
+class KToolWindow : public KWindow
+{
+public:
+	KToolWindow();
+
+	virtual ~KToolWindow();
+};
+
+// enables client area dragging
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
+class KDraggable : public T
+{
+protected:
+	bool enableClientAreaDragging;
+	bool windowDraging;
+	short clientAreaDraggingX;
+	short clientAreaDraggingY;
+
+	virtual LRESULT onLButtonDown(WPARAM wParam, LPARAM lParam)
+	{
+		if (enableClientAreaDragging)
+		{
+			clientAreaDraggingX = GET_X_LPARAM(lParam);
+			clientAreaDraggingY = GET_Y_LPARAM(lParam);
+
+			// disabled child will pass left click msg to parent window. we ignore that! 
+			// we don't want to drag window by clicking on child.
+			POINT point = { clientAreaDraggingX, clientAreaDraggingY };
+			if (::RealChildWindowFromPoint(T::compHWND, point) != T::compHWND)
+				return 0;
+
+			windowDraging = true;
+			::SetCapture(T::compHWND);
+		}
+
+		return 0;
+	}
+
+	virtual LRESULT onMouseMove(WPARAM wParam, LPARAM lParam)
+	{
+		if (windowDraging)
+		{
+			POINT pos;
+			::GetCursorPos(&pos);
+
+			this->setPosition(pos.x - clientAreaDraggingX, pos.y - clientAreaDraggingY);
+		}
+
+		return 0;
+	}
+
+	virtual LRESULT onLButtonUp(WPARAM wParam, LPARAM lParam)
+	{
+		if (windowDraging)
+		{
+			::ReleaseCapture();
+			windowDraging = false;
+		}
+
+		return 0;
+	}
+
+public:
+	KDraggable()
+	{
+		enableClientAreaDragging = true;
+	}
+
+	virtual void setEnableClientAreaDrag(bool enable)
+	{
+		enableClientAreaDragging = enable;
+	}
+
+	virtual ~KDraggable() {}
+
+	BEGIN_KMSG_HANDLER
+		ON_KMSG(WM_LBUTTONDOWN, onLButtonDown)
+		ON_KMSG(WM_MOUSEMOVE, onMouseMove)
+		ON_KMSG(WM_LBUTTONUP, onLButtonUp)
+	END_KMSG_HANDLER
+};
+
+// provides flicker free double buffered drawing method.
+// T must be derived from KComponent
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KComponent, T>::value>::type>
+class KDrawable : public T
+{
+protected:
+
+	// override this method in subclass and draw your stuff
+	virtual void onPaint(HDC hDCMem, RECT* rect, const int width, const int height)
+	{
+		::FillRect(hDCMem, rect, (HBRUSH)::GetStockObject(WHITE_BRUSH));
+		::FrameRect(hDCMem, rect, (HBRUSH)::GetStockObject(BLACK_BRUSH));
+	}
+
+	virtual LRESULT onWMPaint(WPARAM wParam, LPARAM lParam)
+	{
+		RECT rect;
+		::GetClientRect(T::compHWND, &rect);
+
+		const int width = rect.right - rect.left;
+		const int height = rect.bottom - rect.top;
+
+		PAINTSTRUCT ps;
+		HDC hdc = ::BeginPaint(T::compHWND, &ps);
+
+		// double buffering
+		HDC hDCMem = ::CreateCompatibleDC(hdc);
+		HBITMAP memBMP = ::CreateCompatibleBitmap(hdc, width, height);;
+		::SelectObject(hDCMem, memBMP);
+
+		this->onPaint(hDCMem, &rect, width, height);
+
+		::BitBlt(hdc, 0, 0, width, height, hDCMem, 0, 0, SRCCOPY);
+
+		::DeleteDC(hDCMem);
+		::DeleteObject(memBMP);
+
+		::EndPaint(T::compHWND, &ps);
+
+		return 0;
+	}
+
+	virtual LRESULT onEraseBackground(WPARAM wParam, LPARAM lParam)
+	{
+		return 1; // avoids flickering
+	}
+
+public:
+	KDrawable(){}
+
+	virtual ~KDrawable() {}
+
+	BEGIN_KMSG_HANDLER
+		ON_KMSG(WM_PAINT, onWMPaint)
+		ON_KMSG(WM_ERASEBKGND, onEraseBackground)
+	END_KMSG_HANDLER
+};
+
+class KWidget : public KDrawable<KDraggable<KWindow>>
+{
+public:
+	KWidget()
+	{
+		compDwStyle = WS_POPUP;
+		compDwExStyle = WS_EX_TOOLWINDOW | WS_EX_CONTROLPARENT;
+		compWidth = 128;
+		compHeight = 128;
+	}
+
+	virtual ~KWidget() {}
+};
+
+// =========== KTimer.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+  
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.	  
+*/
+
+#pragma once
+
+#include <functional>
+
+/**
+	Encapsulates a timer.
+
+	The timer can be started with the StartTimer() method
+	and controlled with various other methods. Before you start timer, you must set 
+	timer window by calling SetTimerWindow method.
+*/
+class KTimer
+{
+protected:
+	UINT timerID;
+	int resolution;
+	bool started;
+	KWindow *window;
+
+public:
+	std::function<void(KTimer*)> onTimer;
+
+	KTimer();
+
+	/**
+		@param resolution timer interval
+	*/
+	virtual void setInterval(int resolution);
+
+	virtual int getInterval();
+
+	/**
+		Call this method before you start timer
+	*/
+	virtual void setTimerWindow(KWindow* window);
+
+	virtual void setTimerID(UINT timerID);
+
+	/**
+		@returns unique id of this timer
+	*/
+	virtual UINT getTimerID();
+
+	/**
+		Starts timer
+	*/
+	virtual void startTimer();
+
+	/**
+		Stops the timer. You can restart it by calling startTimer() method.
+	*/
+	virtual void stopTimer();
+
+	virtual bool isTimerRunning();
+
+	virtual void _onTimer();
+
+	virtual ~KTimer();
+
+private:
+	RFC_LEAK_DETECTOR(KTimer)
+};
+
+
+// =========== KNotifyIconHandler.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+#pragma once
+
+#include <shellapi.h>
+#include <commctrl.h>
+#include <type_traits> // std::is_base_of
+
+#define RFC_NOTIFY_ICON_MESSAGE WM_APP + 101
+
+// adds an icon into the systemtray and handles mouse messages.
+// detects taskbar re-creation and adds the icon again.
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
+class KNotifyIconHandler : public T
+{
+protected:
+	HICON notifyIconHandle;
+	KString notifyIconToolTipText;
+	UINT taskbarRestartMsg;
+
+	virtual LRESULT onNotifyIconMessage(WPARAM wParam, LPARAM lParam)
+	{
+		if (lParam == WM_LBUTTONUP)
+			this->onNotifyIconLeftClick();
+		else if (lParam == WM_RBUTTONUP)
+			this->onNotifyIconRightClick();
+
+		return 0;
+	}
+
+	virtual void createNotifyIcon(HWND window, HICON icon, const KString& toolTipText)
+	{
+		NOTIFYICONDATAW nid = { 0 };
+
+		nid.cbSize = sizeof(NOTIFYICONDATAW);
+		nid.hWnd = window;
+		nid.uID = 1010;
+		nid.uVersion = NOTIFYICON_VERSION;
+		nid.uCallbackMessage = RFC_NOTIFY_ICON_MESSAGE;
+		nid.hIcon = icon;
+		::wcscpy_s(nid.szTip, toolTipText);
+		nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
+
+		::Shell_NotifyIconW(NIM_ADD, &nid);
+	}
+
+	// on explorer crash
+	virtual LRESULT onTaskBarReCreate(WPARAM wParam, LPARAM lParam)
+	{
+		if (notifyIconHandle)
+			this->createNotifyIcon(this->compHWND, notifyIconHandle, notifyIconToolTipText);
+
+		return 0;
+	}
+
+	// override this method in your subclass and show popup menu.
+	virtual void onNotifyIconRightClick()
+	{
+		::SetForegroundWindow(this->compHWND);
+		// show you popup menu here...
+	}
+
+	// override this method in your subclass.
+	virtual void onNotifyIconLeftClick()
+	{
+		::SetForegroundWindow(this->compHWND);
+	}
+
+public:
+	KNotifyIconHandler()
+	{
+		notifyIconHandle = 0;
+		taskbarRestartMsg = ::RegisterWindowMessageW(L"TaskbarCreated");
+	}
+
+	virtual ~KNotifyIconHandler()
+	{
+		if (notifyIconHandle)
+			::DestroyIcon(notifyIconHandle);
+	}
+
+	// window must be created.
+	// maximum tooltip text size is 128
+	virtual void addNotifyIcon(WORD iconResourceID, const KString& tooltipText)
+	{
+		// supports high dpi.
+		// LoadIconMetric: only for system tray. cannot use for a window. because multiple window can have different dpi.
+		::LoadIconMetric(KApplication::hInstance,
+			MAKEINTRESOURCEW(iconResourceID), LIM_SMALL, &notifyIconHandle);
+
+		notifyIconToolTipText = tooltipText;
+
+		this->createNotifyIcon(this->compHWND, notifyIconHandle, notifyIconToolTipText);
+	}
+
+	virtual void updateNotifyIcon(WORD iconResourceID)
+	{
+		if (notifyIconHandle)
+			::DestroyIcon(notifyIconHandle);
+
+		::LoadIconMetric(KApplication::hInstance,
+			MAKEINTRESOURCEW(iconResourceID), LIM_SMALL, &notifyIconHandle);
+
+		NOTIFYICONDATAW nid = { 0 };
+
+		nid.cbSize = sizeof(NOTIFYICONDATAW);
+		nid.hWnd = this->compHWND;
+		nid.uID = 1010;
+		nid.uVersion = NOTIFYICON_VERSION;
+		nid.hIcon = notifyIconHandle;
+		nid.uFlags = NIF_ICON;
+
+		::Shell_NotifyIconW(NIM_MODIFY, &nid);
+	}
+
+	// maximum tooltip text size is 128
+	virtual void updateNotifyIconToolTip(const KString& tooltipText)
+	{
+		notifyIconToolTipText = tooltipText;
+
+		NOTIFYICONDATAW nid = { 0 };
+
+		nid.cbSize = sizeof(NOTIFYICONDATAW);
+		nid.hWnd = this->compHWND;
+		nid.uID = 1010;
+		nid.uVersion = NOTIFYICON_VERSION;
+		::wcscpy_s(nid.szTip, tooltipText);
+		nid.uFlags = NIF_TIP;
+
+		::Shell_NotifyIconW(NIM_MODIFY, &nid);
+	}
+
+	virtual void destroyNotifyIcon()
+	{
+		NOTIFYICONDATAW nid = { 0 };
+		nid.cbSize = sizeof(NOTIFYICONDATAW);
+		nid.hWnd = this->compHWND;
+		nid.uID = 1010;
+
+		::Shell_NotifyIconW(NIM_DELETE, &nid);
+	}
+
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override
+	{
+		if (msg == RFC_NOTIFY_ICON_MESSAGE)
+			return this->onNotifyIconMessage(wParam, lParam);
+		else if (msg == taskbarRestartMsg)
+			return this->onTaskBarReCreate(wParam, lParam);
+		else
+			return T::windowProc(hwnd, msg, wParam, lParam);
+	}
+};
+
+// =========== KMenuBar.h ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5593,35 +6932,29 @@ public:
 #pragma once
 
 
-class KMenu
+class KMenuBar
 {
 protected:
 	HMENU hMenu;
 
 public:
-	KMenu();
+	KMenuBar();
 
-	virtual void AddMenuItem(KMenuItem *menuItem);
+	virtual void addMenu(const KString& text, KMenu* menu);
 
-	virtual void AddSubMenu(const KString& text, KMenu *menu);
+	virtual void addToWindow(KWindow* window);
 
-	virtual void AddSeperator();
-
-	virtual HMENU GetMenuHandle();
-
-	virtual void PopUpMenu(KWindow *window);
-
-	virtual ~KMenu();
+	virtual ~KMenuBar();
 
 private:
-	RFC_LEAK_DETECTOR(KMenu)
+	RFC_LEAK_DETECTOR(KMenuBar)
 };
 
 
 // =========== KCommonDialogBox.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5654,78 +6987,21 @@ public:
 		You cannot use String object for filter, because filter string contains multiple null characters.
 		"dialogGuid" is valid only if "saveLastLocation" is true.
 	*/
-	static bool ShowOpenFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName, bool saveLastLocation = false, const wchar_t* dialogGuid = 0);
+	static bool showOpenFileDialog(KWindow* window, const KString& title, const wchar_t* filter, KString* fileName, bool saveLastLocation = false, const KString& dialogGuid = KString());
 
 	/**
 		Filter string might be like this "Text Files (*.txt)\0*.txt\0"
 		You cannot use String object for filter, because filter string contains multiple null characters.
 		"dialogGuid" is valid only if "saveLastLocation" is true.
 	*/
-	static bool ShowSaveFileDialog(KWindow *window, const KString& title, const wchar_t* filter, KString *fileName, bool saveLastLocation = false, const wchar_t* dialogGuid = 0);
+	static bool showSaveFileDialog(KWindow* window, const KString& title, const wchar_t* filter, KString* fileName, bool saveLastLocation = false, const KString& dialogGuid = KString());
 };
 
 
-// =========== KMenuButton.h ===========
+// =========== KIDGenerator.h ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
-*/
-
-#pragma once
-
-
-class KMenuButton : public KButton
-{
-protected:
-	KFont *arrowFont;
-	KFont *glyphFont;
-	KMenu *buttonMenu;
-	const wchar_t *glyphChar;
-	COLORREF glyphColor;
-	int glyphLeft;
-
-public:
-	KMenuButton();
-
-	virtual ~KMenuButton();
-
-	virtual void SetMenu(KMenu *buttonMenu);
-
-	/**
-		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
-		You can use "Character Map" tool get character codes.
-		Default text color will be used if glyphColor not specified.
-	*/
-	virtual void SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
-
-	virtual void SetDPI(int newDPI);
-
-	virtual void OnPress();
-
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result);
-};
-
-
-// =========== KMenuBar.h ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5746,30 +7022,57 @@ public:
 
 #pragma once
 
+#include <stdio.h>
 
-class KMenuBar
+/**
+	Singleton class which can be used to generate class names, timer ids etc...
+	Methods are not thread safe. So, only call from the gui thread.
+	(this class is for internal use)
+*/
+class KIDGenerator
 {
+private:
+	RFC_LEAK_DETECTOR(KIDGenerator)
+	KIDGenerator();
+	~KIDGenerator();
+
 protected:
-	HMENU hMenu;
+	volatile int classCount;
+	volatile int timerCount;
+	volatile int controlCount;
+	volatile UINT menuItemCount;
+
+	static const int rfc_InitialMenuItemCount = 20;
+	static const int rfc_InitialTimerCount = 10;
+
+	static const int rfc_InitialControlID = 100;
+	static const int rfc_InitialMenuItemID = 30000;
+	static const int rfc_InitialTimerID = 1000;
+
+	KPointerList<KMenuItem*, rfc_InitialMenuItemCount, false> menuItemList;
+	KPointerList<KTimer*, rfc_InitialTimerCount, false> timerList;
 
 public:
-	KMenuBar();
+	// do not delete the returned instance.
+	static KIDGenerator* getInstance();
 
-	virtual void AddMenu(const KString& text, KMenu *menu);
+	UINT generateControlID();
 
-	virtual void AddToWindow(KWindow *window);
+	// KApplication:hInstance must be valid before calling this method
+	// can generate up to 9999 class names.
+	void generateClassName(KString& stringToModify);
 
-	virtual ~KMenuBar();
+	UINT generateMenuItemID(KMenuItem* menuItem);
+	KMenuItem* getMenuItemByID(UINT id);
 
-private:
-	RFC_LEAK_DETECTOR(KMenuBar)
+	UINT generateTimerID(KTimer* timer);
+	KTimer* getTimerByID(UINT id);
 };
-
 
 // =========== GUIModule.h ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -5792,6 +7095,7 @@ private:
 
 
 #pragma comment(lib, "Comctl32.lib")
+#pragma comment(lib, "Shell32.lib")
 
 #endif
 

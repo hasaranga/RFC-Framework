@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,20 +23,21 @@
 
 #include "../core/CoreModule.h"
 #include "KRunnable.h"
+#include <functional>
 
 /**
 	Encapsulates a thread.
 
 	Method1:
-	Subclasses derive from KThread and implement the Run() method, in which they
-	do their business. The thread can then be started with the StartThread() method
+	Subclasses derive from KThread and implement the run() method, in which they
+	do their business. The thread can then be started with the startThread() method
 	and controlled with various other methods.
 
-	Run() method implementation might be like this
+	run() method implementation might be like this
 	@code
-	virtual void Run()
+	virtual void run()
 	{
-		while(ShouldRun())
+		while(shouldRun())
 		{
 			// your code goes here...
 		}
@@ -44,76 +45,91 @@
 	@endcode
 
 	Method2:
-	Subclasses derive from KRunnable and implement the Run method. 
+	Subclasses derive from KRunnable and implement the run method. 
 
 	Run method implementation might be like this
 	@code
-	virtual void Run(KThread *thread)
+	virtual void run(KThread* thread)
 	{
-		while(thread->ShouldRun())
+		while(thread->shouldRun())
 		{
 			// your code goes here...
 		}
 	}
+	@endcode
+
+	Method3:
+	Assign lambda to onRun property.
+
+	Run method implementation might be like this
+	@code
+	myThread.onRun = [this](KThread* thread){
+		while(thread->shouldRun())
+		{
+			// your code goes here...
+		}
+	};
 	@endcode
 */
 class KThread
 {
 protected:
 	HANDLE handle;
-	volatile bool threadShouldStop;
+	volatile bool shouldStop;
 	KRunnable* runnable;
 
 public:
+	std::function<void(KThread*)> onRun;
+
 	KThread();
 
 	/**
 		Sets thread handle.
 	*/
-	virtual void SetHandle(HANDLE handle);
+	virtual void setHandle(HANDLE handle);
 
 	/**
 		Sets runnable object for this thread.
 	*/
-	virtual void SetRunnable(KRunnable* runnable);
+	virtual void setRunnable(KRunnable* runnable);
 
 	/**
 		Returns handle of the thread
 	*/
-	virtual HANDLE GetHandle();
+	virtual HANDLE getHandle();
 
 	operator HANDLE()const;
 
 	/**
 		Override this method in your class.
 	*/
-	virtual void Run();
+	virtual void run();
 
 	/**
 		Starts thread
 	*/
-	virtual bool StartThread();
+	virtual bool startThread();
 
 	/**
 		Another thread can signal this thread should stop. 
 	*/
-	virtual void ThreadShouldStop();
+	virtual void threadShouldStop();
 
 	/**
 		@returns true if thread should run
 	*/
-	virtual bool ShouldRun();
+	virtual bool shouldRun();
 
 	/**
 		@returns true if thread is still running
 	*/
-	virtual bool IsThreadRunning();
+	virtual bool isThreadRunning();
 
 	/**
 		Caller will not return until this thread finish.
 		Set pumpMessages to true to enable message processing for caller. It will help to avoid deadlocks if the caller is a gui thread!
 	*/
-	virtual DWORD WaitUntilThreadFinish(bool pumpMessages = false);
+	virtual DWORD waitUntilThreadFinish(bool pumpMessages = false);
 
 	/**
 		Sleeps calling thread to given micro seconds.

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -29,7 +29,7 @@ KSetProcessDPIAware KDPIUtility::pSetProcessDPIAware = nullptr;
 KSetThreadDpiAwarenessContext KDPIUtility::pSetThreadDpiAwarenessContext = nullptr;
 KAdjustWindowRectExForDpi KDPIUtility::pAdjustWindowRectExForDpi = nullptr;
 
-void KDPIUtility::InitDPIFunctions()
+void KDPIUtility::initDPIFunctions()
 {
 	HMODULE hShcore = ::LoadLibraryW(L"Shcore.dll");
 	if (hShcore)
@@ -65,7 +65,7 @@ void KDPIUtility::InitDPIFunctions()
 }
 
 // https://building.enlyze.com/posts/writing-win32-apps-like-its-2020-part-3/
-WORD KDPIUtility::GetWindowDPI(HWND hWnd)
+WORD KDPIUtility::getWindowDPI(HWND hWnd)
 {
 	if (KDPIUtility::pGetDpiForMonitor != nullptr)
 	{
@@ -85,7 +85,7 @@ WORD KDPIUtility::GetWindowDPI(HWND hWnd)
 	return static_cast<WORD>(iDpiX);
 }
 
-BOOL KDPIUtility::AdjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi)
+BOOL KDPIUtility::adjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi)
 {
 	if (KDPIUtility::pAdjustWindowRectExForDpi)
 		return pAdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi);
@@ -93,7 +93,7 @@ BOOL KDPIUtility::AdjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bM
 	return ::AdjustWindowRectEx(lpRect, dwStyle, bMenu, dwExStyle);
 }
 
-void KDPIUtility::MakeProcessDPIAware(KDPIAwareness dpiAwareness)
+void KDPIUtility::makeProcessDPIAware(KDPIAwareness dpiAwareness)
 {
 	if (dpiAwareness == KDPIAwareness::MIXEDMODE_ONLY)
 	{
@@ -126,7 +126,7 @@ void KDPIUtility::MakeProcessDPIAware(KDPIAwareness dpiAwareness)
 }
 
 // https://stackoverflow.com/questions/70976583/get-real-screen-resolution-using-win32-api
-float KDPIUtility::GetMonitorScalingRatio(HMONITOR monitor)
+float KDPIUtility::getMonitorScalingRatio(HMONITOR monitor)
 {
 	MONITORINFOEXW info = {};
 	info.cbSize = sizeof(MONITORINFOEXW);
@@ -137,17 +137,17 @@ float KDPIUtility::GetMonitorScalingRatio(HMONITOR monitor)
 	return (info.rcMonitor.right - info.rcMonitor.left) / static_cast<float>(devmode.dmPelsWidth);
 }
 
-float KDPIUtility::GetScaleForMonitor(HMONITOR monitor)
+float KDPIUtility::getScaleForMonitor(HMONITOR monitor)
 {
-	return (float)(::GetDpiForSystem() / 96.0 / GetMonitorScalingRatio(monitor));
+	return (float)(::GetDpiForSystem() / 96.0 / getMonitorScalingRatio(monitor));
 }
 
-int KDPIUtility::ScaleToWindowDPI(int valueFor96DPI, HWND window)
+int KDPIUtility::scaleToWindowDPI(int valueFor96DPI, HWND window)
 {
-	return KDPIUtility::ScaleToNewDPI(valueFor96DPI, KDPIUtility::GetWindowDPI(window));
+	return KDPIUtility::scaleToNewDPI(valueFor96DPI, KDPIUtility::getWindowDPI(window));
 }
 
-int KDPIUtility::ScaleToNewDPI(int valueFor96DPI, int newDPI)
+int KDPIUtility::scaleToNewDPI(int valueFor96DPI, int newDPI)
 {
 	return ::MulDiv(valueFor96DPI, newDPI, USER_DEFAULT_SCREEN_DPI);
 }

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -34,11 +34,11 @@ KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
 		compDwStyle = compDwStyle | WS_HSCROLL | WS_VSCROLL;
 }
 
-LRESULT KTextArea::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KTextArea::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if(msg == WM_GETDLGCODE)
 		return DLGC_WANTALLKEYS; // to catch TAB key
-	return KTextBox::WindowProc(hwnd, msg, wParam, lParam);
+	return KTextBox::windowProc(hwnd, msg, wParam, lParam);
 }
 
 KTextArea::~KTextArea()

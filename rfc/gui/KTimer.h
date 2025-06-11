@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,9 +22,8 @@
 #pragma once
 
 #include "../core/CoreModule.h"
-#include "KTimerListener.h"
 #include "KWindow.h"
-
+#include <functional>
 
 /**
 	Encapsulates a timer.
@@ -40,46 +39,44 @@ protected:
 	int resolution;
 	bool started;
 	KWindow *window;
-	KTimerListener *listener;
 
 public:
+	std::function<void(KTimer*)> onTimer;
 
 	KTimer();
 
 	/**
 		@param resolution timer interval
 	*/
-	virtual void SetInterval(int resolution);
+	virtual void setInterval(int resolution);
 
-	virtual int GetInterval();
+	virtual int getInterval();
 
 	/**
 		Call this method before you start timer
 	*/
-	virtual void SetTimerWindow(KWindow* window);
+	virtual void setTimerWindow(KWindow* window);
 
-	virtual void SetTimerID(UINT timerID);
+	virtual void setTimerID(UINT timerID);
 
 	/**
 		@returns unique id of this timer
 	*/
-	virtual UINT GetTimerID();
+	virtual UINT getTimerID();
 
 	/**
 		Starts timer
 	*/
-	virtual void StartTimer();
+	virtual void startTimer();
 
 	/**
-		Stops the timer. You can restart it by calling StartTimer() method.
+		Stops the timer. You can restart it by calling startTimer() method.
 	*/
-	virtual void StopTimer();
+	virtual void stopTimer();
 
-	virtual void SetListener(KTimerListener* listener);
+	virtual bool isTimerRunning();
 
-	virtual bool IsTimerRunning();
-
-	virtual void OnTimer();
+	virtual void _onTimer();
 
 	virtual ~KTimer();
 

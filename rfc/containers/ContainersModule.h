@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -22,6 +22,8 @@
 #pragma once
 
 #include "KPointerList.h"
+#include "KVector.h"
+#include "KPointerQueue.h"
 #include "KScopedClassPointer.h"
 #include "KScopedComPointer.h"
 #include "KScopedCriticalSection.h"
@@ -30,3 +32,4 @@
 #include "KScopedMallocPointer.h"
 #include "KScopedMemoryBlock.h"
 #include "KScopedStructPointer.h"
+#include "KStaticAllocator.h"

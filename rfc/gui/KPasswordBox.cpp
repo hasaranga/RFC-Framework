@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,24 +27,24 @@ KPasswordBox::KPasswordBox(bool readOnly):KTextBox(readOnly)
 	compDwStyle = compDwStyle | ES_PASSWORD;
 }
 
-void KPasswordBox::SetPasswordChar(const wchar_t pwdChar)
+void KPasswordBox::setPasswordChar(const wchar_t pwdChar)
 {
 	this->pwdChar = pwdChar;
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
-		this->Repaint();
+		this->repaint();
 	}
 }
 
-wchar_t KPasswordBox::GetPasswordChar()
+wchar_t KPasswordBox::getPasswordChar()
 {
 	return pwdChar;
 }
 
-bool KPasswordBox::Create(bool requireInitialMessages)
+bool KPasswordBox::create(bool requireInitialMessages)
 {
-	if(KTextBox::Create(requireInitialMessages))
+	if(KTextBox::create(requireInitialMessages))
 	{
 		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
 		return true;

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,81 +26,63 @@ KDirectory::KDirectory(){}
 
 KDirectory::~KDirectory(){}
 
-bool KDirectory::IsDirExists(const KString& dirName)
+bool KDirectory::isDirExists(const KString& dirName)
 {
 	const DWORD dwAttrib = ::GetFileAttributesW(dirName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-bool KDirectory::CreateDir(const KString& dirName)
+bool KDirectory::createDir(const KString& dirName)
 {
 	return (::CreateDirectoryW(dirName, NULL) == 0 ? false : true);
 }
 
-bool KDirectory::RemoveDir(const KString& dirName)
+bool KDirectory::removeDir(const KString& dirName)
 {
 	return (::RemoveDirectoryW(dirName) == 0 ? false : true);
 }
 
-KString KDirectory::GetModuleDir(HMODULE hModule)
+void KDirectory::getModuleDir(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars)
 {
-	// assumes MAX_PATH * 2 is enough!
-
-	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
-	path[0] = 0;
-	::GetModuleFileNameW(hModule, path, MAX_PATH * 2);
+	outBuffer[0] = 0;
+	::GetModuleFileNameW(hModule, outBuffer, bufferSizeInWChars);
 
 	wchar_t *p;
-	for (p = path; *p; p++) {}	// find end
-	for (; p > path && *p != L'\\'; p--) {} // back up to last backslash
+	for (p = outBuffer; *p; p++) {}	// find end
+	for (; p > outBuffer && *p != L'\\'; p--) {} // back up to last backslash
 	*p = 0;	// kill it
-
-	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
-KString KDirectory::GetModuleFilePath(HMODULE hModule)
+void KDirectory::getModuleFilePath(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars)
 {
-	// assumes MAX_PATH * 2 is enough!
-
-	wchar_t* path = (wchar_t*)::malloc((MAX_PATH * 2) * sizeof(wchar_t));
-	path[0] = 0;
-	::GetModuleFileNameW(hModule, path, MAX_PATH * 2);
-
-	return KString(path, KString::FREE_TEXT_WHEN_DONE);
+	outBuffer[0] = 0;
+	::GetModuleFileNameW(hModule, outBuffer, bufferSizeInWChars);
 }
 
-KString KDirectory::GetParentDir(const KString& filePath)
+void KDirectory::getParentDir(const wchar_t* filePath, wchar_t* outBuffer, int bufferSizeInWChars)
 {
-	wchar_t *path = ::_wcsdup(filePath);
+	::wcscpy_s(outBuffer, bufferSizeInWChars, filePath);
 
 	wchar_t *p;
-	for (p = path; *p; p++) {}	// find end
-	for (; p > path && *p != L'\\'; p--) {} // back up to last backslash
+	for (p = outBuffer; *p; p++) {}	// find end
+	for (; p > outBuffer && *p != L'\\'; p--) {} // back up to last backslash
 	*p = 0;	// kill it
-
-	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
-KString KDirectory::GetTempDir()
+void KDirectory::getTempDir(wchar_t* outBuffer, int bufferSizeInWChars)
 {
-	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH + 1) * sizeof(wchar_t) );
-	path[0] = 0;
-	::GetTempPathW(MAX_PATH + 1, path);
-
-	return KString(path, KString::FREE_TEXT_WHEN_DONE);
+	outBuffer[0] = 0;
+	::GetTempPathW(bufferSizeInWChars, outBuffer);
 }
 
-KString KDirectory::GetAllUserDataDir()
+void KDirectory::getAllUserDataDir(wchar_t* outBuffer)
 {
-	wchar_t *path = (wchar_t*)::malloc( MAX_PATH * sizeof(wchar_t) );
-	path[0] = 0;
-	::SHGetFolderPathW(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path);
-
-	return KString(path, KString::FREE_TEXT_WHEN_DONE);
+	outBuffer[0] = 0;
+	::SHGetFolderPathW(NULL, CSIDL_COMMON_APPDATA, NULL, 0, outBuffer);
 }
 
-KString KDirectory::GetLoggedInUserFolderPath(int csidl)
+void KDirectory::getLoggedInUserFolderPath(int csidl, wchar_t* outBuffer)
 {
 	DWORD dwProcessId;
 	::GetWindowThreadProcessId(::GetShellWindow(), &dwProcessId);
@@ -111,32 +93,28 @@ KString KDirectory::GetLoggedInUserFolderPath(int csidl)
 	::OpenProcessToken(hProcess, TOKEN_QUERY | TOKEN_IMPERSONATE, &tokenHandle);
 	::CloseHandle(hProcess);
 
-	wchar_t* path = (wchar_t*)::malloc(MAX_PATH * sizeof(wchar_t));
-	path[0] = 0;
-	::SHGetFolderPathW(NULL, csidl, tokenHandle, 0, path);
+	outBuffer[0] = 0;
+	::SHGetFolderPathW(NULL, csidl, tokenHandle, 0, outBuffer);
 	::CloseHandle(tokenHandle);
-
-	KString configDir(path, KString::FREE_TEXT_WHEN_DONE);
-	return configDir;
 }
 
-KString KDirectory::GetRoamingFolder()
+void KDirectory::getRoamingFolder(wchar_t* outBuffer)
 {
-	return KDirectory::GetLoggedInUserFolderPath(CSIDL_APPDATA);
+	KDirectory::getLoggedInUserFolderPath(CSIDL_APPDATA, outBuffer);
 }
 
-KString KDirectory::GetNonRoamingFolder()
+void KDirectory::getNonRoamingFolder(wchar_t* outBuffer)
 {
-	return KDirectory::GetLoggedInUserFolderPath(CSIDL_LOCAL_APPDATA);
+	KDirectory::getLoggedInUserFolderPath(CSIDL_LOCAL_APPDATA, outBuffer);
 }
 
-KPointerList<KString*>* KDirectory::ScanFolderForExtension(const KString& folderPath, const KString& extension)
+KPointerList<KString*,32, false>* KDirectory::scanFolderForExtension(const KString& folderPath, const KString& extension)
 {
-	KPointerList<KString*>* result = new KPointerList<KString*>(32, false);
+	KPointerList<KString*,32,false>* result = new KPointerList<KString*,32,false>();
 	WIN32_FIND_DATAW findData;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 
-	KString searchPath = folderPath + L"\\*." + extension;
+	KString searchPath(folderPath + L"\\*." + extension);
 
 	hFind = ::FindFirstFileW(searchPath, &findData);
 
@@ -147,7 +125,7 @@ KPointerList<KString*>* KDirectory::ScanFolderForExtension(const KString& folder
 	{
 		if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 		{
-			result->AddPointer(new KString(findData.cFileName));
+			result->add(new KString(findData.cFileName,KStringBehaviour::MAKE_A_COPY));
 		}
 	} while (::FindNextFileW(hFind, &findData) != 0);
 

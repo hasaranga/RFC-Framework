@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -115,15 +115,15 @@ public:
     GUID objectID;
     // ============================================
 
-    KPointerList<KPSProperty*> propertyList;
+    KPointerList<KPSProperty*, 32, false> propertyList;
 
-    KPSObject(int initialPropertyCount) : propertyList(initialPropertyCount)
+    KPSObject()
     {
         name = NULL;
         nameLength = 0;     
     }
 
-    bool Compare(const GUID& objectID)
+    bool compare(const GUID& objectID)
     {
         return (::IsEqualGUID(objectID, this->objectID) == TRUE);
     }
@@ -133,7 +133,7 @@ public:
         if (name)
             ::free(name);
 
-        propertyList.DeleteAll(false);
+        propertyList.deleteAll();
     }
 };
 
@@ -160,7 +160,7 @@ public:
             ::RpcStringFreeW((RPC_WSTR*)&guidValueStr);
     }
 
-    void GenerateIntArrayString()
+    void generateIntArrayString()
     {
         if (intArrayStr)
             ::free(intArrayStr);
@@ -185,7 +185,7 @@ public:
         }
     }
 
-    void GenerateIntArrayByString(wchar_t* text)
+    void generateIntArrayByString(wchar_t* text)
     {
         if (intArray)
             ::free(intArray);
@@ -223,10 +223,10 @@ public:
             str = end;
         }
 
-        this->GenerateIntArrayString();
+        generateIntArrayString();
     }
 
-    void GenerateGUIDValueString()
+    void generateGUIDValueString()
     {
         if (guidValueStr)
             ::RpcStringFreeW((RPC_WSTR*)&guidValueStr);
@@ -238,7 +238,7 @@ public:
 
     // The string should be in the following form
     // 00000000-0000-0000-0000-000000000000
-    bool GenerateGUIDValueByString(const wchar_t* text)
+    bool generateGUIDValueByString(const wchar_t* text)
     {
         bool success = true;
 
@@ -248,7 +248,7 @@ public:
             success = false;
         }
 
-        this->GenerateGUIDValueString();
+        generateGUIDValueString();
         return success;
     }
 };
@@ -258,17 +258,17 @@ class KPSObjectView : public KPSObject
 public:
     wchar_t* objectIDStr; 
 
-    KPSObjectView(int initialPropertyCount) : KPSObject(initialPropertyCount)
+    KPSObjectView() : KPSObject()
     {
         objectIDStr = NULL;
     }
 
-    void GenerateObjectID()
+    void generateObjectID()
     {
         ::CoCreateGuid(&objectID);
     }
 
-    void GenerateObjectIDString()
+    void generateObjectIDString()
     {
         if (objectIDStr)
             ::RpcStringFreeW((RPC_WSTR*)&objectIDStr);
@@ -280,12 +280,12 @@ public:
 
     // The string should be in the following form
     // 00000000-0000-0000-0000-000000000000
-    bool GenerateIDByString(const wchar_t* text)
+    bool generateIDByString(const wchar_t* text)
     {
         if (::UuidFromStringW((RPC_WSTR)text, &objectID) != RPC_S_OK)
             return false;
 
-        this->GenerateObjectIDString();
+        generateObjectIDString();
         return true;
     }
 
@@ -301,7 +301,7 @@ class KPSReader
 protected:
 
 public:
-    KPointerList<KPSObject*> *psObjectList;
+    KPointerList<KPSObject*,16, false>* psObjectList;
 
     KPSReader()
     {
@@ -309,23 +309,23 @@ public:
     }
 
     // do not free returned object.
-    KPSObject* GetPSObject(const GUID& objectID)
+    KPSObject* getPSObject(const GUID& objectID)
     {
-        for (int i = 0; i < psObjectList->GetSize(); i++)
+        for (int i = 0; i < psObjectList->size(); i++)
         {
-            KPSObject* psObject = psObjectList->GetPointer(i);
-            if (psObject->Compare(objectID))
+            KPSObject* psObject = psObjectList->get(i);
+            if (psObject->compare(objectID))
                 return psObject;
         }
 
         return NULL;
     }
 
-    bool LoadFromFile(const wchar_t* path, bool readNames = true)
+    bool loadFromFile(const wchar_t* path, bool readNames = true)
     {
         if (psObjectList)
         {
-            psObjectList->DeleteAll(false);
+            psObjectList->deleteAll();
             delete psObjectList;
             psObjectList = NULL;
         }
@@ -369,7 +369,7 @@ public:
             return false;
         }
 
-        psObjectList = new KPointerList<KPSObject*>(objectCount);
+        psObjectList = new KPointerList<KPSObject*, 16, false>();
 
         for (unsigned int objectIndex = 0; objectIndex < objectCount; ++objectIndex)
         {
@@ -403,7 +403,7 @@ public:
                 continue;
             }
 
-            KPSObject* psObject = new KPSObject(propertyCount);
+            KPSObject* psObject = new KPSObject();
             psObject->objectID = objectID;
             psObject->nameLength = nameLength;
             psObject->name = objectName;
@@ -473,10 +473,10 @@ public:
                     }
                 }
 
-                psObject->propertyList.AddPointer(psProperty);
+                psObject->propertyList.add(psProperty);
             }
 
-            psObjectList->AddPointer(psObject);
+            psObjectList->add(psObject);
         }
 
         ::CloseHandle(fileHandle);
@@ -487,7 +487,7 @@ public:
     {
         if (psObjectList)
         {
-            psObjectList->DeleteAll(false);
+            psObjectList->deleteAll();
             delete psObjectList;
         }
     }

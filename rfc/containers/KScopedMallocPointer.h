@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -58,7 +58,7 @@ public:
 		pointerToTransferFrom.pointer = nullptr;
 	}
 
-	bool IsNull()
+	bool isNull()
 	{
 		return (pointer == nullptr);
 	}
@@ -67,7 +67,7 @@ public:
 		Removes the current pointer from this KScopedMallocPointer without freeing it.
 		This will return the current pointer, and set the KScopedMallocPointer to a null pointer.
 	*/
-	PointerType* Detach()
+	PointerType* detach()
 	{ 
 		PointerType* m = pointer;
 		pointer = nullptr;

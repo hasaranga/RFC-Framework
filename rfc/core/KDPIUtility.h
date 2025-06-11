@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -49,7 +49,7 @@ enum class KDPIAwareness
 class KDPIUtility
 {
 private: 
-    static float GetMonitorScalingRatio(HMONITOR monitor);
+    static float getMonitorScalingRatio(HMONITOR monitor);
 public:		
 	static KGetDpiForMonitor pGetDpiForMonitor;
 	static KSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext;
@@ -58,15 +58,15 @@ public:
 	static KSetThreadDpiAwarenessContext pSetThreadDpiAwarenessContext;
     static KAdjustWindowRectExForDpi pAdjustWindowRectExForDpi;
 
-	static void InitDPIFunctions();
+	static void initDPIFunctions();
 
     // returns dpi of monitor which our window is in. returns 96 if application is not dpi aware.
-	static WORD GetWindowDPI(HWND hWnd);
+	static WORD getWindowDPI(HWND hWnd);
 
     // automatically fall back to AdjustWindowRectEx when lower than win10
-    static BOOL AdjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+    static BOOL adjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 
-	static void MakeProcessDPIAware(KDPIAwareness dpiAwareness);
+	static void makeProcessDPIAware(KDPIAwareness dpiAwareness);
 
     // gives real value regardless of the process dpi awareness state.
     // if the process is dpi unaware, os will always give 96dpi.
@@ -78,14 +78,14 @@ public:
         float monitorScale = 1.0f;
      	HMONITOR hmon = ::MonitorFromWindow(compHWND, MONITOR_DEFAULTTONEAREST);
 		if (hmon != NULL)
-			monitorScale = KDPIUtility::GetScaleForMonitor(hmon);
+			monitorScale = KDPIUtility::getScaleForMonitor(hmon);
     */
-    static float GetScaleForMonitor(HMONITOR monitor);
+    static float getScaleForMonitor(HMONITOR monitor);
 
     // scale given 96dpi value according to window current dpi.
-    static int ScaleToWindowDPI(int valueFor96DPI, HWND window);
+    static int scaleToWindowDPI(int valueFor96DPI, HWND window);
 
     // scale given 96dpi value according to new dpi.
-    static int ScaleToNewDPI(int valueFor96DPI, int newDPI);
+    static int scaleToNewDPI(int valueFor96DPI, int newDPI);
 };
 

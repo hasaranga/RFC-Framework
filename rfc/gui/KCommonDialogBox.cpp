@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -24,14 +24,14 @@
 #include "../utils/UtilsModule.h"
 #include "../file/FileModule.h"
 
-const wchar_t* const RFC_OSD_REG_LOCATION = L"Software\\CrownSoft\\RFC\\OSD";
+#define RFC_OSD_REG_LOCATION L"Software\\CrownSoft\\RFC\\OSD"
 
-bool KCommonDialogBox::ShowOpenFileDialog(KWindow* window, 
+bool KCommonDialogBox::showOpenFileDialog(KWindow* window, 
 	const KString& title, 
 	const wchar_t* filter, 
 	KString* fileName, 
 	bool saveLastLocation, 
-	const wchar_t* dialogGuid)
+	const KString& dialogGuid)
 {
 	// assumes MAX_PATH * 2 is enough!	
 	wchar_t *buff = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
@@ -43,14 +43,14 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow* window,
 	KString lastLocation;
 	if (saveLastLocation)
 	{
-		KRegistry::ReadString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
+		KRegistry::readString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
 
-		if (lastLocation.GetLength() > 0)
+		if (lastLocation.length() > 0)
 			ofn.lpstrInitialDir = (const wchar_t*)lastLocation;
 	}
 
 	ofn.lStructSize = sizeof(OPENFILENAMEW);
-	ofn.hwndOwner = (window != NULL) ? window->GetHWND() : NULL;
+	ofn.hwndOwner = (window != NULL) ? window->getHWND() : NULL;
 	ofn.lpstrFilter = filter;
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
@@ -59,15 +59,18 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow* window,
 
 	if(::GetOpenFileNameW(&ofn))
 	{
-		KString path(buff, KString::FREE_TEXT_WHEN_DONE);
+		KString path(buff, KStringBehaviour::FREE_ON_DESTROY);
 		*fileName = path;
 
 		if (saveLastLocation)
 		{
-			KString parentDir(KDirectory::GetParentDir(path).AppendStaticText(L"\\", 1, true));
+			wchar_t parentDir[RFC_MAX_PATH];
+			KDirectory::getParentDir(path, parentDir, RFC_MAX_PATH);
+			::wcscat_s(parentDir, RFC_MAX_PATH, L"\\");
 
-			KRegistry::CreateKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
-			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, parentDir);
+			KRegistry::createKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
+			KRegistry::writeString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, 
+				KString(parentDir, KStringBehaviour::DO_NOT_FREE));
 		}
 
 		return true;
@@ -79,12 +82,12 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow* window,
 	}
 }
 
-bool KCommonDialogBox::ShowSaveFileDialog(KWindow* window, 
+bool KCommonDialogBox::showSaveFileDialog(KWindow* window, 
 	const KString& title, 
 	const wchar_t* filter, 
 	KString* fileName,
 	bool saveLastLocation,
-	const wchar_t* dialogGuid)
+	const KString& dialogGuid)
 {
 	// assumes MAX_PATH * 2 is enough!
 	wchar_t *buff = (wchar_t*)::malloc((MAX_PATH * 2) * sizeof(wchar_t));
@@ -96,14 +99,14 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow* window,
 	KString lastLocation;
 	if (saveLastLocation)
 	{		
-		KRegistry::ReadString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
+		KRegistry::readString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
 
-		if (lastLocation.GetLength() > 0)
+		if (lastLocation.length() > 0)
 			ofn.lpstrInitialDir = (const wchar_t*)lastLocation;
 	}
 
 	ofn.lStructSize = sizeof(OPENFILENAMEW);
-	ofn.hwndOwner = (window != NULL) ? window->GetHWND() : NULL;
+	ofn.hwndOwner = (window != NULL) ? window->getHWND() : NULL;
 	ofn.lpstrFilter = filter;
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
@@ -112,15 +115,18 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow* window,
 
 	if(::GetSaveFileNameW(&ofn))
 	{
-		KString path(buff, KString::FREE_TEXT_WHEN_DONE);
+		KString path(buff, KStringBehaviour::FREE_ON_DESTROY);
 		*fileName = path;
 
 		if (saveLastLocation)
 		{
-			KString parentDir(KDirectory::GetParentDir(path).AppendStaticText(L"\\", 1, true));
+			wchar_t parentDir[RFC_MAX_PATH];
+			KDirectory::getParentDir(path, parentDir, RFC_MAX_PATH);
+			::wcscat_s(parentDir, RFC_MAX_PATH, L"\\");
 
-			KRegistry::CreateKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
-			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, parentDir);
+			KRegistry::createKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
+			KRegistry::writeString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, 
+				KString(parentDir, KStringBehaviour::DO_NOT_FREE));
 		}
 
 		return true;

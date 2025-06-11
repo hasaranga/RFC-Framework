@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,12 +21,11 @@
 
 #include "KFont.h"
 
-KFont* KFont::defaultInstance=0;
-
 KFont::KFont()
 {
 	hFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
 	customFont = false;
+	currentDPI = USER_DEFAULT_SCREEN_DPI;
 }
 
 KFont::KFont(const KString& face, int sizeFor96DPI, bool bold, bool italic, bool underline, bool antiAliased, int requiredDPI)
@@ -47,7 +46,36 @@ KFont::KFont(const KString& face, int sizeFor96DPI, bool bold, bool italic, bool
 		customFont = true;
 }
 
-void KFont::SetDPI(int newDPI)
+bool KFont::load(const KString& face, int sizeFor96DPI, bool bold, bool italic, bool underline, bool antiAliased, int requiredDPI)
+{
+	if (customFont)
+		::DeleteObject(hFont);
+
+	this->fontFace = face;
+	this->fontSizeFor96DPI = sizeFor96DPI;
+	this->isBold = bold;
+	this->isItalic = italic;
+	this->isUnderline = underline;
+	this->isAntiAliased = antiAliased;
+	this->currentDPI = requiredDPI;
+
+	hFont = ::CreateFontW(fontSizeFor96DPI * requiredDPI / USER_DEFAULT_SCREEN_DPI,
+		0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic ? TRUE : FALSE, underline ? TRUE : FALSE, 0, DEFAULT_CHARSET,
+		0, 0, antiAliased ? DEFAULT_QUALITY : NONANTIALIASED_QUALITY, VARIABLE_PITCH | FF_DONTCARE, face);
+
+	if (hFont)
+	{
+		customFont = true;
+		return true;
+	}
+	else
+	{
+		customFont = false;
+		return false;
+	}	
+}
+
+void KFont::setDPI(int newDPI)
 {
 	if( customFont && (currentDPI != newDPI) )
 	{
@@ -61,39 +89,28 @@ void KFont::SetDPI(int newDPI)
 	}
 }
 
-KFont* KFont::GetDefaultFont()
+KFont* KFont::getDefaultFont()
 {
-	if(KFont::defaultInstance == 0)
-		KFont::defaultInstance = new KFont();
-
-	return KFont::defaultInstance;
+	static KFont defaultInstance;  // Created once, on first use (Meyer's Singleton)
+	return &defaultInstance;
 }
 
-void KFont::DeleteDefaultFont()
-{
-	if (KFont::defaultInstance)
-	{
-		delete KFont::defaultInstance;
-		KFont::defaultInstance = 0;
-	}
-}
-
-bool KFont::IsDefaultFont()
+bool KFont::isDefaultFont()
 {
 	return !customFont;
 }
 
-bool KFont::LoadFont(const KString& path)
+bool KFont::loadPrivateFont(const KString& path)
 {
 	return (::AddFontResourceExW(path, FR_PRIVATE, 0) == 0) ? false : true;
 }
 
-void KFont::RemoveFont(const KString& path)
+void KFont::removePrivateFont(const KString& path)
 {
 	::RemoveFontResourceExW(path, FR_PRIVATE, 0);
 }
 
-HFONT KFont::GetFontHandle()
+HFONT KFont::getFontHandle()
 {
 	return hFont;
 }

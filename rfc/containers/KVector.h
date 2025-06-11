@@ -19,58 +19,33 @@
 	3. This notice may not be removed or altered from any source distribution.
 */
 
-
 #pragma once
 
 #include "../core/CoreModule.h"
+#include "KPointerList.h"
 #include <malloc.h>
-#include <functional>
+#include <utility>
 
 /**
-	Helper base class for thread safety - only contains critical section when needed
-*/
-template<bool IsThreadSafe>
-struct KThreadSafetyBase
-{
-	// Empty base class when thread safety is not needed. ("empty base optimization")
-};
-
-template<>
-struct KThreadSafetyBase<true>
-{
-	CRITICAL_SECTION criticalSection;
-
-	KThreadSafetyBase()
-	{
-		::InitializeCriticalSection(&criticalSection);
-	}
-
-	~KThreadSafetyBase()
-	{
-		::DeleteCriticalSection(&criticalSection);
-	}
-};
-
-/**
-	Holds a resizable list of pointers with small buffer optimization.
+	Holds a resizable list of classes with small buffer optimization.
+	item removing can be expensive if T's move is expensive.
 	Thread safety is determined at compile time via template parameter.
 	Duplicated items allowed!
 	index is between 0 to (item count-1)
 
-	@param T The pointer type to store
+	@param T The class type to store. T should implement copy/move constructor, (move)assign & compare operators.
 	@param SmallBufferSize Number of items to store in stack buffer before allocating heap memory
 	@param IsThreadSafe Compile-time flag for thread safety
 
 	e.g. @code
-	KButton btn1;
-	KPointerList<KButton*, 8, false> btnList; // 8 items in small buffer, not thread safe
-	KPointerList<KButton*, 8, true> threadSafeBtnList; // 8 items in small buffer, thread safe
-	btnList.addPointer(&btn1);
-	btnList.addPointer(&btn1);
+	KString str1, str2;
+	KVector<KString, 8, false> strList; // 8 items in small buffer, not thread safe
+	strList.add(str1);
+	strList.add(str2);
 	@endcode
 */
 template<class T, int SmallBufferSize, bool IsThreadSafe>
-class KPointerList : private KThreadSafetyBase<IsThreadSafe>
+class KVector : private KThreadSafetyBase<IsThreadSafe>
 {
 protected:
 	int itemCount; // current element count in the list
@@ -106,26 +81,90 @@ protected:
 
 public:
 	/**
-		Constructs PointerList object.
+		Constructs KVector object.
 		Thread safety is determined at compile time via template parameter.
 	*/
-	KPointerList()
+	KVector()
 	{
 		resetToSmallBuffer();
 		// Critical section initialization is handled by base class constructor
 	}
 
 	/**
+		Copy constructor
+	*/
+	KVector(const KVector& other)
+	{
+		resetToSmallBuffer();
+
+		enterCriticalSectionIfNeeded();
+
+		// If other has more items than our small buffer can hold
+		if (other.itemCount > SmallBufferSize)
+		{
+			roomCount = other.roomCount;
+			list = new T[roomCount];
+			usingSmallBuffer = false;
+		}
+
+		// Copy items
+		itemCount = other.itemCount;
+		for (int i = 0; i < itemCount; i++)
+		{
+			list[i] = other.list[i];
+		}
+
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+		Assignment operator
+	*/
+	KVector& operator=(const KVector& other)
+	{
+		if (this == &other)
+			return *this;
+
+		enterCriticalSectionIfNeeded();
+
+		// Clean up current data
+		if (!usingSmallBuffer)
+		{
+			delete[] list;
+		}
+
+		resetToSmallBuffer();
+
+		// If other has more items than our small buffer can hold
+		if (other.itemCount > SmallBufferSize)
+		{
+			roomCount = other.roomCount;
+			list = new T[roomCount];
+			usingSmallBuffer = false;
+		}
+
+		// Copy items
+		itemCount = other.itemCount;
+		for (int i = 0; i < itemCount; i++)
+		{
+			list[i] = other.list[i]; // copy
+		}
+
+		leaveCriticalSectionIfNeeded();
+		return *this;
+	}
+
+	/**
 		Adds new item to the list.
 		@returns false if memory allocation failed!
 	*/
-	bool add(T pointer)
+	bool add(const T& item)
 	{
 		enterCriticalSectionIfNeeded();
 
 		if (roomCount >= (itemCount + 1)) // no need reallocation. room count is enough!
 		{
-			list[itemCount] = pointer;
+			list[itemCount] = item; // copy
 			itemCount++;
 
 			leaveCriticalSectionIfNeeded();
@@ -133,98 +172,84 @@ public:
 		}
 		else // require reallocation!
 		{
-			if (usingSmallBuffer)
+			int newRoomCount = roomCount + SmallBufferSize;
+			T* newList = new T[newRoomCount];
+
+			// Copy existing items to new buffer
+			for (int i = 0; i < itemCount; i++)
 			{
-				// Switch from small buffer to heap buffer
-				roomCount += SmallBufferSize;
-				T* newList = (T*)::malloc(roomCount * sizeof(T));
-
-				if (newList)
-				{
-					// Copy from small buffer to heap buffer
-					::memcpy(newList, smallBuffer, SmallBufferSize * sizeof(T));
-
-					list = newList;
-					usingSmallBuffer = false;
-
-					list[itemCount] = pointer;
-					itemCount++;
-
-					leaveCriticalSectionIfNeeded();
-					return true;
-				}
-				else // memory allocation failed!
-				{
-					roomCount -= SmallBufferSize;
-					leaveCriticalSectionIfNeeded();
-					return false;
-				}
+				newList[i] = std::move(list[i]);
 			}
-			else
-			{
-				// Already using heap buffer, just reallocate
-				roomCount += SmallBufferSize;
-				void* retVal = ::realloc((void*)list, roomCount * sizeof(T));
-				if (retVal)
-				{
-					list = (T*)retVal;
-					list[itemCount] = pointer;
-					itemCount++;
 
-					leaveCriticalSectionIfNeeded();
-					return true;
-				}
-				else // memory allocation failed!
-				{
-					roomCount -= SmallBufferSize;
-					leaveCriticalSectionIfNeeded();
-					return false;
-				}
-			}
+			// Add the new item
+			newList[itemCount] = item;
+			itemCount++;
+
+			// Free old buffer if it was heap allocated
+			if (!usingSmallBuffer)
+				delete[] list;
+
+			// Update to use new buffer
+			list = newList;
+			roomCount = newRoomCount;
+			usingSmallBuffer = false;
+
+			leaveCriticalSectionIfNeeded();
+			return true;
 		}
 	}
 
-	/**
-		Get pointer at index.
-		@returns 0 if index is out of range!
-	*/
 	T get(const int index)
 	{
 		enterCriticalSectionIfNeeded();
 
 		if ((0 <= index) && (index < itemCount)) // checks for valid range!
 		{
-			T object = list[index];
+			T object(list[index]);
 			leaveCriticalSectionIfNeeded();
 			return object;
 		}
 		else // out of range!
 		{
 			leaveCriticalSectionIfNeeded();
-			return nullptr;
+			return T();
 		}
 	}
 
-	/**
-		Get pointer at index.
-		@returns 0 if index is out of range!
-	*/
+	// avoids extra copy
+	bool get(const int index, T& outItem)
+	{
+		enterCriticalSectionIfNeeded();
+
+		if ((0 <= index) && (index < itemCount)) // checks for valid range!
+		{
+			outItem = list[index];
+			leaveCriticalSectionIfNeeded();
+			return true;
+		}
+		else // out of range!
+		{
+			leaveCriticalSectionIfNeeded();
+			outItem = T();
+			return false;
+		}
+	}
+
 	T operator[](const int index)
 	{
 		return get(index);
 	}
 
 	/**
-		Replace pointer of given index with new pointer
 		@returns false if index is out of range!
 	*/
-	bool set(const int index, T pointer)
+	bool set(const int index, const T& item)
 	{
 		enterCriticalSectionIfNeeded();
 
 		if ((0 <= index) && (index < itemCount))
 		{
-			list[index] = pointer;
+			list[index] = item;
 			leaveCriticalSectionIfNeeded();
 			return true;
 		}
@@ -236,7 +261,7 @@ public:
 	}
 
 	/**
-		Remove pointer of given index
+		Remove item of given index
 		@returns false if index is out of range!
 	*/
 	bool remove(const int index)
@@ -248,7 +273,7 @@ public:
 			// Shift all elements after 'index' one position to the left
 			for (int i = index; i < itemCount - 1; i++)
 			{
-				list[i] = list[i + 1];
+				list[i] = std::move(list[i + 1]);
 			}
 			itemCount--;
 
@@ -262,12 +287,12 @@ public:
 		}
 	}
 
-	bool remove(T pointer)
+	bool remove(const T& item)
 	{
 		enterCriticalSectionIfNeeded();
 
 		bool retVal = false;
-		const int index = getIndex(pointer);
+		const int index = getIndex(item);
 		if (index != -1)
 			retVal = remove(index);
 
@@ -276,14 +301,17 @@ public:
 	}
 
 	/**
-		Removes all pointers from the list! Falls back to small buffer.
+		Removes all items from the list! Falls back to small buffer.
 	*/
 	void removeAll()
 	{
 		enterCriticalSectionIfNeeded();
 
 		if (!usingSmallBuffer)
-			::free((void*)list);
+			delete[] list;
+
+		// we don't clear smallBuffer. 
+		// remaining objects on smallBuffer will be destroyed at destructor or freed when adding new items.
 
 		resetToSmallBuffer();
 
@@ -291,36 +319,42 @@ public:
 	}
 
 	/**
-		Call destructors of all objects which are pointed by pointers in the list.
-		Also clears the list. Falls back to small buffer.
+		Finds the index of the first item which matches the item passed in.
+		@returns -1 if not found!
 	*/
-	void deleteAll()
+	int getIndex(const T& item)
 	{
 		enterCriticalSectionIfNeeded();
 
 		for (int i = 0; i < itemCount; i++)
 		{
-			T object = list[i];
-			delete object;
+			if (list[i] == item)
+			{
+				leaveCriticalSectionIfNeeded();
+				return i;
+			}
 		}
 
-		if (!usingSmallBuffer)
-			::free((void*)list);
-
-		resetToSmallBuffer();
-
 		leaveCriticalSectionIfNeeded();
+		return -1;
+	}
+	/**
+		@returns item count in the list
+	*/
+	int size() const
+	{
+		return itemCount;
 	}
 
 	/**
-	 * Safely iterate through all pointers in the list with thread synchronization.
+	 * Safely iterate through all items in the list with thread synchronization.
 	 * The entire iteration is protected by critical section if thread safety is enabled.
-	 * @param func Function/lambda to call for each pointer in the list
+	 * @param func Function/lambda to call for each item in the list
 	*/
-	void forEach(std::function<void(T)> func)
+	void forEach(std::function<void(T&)> func)
 	{
 		enterCriticalSectionIfNeeded();
-		for (int i = 0; i < itemCount; i++) 
+		for (int i = 0; i < itemCount; i++)
 		{
 			func(list[i]);
 		}
@@ -329,9 +363,9 @@ public:
 
 	/**
 	 * Safely iterate with index access. Useful when you need the index as well.
-	 * @param func Function/lambda that takes (pointer, index) as parameters
+	 * @param func Function/lambda that takes (item, index) as parameters
 	*/
-	void forEachWithIndex(std::function<void(T, int)> func)
+	void forEachWithIndex(std::function<void(T&, int)> func)
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -347,17 +381,8 @@ public:
 	 * Safely iterate with early termination support.
 	 * @param func Function/lambda that returns bool (true = continue, false = stop)
 	 * @returns true if iteration completed, false if stopped early
-	 * Example: Early termination (find first disabled button)
-		KButton* foundBtn = nullptr;
-		buttonList.forEachUntil([&foundBtn](KButton* btn) -> bool {
-			if (btn && !btn->isEnabled()) {
-				foundBtn = btn;
-				return false; // Stop iteration
-			}
-			return true; // Continue
-		});
 	*/
-	bool forEachUntil(std::function<bool(T)> func)
+	bool forEachUntil(std::function<bool(T&)> func)
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -373,35 +398,6 @@ public:
 
 		leaveCriticalSectionIfNeeded();
 		return completed;
-	}
-
-	/**
-		Finds the index of the first pointer which matches the pointer passed in.
-		@returns -1 if not found!
-	*/
-	int getIndex(T pointer)
-	{
-		enterCriticalSectionIfNeeded();
-
-		for (int i = 0; i < itemCount; i++)
-		{
-			if (list[i] == pointer)
-			{
-				leaveCriticalSectionIfNeeded();
-				return i;
-			}
-		}
-
-		leaveCriticalSectionIfNeeded();
-		return -1;
-	}
-
-	/**
-		@returns item count in the list
-	*/
-	int size()
-	{
-		return itemCount;
 	}
 
 	/**
@@ -428,15 +424,15 @@ public:
 		return IsThreadSafe;
 	}
 
-	/** Destructs PointerList object.*/
-	~KPointerList()
+	/** Destructs KVector object.*/
+	~KVector()
 	{
 		if (!usingSmallBuffer)
-			::free((void*)list);
+			delete[] list;
 
 		// Critical section cleanup is handled by base class destructor
 	}
 
 private:
-	RFC_LEAK_DETECTOR(KPointerList)
+	RFC_LEAK_DETECTOR(KVector)
 };

@@ -3,7 +3,7 @@
 
 #include "rfc/rfc.h"
 
-class MyWindow : public KFrame , public KMenuItemListener
+class MyWindow : public KFrame
 {
 protected:
 	KMenuBar menuBar;
@@ -13,81 +13,66 @@ protected:
 public:
 	MyWindow()
 	{
-		this->SetText(L"My Window");
-		this->Create();
+		setText(L"My Window");
+		create();
 
-		miOpen.SetText(L"Open...");
-		miExit.SetText(L"Exit");
-		miCut.SetText(L"Cut");
-		miCopy.SetText(L"Copy");
-		miPaste.SetText(L"Paste");
-		miAbout.SetText(L"About...");
+		miOpen.setText(L"Open...");
+		miExit.setText(L"Exit");
+		miCut.setText(L"Cut");
+		miCopy.setText(L"Copy");
+		miPaste.setText(L"Paste");
+		miAbout.setText(L"About...");
 
-		miOpen.SetListener(this);
-		miExit.SetListener(this);
-		miCut.SetListener(this);
-		miCopy.SetListener(this);
-		miPaste.SetListener(this);
-		miAbout.SetListener(this);
+		miAbout.onPress = [this](KMenuItem* item) {
+			::MessageBoxW(this->GetHWND(), L"RFC Menu Example.", L"About", MB_ICONINFORMATION);
+		};
+
+		miExit.onPress = [this](KMenuItem* item) {
+			this->onClose(); // destroy window and quit from message loop!
+		};
 
 		// add menu items into menu
-		mFile.AddMenuItem(&miOpen);
-		mFile.AddSeperator();
-		mFile.AddMenuItem(&miExit);
-		mEdit.AddMenuItem(&miCut);
-		mEdit.AddSeperator();
-		mEdit.AddMenuItem(&miCopy);
-		mEdit.AddMenuItem(&miPaste);
-		mHelp.AddMenuItem(&miAbout);
+		mFile.addMenuItem(&miOpen);
+		mFile.addSeperator();
+		mFile.addMenuItem(&miExit);
+		mEdit.addMenuItem(&miCut);
+		mEdit.addSeperator();
+		mEdit.addMenuItem(&miCopy);
+		mEdit.addMenuItem(&miPaste);
+		mHelp.addMenuItem(&miAbout);
 
 		// add menu into menubar
-		menuBar.AddMenu(L"File", &mFile);
-		menuBar.AddMenu(L"Edit", &mEdit);
-		menuBar.AddMenu(L"Help", &mHelp);
+		menuBar.addMenu(L"File", &mFile);
+		menuBar.addMenu(L"Edit", &mEdit);
+		menuBar.addMenu(L"Help", &mHelp);
 
-		menuBar.AddToWindow(this); // add menubar into the window
+		menuBar.addToWindow(this); // add menubar into the window
 	}
 
-	void OnMenuItemPress(KMenuItem* menuItem) override
+	LRESULT onRClickWindow(WPARAM wParam, LPARAM lParam)
 	{
-		if (menuItem == &miAbout)
-		{
-			::MessageBoxW(this->GetHWND(), L"RFC Menu Example.", L"About", MB_ICONINFORMATION);
-		}
-		else if (menuItem == &miExit)
-		{
-			this->OnClose(); // destroy window and quit from message loop!
-		}
-	}
-
-	LRESULT OnRClickWindow(WPARAM wParam, LPARAM lParam)
-	{
-		mEdit.PopUpMenu(this); // show mEdit menu as popup
+		mEdit.popUpMenu(this->getHWND()); // show mEdit menu as popup
 		return 0;
 	}
 
 	// macro to handle window messages...
 	BEGIN_KMSG_HANDLER
-		ON_KMSG(WM_RBUTTONUP, OnRClickWindow) // calls OnRClickWindow method when WM_RBUTTONUP msg received
+		ON_KMSG(WM_RBUTTONUP, onRClickWindow) // calls onRClickWindow method when WM_RBUTTONUP msg received
 	END_KMSG_HANDLER
 
-	~MyWindow()
-	{
-
-	}
 };
 
 class MyApplication : public KApplication
 {
 public:
-	int Main(KString** argv, int argc)
+	int main(wchar_t** argv, int argc)
 	{
 		MyWindow window;
 
-		window.CenterScreen();
-		window.SetVisible(true);
+		window.centerScreen();
+		window.setVisible(true);
 
-		KApplication::MessageLoop();
+		KApplication::messageLoop();
 
 		return 0;
 	}

@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -28,9 +28,7 @@
 #include "KIcon.h"
 #include "KTransparentBitmap.h"
 #include "KIDGenerator.h"
-#include "KTimerListener.h"
 #include "KTimer.h"
-#include "KMenuItemListener.h"
 #include "KMenuItem.h"
 #include "KMenu.h"
 #include "KMenuBar.h"
@@ -38,7 +36,6 @@
 #include "KComponent.h"
 #include "KWindow.h"
 #include "KWindowTypes.h"
-#include "KButtonListener.h"
 #include "KButton.h"
 #include "KCheckBox.h"
 #include "KPushButton.h"
@@ -53,14 +50,10 @@
 #include "KNumericField.h"
 #include "KPasswordBox.h"
 #include "KToolTip.h"
-#include "KTrackBarListener.h"
 #include "KTrackBar.h"
 #include "KProgressBar.h"
-#include "KComboBoxListener.h"
 #include "KComboBox.h"
-#include "KGridViewListener.h"
 #include "KGridView.h"
-#include "KListBoxListener.h"
 #include "KListBox.h"
 #include "KNotifyIconHandler.h"
 

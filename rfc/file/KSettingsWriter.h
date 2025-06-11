@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -35,22 +35,22 @@ protected:
 public:
 	KSettingsWriter();
 
-	virtual bool OpenFile(const KString& fileName, int formatID);
+	virtual bool openFile(const wchar_t* fileName, int formatID);
 
 	/**
 		save struct, array or whatever...
 	*/
-	virtual void WriteData(DWORD size, void *buffer);
+	virtual void writeData(DWORD size, void *buffer);
 
-	virtual void WriteString(const KString& text);
+	virtual void writeString(const KString& text);
 
-	virtual void WriteInt(int value);
+	virtual void writeInt(int value);
 
-	virtual void WriteFloat(float value);
+	virtual void writeFloat(float value);
 
-	virtual void WriteDouble(double value);
+	virtual void writeDouble(double value);
 
-	virtual void WriteBool(bool value);
+	virtual void writeBool(bool value);
 
 	virtual ~KSettingsWriter();
 

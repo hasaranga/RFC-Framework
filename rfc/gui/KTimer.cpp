@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,43 +26,42 @@ KTimer::KTimer()
 {
 	resolution = 1000;
 	started = false;
-	listener = nullptr;
-	timerID = KIDGenerator::GetInstance()->GenerateTimerID(this);
+	timerID = KIDGenerator::getInstance()->generateTimerID(this);
 }
 
-void KTimer::SetInterval(int resolution)
+void KTimer::setInterval(int resolution)
 {
 	this->resolution = resolution;
 }
 
-int KTimer::GetInterval()
+int KTimer::getInterval()
 {
 	return resolution;
 }
 
-void KTimer::SetTimerWindow(KWindow* window)
+void KTimer::setTimerWindow(KWindow* window)
 {
 	this->window = window;
 }
 
-void KTimer::SetTimerID(UINT timerID)
+void KTimer::setTimerID(UINT timerID)
 {
 	this->timerID = timerID;
 }
 
-UINT KTimer::GetTimerID()
+UINT KTimer::getTimerID()
 {
 	return timerID;
 }
 
-void KTimer::StartTimer()
+void KTimer::startTimer()
 {
 	if(started)
 		return;
 
 	if(window)
 	{
-		HWND hwnd = window->GetHWND();
+		HWND hwnd = window->getHWND();
 		if(hwnd)
 		{
 			::SetTimer(hwnd, timerID, resolution, 0);
@@ -71,11 +70,11 @@ void KTimer::StartTimer()
 	}
 }
 
-void KTimer::StopTimer()
+void KTimer::stopTimer()
 {
 	if(window)
 	{
-		HWND hwnd = window->GetHWND();
+		HWND hwnd = window->getHWND();
 		if(hwnd)
 		{
 			if(started)
@@ -86,24 +85,19 @@ void KTimer::StopTimer()
 	}
 }
 
-bool KTimer::IsTimerRunning()
+bool KTimer::isTimerRunning()
 {
 	return started;
 }
 
-void KTimer::OnTimer()
+void KTimer::_onTimer()
 {
-	if(listener)
-		listener->OnTimer(this);
-}
-
-void KTimer::SetListener(KTimerListener* listener)
-{
-	this->listener = listener;
+	if(onTimer)
+		onTimer(this);
 }
 
 KTimer::~KTimer()
 {
 	if(started)
-		this->StopTimer();
+		this->stopTimer();
 }

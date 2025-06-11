@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,7 +28,7 @@
 	out of scope.
 
 	If you need to get a gdi object out of a KScopedGdiObject without it being freed, you
-	can use the Release() method.
+	can use the detach() method.
 
 	e.g. @code
 	KScopedGdiObject<HBRUSH> a = ::CreateSolidBrush(RGB(255, 255, 255)); // slow
@@ -68,7 +68,7 @@ public:
 		Removes the current gdi object from this KScopedGdiObject without freeing it.
 		This will return the current gdi object, and set the KScopedGdiObject to a null value.
 	*/
-	T Detach()
+	T detach()
 	{ 
 		T g = gdiObject;
 		gdiObject = 0;

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -33,7 +33,7 @@ KLogger::KLogger(DWORD bufferSize)
 	isFirstCall = true;
 }
 
-bool KLogger::WriteNewEvent(unsigned char eventType)
+bool KLogger::writeNewEvent(unsigned char eventType)
 {
 	if (!bufferFull)
 	{
@@ -48,18 +48,18 @@ bool KLogger::WriteNewEvent(unsigned char eventType)
 
 		if (isFirstCall)
 		{
-			pCounter.StartCounter();
+			pCounter.startCounter();
 			isFirstCall = false;
 			totalMills = 0;
 		}
 		else{
-			const double deltaMills = pCounter.EndCounter();
+			const double deltaMills = pCounter.endCounter();
 			totalMills += (unsigned int)deltaMills;
 
 			secs = (unsigned short)(totalMills/1000);
 			mills = (unsigned short)(totalMills % 1000);
 
-			pCounter.StartCounter();
+			pCounter.startCounter();
 		}
 
 		buffer[bufferIndex] = eventType; // write event type
@@ -78,7 +78,7 @@ bool KLogger::WriteNewEvent(unsigned char eventType)
 	return false;
 }
 
-bool KLogger::EndEvent()
+bool KLogger::endEvent()
 {
 	if (!bufferFull)
 	{
@@ -90,7 +90,7 @@ bool KLogger::EndEvent()
 	return false;
 }
 
-bool KLogger::AddTextParam(const char *text, unsigned char textLength)
+bool KLogger::addTextParam(const char *text, unsigned char textLength)
 {
 	if( (textLength < 255) && (!bufferFull) )
 	{
@@ -111,7 +111,7 @@ bool KLogger::AddTextParam(const char *text, unsigned char textLength)
 	return false;
 }
 
-bool KLogger::AddIntParam(int value)
+bool KLogger::addIntParam(int value)
 {
 	if(!bufferFull)
 	{
@@ -126,7 +126,7 @@ bool KLogger::AddIntParam(int value)
 	return false;
 }
 
-bool KLogger::AddShortParam(unsigned short value)
+bool KLogger::addShortParam(unsigned short value)
 {
 	if(!bufferFull)
 	{
@@ -141,7 +141,7 @@ bool KLogger::AddShortParam(unsigned short value)
 	return false;
 }
 
-bool KLogger::AddFloatParam(float value)
+bool KLogger::addFloatParam(float value)
 {
 	if(!bufferFull)
 	{
@@ -156,7 +156,7 @@ bool KLogger::AddFloatParam(float value)
 	return false;
 }
 	
-bool KLogger::AddDoubleParam(double value)
+bool KLogger::addDoubleParam(double value)
 {
 	if(!bufferFull)
 	{
@@ -171,23 +171,23 @@ bool KLogger::AddDoubleParam(double value)
 	return false;
 }
 
-bool KLogger::IsBufferFull()
+bool KLogger::isBufferFull()
 {
 	return bufferFull;
 }
 
-bool KLogger::WriteToFile(const KString &filePath)
+bool KLogger::writeToFile(const KString &filePath)
 {
 	KFile file;
 
-	if (KFile::IsFileExists(filePath))
-		KFile::DeleteFile(filePath);
+	if (KFile::isFileExists(filePath))
+		KFile::deleteFile(filePath);
 
-	if (file.OpenFile(filePath, KFile::KWRITE))
+	if (file.openFile(filePath, KFile::KWRITE))
 	{
-		file.WriteFile((void*)"RLOG", 4);
-		file.WriteFile(&totalEvents, 4);
-		file.WriteFile(buffer, bufferIndex);
+		file.writeFile((void*)"RLOG", 4);
+		file.writeFile(&totalEvents, 4);
+		file.writeFile(buffer, bufferIndex);
 
 		return true;
 	}

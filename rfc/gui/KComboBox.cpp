@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,14 +22,12 @@
 
 #include "KComboBox.h"
 #include "KGUIProc.h"
-#include "KComboBoxListener.h"
 
 KComboBox::KComboBox(bool sort) : KComponent(false)
 {
-	listener = nullptr;
 	selectedItemIndex = -1;
 
-	compClassName.AssignStaticText(TXT_WITH_LEN("COMBOBOX"));
+	compClassName.assignStaticText(TXT_WITH_LEN("COMBOBOX"));
 
 	compWidth = 100;
 	compHeight = 100;
@@ -43,58 +41,42 @@ KComboBox::KComboBox(bool sort) : KComponent(false)
 		compDwStyle = compDwStyle | CBS_SORT;
 
 	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
-
-	stringList = new KPointerList<KString*>(50);
 }
 
-void KComboBox::AddItem(const KString& text)
+void KComboBox::addItem(const KString& text)
 {
-	KString *str = new KString(text);
-	stringList->AddPointer(str);
+	stringList.add(text);
 
 	if(compHWND)
-		::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*str);
+		::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)text);
 }
 
-void KComboBox::RemoveItem(int index)
+void KComboBox::removeItem(int index)
 {
-	KString *text = stringList->GetPointer(index);
-	if (text)
-		delete text;
-
-	stringList->RemovePointer(index);
+	stringList.remove(index);
 
 	if(compHWND)	 
 		::SendMessageW(compHWND, CB_DELETESTRING, index, 0);
 }
 
-void KComboBox::RemoveItem(const KString& text)
+void KComboBox::removeItem(const KString& text)
 {
-	const int itemIndex = this->GetItemIndex(text);
+	const int itemIndex = getItemIndex(text);
 	if(itemIndex > -1)
-		this->RemoveItem(itemIndex);
+		this->removeItem(itemIndex);
 }
 
-int KComboBox::GetItemIndex(const KString& text)
+int KComboBox::getItemIndex(const KString& text)
 {
-	const int listSize = stringList->GetSize();
-	if(listSize)
-	{
-		for(int i = 0; i < listSize; i++)
-		{
-			if(stringList->GetPointer(i)->Compare(text))
-				return i;
-		}
-	}
-	return -1;
+	return stringList.getIndex(text);
 }
 
-int KComboBox::GetItemCount()
+int KComboBox::getItemCount()
 {
-	return stringList->GetSize();
+	return stringList.size();
 }
 
-int KComboBox::GetSelectedItemIndex()
+int KComboBox::getSelectedItemIndex()
 {
 	if(compHWND)
 	{	 
@@ -105,58 +87,61 @@ int KComboBox::GetSelectedItemIndex()
 	return -1;		
 }
 
-KString KComboBox::GetSelectedItem()
+KString KComboBox::getSelectedItem()
 {
-	const int itemIndex = this->GetSelectedItemIndex();
+	const int itemIndex = getSelectedItemIndex();
 	if(itemIndex > -1)
-		return *stringList->GetPointer(itemIndex);
+		return stringList.get(itemIndex);
+
 	return KString();
 }
 
-void KComboBox::ClearList()
+void KComboBox::clearList()
 {
-	stringList->DeleteAll(true);
+	stringList.removeAll();
 	if(compHWND)
 		::SendMessageW(compHWND, CB_RESETCONTENT, 0, 0);
 }
 
-void KComboBox::SelectItem(int index)
+void KComboBox::selectItem(int index)
 {
 	selectedItemIndex = index;
 	if(compHWND)
 		::SendMessageW(compHWND, CB_SETCURSEL, index, 0);
 }
 
-bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KComboBox::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 {
 	if ((msg == WM_COMMAND) && (HIWORD(wParam) == CBN_SELENDOK))
 	{
-		this->OnItemSelect();
+		_onItemSelect();
 
 		*result = 0;
 		return true;
 	}
 
-	return KComponent::EventProc(msg, wParam, lParam, result);
+	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KComboBox::Create(bool requireInitialMessages)
+bool KComboBox::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register COMBOBOX class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register COMBOBOX class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
-		const int listSize = stringList->GetSize();
+		const int listSize = stringList.size();
 		if(listSize)
 		{
-			for(int i = 0; i < listSize; i++)
-				::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*stringList->GetPointer(i));
+			for (int i = 0; i < listSize; i++)
+			{
+				::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)stringList.get(i));
+			}
 		}
 
 		if(selectedItemIndex > -1)
@@ -171,21 +156,12 @@ bool KComboBox::Create(bool requireInitialMessages)
 	return false;
 }
 
-void KComboBox::SetListener(KComboBoxListener *listener)
+void KComboBox::_onItemSelect()
 {
-	this->listener = listener;
+	if(onItemSelect)
+		onItemSelect(this);
 }
 
-void KComboBox::OnItemSelect()
-{
-	if(listener)
-		listener->OnComboBoxItemSelect(this);
-}
-
-KComboBox::~KComboBox()
-{
-	stringList->DeleteAll(false);
-	delete stringList;
-}
+KComboBox::~KComboBox() {}
 
 

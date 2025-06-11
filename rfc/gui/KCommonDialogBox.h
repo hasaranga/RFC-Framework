@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -35,13 +35,13 @@ public:
 		You cannot use String object for filter, because filter string contains multiple null characters.
 		"dialogGuid" is valid only if "saveLastLocation" is true.
 	*/
-	static bool ShowOpenFileDialog(KWindow* window, const KString& title, const wchar_t* filter, KString* fileName, bool saveLastLocation = false, const wchar_t* dialogGuid = 0);
+	static bool showOpenFileDialog(KWindow* window, const KString& title, const wchar_t* filter, KString* fileName, bool saveLastLocation = false, const KString& dialogGuid = KString());
 
 	/**
 		Filter string might be like this "Text Files (*.txt)\0*.txt\0"
 		You cannot use String object for filter, because filter string contains multiple null characters.
 		"dialogGuid" is valid only if "saveLastLocation" is true.
 	*/
-	static bool ShowSaveFileDialog(KWindow* window, const KString& title, const wchar_t* filter, KString* fileName, bool saveLastLocation = false, const wchar_t* dialogGuid = 0);
+	static bool showSaveFileDialog(KWindow* window, const KString& title, const wchar_t* filter, KString* fileName, bool saveLastLocation = false, const KString& dialogGuid = KString());
 };
 

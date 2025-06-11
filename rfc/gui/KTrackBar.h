@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,34 +22,32 @@
 #pragma once
 
 #include "KComponent.h"
-
-class KTrackBarListener;
+#include <functional>
 
 class KTrackBar : public KComponent
 {
 protected:
 	int rangeMin,rangeMax,value;
-	KTrackBarListener *listener;
 
 public:
+	std::function<void(KTrackBar*,int)> onChange;
+
 	KTrackBar(bool showTicks = false, bool vertical = false);
 
 	/**
 		Range between 0 to 100
 	*/
-	virtual void SetRange(int min, int max);
+	virtual void setRange(int min, int max);
 
-	virtual void SetValue(int value);
+	virtual void setValue(int value);
 
-	virtual int GetValue();
+	virtual int getValue();
 
-	virtual void SetListener(KTrackBarListener* listener);
+	virtual void _onChange();
 
-	virtual void OnChange();
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
-
-	virtual bool Create(bool requireInitialMessages = false) override;
+	virtual bool create(bool requireInitialMessages = false) override;
 
 	virtual ~KTrackBar();
 };

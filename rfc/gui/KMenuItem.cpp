@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -20,21 +20,19 @@
 */
 
 #include "KMenuItem.h"
-#include "KMenuItemListener.h"
 #include "KIDGenerator.h"
 
 KMenuItem::KMenuItem()
 {
 	hMenu = 0;
-	listener = nullptr;
 	param = nullptr;
 	intParam = -1;
 	enabled = true;
 	checked = false;
-	itemID = KIDGenerator::GetInstance()->GenerateMenuItemID(this);
+	itemID = KIDGenerator::getInstance()->generateMenuItemID(this);
 }
 
-void KMenuItem::AddToMenu(HMENU hMenu)
+void KMenuItem::addToMenu(HMENU hMenu)
 {
 	this->hMenu = hMenu;
 
@@ -45,7 +43,7 @@ void KMenuItem::AddToMenu(HMENU hMenu)
 	mii.fMask = MIIM_DATA | MIIM_ID | MIIM_STATE | MIIM_TYPE;
 	mii.fType = MFT_STRING;
 	mii.dwTypeData = (LPWSTR)(const wchar_t*)itemText;
-	mii.cch = lstrlenW((LPWSTR)(const wchar_t*)itemText);
+	mii.cch = itemText.length();
 	mii.fState = (enabled ? MFS_ENABLED : MFS_DISABLED) | (checked ? MFS_CHECKED : MFS_UNCHECKED);
 	mii.wID = itemID;
 	mii.dwItemData = (ULONG_PTR)this; // for future!
@@ -54,32 +52,32 @@ void KMenuItem::AddToMenu(HMENU hMenu)
 
 }
 
-void KMenuItem::SetParam(void* param)
+void KMenuItem::setParam(void* param)
 {
 	this->param = param;
 }
 
-void KMenuItem::SetIntParam(int intParam)
+void KMenuItem::setIntParam(int intParam)
 {
 	this->intParam = intParam;
 }
 
-int KMenuItem::GetIntParam()
+int KMenuItem::getIntParam()
 {
 	return intParam;
 }
 
-void* KMenuItem::GetParam()
+void* KMenuItem::getParam()
 {
 	return param;
 }
 
-bool KMenuItem::IsChecked()
+bool KMenuItem::isChecked()
 {
 	return checked;
 }
 
-void KMenuItem::SetCheckedState(bool state)
+void KMenuItem::setCheckedState(bool state)
 {
 	checked = state;
 	if(hMenu) // already created menu item
@@ -95,12 +93,12 @@ void KMenuItem::SetCheckedState(bool state)
 	}
 }
 
-bool KMenuItem::IsEnabled()
+bool KMenuItem::isEnabled()
 {
 	return enabled; 
 }
 
-void KMenuItem::SetEnabled(bool state)
+void KMenuItem::setEnabled(bool state)
 {
 	enabled = state;
 	if(hMenu) // already created menu item
@@ -116,7 +114,7 @@ void KMenuItem::SetEnabled(bool state)
 	}
 }
 
-void KMenuItem::SetText(const KString& text)
+void KMenuItem::setText(const KString& text)
 {
 	itemText = text;
 	if(hMenu) // already created menu item
@@ -134,35 +132,25 @@ void KMenuItem::SetText(const KString& text)
 	}
 }
 
-KString KMenuItem::GetText()
+KString KMenuItem::getText()
 {
 	return itemText;
 }
 
-UINT KMenuItem::GetItemID()
+UINT KMenuItem::getItemID()
 {
 	return itemID;
 }
 
-HMENU KMenuItem::GetMenuHandle()
+HMENU KMenuItem::getMenuHandle()
 {
 	return hMenu;
 }
 
-void KMenuItem::SetListener(KMenuItemListener* listener)
+void KMenuItem::_onPress()
 {
-	this->listener = listener;
-}
-
-KMenuItemListener* KMenuItem::GetListener()
-{
-	return listener;
-}
-
-void KMenuItem::OnPress()
-{
-	if(listener)
-		listener->OnMenuItemPress(this);
+	if(onPress)
+		onPress(this);
 }
 
 KMenuItem::~KMenuItem()

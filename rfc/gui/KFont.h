@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,9 +28,6 @@
 */
 class KFont
 {
-private:
-	static KFont* defaultInstance;
-
 protected:
 	HFONT hFont;
 	bool customFont;
@@ -54,36 +51,44 @@ public:
 		antiAliased = false, 
 		requiredDPI = USER_DEFAULT_SCREEN_DPI
 	*/
-	KFont(const KString& face, int sizeFor96DPI, bool bold, 
-		bool italic, bool underline, bool antiAliased, int requiredDPI);
+	KFont(const KString& face, int sizeFor96DPI, bool bold = false,
+		bool italic = false, bool underline = false, bool antiAliased = true, int requiredDPI = USER_DEFAULT_SCREEN_DPI);
 
-	virtual void SetDPI(int newDPI);
+	// destroys the existing font handle.
+	virtual bool load(const KString& face, int sizeFor96DPI, bool bold = false,
+		bool italic = false, bool underline = false, bool antiAliased = true, int requiredDPI = USER_DEFAULT_SCREEN_DPI);
 
-	/**
-		If you want to use system default font, then use this static method. Do not delete returned object!
-	*/
-	static KFont* GetDefaultFont();
-
-	// deletes the default font if it already created. for internal use only!
-	static void DeleteDefaultFont();
-
-	virtual bool IsDefaultFont();
+	virtual void setDPI(int newDPI);
 
 	/**
-		Loads font from a file. make sure to call RemoveFont when done.
+		If you want to use system default font, then use this static method. Do not delete the returned instance!
 	*/
-	static bool LoadFont(const KString& path);
+	static KFont* getDefaultFont();
 
-	static void RemoveFont(const KString& path);
+	virtual bool isDefaultFont();
+
+	/**
+		Load a font from a file. loaded font only available to this application.
+		make sure to call removePrivateFont when done.
+	*/
+	static bool loadPrivateFont(const KString& path);
+
+	static void removePrivateFont(const KString& path);
 
 	/**
 		Returns font handle.
 	*/
-	virtual HFONT GetFontHandle();
+	virtual HFONT getFontHandle();
 
 	operator HFONT()const;
 
 	virtual ~KFont();
+
+	// Delete copy/move operations to prevent duplication
+	KFont(const KFont&) = delete;
+	KFont& operator=(const KFont&) = delete;
+	KFont(KFont&&) = delete;
+	KFont& operator=(KFont&&) = delete;
 
 private:
 	RFC_LEAK_DETECTOR(KFont)

@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -28,10 +28,10 @@ typedef void (*RFCModuleFreeFunc)();
 
 class KModuleManager {
 public:
-	static bool RegisterRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc);
-	static RFCModuleInitFunc* RFCModuleInitFuncList();
-	static RFCModuleFreeFunc* RFCModuleFreeFuncList();
+	static bool registerRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc);
+	static RFCModuleInitFunc* rfcModuleInitFuncList();
+	static RFCModuleFreeFunc* rfcModuleFreeFuncList();
 };
 
 #define REGISTER_RFC_MODULE(index, ModuleObjectType) \
-static bool ModuleObjectType##_Registered = KModuleManager::RegisterRFCModule( index , ModuleObjectType::RFCModuleInit, ModuleObjectType::RFCModuleFree);
+static bool ModuleObjectType##_Registered = KModuleManager::registerRFCModule( index , ModuleObjectType::rfcModuleInit, ModuleObjectType::rfcModuleFree);

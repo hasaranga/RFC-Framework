@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,26 +22,20 @@
 #pragma once
 
 #include "KComponent.h"
-
-class KButtonListener;
+#include <functional>
 
 class KButton : public KComponent
 {
-protected:
-	KButtonListener *listener;
-
 public:
+	std::function<void(KButton*)> onClick;
+
 	KButton();
 
-	virtual void SetListener(KButtonListener *listener);
+	virtual void _onPress();
 
-	virtual KButtonListener* GetListener();
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
 
-	virtual void OnPress();
-
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
-
-	virtual bool Create(bool requireInitialMessages = false) override;
+	virtual bool create(bool requireInitialMessages = false) override;
 
 	virtual ~KButton();
 };

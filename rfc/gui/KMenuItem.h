@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,15 +22,13 @@
 #pragma once
 
 #include "../core/CoreModule.h"
-
-class KMenuItemListener;
+#include <functional>
 
 class KMenuItem
 {
 protected:
 	HMENU hMenu;
 	UINT itemID;
-	KMenuItemListener* listener;
 	KString itemText;
 	bool enabled;
 	bool checked;
@@ -38,39 +36,37 @@ protected:
 	int intParam;
 
 public:
+	std::function<void(KMenuItem*)> onPress;
+
 	KMenuItem();
 
-	virtual void AddToMenu(HMENU hMenu);
+	virtual void addToMenu(HMENU hMenu);
 
-	virtual void SetParam(void* param);
+	virtual void setParam(void* param);
 
-	virtual void SetIntParam(int intParam);
+	virtual void setIntParam(int intParam);
 
-	virtual int GetIntParam();
+	virtual int getIntParam();
 
-	virtual void* GetParam();
+	virtual void* getParam();
 
-	virtual bool IsChecked();
+	virtual bool isChecked();
 
-	virtual void SetCheckedState(bool state);
+	virtual void setCheckedState(bool state);
 
-	virtual bool IsEnabled();
+	virtual bool isEnabled();
 
-	virtual void SetEnabled(bool state);
+	virtual void setEnabled(bool state);
 
-	virtual void SetText(const KString& text);
+	virtual void setText(const KString& text);
 
-	virtual KString GetText();
+	virtual KString getText();
 
-	virtual UINT GetItemID();
+	virtual UINT getItemID();
 
-	virtual HMENU GetMenuHandle();
+	virtual HMENU getMenuHandle();
 
-	virtual void SetListener(KMenuItemListener* listener);
-
-	virtual KMenuItemListener* GetListener();
-
-	virtual void OnPress();
+	virtual void _onPress();
 
 	virtual ~KMenuItem();
 

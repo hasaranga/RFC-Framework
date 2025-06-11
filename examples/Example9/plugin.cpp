@@ -8,7 +8,7 @@
 
 #define MY_FORMAT_ID KFORMAT_ID('dsp1')
 
-class PluginWindow : public KHotPluggedDialog, public KButtonListener
+class PluginWindow : public KHotPluggedDialog
 {
 protected:
 	KCheckBox chkEnableProcessing;
@@ -16,62 +16,59 @@ protected:
 	volatile bool processAudioFlag;
 
 public:
-	void OnHotPlug()
+	void onHotPlug()
 	{
-		KHotPluggedDialog::OnHotPlug();
+		KHotPluggedDialog::onHotPlug();
 
 		processAudioFlag = false;
 
-		chkEnableProcessing.HotPlugInto(::GetDlgItem(compHWND, IDC_CHECK1));
-		chkEnableProcessing.SetCheckedState(false);
-		chkEnableProcessing.SetListener(this);		
+		chkEnableProcessing.hotPlugInto(::GetDlgItem(compHWND, IDC_CHECK1));
+		chkEnableProcessing.setCheckedState(false);
+		chkEnableProcessing.onClick = [this](KButton* button){
+			processAudioFlag = chkEnableProcessing.IsChecked();
+		};
 
-		KString appDataDir = KDirectory::GetApplicationDataDir() + L"\\TestWinampDSP1";
-		KDirectory::CreateDir(appDataDir);
+		wchar_t buffer[MAX_PATH];
+		KDirectory::getRoamingFolder(buffer);
+
+		KString appDataDir = KString(buffer, KStringBehaviour::DO_NOT_FREE) + L"\\TestWinampDSP1";
+		KDirectory::createDir(appDataDir);
 
 		settingsFile = appDataDir + L"\\settings.conf";
 
 		// load settings
 		KSettingsReader settingsReader;
-		if (settingsReader.OpenFile(settingsFile, MY_FORMAT_ID))
+		if (settingsReader.openFile(settingsFile, MY_FORMAT_ID))
 		{
-			processAudioFlag = settingsReader.ReadBool();
-			chkEnableProcessing.SetCheckedState(processAudioFlag);
+			processAudioFlag = settingsReader.readBool();
+			chkEnableProcessing.setCheckedState(processAudioFlag);
 
-			int x = settingsReader.ReadInt();
-			int y = settingsReader.ReadInt();
-			if(!KWindow::IsOffScreen(x, y))
-				this->SetPosition(x, y);
+			int x = settingsReader.readInt();
+			int y = settingsReader.readInt();
+			if(!KWindow::isOffScreen(x, y))
+				setPosition(x, y);
 
-			bool visible = settingsReader.ReadBool();
-			this->SetVisible(visible);
+			bool visible = settingsReader.readBool();
+			setVisible(visible);
 		}
 
 	}
 
-	void OnButtonPress(KButton *button)
-	{
-		if (button == &chkEnableProcessing)
-		{
-			processAudioFlag = chkEnableProcessing.IsChecked();
-		}
-	}
-
-	void SaveSettings()
+	void saveSettings()
 	{
 		KSettingsWriter settingsWriter;
 
 		// save settings
-		if (settingsWriter.OpenFile(settingsFile, MY_FORMAT_ID))
+		if (settingsWriter.openFile(settingsFile, MY_FORMAT_ID))
 		{
-			settingsWriter.WriteBool(processAudioFlag);
-			settingsWriter.WriteInt(this->GetX());
-			settingsWriter.WriteInt(this->GetY());
-			settingsWriter.WriteBool(this->IsVisible());
+			settingsWriter.writeBool(processAudioFlag);
+			settingsWriter.writeInt(getX());
+			settingsWriter.writeInt(getY());
+			settingsWriter.writeBool(isVisible());
 		}
 	}
 
-	int ProcessAudio(short int *samples, int numsamples, int bps, int nch, int srate)
+	int processAudio(short int *samples, int numsamples, int bps, int nch, int srate)
 	{
 		if (processAudioFlag)
 		{
@@ -91,9 +88,9 @@ public:
 		return numsamples;
 	}
 
-	void OnClose()
+	void onClose()
 	{
-		this->SetVisible(false);
+		setVisible(false);
 	}
 };
 
@@ -101,36 +98,32 @@ PluginWindow *pluginWindow;
 
 int init(struct winampDSPModule *this_mod)
 {
-	CoreModuleInitParams::hInstance = this_mod->hDllInstance;
-	CoreModuleInitParams::initCOMAsSTA = false;
-	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE;
-
-	::InitRFC();
+	RFCDllInit();
 
 	pluginWindow = new PluginWindow();
-	KGUIProc::HotPlugAndCreateDialogBox(IDD_DIALOG1, this_mod->hwndParent, pluginWindow);
+	KGUIProc::hotPlugAndCreateDialogBox(IDD_DIALOG1, this_mod->hwndParent, pluginWindow);
 
 	return 0;
 }
 
 void config(struct winampDSPModule *this_mod)
 {
-	pluginWindow->SetVisible(true);
-	pluginWindow->BringToFront();
+	pluginWindow->setVisible(true);
+	pluginWindow->bringToFront();
 }
 
 void quit(struct winampDSPModule *this_mod)
 {
-	pluginWindow->SaveSettings();
-	pluginWindow->Destroy();
+	pluginWindow->saveSettings();
+	pluginWindow->destroy();
 	delete pluginWindow;
 
-	::DeInitRFC();
+	RFCDllFree();
 }
 
 int modify_samples(struct winampDSPModule *this_mod, short int *samples, int numsamples, int bps, int nch, int srate)
 {
-	return pluginWindow->ProcessAudio(samples, numsamples, bps, nch, srate);
+	return pluginWindow->processAudio(samples, numsamples, bps, nch, srate);
 }
 
 int sf(int v)

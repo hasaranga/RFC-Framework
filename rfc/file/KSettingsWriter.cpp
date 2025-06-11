@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,65 +21,62 @@
 
 #include "KSettingsWriter.h"
 
-KSettingsWriter::KSettingsWriter()
+KSettingsWriter::KSettingsWriter() {}
+
+bool KSettingsWriter::openFile(const wchar_t* fileName, int formatID)
 {
+	if (KFile::isFileExists(fileName))
+		KFile::deleteFile(fileName);
 
-}
-
-bool KSettingsWriter::OpenFile(const KString& fileName, int formatID)
-{
-	if (KFile::IsFileExists(fileName))
-		KFile::DeleteFile(fileName);
-
-	if (!settingsFile.OpenFile(fileName, KFile::KWRITE))
+	if (!settingsFile.openFile(fileName, KFile::KWRITE))
 		return false;
 
-	settingsFile.SetFilePointerToStart();
-	settingsFile.WriteFile(&formatID, sizeof(int));
+	settingsFile.setFilePointerToStart();
+	settingsFile.writeFile(&formatID, sizeof(int));
 
 	return true;
 }
 
-void KSettingsWriter::WriteData(DWORD size, void *buffer)
+void KSettingsWriter::writeData(DWORD size, void *buffer)
 {
 	if (buffer)
-		settingsFile.WriteFile(buffer, size);
+		settingsFile.writeFile(buffer, size);
 }
 
-void KSettingsWriter::WriteString(const KString& text)
+void KSettingsWriter::writeString(const KString& text)
 {
-	int size = text.GetLength();
+	int size = text.length();
 	if (size)
 	{
 		size = (size + 1) * sizeof(wchar_t);
-		settingsFile.WriteFile(&size, sizeof(int));
+		settingsFile.writeFile(&size, sizeof(int));
 
-		settingsFile.WriteFile((wchar_t*)text, size);
+		settingsFile.writeFile((const wchar_t*)text, size);
 	}
 	else // write only empty size
 	{
-		settingsFile.WriteFile(&size, sizeof(int));
+		settingsFile.writeFile(&size, sizeof(int));
 	}
 }
 
-void KSettingsWriter::WriteInt(int value)
+void KSettingsWriter::writeInt(int value)
 {
-	settingsFile.WriteFile(&value, sizeof(int));
+	settingsFile.writeFile(&value, sizeof(int));
 }
 
-void KSettingsWriter::WriteFloat(float value)
+void KSettingsWriter::writeFloat(float value)
 {
-	settingsFile.WriteFile(&value, sizeof(float));
+	settingsFile.writeFile(&value, sizeof(float));
 }
 
-void KSettingsWriter::WriteDouble(double value)
+void KSettingsWriter::writeDouble(double value)
 {
-	settingsFile.WriteFile(&value, sizeof(double));
+	settingsFile.writeFile(&value, sizeof(double));
 }
 
-void KSettingsWriter::WriteBool(bool value)
+void KSettingsWriter::writeBool(bool value)
 {
-	settingsFile.WriteFile(&value, sizeof(bool));
+	settingsFile.writeFile(&value, sizeof(bool));
 }
 
 KSettingsWriter::~KSettingsWriter()

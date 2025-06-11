@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@
 
 KTextBox::KTextBox(bool readOnly) : KComponent(false)
 {
-	compClassName.AssignStaticText(TXT_WITH_LEN("EDIT"));
+	compClassName.assignStaticText(TXT_WITH_LEN("EDIT"));
 
 	compWidth = 100;
 	compHeight = 20;
@@ -40,7 +40,7 @@ KTextBox::KTextBox(bool readOnly) : KComponent(false)
 	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
 }
 
-KString KTextBox::GetText()
+KString KTextBox::getText()
 {
 	if(compHWND)
 	{
@@ -51,7 +51,7 @@ KString KTextBox::GetText()
 			wchar_t *text = (wchar_t*)::malloc(size);
 			text[0] = 0;
 			::GetWindowTextW(compHWND, text, size);
-			compText = KString(text, KString::FREE_TEXT_WHEN_DONE);
+			compText = KString(text, KStringBehaviour::FREE_ON_DESTROY);
 		}else
 		{
 			compText = KString();
@@ -61,16 +61,16 @@ KString KTextBox::GetText()
 }
 
 
-bool KTextBox::Create(bool requireInitialMessages)
+bool KTextBox::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register EDIT class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register EDIT class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -39,22 +39,22 @@ public:
 		@param resourceID resource ID of image
 		@returns false if image load fails
 	*/
-	bool LoadFromResource(WORD resourceID);
+	bool loadFromResource(WORD resourceID);
 
 	/**
 		Loads bitmap image from file
 		@param filePath path to image
 		@returns false if image load fails
 	*/
-	bool LoadFromFile(const KString& filePath);
+	bool loadFromFile(const KString& filePath);
 
 	// does not scale
-	void DrawOnHDC(HDC hdc, int x, int y, int width, int height);
+	void drawOnHDC(HDC hdc, int x, int y, int width, int height);
 
 	/**
 		Returns bitmap handle
 	*/
-	HBITMAP GetHandle();
+	HBITMAP getHandle();
 
 	/**
 		Returns bitmap handle

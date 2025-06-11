@@ -1,6 +1,5 @@
-
 /*
-	Copyright (C) 2013-2024 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,126 +24,203 @@
 const KString operator+ (const char* const string1, const KString& string2)
 {
 	KString s(string1);
-	return s.Append(string2);
+	return s.append(string2);
 }
 
 const KString operator+ (const wchar_t* const string1, const KString& string2)
 {
-	KString s(string1);
-	return s.Append(string2);
+	KString s(string1, KStringBehaviour::DO_NOT_FREE, -1);
+	return s.append(string2);
 }
 
 const KString operator+ (const KString& string1, const KString& string2)
 {
-	return string1.Append(string2);
+	return string1.append(string2);
+}
+
+namespace kstring_literals {
+	KString operator"" _st(const wchar_t* str, size_t len) {
+		return KString(str, KStringBehaviour::DO_NOT_FREE, (int)len);
+	}
+}
+
+void KString::markAsEmptyString()
+{
+	characterCount = 0;
+	data.ssoBuffer[0] = 0;
+	bufferType = KStringBufferType::SSOText;
 }
 
 KString::KString()
 {
-	isZeroLength = true;
-	stringHolder = nullptr;
-	isStaticText = false;
+	markAsEmptyString();
 }
 
-KString::KString(const KString& other)
+void KString::initFromLiteral(const wchar_t* literal, size_t N)
 {
-	isZeroLength = other.isZeroLength;
+	characterCount = (int)N-1;
+	data.staticText = literal;
+	bufferType = KStringBufferType::StaticText;
+}
 
-	if (other.isStaticText)
+void KString::assignFromLiteral(const wchar_t* literal, size_t N)
+{
+	if (bufferType == KStringBufferType::HeapText)
+		data.refCountedMem->releaseReference();
+
+	initFromLiteral(literal, N);
+}
+
+void KString::copyFromOther(const KString& other)
+{
+	bufferType = other.bufferType;
+	characterCount = other.characterCount;
+
+	if (bufferType == KStringBufferType::StaticText)
 	{
-		stringHolder = nullptr;
-
-		isStaticText = true;
-		staticText = other.staticText;
-		staticTextLength = other.staticTextLength;
+		data.staticText = other.data.staticText;
 	}
-	else if (other.stringHolder)
+	else if (bufferType == KStringBufferType::SSOText)
 	{
-		other.stringHolder->AddReference();
-		stringHolder = other.stringHolder;
-
-		isStaticText = false;
+		// Copy SSO buffer
+		::memcpy(data.ssoBuffer, other.data.ssoBuffer, (characterCount + 1) * sizeof(wchar_t));
+	}
+	else if (bufferType == KStringBufferType::HeapText)
+	{
+		other.data.refCountedMem->addReference();
+		data.refCountedMem = other.data.refCountedMem;
 	}
 	else
 	{
-		stringHolder = nullptr;
-		isStaticText = false;
+		markAsEmptyString();
+		K_ASSERT(false, "other string type is not sso, static or heap");
 	}
+}
+
+
+KString::KString(const KString& other)
+{
+	copyFromOther(other);
+}
+
+KString::KString(KString&& other) noexcept
+{
+	copyFromOther(other);
+	other.clear();
 }
 
 KString::KString(const char* const text, UINT codePage)
 {
-	isStaticText = false;
-
 	if (text != nullptr)
 	{
-		int count = ::MultiByteToWideChar(codePage, 0, text, -1, 0, 0); // get char count with null character
-		if (count)
+		int countWithNull = ::MultiByteToWideChar(codePage, 0, text, -1, 0, 0); // get char count with null character
+		if (countWithNull > 1)
 		{
-			wchar_t *w_text = (wchar_t *)::malloc(count * sizeof(wchar_t));
-			if (::MultiByteToWideChar(codePage, 0, text, -1, w_text, count))
+			if (countWithNull <= SSO_BUFFER_SIZE)
 			{
-				count--; // ignore null character
-
-				stringHolder = new KStringHolder(w_text, count);
-				isZeroLength = (count == 0);
-				return;
+				if (::MultiByteToWideChar(codePage, 0, text, -1, data.ssoBuffer, countWithNull))
+				{
+					characterCount = countWithNull - 1; // ignore null character
+					bufferType = KStringBufferType::SSOText;
+					return;
+				}
 			}
 			else
 			{
-				::free(w_text);
+				wchar_t* w_text = (wchar_t*)::malloc(countWithNull * sizeof(wchar_t));
+				if (::MultiByteToWideChar(codePage, 0, text, -1, w_text, countWithNull))
+				{
+					data.refCountedMem = new KRefCountedMemory<wchar_t*>(w_text);
+					characterCount = countWithNull - 1; // ignore null character
+					bufferType = KStringBufferType::HeapText;
+					return;
+				}
+				else
+				{
+					::free(w_text);
+				}
 			}
 		}
 	}
 
-	isZeroLength = true;
-	stringHolder = nullptr;
+	markAsEmptyString();
 }
 
-KString::KString(const wchar_t* const text, unsigned char behaviour, int length)
+KString::KString(const wchar_t* const text, KStringBehaviour behaviour, int length)
 {
 	if (text != nullptr)
 	{
-		staticTextLength = ((length == -1) ? (int)::wcslen(text) : length);
-		if (staticTextLength)
+		int textLength = ((length == -1) ? (int)::wcslen(text) : length);
+		if (textLength > 0)
 		{
-			isZeroLength = false;
-			isStaticText = (behaviour == STATIC_TEXT_DO_NOT_FREE);
+			characterCount = textLength;
 
-			if (isStaticText)
+			if (behaviour == KStringBehaviour::DO_NOT_FREE)
 			{
-				staticText = (wchar_t*)text;
-				stringHolder = nullptr;
+				data.staticText = text;
+				bufferType = KStringBufferType::StaticText;
 				return;
 			}
-
-			stringHolder = new KStringHolder(((behaviour == FREE_TEXT_WHEN_DONE) ? (wchar_t*)text : _wcsdup(text)), staticTextLength);
-			return;
+			else if (behaviour == KStringBehaviour::FREE_ON_DESTROY)
+			{
+				data.refCountedMem = new KRefCountedMemory<wchar_t*>((wchar_t*)text);
+				bufferType = KStringBufferType::HeapText;
+				return;
+			}
+			else if (behaviour == KStringBehaviour::MAKE_A_COPY)
+			{
+				if (characterCount < SSO_BUFFER_SIZE)
+				{
+					::memcpy(data.ssoBuffer, text, (characterCount + 1) * sizeof(wchar_t));
+					bufferType = KStringBufferType::SSOText;
+					return;
+				}
+				else
+				{
+					// since we already know the length, we can use malloc and memcpy instead of wcsdup.
+					const int countWithNull = characterCount + 1;
+					wchar_t* buffer = (wchar_t*)::malloc(countWithNull * sizeof(wchar_t));
+					::memcpy(buffer, text, countWithNull * sizeof(wchar_t));
+					data.refCountedMem = new KRefCountedMemory<wchar_t*>(buffer);
+					bufferType = KStringBufferType::HeapText;
+					return;
+				}
+			}
+			else
+			{
+				K_ASSERT(false, "unknown KString behaviour");
+			}
 		}
 	}
 
-	isZeroLength = true;
-	isStaticText = false;
-	stringHolder = nullptr;
+	markAsEmptyString();
 }
 
 KString::KString(const int value, const int radix)
 {
-	stringHolder = new KStringHolder((wchar_t *)::malloc(33 * sizeof(wchar_t)), 0); // max 32 digits
-	::_itow_s(value, stringHolder->w_text, 33, radix);
+	// Min Buffer Size required to convert radix 10 integer is 11 chars.
 
-	stringHolder->count = (int)::wcslen(stringHolder->w_text);
-	isZeroLength = (stringHolder->count == 0);
-	isStaticText = false;
+	if ((radix == 10) && (12 <= SSO_BUFFER_SIZE))
+	{
+		::_itow_s(value, data.ssoBuffer, 12, radix);
+		characterCount = (int)::wcslen(data.ssoBuffer);
+		bufferType = KStringBufferType::SSOText;
+	}
+	else
+	{
+		wchar_t* buffer = (wchar_t*)::malloc(34 * sizeof(wchar_t)); // max 33 digits
+		::_itow_s(value, buffer, 34, radix);
+		characterCount = (int)::wcslen(buffer);
+		data.refCountedMem = new KRefCountedMemory<wchar_t*>(buffer);
+		bufferType = KStringBufferType::HeapText;	
+	}
 }
 
 KString::KString(const float value, const int numDecimals, bool compact)
 {
-	isStaticText = false;
-
 	// round it to given digits
-	char *str_fmtp = (char*)malloc(32);
-	char *str_buf = (char*)malloc(64);
+	char str_fmtp[32];
+	char str_buf[64];
 
 	sprintf_s(str_fmtp, 32, "%%.%df", numDecimals);
 	sprintf_s(str_buf, 64, str_fmtp, value);
@@ -166,157 +242,118 @@ KString::KString(const float value, const int numDecimals, bool compact)
 			str_buf[len] = 0; // kill it
 	}
 
-	int count = ::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, 0, 0); // get char count with null character
-	if (count)
+	const int countWithNull = ::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, 0, 0); // get char count with null character
+	if (countWithNull > 1)
 	{
-		wchar_t *w_text = (wchar_t *)::malloc(count * sizeof(wchar_t));
-		if (::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, w_text, count))
+		if (countWithNull <= SSO_BUFFER_SIZE)
 		{
-			count--; // ignore null character
-
-			stringHolder = new KStringHolder(w_text, count);
-			isZeroLength = (count == 0);
-
-			::free(str_buf);
-			::free(str_fmtp);
-			return;
+			if (::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, data.ssoBuffer, countWithNull))
+			{
+				characterCount = countWithNull - 1; // ignore null character
+				bufferType = KStringBufferType::SSOText;
+				return;
+			}
 		}
 		else
 		{
-			::free(w_text);
+			wchar_t* w_text = (wchar_t*)::malloc(countWithNull * sizeof(wchar_t));
+			if (::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, w_text, countWithNull))
+			{
+				characterCount = countWithNull - 1;
+				data.refCountedMem = new KRefCountedMemory<wchar_t*>(w_text);
+				bufferType = KStringBufferType::HeapText;
+				return;
+			}
+			else
+			{
+				::free(w_text);
+			}
 		}
 	}
 
-	::free(str_buf);
-	::free(str_fmtp);
-
-	isZeroLength = true;
-	stringHolder = nullptr;
+	markAsEmptyString();
 }
 
 const KString& KString::operator= (const KString& other)
 {
-	if (stringHolder)
-		stringHolder->ReleaseReference();
-
-	if (other.isStaticText)
+	if (this != &other)
 	{
-		isStaticText = true;
-		staticText = other.staticText;
-		staticTextLength = other.staticTextLength;
+		if (bufferType == KStringBufferType::HeapText)
+			data.refCountedMem->releaseReference();
+		
+		copyFromOther(other);
 	}
-	else if (other.stringHolder)
-	{
-		other.stringHolder->AddReference();
-		isStaticText = false;
-	}
-	else // other is empty
-	{
-		isStaticText = false;
-	}
-
-	stringHolder = other.stringHolder;
-	isZeroLength = other.isZeroLength;
-
 	return *this;
 }
 
-const KString& KString::operator= (const wchar_t* const other)
+KString& KString::operator= (KString&& other)
 {
-	isStaticText = false;
-
-	if (stringHolder)
-		stringHolder->ReleaseReference();
-
-	if (other != 0)
+	if (this != &other)
 	{
-		const int count = (int)::wcslen(other);
-		if (count)
-		{
-			stringHolder = new KStringHolder(::_wcsdup(other), count);
-			isZeroLength = false;
-			return *this;
-		}
-	}
+		if (bufferType == KStringBufferType::HeapText)
+			data.refCountedMem->releaseReference();
 
-	isZeroLength = true;
-	stringHolder = nullptr;
+		copyFromOther(other);
+		other.clear();
+	}
 	return *this;
 }
 
 const KString KString::operator+ (const KString& stringToAppend)
 {
-	return Append(stringToAppend);
+	return append(stringToAppend);
 }
 
-const KString KString::operator+ (const wchar_t* const textToAppend)
+bool KString::operator== (const KString& other) const
 {
-	return Append(KString(textToAppend, USE_COPY_OF_TEXT, -1));
+	return compare(other);
 }
 
 KString::operator const wchar_t*()const
 {
-	if (isStaticText)
-	{
-		return staticText;
-	}
-	else if (stringHolder)
-	{
-		return stringHolder->w_text;
-	}
-	else
-	{
-		return L"";
-	}
-}
-
-KString::operator wchar_t*()const
-{
-	if (isStaticText)
-	{
-		return staticText;
-	}
-	else if (stringHolder)
-	{
-		return stringHolder->w_text;
-	}
-	else
-	{
-		return (wchar_t*)L"";
-	}
+	return getStringPtr();
 }
 
 const wchar_t KString::operator[](const int index)const
 {
-	if (!isZeroLength)
+	if (characterCount > 0)
 	{
-		if (isStaticText)
-		{
-			if ((0 <= index) && (index <= (staticTextLength - 1)))
-				return staticText[index];
-		}
-		else if(stringHolder != nullptr)
-		{
-			if ((0 <= index) && (index <= (stringHolder->count - 1)))
-				return stringHolder->w_text[index];
-		}
+		if ((0 <= index) && (index < characterCount))
+			return getStringPtr()[index];
 	}
 	return -1;
 }
 
-KString KString::Append(const KString& otherString)const
+KString KString::append(const KString& otherString)const
 {
-	if (!otherString.isZeroLength)
+	if (otherString.characterCount != 0)
 	{
-		if (!this->isZeroLength)
+		if (characterCount != 0)
 		{
-			const int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + (otherString.isStaticText ? otherString.staticTextLength : otherString.stringHolder->count);
-			wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
+			const int totalCharacterCount = characterCount + otherString.characterCount;
+			const int sizeWithNull = totalCharacterCount + 1;
 
-			::wcscpy_s(destText, (totalCount + 1), isStaticText ? staticText : stringHolder->w_text);
-			::wcscat_s(destText, (totalCount + 1), otherString.isStaticText ? otherString.staticText : otherString.stringHolder->w_text);
+			if (totalCharacterCount < SSO_BUFFER_SIZE)
+			{
+				KString retStr;
+				retStr.characterCount = totalCharacterCount;
+				retStr.bufferType = KStringBufferType::SSOText;
 
-			return KString(destText, FREE_TEXT_WHEN_DONE, totalCount);
+				::memcpy(retStr.data.ssoBuffer, getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+				::memcpy(&retStr.data.ssoBuffer[characterCount], otherString.getStringPtr(), 
+					(otherString.characterCount + 1) * sizeof(wchar_t));
+
+				return retStr;
+			}
+			else
+			{		
+				wchar_t* destText = (wchar_t*)::malloc(sizeWithNull * sizeof(wchar_t));
+				::memcpy(destText, getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+				::memcpy(&destText[characterCount], otherString.getStringPtr(),
+					(otherString.characterCount + 1) * sizeof(wchar_t));
+
+				return KString(destText, KStringBehaviour::FREE_ON_DESTROY, totalCharacterCount);
+			}
 		}
 		else // this string is empty
 		{
@@ -329,160 +366,215 @@ KString KString::Append(const KString& otherString)const
 	}
 }
 
-KString KString::AppendStaticText(const wchar_t* const text, int length, bool appendToEnd)const
+KString KString::appendStaticText(const wchar_t* const text, int length, bool appendToEnd)const
 {
-	if (!this->isZeroLength)
+	if(length == 0)
+		return *this;
+
+	if (characterCount != 0)
 	{
-		const int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + length;
-		wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
+		const int totalCharacterCount = characterCount + length;
+		const int sizeWithNull = totalCharacterCount + 1;
 
-		::wcscpy_s(destText, (totalCount + 1), appendToEnd ? (isStaticText ? staticText : stringHolder->w_text) : text);
-		::wcscat_s(destText, (totalCount + 1), appendToEnd ? text : (isStaticText ? staticText : stringHolder->w_text));
+		if (totalCharacterCount < SSO_BUFFER_SIZE)
+		{
+			KString retStr;
+			retStr.characterCount = totalCharacterCount;
+			retStr.bufferType = KStringBufferType::SSOText;
 
-		return KString(destText, FREE_TEXT_WHEN_DONE, totalCount);
+			if (appendToEnd)
+			{
+				::memcpy(retStr.data.ssoBuffer, getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+				::memcpy(&retStr.data.ssoBuffer[characterCount], text, (length + 1) * sizeof(wchar_t));
+			}
+			else
+			{
+				::memcpy(retStr.data.ssoBuffer, text, (length + 1) * sizeof(wchar_t));
+				::memcpy(&retStr.data.ssoBuffer[length], getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+			}
+
+			return retStr;
+		}
+		else
+		{
+			wchar_t* destText = (wchar_t*)::malloc(sizeWithNull * sizeof(wchar_t));
+
+			if (appendToEnd)
+			{
+				::memcpy(destText, getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+				::memcpy(&destText[characterCount], text, (length + 1) * sizeof(wchar_t));
+			}
+			else
+			{
+				::memcpy(destText, text, (length + 1) * sizeof(wchar_t));
+				::memcpy(&destText[length], getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+			}
+
+			return KString(destText, KStringBehaviour::FREE_ON_DESTROY, totalCharacterCount);
+		}
 	}
 	else // this string is empty
 	{
-		return KString(text, KString::STATIC_TEXT_DO_NOT_FREE, length);
+		return KString(text, KStringBehaviour::DO_NOT_FREE, length);
 	}
 }
 
-void KString::AssignStaticText(const wchar_t* const text, int length)
+void KString::assignStaticText(const wchar_t* const text, int length)
 {
-	if (stringHolder)
-		stringHolder->ReleaseReference();
+	if (bufferType == KStringBufferType::HeapText)
+		data.refCountedMem->releaseReference();
 	
-	stringHolder = nullptr;
-	isZeroLength = false;
-	isStaticText = true;
-	staticText = (wchar_t*)text;
-	staticTextLength = length;
+	characterCount = length;
+	bufferType = KStringBufferType::StaticText;
+	data.staticText = text;
 }
 
-KString KString::SubString(int start, int end)const
+void KString::clear()
 {
-	const int count = this->GetLength();
+	if (bufferType == KStringBufferType::HeapText)
+		data.refCountedMem->releaseReference();
 
-	if ((0 <= start) && (start <= (count - 1)))
+	markAsEmptyString();
+}
+
+void KString::accessRawSSOBuffer(wchar_t** ssoBuffer, int** ppLength)
+{
+	clear();
+
+	*ppLength = &characterCount;
+	*ssoBuffer = data.ssoBuffer;
+}
+
+KString KString::subString(int start, int end)const
+{
+	const int lastIndex = characterCount -1;
+
+	if ((0 <= start) && (start <= lastIndex))
 	{
-		if ((start < end) && (end <= (count - 1)))
+		if ((start < end) && (end <= lastIndex))
 		{
 			int size = (end - start) + 1;
+
+			// todo: can be optimized with sso buffer
+
 			wchar_t* buf = (wchar_t*)::malloc((size + 1) * sizeof(wchar_t));
-			wchar_t* src = (isStaticText ? staticText : stringHolder->w_text);
+			const wchar_t* src = getStringPtr();
 			::wcsncpy_s(buf, (size + 1), &src[start], size);
 			buf[size] = 0;
 
-			return KString(buf, FREE_TEXT_WHEN_DONE, size);
+			return KString(buf, KStringBehaviour::FREE_ON_DESTROY, size);
 		}
 	}
 	return KString();
 }
 
-bool KString::CompareIgnoreCase(const KString& otherString)const
+bool KString::compareIgnoreCase(const KString& otherString)const
 {
-	if ((!otherString.isZeroLength) && (!this->isZeroLength))
-		return (::_wcsicmp((isStaticText ? staticText : stringHolder->w_text), (otherString.isStaticText ? otherString.staticText : otherString.stringHolder->w_text)) == 0);
+	if ((otherString.characterCount != 0) && (characterCount != 0))
+		return (::_wcsicmp(getStringPtr(), otherString.getStringPtr()) == 0);
 
 	return false;
 }
 
-bool KString::Compare(const KString& otherString)const
+bool KString::compare(const KString& otherString)const
 {
-	if ((!otherString.isZeroLength) && (!this->isZeroLength))
-		return (::wcscmp((isStaticText ? staticText : stringHolder->w_text), (otherString.isStaticText ? otherString.staticText : otherString.stringHolder->w_text)) == 0);
+	if ((otherString.characterCount != 0) && (characterCount != 0))
+		return (::wcscmp(getStringPtr(), otherString.getStringPtr()) == 0);
 
 	return false;
 }
 
-bool KString::CompareWithStaticText(const wchar_t* const text)const
+bool KString::compareWithStaticText(const wchar_t* const text)const
 {
-	if (!this->isZeroLength)
-		return (::wcscmp((isStaticText ? staticText : stringHolder->w_text), text) == 0);
+	if (characterCount != 0)
+		return (::wcscmp(getStringPtr(), text) == 0);
 
 	return false;
 }
 
-bool KString::StartsWithChar(wchar_t character)const
+bool KString::startsWithChar(wchar_t character)const
 {
-	if (!this->isZeroLength)
-		return (isStaticText ? (staticText[0] == character) : (stringHolder->w_text[0] == character));
+	if (characterCount != 0)
+		return (getStringPtr()[0] == character);
 
 	return false;
 }
 
-bool KString::EndsWithChar(wchar_t character)const
+bool KString::endsWithChar(wchar_t character)const
 {
-	if (!this->isZeroLength)
-		return (isStaticText ? (staticText[staticTextLength - 1] == character) : (stringHolder->w_text[stringHolder->count - 1] == character));
+	if (characterCount != 0)
+		return (getStringPtr()[characterCount - 1] == character);
 
 	return false;
 }
 
-bool KString::IsQuotedString()const
+bool KString::isQuotedString()const
 {
-	if ((isStaticText && (staticTextLength > 1)) || ((stringHolder != 0) && (stringHolder->count > 1))) // not empty + count greater than 1
-		return (StartsWithChar(L'\"') && EndsWithChar(L'\"'));
+	if (characterCount > 1) // not empty + count greater than 1
+		return (startsWithChar(L'\"') && endsWithChar(L'\"'));
 
 	return false;
 }
 
-wchar_t KString::GetCharAt(int index)const
+wchar_t KString::getCharAt(int index)const
 {
-	const int count = this->GetLength();
-
-	if ((0 <= index) && (index <= (count - 1)))
-		return (isStaticText ? staticText[index] : stringHolder->w_text[index]);
+	if ((0 <= index) && (index < characterCount))
+		return getStringPtr()[index];
 
 	return -1;
 }
 
-int KString::GetLength()const
+KStringBufferType KString::getBufferType()const
 {
-	return (isStaticText ? staticTextLength : ((stringHolder != 0) ? stringHolder->count : 0));
+	return bufferType;
 }
 
-bool KString::IsEmpty()const
+int KString::length()const
 {
-	return isZeroLength;
+	return characterCount;
 }
 
-bool KString::IsNotEmpty()const
+bool KString::isEmpty()const
 {
-	return !isZeroLength;
+	return (characterCount == 0);
 }
 
-int KString::GetIntValue()const
+bool KString::isNotEmpty()const
 {
-	if (isZeroLength)
+	return (characterCount != 0);
+}
+
+int KString::getIntValue()const
+{
+	if (characterCount == 0)
 		return 0;
 
-	return ::_wtoi(isStaticText ? staticText : stringHolder->w_text);
+	return ::_wtoi(getStringPtr());
 }
 
-KString KString::ToUpperCase()const
+KString KString::toUpperCase()const
 {
-	if (this->GetLength() == 0)
+	if (characterCount == 0)
 		return KString();
 
-	KString result((const wchar_t*)*this, KString::USE_COPY_OF_TEXT);
-	::CharUpperBuffW((wchar_t*)result, result.GetLength());
+	KString result(getStringPtr(), KStringBehaviour::MAKE_A_COPY, characterCount);
+	::CharUpperBuffW((wchar_t*)result.getStringPtr(), result.characterCount);
 
 	return result;
 }
 
-KString KString::ToLowerCase()const
+KString KString::toLowerCase()const
 {
-	if (this->GetLength() == 0)
+	if (characterCount == 0)
 		return KString();
 
-	KString result((const wchar_t*)*this, KString::USE_COPY_OF_TEXT);
-	::CharLowerBuffW((wchar_t*)result, result.GetLength());
+	KString result(getStringPtr(), KStringBehaviour::MAKE_A_COPY, characterCount);
+	::CharLowerBuffW((wchar_t*)result.getStringPtr(), result.characterCount);
 
 	return result;
 }
 
-char* KString::ToAnsiString(const wchar_t* text)
+char* KString::toAnsiString(const wchar_t* text)
 {
 	if (text != nullptr)
 	{
@@ -504,7 +596,7 @@ char* KString::ToAnsiString(const wchar_t* text)
 	return retText;
 }
 
-wchar_t* KString::ToUnicodeString(const char* text)
+wchar_t* KString::toUnicodeString(const char* text)
 {
 	if (text != nullptr)
 	{
@@ -526,8 +618,20 @@ wchar_t* KString::ToUnicodeString(const char* text)
 	return retText;	
 }
 
+const wchar_t* KString::getStringPtr() const
+{
+	if (bufferType == KStringBufferType::StaticText)
+		return data.staticText;
+	else if (bufferType == KStringBufferType::SSOText)
+		return data.ssoBuffer;
+	else if (bufferType == KStringBufferType::HeapText)
+		return data.refCountedMem->buffer;
+	else
+		return L"";
+}
+
 KString::~KString()
 {
-	if (stringHolder)
-		stringHolder->ReleaseReference();
+	if (bufferType == KStringBufferType::HeapText)
+		data.refCountedMem->releaseReference();
 }

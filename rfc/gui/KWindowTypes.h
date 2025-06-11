@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,9 +30,9 @@ class KHotPluggedDialog : public KWindow
 public:
 	KHotPluggedDialog();
 
-	virtual void OnClose();
+	virtual void onClose();
 
-	virtual void OnDestroy();
+	virtual void onDestroy();
 
 	virtual ~KHotPluggedDialog();
 };
@@ -81,7 +81,7 @@ protected:
 	short clientAreaDraggingX;
 	short clientAreaDraggingY;
 
-	virtual LRESULT OnLButtonDown(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onLButtonDown(WPARAM wParam, LPARAM lParam)
 	{
 		if (enableClientAreaDragging)
 		{
@@ -101,20 +101,20 @@ protected:
 		return 0;
 	}
 
-	virtual LRESULT OnMouseMove(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onMouseMove(WPARAM wParam, LPARAM lParam)
 	{
 		if (windowDraging)
 		{
 			POINT pos;
 			::GetCursorPos(&pos);
 
-			this->SetPosition(pos.x - clientAreaDraggingX, pos.y - clientAreaDraggingY);
+			this->setPosition(pos.x - clientAreaDraggingX, pos.y - clientAreaDraggingY);
 		}
 
 		return 0;
 	}
 
-	virtual LRESULT OnLButtonUp(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onLButtonUp(WPARAM wParam, LPARAM lParam)
 	{
 		if (windowDraging)
 		{
@@ -131,7 +131,7 @@ public:
 		enableClientAreaDragging = true;
 	}
 
-	virtual void SetEnableClientAreaDrag(bool enable)
+	virtual void setEnableClientAreaDrag(bool enable)
 	{
 		enableClientAreaDragging = enable;
 	}
@@ -139,9 +139,9 @@ public:
 	virtual ~KDraggable() {}
 
 	BEGIN_KMSG_HANDLER
-		ON_KMSG(WM_LBUTTONDOWN, OnLButtonDown)
-		ON_KMSG(WM_MOUSEMOVE, OnMouseMove)
-		ON_KMSG(WM_LBUTTONUP, OnLButtonUp)
+		ON_KMSG(WM_LBUTTONDOWN, onLButtonDown)
+		ON_KMSG(WM_MOUSEMOVE, onMouseMove)
+		ON_KMSG(WM_LBUTTONUP, onLButtonUp)
 	END_KMSG_HANDLER
 };
 
@@ -154,13 +154,13 @@ class KDrawable : public T
 protected:
 
 	// override this method in subclass and draw your stuff
-	virtual void OnPaint(HDC hDCMem, RECT* rect, const int width, const int height)
+	virtual void onPaint(HDC hDCMem, RECT* rect, const int width, const int height)
 	{
 		::FillRect(hDCMem, rect, (HBRUSH)::GetStockObject(WHITE_BRUSH));
 		::FrameRect(hDCMem, rect, (HBRUSH)::GetStockObject(BLACK_BRUSH));
 	}
 
-	virtual LRESULT OnWMPaint(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onWMPaint(WPARAM wParam, LPARAM lParam)
 	{
 		RECT rect;
 		::GetClientRect(T::compHWND, &rect);
@@ -176,7 +176,7 @@ protected:
 		HBITMAP memBMP = ::CreateCompatibleBitmap(hdc, width, height);;
 		::SelectObject(hDCMem, memBMP);
 
-		this->OnPaint(hDCMem, &rect, width, height);
+		this->onPaint(hDCMem, &rect, width, height);
 
 		::BitBlt(hdc, 0, 0, width, height, hDCMem, 0, 0, SRCCOPY);
 
@@ -188,7 +188,7 @@ protected:
 		return 0;
 	}
 
-	virtual LRESULT OnEraseBackground(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onEraseBackground(WPARAM wParam, LPARAM lParam)
 	{
 		return 1; // avoids flickering
 	}
@@ -199,8 +199,8 @@ public:
 	virtual ~KDrawable() {}
 
 	BEGIN_KMSG_HANDLER
-		ON_KMSG(WM_PAINT, OnWMPaint)
-		ON_KMSG(WM_ERASEBKGND, OnEraseBackground)
+		ON_KMSG(WM_PAINT, onWMPaint)
+		ON_KMSG(WM_ERASEBKGND, onEraseBackground)
 	END_KMSG_HANDLER
 };
 

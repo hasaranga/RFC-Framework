@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,15 +26,15 @@ KMenuBar::KMenuBar()
 	hMenu = ::CreateMenu();
 }
 
-void KMenuBar::AddMenu(const KString& text, KMenu* menu)
+void KMenuBar::addMenu(const KString& text, KMenu* menu)
 {
 	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, 
-		(UINT_PTR)menu->GetMenuHandle(), text);
+		(UINT_PTR)menu->getMenuHandle(), text);
 }
 
-void KMenuBar::AddToWindow(KWindow* window)
+void KMenuBar::addToWindow(KWindow* window)
 {
-	HWND hwnd = window->GetHWND();
+	HWND hwnd = window->getHWND();
 	if(hwnd)
 		::SetMenu(hwnd, hMenu);
 }

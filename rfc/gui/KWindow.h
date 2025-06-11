@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -31,7 +31,7 @@
 class KDPIChangeListener
 {
 public:
-	virtual void OnDPIChange(HWND hwnd, int newDPI) = 0;
+	virtual void onDPIChange(HWND hwnd, int newDPI) = 0;
 };
 
 enum class KCloseOperation { DestroyAndExit, Hide, Nothing };
@@ -42,82 +42,92 @@ protected:
 	HWND lastFocusedChild;
 	KDPIChangeListener* dpiChangeListener;
 	bool enableDPIUnawareMode;
-	KPointerList<KComponent*> componentList;
+	KPointerList<KComponent*, 24, false> componentList; // KHostPanel is also using 24.
 	KCloseOperation closeOperation;
 	DPI_AWARENESS_CONTEXT prevDPIContext;
 	bool dpiAwarenessContextChanged;
 	KIcon* windowIcon;
 	HICON largeIconHandle, smallIconHandle;
 
-	void UpdateWindowIconForNewDPI();
+	void updateWindowIconForNewDPI();
 
 public:
 	KWindow();
 
-	virtual bool Create(bool requireInitialMessages = false) override;
+	virtual bool create(bool requireInitialMessages = false) override;
 
-	virtual void Flash();
+	virtual void flash();
 
 	// can only call after create.
-	virtual void SetIcon(KIcon* icon);
+	virtual void setIcon(KIcon* icon);
 
-	virtual void SetCloseOperation(KCloseOperation closeOperation);
+	virtual void setCloseOperation(KCloseOperation closeOperation);
 
-	virtual void OnClose();
+	virtual void onClose();
 
-	virtual void OnDestroy();
+	virtual void onDestroy();
 
 	// Custom messages are used to send a signal/data from worker thread to gui thread.
-	virtual void PostCustomMessage(WPARAM msgID, LPARAM param);
+	virtual void postCustomMessage(WPARAM msgID, LPARAM param);
 
-	virtual void OnCustomMessage(WPARAM msgID, LPARAM param);
+	virtual void onCustomMessage(WPARAM msgID, LPARAM param);
 
-	virtual void CenterScreen();
+	virtual void centerScreen();
 
 	// puts our window on same monitor as given window + centered
-	virtual void CenterOnSameMonitor(HWND window);
+	virtual void centerOnSameMonitor(HWND window);
 
 	/**
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
+		Adding a component does not mean that the window will own or delete the component - it's
+		your responsibility to delete the component. you need to remove the component if you are
+		deleting it before WM_DESTROY message arrived.
+.
 	*/
-	virtual bool AddComponent(KComponent* component, bool requireInitialMessages = false);
+	virtual bool addComponent(KComponent* component, bool requireInitialMessages = false);
+
+	virtual bool addComponent(KComponent& component, bool requireInitialMessages = false);
 
 	// Can be also use to remove a container. Also destroys the hwnd.
-	virtual void RemoveComponent(KComponent* component);
+	// you need to remove the component if you are deleting it before WM_DESTROY message arrived.
+	virtual void removeComponent(KComponent* component);
 
 	// use this method to add KHostPanel to the window.
-	virtual bool AddContainer(KHostPanel* container, bool requireInitialMessages = false);
+	virtual bool addContainer(KHostPanel* container, bool requireInitialMessages = false);
 
-	virtual bool SetClientAreaSize(int width, int height);
+	virtual bool setClientAreaSize(int width, int height);
 
-	virtual void SetDPIChangeListener(KDPIChangeListener* dpiChangeListener);
+	virtual void setDPIChangeListener(KDPIChangeListener* dpiChangeListener);
 
 	// Mixed-Mode DPI Scaling - window scaled by the system. can only call before create.
 	// InitRFC must be called with KDPIAwareness::MIXEDMODE_ONLY
 	// Only works with Win10 or higher
-	virtual void SetEnableDPIUnawareMode(bool enable);
+	virtual void setEnableDPIUnawareMode(bool enable);
 
 	// In mixed-mode dpi unaware window, before adding any child we need to set current thread dpi mode to unaware mode.
 	// by default this method automatically called with AddComponent method.
 	// if you add a child without calling AddComponent then you have to call ApplyDPIUnawareModeToThread method first.
-	virtual void ApplyDPIUnawareModeToThread();
+	virtual void applyDPIUnawareModeToThread();
 
 	// after adding the child, we need to restore the last dpi mode of the thread.
 	// Mixed-Mode only
-	virtual void RestoreDPIModeOfThread();
+	virtual void restoreDPIModeOfThread();
 
-	static bool IsOffScreen(int posX, int posY);
+	static bool isOffScreen(int posX, int posY);
 
-	virtual bool GetClientAreaSize(int* width, int* height);
+	virtual bool getClientAreaSize(int* width, int* height);
 
-	virtual void OnMoved();
+	// can be use to get the window size even if it were minimized.
+	virtual void getNormalSize(int* width, int* height);
+
+	virtual void onMoved();
 
 	// This method will be called on window resize and dpi change.
 	// Note: if this method called as a result of dpi change, the dpi of controls in this window are still in old dpi scale.
 	// Do not change the control positions/sizes in here if the window and controls are in different dpi scale. (use KDPIChangeListener)
-	virtual void OnResized();
+	virtual void onResized();
 
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
 
 	virtual ~KWindow();
 };

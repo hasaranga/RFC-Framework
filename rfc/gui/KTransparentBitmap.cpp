@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -66,10 +66,10 @@ KTransparentBitmap::KTransparentBitmap(void* data, int width, int height, int st
 
 KTransparentBitmap::KTransparentBitmap(int width, int height)
 {
-	this->CreateEmptyBitmap(width, height);
+	this->createEmptyBitmap(width, height);
 }
 
-void KTransparentBitmap::CreateEmptyBitmap(int width, int height)
+void KTransparentBitmap::createEmptyBitmap(int width, int height)
 {
 	this->width = width;
 	this->height = height;
@@ -93,7 +93,7 @@ void KTransparentBitmap::CreateEmptyBitmap(int width, int height)
 	hbmPrev = (HBITMAP)::SelectObject(hdcMem, hbm);
 }
 
-void KTransparentBitmap::ReleaseResources()
+void KTransparentBitmap::releaseResources()
 {
 	if (hdcMem == 0)
 		return;
@@ -103,7 +103,7 @@ void KTransparentBitmap::ReleaseResources()
 	::DeleteDC(hdcMem);
 }
 
-bool KTransparentBitmap::HitTest(int x, int y)
+bool KTransparentBitmap::hitTest(int x, int y)
 {
 	if (pvBits == nullptr)
 		return false;
@@ -115,7 +115,7 @@ bool KTransparentBitmap::HitTest(int x, int y)
 	return ((pixelColor >> 24) == 0xff);
 }
 
-unsigned int KTransparentBitmap::GetPixel(int x, int y)
+unsigned int KTransparentBitmap::getPixel(int x, int y)
 {
 	if (pvBits == nullptr)
 		return 0;
@@ -126,38 +126,38 @@ unsigned int KTransparentBitmap::GetPixel(int x, int y)
 	return ((unsigned int*)pvBits)[x + y * width];
 }
 
-int KTransparentBitmap::GetWidth()
+int KTransparentBitmap::getWidth()
 {
 	return width;
 }
 
-int KTransparentBitmap::GetHeight()
+int KTransparentBitmap::getHeight()
 {
 	return height;
 }
 
-void KTransparentBitmap::Resize(int width, int height)
+void KTransparentBitmap::resize(int width, int height)
 {
-	this->ReleaseResources();
-	this->CreateEmptyBitmap(width, height);
+	this->releaseResources();
+	this->createEmptyBitmap(width, height);
 }
 
-HDC KTransparentBitmap::GetDC()
+HDC KTransparentBitmap::getDC()
 {
 	return hdcMem;
 }
 
-void KTransparentBitmap::Draw(HDC destHdc, int destX, int destY, BYTE alpha)
+void KTransparentBitmap::draw(HDC destHdc, int destX, int destY, BYTE alpha)
 {
-	this->Draw(destHdc, destX, destY, width, height, 0, 0, width, height, alpha);
+	this->draw(destHdc, destX, destY, width, height, 0, 0, width, height, alpha);
 }
 
-void KTransparentBitmap::Draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha)
+void KTransparentBitmap::draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha)
 {
-	this->Draw(destHdc, destX, destY, destWidth, destHeight, 0, 0, width, height, alpha);
+	this->draw(destHdc, destX, destY, destWidth, destHeight, 0, 0, width, height, alpha);
 }
 
-void KTransparentBitmap::Draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha)
+void KTransparentBitmap::draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha)
 {
 	BLENDFUNCTION bf = { AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
 	::AlphaBlend(destHdc, destX, destY, destWidth, destHeight,
@@ -166,7 +166,7 @@ void KTransparentBitmap::Draw(HDC destHdc, int destX, int destY, int destWidth, 
 
 KTransparentBitmap::~KTransparentBitmap()
 {
-	this->ReleaseResources();
+	this->releaseResources();
 }
 
 

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -54,7 +54,7 @@ protected:
 
 	CRITICAL_SECTION csGuardMapFile;
 
-	void ResetFields()
+	void resetFields()
 	{
 		hMapFile = NULL;
 		serverDataReadyEvent = NULL;
@@ -66,16 +66,16 @@ protected:
 		dataPosition = 0;
 	}
 
-	void CloseClient(int timeout)
+	void closeClient(int timeout)
 	{
-		this->AcquireLock();
+		this->acquireLock();
 
 		int messageID = KIPC_CLOSE_CLIENT_MESSAGE;
-		this->ResetDataPosition();
-		this->AddParam(&messageID, sizeof(int));
-		this->DispatchCall(timeout);
+		this->resetDataPosition();
+		this->addParam(&messageID, sizeof(int));
+		this->dispatchCall(timeout);
 
-		this->ReleaseLock();
+		this->releaseLock();
 	}
 
 public:
@@ -84,9 +84,9 @@ public:
 
 	}
 
-	bool Init(const wchar_t* bridgeID, unsigned int sharedMemSize)
+	bool init(const wchar_t* bridgeID, unsigned int sharedMemSize)
 	{
-		this->ResetFields();
+		this->resetFields();
 		::InitializeCriticalSection(&csGuardMapFile);
 
 		wchar_t nameBuffer[128];
@@ -141,10 +141,10 @@ public:
 	}
 
 	// only disconnect if Init returns true
-	void Disconnect(bool closeClient = true, int timeout = KIPC_CLOSE_CLIENT_TIMEOUT)
+	void disconnect(bool closeClient = true, int timeout = KIPC_CLOSE_CLIENT_TIMEOUT)
 	{
 		if (closeClient)
-			this->CloseClient(timeout);
+			this->closeClient(timeout);
 
 		::ReleaseMutex(serverLiveMutex);
 		::CloseHandle(serverLiveMutex);
@@ -158,12 +158,12 @@ public:
 		::DeleteCriticalSection(&csGuardMapFile);
 	}
 
-	bool WaitForClientAvailable(DWORD timeout = INFINITE)
+	bool waitForClientAvailable(DWORD timeout = INFINITE)
 	{
 		return (::WaitForSingleObject(clientStartedEvent, timeout) == WAIT_OBJECT_0);
 	}
 
-	bool IsClientAlive()
+	bool isClientAlive()
 	{
 		DWORD retVal = ::WaitForSingleObject(clientLiveMutex, 0);
 		if ((retVal == WAIT_OBJECT_0) || (retVal == WAIT_ABANDONED) || (retVal == WAIT_FAILED)) // client crashed or closed.
@@ -175,18 +175,18 @@ public:
 		return true;
 	}
 
-	void AcquireLock()
+	void acquireLock()
 	{
 		::EnterCriticalSection(&csGuardMapFile);
 	}
 
-	void ReleaseLock()
+	void releaseLock()
 	{
 		::LeaveCriticalSection(&csGuardMapFile);
 	}
 
 	// returns dataPosition of the param
-	unsigned int AddParam(void* buffer, unsigned int size)
+	unsigned int addParam(void* buffer, unsigned int size)
 	{
 		unsigned int lastPos = dataPosition;
 
@@ -197,7 +197,7 @@ public:
 	}
 
 	// returns false if failed to respond within the given time.
-	bool DispatchCall(DWORD timeout, bool processMessages = false, bool ignoreMessageValid = false, UINT ignoreMessage = 0)
+	bool dispatchCall(DWORD timeout, bool processMessages = false, bool ignoreMessageValid = false, UINT ignoreMessage = 0)
 	{
 		::ResetEvent(clientDataReadyEvent);
 		::SetEvent(serverDataReadyEvent);
@@ -217,7 +217,7 @@ public:
 				::DispatchMessageW(&msg);
 			}
 
-			if (!this->IsClientAlive())
+			if (!this->isClientAlive())
 				break;
 
 			// if this thread sent msgs to caller thread before calling following function and after the above while block, those msgs will not be processed until new msg arrived. 
@@ -241,17 +241,17 @@ public:
 		return false;
 	}
 
-	void ResetDataPosition()
+	void resetDataPosition()
 	{
 		dataPosition = 0;
 	}
 
-	unsigned int GetCurrentDataPosition()
+	unsigned int getCurrentDataPosition()
 	{
 		return dataPosition;
 	}
 
-	unsigned char* GetDataBuffer()
+	unsigned char* getDataBuffer()
 	{
 		return dataBuffer;
 	}
@@ -275,7 +275,7 @@ protected:
 	HANDLE serverLiveMutex;
 	HANDLE clientLiveMutex;
 
-	void ResetFields()
+	void resetFields()
 	{
 		hMapFile = NULL;
 		serverDataReadyEvent = NULL;
@@ -295,7 +295,7 @@ public:
 
 	bool Init(const wchar_t* bridgeID, unsigned int sharedMemSize)
 	{
-		this->ResetFields();
+		this->resetFields();
 
 		wchar_t nameBuffer[128];
 		::wcscpy_s(nameBuffer, 128, bridgeID);
@@ -317,7 +317,7 @@ public:
 
 		if (dataBuffer == NULL)
 		{
-			this->Disconnect();
+			this->disconnect();
 			return false;
 		}
 
@@ -326,7 +326,7 @@ public:
 		serverDataReadyEvent = ::OpenEventW(EVENT_ALL_ACCESS, FALSE, nameBuffer);
 		if (serverDataReadyEvent == NULL)
 		{
-			this->Disconnect();
+			this->disconnect();
 			return false;
 		}
 
@@ -335,7 +335,7 @@ public:
 		clientDataReadyEvent = ::OpenEventW(EVENT_ALL_ACCESS, FALSE, nameBuffer);
 		if (clientDataReadyEvent == NULL)
 		{
-			this->Disconnect();
+			this->disconnect();
 			return false;
 		}
 
@@ -344,7 +344,7 @@ public:
 		clientStartedEvent = ::OpenEventW(EVENT_ALL_ACCESS, FALSE, nameBuffer);
 		if (clientStartedEvent == NULL)
 		{
-			this->Disconnect();
+			this->disconnect();
 			return false;
 		}
 
@@ -353,7 +353,7 @@ public:
 		serverLiveMutex = ::OpenMutexW(SYNCHRONIZE, FALSE, nameBuffer);
 		if (serverLiveMutex == NULL)
 		{
-			this->Disconnect();
+			this->disconnect();
 			return false;
 		}
 
@@ -362,7 +362,7 @@ public:
 		clientLiveMutex = ::OpenMutexW(SYNCHRONIZE, FALSE, nameBuffer);
 		if (clientLiveMutex == NULL)
 		{
-			this->Disconnect();
+			this->disconnect();
 			return false;
 		}
 
@@ -371,7 +371,7 @@ public:
 		return true;
 	}
 
-	bool IsServerAlive()
+	bool isServerAlive()
 	{
 		DWORD retVal = ::WaitForSingleObject(serverLiveMutex, 0);
 		if ((retVal == WAIT_OBJECT_0) || (retVal == WAIT_ABANDONED) || (retVal == WAIT_FAILED)) // server crashed or closed without informing the client.
@@ -383,13 +383,13 @@ public:
 		return true;
 	}
 
-	void InformClientStarted()
+	void informClientStarted()
 	{
 		::SetEvent(clientStartedEvent);
 	}
 
 	// do not disconnect if Init returns false
-	void Disconnect()
+	void disconnect()
 	{
 		if (clientLiveMutex)
 		{
@@ -417,23 +417,23 @@ public:
 	}
 
 	// returns false if timeout or error occured.
-	bool WaitForMessages(DWORD timeout = INFINITE)
+	bool waitForMessages(DWORD timeout = INFINITE)
 	{
 		return (::WaitForSingleObject(serverDataReadyEvent, timeout) == WAIT_OBJECT_0);
 	}
 
-	unsigned char* GetDataBuffer()
+	unsigned char* getDataBuffer()
 	{
 		return dataBuffer;
 	}
 
-	bool IsQuitMessageReceived()
+	bool isQuitMessageReceived()
 	{
 		int messageID = *((int*)dataBuffer);
 		return (messageID == KIPC_CLOSE_CLIENT_MESSAGE);
 	}
 
-	void InformClientProcessedMessage()
+	void informClientProcessedMessage()
 	{
 		::SetEvent(clientDataReadyEvent);
 	}

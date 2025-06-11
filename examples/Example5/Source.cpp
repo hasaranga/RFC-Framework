@@ -3,7 +3,7 @@
 
 #include "rfc/rfc.h"
 
-class TestGUI : public KFrame, public KButtonListener
+class TestGUI : public KFrame
 {
 protected:
 	KButton btn1, btn2, btn3;
@@ -26,8 +26,8 @@ protected:
 	KGlyphButton glyphButton;
 	KGridView gridView;
 	KToolTip trackBarToolTip;
-	KScopedClassPointer<KFont> fontWebdings;
-	KScopedClassPointer<KFont> fontSegoeUI;
+	KFont fontWebdings;
+	KFont fontSegoeUI;
 	bool isStarted;
 
 public:
@@ -35,198 +35,186 @@ public:
 	{
 		isStarted = false;
 
-		this->SetText(L"Widgets Demo");
-		this->SetSize(600, 400);
-		this->Create();
+		setText(L"Widgets Demo");
+		setSize(600, 400);
+		create();
 
-		// create fonts after creating the window. So GetDPI will return the current dpi of the screen.
-		fontSegoeUI = new KFont(L"Segoe UI", 14, false, false, false, true, this->GetDPI());
-		fontWebdings = new KFont(L"Webdings", 24, false, false, false, true, this->GetDPI());
+		fontSegoeUI.load(L"Segoe UI", 14, false, false, false, true, this->getDPI()),
+		fontWebdings.load(L"Webdings", 24, false, false, false, true, this->getDPI())
 
-		btn1.SetText(L"Button1");
-		btn1.SetListener(this);
-		btn1.SetPosition(10, 0);
-		btn2.SetText(L"Button2");
-		btn2.SetListener(this);
-		btn2.SetPosition(10, 40);
-		label.SetPosition(120, 10);
+		btn1.setText(L"Button1");
+		btn1.setPosition(10, 0);
+		btn1.onClick = [this](KButton* sender) {
+			::MessageBoxW(compHWND, textArea.getText(), textBox.getText(), 0);
+		};
 
-		checkBox.SetCheckedState(true);
-		checkBox.SetPosition(120, 40);
+		btn2.setText(L"Button2");
+		btn2.setPosition(10, 40);
+		btn2.onClick = [this](KButton* sender) {
+			KString fileName;
+			if (KCommonDialogBox::showOpenFileDialog(this, L"title", KFILE_FILTER("Text Files", "txt"), &fileName))
+				::MessageBoxW(compHWND, fileName, fileName, 0);
+		};
 
-		radioButton.SetCheckedState(true);
-		radioButton.SetPosition(230, 40);
+		label.setPosition(120, 10);
 
-		pushButton.SetPosition(230, 0);
+		checkBox.setCheckedState(true);
+		checkBox.setPosition(120, 40);
 
-		menuButton.SetText(L"Menu Button");
-		menuButton.SetGlyph(L"\x4A", fontWebdings, RGB(0, 0, 255));
-		menuButton.SetSize(120, 30);
-		menuButton.SetPosition(350, 0);
-		menuButton.SetMenu(&fileMenu);
+		radioButton.setCheckedState(true);
+		radioButton.setPosition(230, 40);
 
-		glyphButton.SetText(L"Glyph Button");
-		glyphButton.SetGlyph(L"\x34", fontWebdings, RGB(34, 177, 76));
-		glyphButton.SetSize(120, 30);
-		glyphButton.SetPosition(350, 40);
-		glyphButton.SetListener(this);
+		pushButton.setPosition(230, 0);
 
-		groupBox.SetPosition(10, 80);
-		groupBox.SetSize(100, 60);
+		menuButton.setText(L"Menu Button");
+		menuButton.setGlyph(L"\x4A", &fontWebdings, RGB(0, 0, 255));
+		menuButton.setSize(120, 30);
+		menuButton.setPosition(350, 0);
+		menuButton.setMenu(&fileMenu);
 
-		progressBar.SetPosition(120, 90);
-		progressBar.SetValue(50);
+		glyphButton.setText(L"Glyph Button");
+		glyphButton.setGlyph(L"\x34", &fontWebdings, RGB(34, 177, 76));
+		glyphButton.setSize(120, 30);
+		glyphButton.setPosition(350, 40);
+		glyphButton.onClick = [this](KButton* sender) {
+			if (isStarted)
+			{
+				glyphButton.setGlyph(L"\x34", &fontWebdings, RGB(34, 177, 76));
+				isStarted = false;
+			}
+			else {
+				glyphButton.setGlyph(L"\x3C", &fontWebdings, RGB(237, 28, 36));
+				isStarted = true;
+			}
+		};
 
-		textBox.SetText(L"text box");
-		textBox.SetPosition(120, 120);
+		groupBox.setPosition(10, 80);
+		groupBox.setSize(100, 60);
 
-		passwordBox.SetText(L"pwd box");
-		passwordBox.SetPosition(230, 120);
+		progressBar.setPosition(120, 90);
+		progressBar.setValue(50);
 
-		textArea.SetText(L"text area");
-		textArea.SetPosition(10, 160);
+		textBox.setText(L"text box");
+		textBox.setPosition(120, 120);
 
-		listBox.AddItem(L"Item1");
-		listBox.AddItem(L"Item2");
-		listBox.AddItem(L"Item3");
-		listBox.AddItem(L"Item4");
-		listBox.SetPosition(230, 160);
+		passwordBox.setText(L"pwd box");
+		passwordBox.setPosition(230, 120);
 
-		comboBox.AddItem(L"Item1");
-		comboBox.AddItem(L"Item2");
-		comboBox.AddItem(L"Item3");
-		comboBox.AddItem(L"Item4");
-		comboBox.SelectItem(1);
-		comboBox.SetPosition(230, 90);
+		textArea.setText(L"text area");
+		textArea.setPosition(10, 160);
 
-		trackBar.SetValue(50);
-		trackBar.SetPosition(350, 90);
+		listBox.addItem(L"Item1");
+		listBox.addItem(L"Item2");
+		listBox.addItem(L"Item3");
+		listBox.addItem(L"Item4");
+		listBox.setPosition(230, 160);
 
-		gridView.SetSize(220, 140);
-		gridView.SetPosition(350, 120);
+		comboBox.addItem(L"Item1");
+		comboBox.addItem(L"Item2");
+		comboBox.addItem(L"Item3");
+		comboBox.addItem(L"Item4");
+		comboBox.selectItem(1);
+		comboBox.setPosition(230, 90);
+
+		trackBar.setValue(50);
+		trackBar.setPosition(350, 90);
+
+		gridView.setSize(220, 140);
+		gridView.setPosition(350, 120);
 
 		// we need to set custom font for standard controls to scale properly when dpi changes.
-		btn1.SetFont(fontSegoeUI);
-		btn2.SetFont(fontSegoeUI);
-		label.SetFont(fontSegoeUI);
-		checkBox.SetFont(fontSegoeUI);
-		radioButton.SetFont(fontSegoeUI);
-		pushButton.SetFont(fontSegoeUI);
-		menuButton.SetFont(fontSegoeUI);
-		glyphButton.SetFont(fontSegoeUI);
-		groupBox.SetFont(fontSegoeUI);
-		textBox.SetFont(fontSegoeUI);
-		passwordBox.SetFont(fontSegoeUI);
-		textArea.SetFont(fontSegoeUI);
-		listBox.SetFont(fontSegoeUI);
-		comboBox.SetFont(fontSegoeUI);
-		gridView.SetFont(fontSegoeUI);
-		trackBar.SetFont(fontSegoeUI);
+		btn1.setFont(&fontSegoeUI);
+		btn2.setFont(&fontSegoeUI);
+		label.setFont(&fontSegoeUI);
+		checkBox.setFont(&fontSegoeUI);
+		radioButton.setFont(&fontSegoeUI);
+		pushButton.setFont(&fontSegoeUI);
+		menuButton.setFont(&fontSegoeUI);
+		glyphButton.setFont(&fontSegoeUI);
+		groupBox.setFont(&fontSegoeUI);
+		textBox.setFont(&fontSegoeUI);
+		passwordBox.setFont(&fontSegoeUI);
+		textArea.setFont(&fontSegoeUI);
+		listBox.setFont(&fontSegoeUI);
+		comboBox.setFont(&fontSegoeUI);
+		gridView.setFont(&fontSegoeUI);
+		trackBar.setFont(&fontSegoeUI);
 
 		// set size,font and position of the components before adding them to window. 
 		// so they will automatically rescale according to the current dpi.
-		this->AddComponent(&btn1);
-		this->AddComponent(&btn2);
-		this->AddComponent(&label);
-		this->AddComponent(&checkBox);
-		this->AddComponent(&radioButton);
-		this->AddComponent(&pushButton);
-		this->AddComponent(&groupBox);
-		this->AddComponent(&progressBar);
-		this->AddComponent(&textBox);
-		this->AddComponent(&passwordBox);
-		this->AddComponent(&textArea);
-		this->AddComponent(&listBox);
-		this->AddComponent(&comboBox);
-		this->AddComponent(&trackBar);
-		this->AddComponent(&menuButton);
-		this->AddComponent(&glyphButton);
-		this->AddComponent(&gridView);
+		this->addComponent(&btn1);
+		this->addComponent(&btn2);
+		this->addComponent(&label);
+		this->addComponent(&checkBox);
+		this->addComponent(&radioButton);
+		this->addComponent(&pushButton);
+		this->addComponent(&groupBox);
+		this->addComponent(&progressBar);
+		this->addComponent(&textBox);
+		this->addComponent(&passwordBox);
+		this->addComponent(&textArea);
+		this->addComponent(&listBox);
+		this->addComponent(&comboBox);
+		this->addComponent(&trackBar);
+		this->addComponent(&menuButton);
+		this->addComponent(&glyphButton);
+		this->addComponent(&gridView);
 
-		gridView.CreateColumn(L"User ID");
-		gridView.CreateColumn(L"Name", 115);
+		gridView.createColumn(L"User ID");
+		gridView.createColumn(L"Name", 115);
 
-		AddRecords(L"1001", L"Don Box");
-		AddRecords(L"1002", L"Tony Williams");
+		addRecords(L"1001", L"Don Box");
+		addRecords(L"1002", L"Tony Williams");
 
-		menuItem1.SetText(L"New...");
-		menuItem2.SetText(L"Open...");
+		menuItem1.setText(L"New...");
+		menuItem2.setText(L"Open...");
 
-		fileMenu.AddMenuItem(&menuItem1);
-		fileMenu.AddMenuItem(&menuItem2);
-		fileMenu.AddSeperator();
-		fileMenu.AddSubMenu(L"Sub Menu", &subMenu);
+		fileMenu.addMenuItem(&menuItem1);
+		fileMenu.addMenuItem(&menuItem2);
+		fileMenu.addSeperator();
+		fileMenu.addSubMenu(L"Sub Menu", &subMenu);
 
-		subMenu.AddMenuItem(&menuItem1);
+		subMenu.addMenuItem(&menuItem1);
 
-		menuBar.AddMenu(L"File", &fileMenu);
+		menuBar.addMenu(L"File", &fileMenu);
 
-		menuBar.AddToWindow(this);
+		menuBar.addToWindow(this);
 
-		trackBarToolTip.SetText(L"This is a Slider...");
-		trackBarToolTip.AttachToComponent(this, &trackBar);
+		trackBarToolTip.setText(L"This is a Slider...");
+		trackBarToolTip.attachToComponent(this, &trackBar);
 	}
 
-	void AddRecords(KString userID, KString name)
+	void addRecords(KString userID, KString name)
 	{
 		KString* row[2];
 		row[0] = &userID;
 		row[1] = &name;
 
-		gridView.InsertRecord(row);
+		gridView.insertRecord(row);
 	}
 
-	LRESULT OnRClickWindow(WPARAM wParam, LPARAM lParam)
+	LRESULT onRClickWindow(WPARAM wParam, LPARAM lParam)
 	{
-		fileMenu.PopUpMenu(this);
+		fileMenu.popUpMenu(*this);
 		return 0;
 	}
 
 	BEGIN_KMSG_HANDLER
-		ON_KMSG(WM_RBUTTONUP, OnRClickWindow)
+		ON_KMSG(WM_RBUTTONUP, onRClickWindow)
 	END_KMSG_HANDLER
-
-	void OnButtonPress(KButton* button) override
-	{
-		if (button == &btn1)
-		{
-			::MessageBoxW(compHWND, textArea.GetText(), textBox.GetText(), 0);
-		}
-		else if (button == &btn2)
-		{
-			KString fileName;
-			if (KCommonDialogBox::ShowOpenFileDialog(this, L"title", KFILE_FILTER("Text Files", "txt"), &fileName))
-			{
-				::MessageBoxW(compHWND, fileName, fileName, 0);
-			}
-		}
-		else if (button == &glyphButton)
-		{
-			if (isStarted)
-			{
-				glyphButton.SetGlyph(L"\x34", fontWebdings, RGB(34, 177, 76));
-				isStarted = false;
-			}
-			else {
-				glyphButton.SetGlyph(L"\x3C", fontWebdings, RGB(237, 28, 36));
-				isStarted = true;
-			}
-		}
-	}
-
 };
 
 class TestApplication : public KApplication
 {
 public:
-	int Main(KString** argv, int argc)
+	int main(wchar_t** argv, int argc)
 	{
 		TestGUI window1;
 
-		window1.CenterScreen();
-		window1.SetVisible(true);
+		window1.centerScreen();
+		window1.setVisible(true);
 
-		KApplication::MessageLoop();
+		KApplication::messageLoop();
 
 		return 0;
 	}

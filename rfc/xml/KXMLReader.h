@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2024 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -49,12 +49,12 @@ public:
 
 	// name and value will become invalid after the call.
 	// make a copy of name and value if you are using them for later.
-	virtual void SetAttribute(const wchar_t* name, UINT nameLength,
+	virtual void setAttribute(const wchar_t* name, UINT nameLength,
 		const wchar_t* value, UINT valueLength) {}
 
 	// content will become invalid after the call.
 	// make a copy of content if you are using it for later.
-	virtual void SetContent(const wchar_t* content, UINT length) {}
+	virtual void setContent(const wchar_t* content, UINT length) {}
 
 	// deleting root node will recuresively delete all other nodes.
 	virtual ~KModelElement()
@@ -72,7 +72,7 @@ class KModelElementFactory
 public:
 	// create the required element type with default values.
 	// if the elementType is unknown, return an object of KModelElement with id of MELEMENT_UNKNOWN.
-	virtual KModelElement* CreateModelElement(const wchar_t* elementName, UINT length) = 0;
+	virtual KModelElement* createModelElement(const wchar_t* elementName, UINT length) = 0;
 };
 
 // https://learn.microsoft.com/en-us/archive/msdn-magazine/2007/april/xmllite-a-small-and-fast-xml-parser-for-native-c
@@ -92,7 +92,7 @@ public:
 		::CreateXmlReader(__uuidof(IXmlReader), reinterpret_cast<void**>(&reader), 0);
 	}
 
-	bool LoadFromFile(const wchar_t* filePath)
+	bool loadFromFile(const wchar_t* filePath)
 	{
 		if (!reader)
 			return false;
@@ -114,7 +114,7 @@ public:
 		return true;
 	}
 
-	bool LoadFromString(const wchar_t* text, UINT length = 0)
+	bool loadFromString(const wchar_t* text, UINT length = 0)
 	{
 		if (!reader)
 			return false;
@@ -148,7 +148,7 @@ public:
 	}
 
 	// returns the root model element. There can be only one root element in xml.
-	KModelElement* Parse(KModelElementFactory* factory)
+	KModelElement* parse(KModelElementFactory* factory)
 	{
 		if ((!reader) || (!stream) || (!factory))
 			return nullptr;
@@ -174,7 +174,7 @@ public:
 
 					bool selfClosingElement = reader->IsEmptyElement(); // call before MoveToFirstAttribute
 
-					KModelElement* newElement = factory->CreateModelElement(elementName, elementNameLength);
+					KModelElement* newElement = factory->createModelElement(elementName, elementNameLength);
 					if (!rootElement)
 						rootElement = newElement;
 
@@ -206,7 +206,7 @@ public:
 						reader->GetLocalName(&attribName, &attribNameLength);
 						reader->GetValue(&attribValue, &attribValueLength);
 
-						newElement->SetAttribute(attribName, attribNameLength,
+						newElement->setAttribute(attribName, attribNameLength,
 							attribValue, attribValueLength);
 					}
 
@@ -231,7 +231,7 @@ public:
 						UINT elementContentLength = 0;
 						PCWSTR elementContent = nullptr;
 						reader->GetValue(&elementContent, &elementContentLength);
-						lastElement->SetContent(elementContent, elementContentLength);
+						lastElement->setContent(elementContent, elementContentLength);
 					}
 
 					break;
@@ -292,7 +292,7 @@ public:
 		y = 0;
 	}
 
-	void SetAttribute(const wchar_t* name, UINT nameLength,
+	void setAttribute(const wchar_t* name, UINT nameLength,
 		const wchar_t* value, UINT valueLength) override
 	{
 		::wprintf(L"element=Label attribute=%s value=%s\n", name, value);
@@ -303,7 +303,7 @@ public:
 			y = ::_wtoi(value);
 	}
 
-	void SetContent(const wchar_t* content, UINT length) override
+	void setContent(const wchar_t* content, UINT length) override
 	{
 		::wprintf(L"element=Label content=%s\n", content);
 
@@ -336,7 +336,7 @@ public:
 		height = 100;
 	}
 
-	void SetAttribute(const wchar_t* name, UINT nameLength,
+	void setAttribute(const wchar_t* name, UINT nameLength,
 		const wchar_t* value, UINT valueLength) override
 	{
 		::wprintf(L"element=Panel attribute=%s value=%s\n", name, value);
@@ -356,7 +356,7 @@ public:
 class TestModelElementFactory : public KModelElementFactory
 {
 public:
-	KModelElement* CreateModelElement(const wchar_t* elementName, UINT length) override
+	KModelElement* createModelElement(const wchar_t* elementName, UINT length) override
 	{
 		if (::wcscmp(elementName, L"Label") == 0)
 		{
@@ -379,7 +379,7 @@ class TestClass
 {
 	int tabCount;
 
-	const wchar_t* GetElementName(KModelElement* element)
+	const wchar_t* getElementName(KModelElement* element)
 	{
 		switch (element->elementType)
 		{
@@ -392,7 +392,7 @@ class TestClass
 		}
 	}
 
-	void PrintElements(KModelElement* element)
+	void printElements(KModelElement* element)
 	{
 		int count = tabCount;
 		while (count)
@@ -401,32 +401,32 @@ class TestClass
 			--count;
 		}
 
-		::wprintf(GetElementName(element));
+		::wprintf(getElementName(element));
 
 		if (element->parent)
-			::wprintf(L" parent:%s ", GetElementName(element->parent));
+			::wprintf(L" parent:%s ", getElementName(element->parent));
 
 		if (element->next)
-			wprintf(L" next:%s ", GetElementName(element->next));
+			wprintf(L" next:%s ", getElementName(element->next));
 
 		if (element->prev)
-			wprintf(L" prev:%s ", GetElementName(element->prev));
+			wprintf(L" prev:%s ", getElementName(element->prev));
 
 		if (element->firstChild)
-			wprintf(L" firstChild:%s ", GetElementName(element->firstChild));
+			wprintf(L" firstChild:%s ", getElementName(element->firstChild));
 
 		wprintf(L"\n");
 
 		if (element->firstChild)
 		{
 			tabCount++;
-			PrintElements(element->firstChild);
+			printElements(element->firstChild);
 			tabCount--;
 		}
 
 		if (element->next)
 		{
-			PrintElements(element->next);
+			printElements(element->next);
 		}
 
 	}
@@ -451,13 +451,13 @@ public:
 		TestModelElementFactory factory;
 		KXMLReader xmlReader;
 
-		if (xmlReader.LoadFromString(xmlText))
+		if (xmlReader.loadFromString(xmlText))
 		{
-			KModelElement* rootElement = xmlReader.Parse(&factory);
+			KModelElement* rootElement = xmlReader.parse(&factory);
 			if (rootElement)
 			{
 				::wprintf(L"\n===========================\n\n");
-				PrintElements(rootElement);
+				printElements(rootElement);
 				::wprintf(L"\n===========================\n\n");
 				delete rootElement;
 			}

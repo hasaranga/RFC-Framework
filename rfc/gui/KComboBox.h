@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,45 +23,42 @@
 
 #include "KComponent.h"
 #include "../containers/ContainersModule.h"
-
-
-class KComboBoxListener;
+#include <functional>
 
 class KComboBox : public KComponent
 {
 protected:
-	KPointerList<KString*>* stringList;
+	KVector<KString, 10, false> stringList;
 	int selectedItemIndex;
-	KComboBoxListener* listener;
 
 public:
+	std::function<void(KComboBox*)> onItemSelect;
+
 	KComboBox(bool sort=false);
 
-	virtual void AddItem(const KString& text);
+	virtual void addItem(const KString& text);
 
-	virtual void RemoveItem(int index);
+	virtual void removeItem(int index);
 
-	virtual void RemoveItem(const KString& text);
+	virtual void removeItem(const KString& text);
 
-	virtual int GetItemIndex(const KString& text);
+	virtual int getItemIndex(const KString& text);
 
-	virtual int GetItemCount();
+	virtual int getItemCount();
 
-	virtual int GetSelectedItemIndex();
+	virtual int getSelectedItemIndex();
 
-	virtual KString GetSelectedItem();
+	virtual KString getSelectedItem();
 
-	virtual void ClearList();
+	virtual void clearList();
 
-	virtual void SelectItem(int index);
+	virtual void selectItem(int index);
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
 
-	virtual bool Create(bool requireInitialMessages = false) override;
+	virtual bool create(bool requireInitialMessages = false) override;
 
-	virtual void SetListener(KComboBoxListener *listener);
-
-	virtual void OnItemSelect();
+	virtual void _onItemSelect();
 
 	virtual ~KComboBox();
 };

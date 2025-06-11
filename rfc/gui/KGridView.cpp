@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,16 +21,14 @@
 
 #include "KGridView.h"
 #include "KGUIProc.h"
-#include "KGridViewListener.h"
 #include <commctrl.h>
 
 KGridView::KGridView(bool sortItems) : KComponent(false)
 {
 	itemCount = 0;
 	colCount = 0;
-	listener = nullptr;
 
-	compClassName.AssignStaticText(TXT_WITH_LEN("SysListView32"));
+	compClassName.assignStaticText(TXT_WITH_LEN("SysListView32"));
 
 	compWidth = 300;
 	compHeight = 200;
@@ -49,21 +47,11 @@ KGridView::KGridView(bool sortItems) : KComponent(false)
 
 KGridView::~KGridView(){}
 
-void KGridView::SetListener(KGridViewListener* listener)
-{
-	this->listener = listener;
-}
-
-KGridViewListener* KGridView::GetListener()
-{
-	return listener;
-}
-
-void KGridView::InsertRecord(KString** columnsData)
+void KGridView::insertRecord(KString** columnsData)
 {
 	LVITEMW lvi = {};
 	lvi.mask = LVIF_TEXT;
-	lvi.pszText = (*columnsData[0]);
+	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
 	lvi.iItem = itemCount;
 
 	const int row = (int)::SendMessageW(compHWND, 
@@ -73,7 +61,7 @@ void KGridView::InsertRecord(KString** columnsData)
 	{
 		LV_ITEMW lvItem = {};
 		lvItem.iSubItem = i;
-		lvItem.pszText = (*columnsData[i]);
+		lvItem.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
 
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, 
 			(WPARAM)row, (LPARAM)&lvItem);
@@ -82,11 +70,11 @@ void KGridView::InsertRecord(KString** columnsData)
 	++itemCount;
 }
 
-void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
+void KGridView::insertRecordTo(int rowIndex, KString **columnsData)
 {
 	LVITEMW lvi = {};
 	lvi.mask = LVIF_TEXT;
-	lvi.pszText = (*columnsData[0]);
+	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
 	lvi.iItem = rowIndex;
 
 	const int row = (int)::SendMessageW(compHWND, 
@@ -96,7 +84,7 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 	{
 		LV_ITEMW lvItem= {};
 		lvItem.iSubItem = i;
-		lvItem.pszText = (*columnsData[i]);
+		lvItem.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
 
 		::SendMessageW(compHWND, LVM_SETITEMTEXTW, 
 			(WPARAM)row, (LPARAM)&lvItem);
@@ -105,7 +93,7 @@ void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
 	++itemCount;
 }
 
-KString KGridView::GetRecordAt(int rowIndex, int columnIndex)
+KString KGridView::getRecordAt(int rowIndex, int columnIndex)
 {
 	wchar_t *buffer = (wchar_t*)::malloc(512 * sizeof(wchar_t));
 	buffer[0] = 0;
@@ -118,54 +106,54 @@ KString KGridView::GetRecordAt(int rowIndex, int columnIndex)
 	::SendMessageW(compHWND, LVM_GETITEMTEXTW, 
 		(WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_GetItemText macro. it relies on preprocessor defs.
 
-	return KString(buffer, KString::FREE_TEXT_WHEN_DONE);
+	return KString(buffer, KStringBehaviour::FREE_ON_DESTROY);
 }
 
-int KGridView::GetSelectedRow()
+int KGridView::getSelectedRow()
 {
 	return ListView_GetNextItem(compHWND, -1, LVNI_SELECTED);
 }
 
-void KGridView::RemoveRecordAt(int rowIndex)
+void KGridView::removeRecordAt(int rowIndex)
 {
 	if (ListView_DeleteItem(compHWND, rowIndex))
 		--itemCount;
 }
 
-void KGridView::RemoveAll()
+void KGridView::removeAll()
 {
 	ListView_DeleteAllItems(compHWND);
 	itemCount = 0;
 }
 
-void KGridView::UpdateRecordAt(int rowIndex, int columnIndex, const KString& text)
+void KGridView::updateRecordAt(int rowIndex, int columnIndex, const KString& text)
 {
 	LV_ITEMW lvi = {};
 	lvi.iSubItem = columnIndex;
-	lvi.pszText = text;
+	lvi.pszText = (wchar_t*)(const wchar_t*)text;
 
 	::SendMessageW(compHWND, LVM_SETITEMTEXTW, 
 		(WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_SetItemText macro. it relies on preprocessor defs.
 }
 
-void KGridView::SetColumnWidth(int columnIndex, int columnWidth)
+void KGridView::setColumnWidth(int columnIndex, int columnWidth)
 {
 	ListView_SetColumnWidth(compHWND, columnIndex, columnWidth);
 }
 
-int KGridView::GetColumnWidth(int columnIndex)
+int KGridView::getColumnWidth(int columnIndex)
 {
 	return ListView_GetColumnWidth(compHWND, columnIndex);
 }
 
-void KGridView::CreateColumn(const KString& text, int columnWidth)
+void KGridView::createColumn(const KString& text, int columnWidth)
 {
 	LVCOLUMNW lvc = {};
 
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 	lvc.fmt = LVCFMT_LEFT;
 	lvc.cx = columnWidth;
-	lvc.pszText = text;
+	lvc.pszText = (wchar_t*)(const wchar_t*)text;
 	lvc.iSubItem = colCount;
 
 	::SendMessageW(compHWND, LVM_INSERTCOLUMNW, 
@@ -174,7 +162,7 @@ void KGridView::CreateColumn(const KString& text, int columnWidth)
 	++colCount;
 }
 
-bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KGridView::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 {
 	if (msg == WM_NOTIFY)
 	{
@@ -183,34 +171,34 @@ bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 			LPNMLISTVIEW pNMListView = (LPNMLISTVIEW)lParam;
 			if ((pNMListView->uChanged & LVIF_STATE) && (pNMListView->uNewState & LVIS_SELECTED))
 			{
-				this->OnItemSelect();
+				_onItemSelect();
 				*result = 0;
 				return true;
 			}
 		}
 		else if (((LPNMHDR)lParam)->code == NM_RCLICK) // List view item right click
 		{
-			this->OnItemRightClick();
+			_onItemRightClick();
 			*result = 0;
 			return true;
 		}
 		else if (((LPNMHDR)lParam)->code == NM_DBLCLK) // List view item double click
 		{
-			this->OnItemDoubleClick();
+			_onItemDoubleClick();
 			*result = 0;
 			return true;
 		}
 	}
 
-	return KComponent::EventProc(msg, wParam, lParam, result);
+	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KGridView::Create(bool requireInitialMessages)
+bool KGridView::create(bool requireInitialMessages)
 {
 	if (!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register WC_LISTVIEWW class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register WC_LISTVIEWW class!
 
 	if (compHWND)
 	{
@@ -218,7 +206,7 @@ bool KGridView::Create(bool requireInitialMessages)
 			LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
 		::SendMessageW(compHWND, WM_SETFONT, 
-			(WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+			(WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 
@@ -230,21 +218,21 @@ bool KGridView::Create(bool requireInitialMessages)
 	return false;
 }
 
-void KGridView::OnItemSelect()
+void KGridView::_onItemSelect()
 {
-	if (listener)
-		listener->OnGridViewItemSelect(this);
+	if (onItemSelect)
+		onItemSelect(this);
 }
 
-void KGridView::OnItemRightClick()
+void KGridView::_onItemRightClick()
 {
-	if (listener)
-		listener->OnGridViewItemRightClick(this);
+	if (onItemRightClick)
+		onItemRightClick(this);
 }
 
-void KGridView::OnItemDoubleClick()
+void KGridView::_onItemDoubleClick()
 {
-	if (listener)
-		listener->OnGridViewItemDoubleClick(this);
+	if (onItemRightClick)
+		onItemRightClick(this);
 }
 

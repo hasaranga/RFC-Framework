@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,12 +28,12 @@ KSHA1::KSHA1()
 
 }
 
-KString KSHA1::GenerateFromString(const KString& text)
+KString KSHA1::generateFromString(const KString& text)
 {
-	if (text.GetLength() == 0)
+	if (text.length() == 0)
 		return KString();
 
-	char* ansiTxt = KString::ToAnsiString(text);
+	char* ansiTxt = KString::toAnsiString(text);
 
 	ExtLibs::CSHA1 sha1;
 	sha1.Update((const UINT_8*)ansiTxt, (unsigned int)::strlen(ansiTxt));
@@ -47,24 +47,24 @@ KString KSHA1::GenerateFromString(const KString& text)
 	return KString(szReport);
 }
 
-KString KSHA1::GenerateFromFile(const KString& fileName)
+KString KSHA1::generateFromFile(const KString& fileName)
 {
-	if (fileName.GetLength() == 0) // empty path
+	if (fileName.length() == 0) // empty path
 		return KString();
 
-	if (!KFile::IsFileExists(fileName)) // file does not exists
+	if (!KFile::isFileExists(fileName)) // file does not exists
 		return KString();
 
 	KFile file;
-	file.OpenFile(fileName, KFile::KREAD, false);
+	file.openFile(fileName, KFile::KREAD, false);
 
-	const DWORD fileSize = file.GetFileSize();
-	file.CloseFile();
+	const DWORD fileSize = file.getFileSize();
+	file.closeFile();
 
 	if (fileSize == 0) // empty file
 		return KString();
 
-	char* ansiFileName = KString::ToAnsiString(fileName);
+	char* ansiFileName = KString::toAnsiString(fileName);
 
 	ExtLibs::CSHA1 sha1;
 	sha1.HashFile(ansiFileName);

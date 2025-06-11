@@ -1,7 +1,7 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
-  
+	Copyright (C) 2013-2025 CrownSoft
+
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
 	arising from the use of this software.
@@ -16,20 +16,21 @@
 	   appreciated but is not required.
 	2. Altered source versions must be plainly marked as such, and must not be
 	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
+	3. This notice may not be removed or altered from any source distribution.
 */
-
 #pragma once
 
-class KComboBox;
+#include <crtdbg.h>
 
-class KComboBoxListener
-{
-public:
-	KComboBoxListener();
-
-	virtual ~KComboBoxListener();
-
-	virtual void OnComboBoxItemSelect(KComboBox* comboBox);
-};
-
+// spawns crt assertion error gui if condition is false.
+#ifdef _DEBUG
+#define K_ASSERT(cond, msg) \
+    do { \
+        if (!(cond)) { \
+            _CrtDbgReport(_CRT_ASSERT, __FILE__, __LINE__, nullptr, msg); \
+            _CrtDbgBreak(); \
+        } \
+    } while (0)
+#else
+#define K_ASSERT(cond, msg) ((void)0)
+#endif

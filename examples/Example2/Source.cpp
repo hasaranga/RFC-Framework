@@ -8,17 +8,17 @@ class MyApplication : public KApplication
 {
 public:
 
-	int Main(KString** argv, int argc)
+	int main(wchar_t** argv, int argc)
 	{
 		KFrame myWindow;
 
-		myWindow.Create(); // this will create window
+		myWindow.create(); // this will create window
 
-		myWindow.SetText(L"Empty Window"); // always use unicode strings. They are fast!
-		myWindow.CenterScreen();
-		myWindow.SetVisible(true);
+		myWindow.setText(L"Empty Window"); // always use unicode strings. They are fast!
+		myWindow.centerScreen();
+		myWindow.setVisible(true);
 
-		KApplication::MessageLoop(); // this function will not return until you call PostQuitMessage
+		KApplication::messageLoop(); // this function will not return until you call PostQuitMessage
 
 		return 0;
 	}

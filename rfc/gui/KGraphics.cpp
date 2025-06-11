@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,42 +25,42 @@ KGraphics::KGraphics(){}
 
 KGraphics::~KGraphics(){}
 
-void KGraphics::Draw3dVLine(HDC hdc, int startX, int startY, int height)
+void KGraphics::draw3dVLine(HDC hdc, int startX, int startY, int height)
 {
-	KGraphics::Draw3dRect(hdc, startX, startY, 2, 
+	KGraphics::draw3dRect(hdc, startX, startY, 2, 
 		height, ::GetSysColor(COLOR_BTNSHADOW), 
 		::GetSysColor(COLOR_BTNHIGHLIGHT));
 }
 
-void KGraphics::Draw3dHLine(HDC hdc, int startX, int startY, int width)
+void KGraphics::draw3dHLine(HDC hdc, int startX, int startY, int width)
 {
-	KGraphics::Draw3dRect(hdc, startX, startY, width, 
+	KGraphics::draw3dRect(hdc, startX, startY, width, 
 		2, ::GetSysColor(COLOR_BTNSHADOW), 
 		::GetSysColor(COLOR_BTNHIGHLIGHT));
 }
 
-void KGraphics::Draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight)
+void KGraphics::draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight)
 {
-	KGraphics::Draw3dRect(hdc, lpRect->left, lpRect->top, 
+	KGraphics::draw3dRect(hdc, lpRect->left, lpRect->top, 
 		lpRect->right - lpRect->left, lpRect->bottom - lpRect->top, 
 		clrTopLeft, clrBottomRight);
 }
 
-void KGraphics::Draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight)
+void KGraphics::draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight)
 {
-	KGraphics::FillSolidRect(hdc, x, y, cx - 1, 1, clrTopLeft);
-	KGraphics::FillSolidRect(hdc, x, y, 1, cy - 1, clrTopLeft);
-	KGraphics::FillSolidRect(hdc, x + cx, y, -1, cy, clrBottomRight);
-	KGraphics::FillSolidRect(hdc, x, y + cy, cx, -1, clrBottomRight);
+	KGraphics::fillSolidRect(hdc, x, y, cx - 1, 1, clrTopLeft);
+	KGraphics::fillSolidRect(hdc, x, y, 1, cy - 1, clrTopLeft);
+	KGraphics::fillSolidRect(hdc, x + cx, y, -1, cy, clrBottomRight);
+	KGraphics::fillSolidRect(hdc, x, y + cy, cx, -1, clrBottomRight);
 }
 
-void KGraphics::FillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color)
+void KGraphics::fillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color)
 {
 	RECT rect = { x, y, x + cx, y + cy };
-	KGraphics::FillSolidRect(hdc, &rect, color);
+	KGraphics::fillSolidRect(hdc, &rect, color);
 }
 
-void KGraphics::FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
+void KGraphics::fillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
 {
 	const COLORREF clrOld = ::SetBkColor(hdc, color);
 
@@ -68,7 +68,7 @@ void KGraphics::FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
 	::SetBkColor(hdc, clrOld);
 }
 
-RECT KGraphics::CalculateTextSize(const wchar_t* text, HFONT hFont)
+RECT KGraphics::calculateTextSize(const wchar_t* text, HFONT hFont)
 {
 	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
 	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
@@ -81,7 +81,7 @@ RECT KGraphics::CalculateTextSize(const wchar_t* text, HFONT hFont)
 	return sz;
 }
 
-int KGraphics::CalculateTextHeight(const wchar_t* text, HFONT hFont, int width)
+int KGraphics::calculateTextHeight(const wchar_t* text, HFONT hFont, int width)
 {
 	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
 	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
@@ -97,7 +97,7 @@ int KGraphics::CalculateTextHeight(const wchar_t* text, HFONT hFont, int width)
 }
 
 // https://devblogs.microsoft.com/oldnewthing/20210915-00/?p=105687
-void KGraphics::MakeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy)
+void KGraphics::makeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy)
 {
 	BITMAPINFO bi = {};
 	bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -114,7 +114,7 @@ void KGraphics::MakeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy)
 		DIB_RGB_COLORS, SRCPAINT);
 }
 
-void KGraphics::SetBitmapAlphaChannel(HDC hdc, int x, int y, int cx, int cy, BYTE alpha)
+void KGraphics::setBitmapAlphaChannel(HDC hdc, int x, int y, int cx, int cy, BYTE alpha)
 {
 	BITMAPINFO bi = {};
 	bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);

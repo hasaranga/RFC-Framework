@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -36,9 +36,8 @@ class KIDGenerator
 {
 private:
 	RFC_LEAK_DETECTOR(KIDGenerator)
-
-	static KIDGenerator* _instance;
 	KIDGenerator();
+	~KIDGenerator();
 
 protected:
 	volatile int classCount;
@@ -46,24 +45,29 @@ protected:
 	volatile int controlCount;
 	volatile UINT menuItemCount;
 
-	KPointerList<KMenuItem*>* menuItemList;
-	KPointerList<KTimer*>* timerList;
+	static const int rfc_InitialMenuItemCount = 20;
+	static const int rfc_InitialTimerCount = 10;
+
+	static const int rfc_InitialControlID = 100;
+	static const int rfc_InitialMenuItemID = 30000;
+	static const int rfc_InitialTimerID = 1000;
+
+	KPointerList<KMenuItem*, rfc_InitialMenuItemCount, false> menuItemList;
+	KPointerList<KTimer*, rfc_InitialTimerCount, false> timerList;
 
 public:
+	// do not delete the returned instance.
+	static KIDGenerator* getInstance();
 
-	static KIDGenerator* GetInstance();
-
-	UINT GenerateControlID();
+	UINT generateControlID();
 
 	// KApplication:hInstance must be valid before calling this method
-	KString GenerateClassName();
+	// can generate up to 9999 class names.
+	void generateClassName(KString& stringToModify);
 
-	UINT GenerateMenuItemID(KMenuItem* menuItem);
-	KMenuItem* GetMenuItemByID(UINT id);
+	UINT generateMenuItemID(KMenuItem* menuItem);
+	KMenuItem* getMenuItemByID(UINT id);
 
-	UINT GenerateTimerID(KTimer* timer);
-	KTimer* GetTimerByID(UINT id);
-
-	~KIDGenerator();
-
+	UINT generateTimerID(KTimer* timer);
+	KTimer* getTimerByID(UINT id);
 };

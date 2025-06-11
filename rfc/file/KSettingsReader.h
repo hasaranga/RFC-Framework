@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -35,22 +35,22 @@ protected:
 public:
 	KSettingsReader();
 
-	virtual bool OpenFile(const KString& fileName, int formatID);
+	virtual bool openFile(const wchar_t* fileName, int formatID);
 
 	/**
 		read struct, array or whatever...
 	*/
-	virtual void ReadData(DWORD size, void *buffer);
+	virtual void readData(DWORD size, void *buffer);
 
-	virtual KString ReadString();
+	virtual KString readString();
 
-	virtual int ReadInt();
+	virtual int readInt();
 
-	virtual float ReadFloat();
+	virtual float readFloat();
 
-	virtual double ReadDouble();
+	virtual double readDouble();
 
-	virtual bool ReadBool();
+	virtual bool readBool();
 
 	virtual ~KSettingsReader();
 

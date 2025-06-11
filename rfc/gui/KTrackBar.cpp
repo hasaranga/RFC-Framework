@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,13 +21,11 @@
 
 
 #include "KTrackBar.h"
-#include "KTrackBarListener.h"
 #include "KGUIProc.h"
 #include <commctrl.h>
 
 KTrackBar::KTrackBar(bool showTicks, bool vertical) : KComponent(false)
 {
-	listener = 0;
 	rangeMin = 0;
 	rangeMax = 100;
 	value = 0;
@@ -44,10 +42,10 @@ KTrackBar::KTrackBar(bool showTicks, bool vertical) : KComponent(false)
 
 	compDwExStyle = WS_EX_WINDOWEDGE;
 
-	compClassName.AssignStaticText(TXT_WITH_LEN("msctls_trackbar32"));
+	compClassName.assignStaticText(TXT_WITH_LEN("msctls_trackbar32"));
 }
 
-void KTrackBar::SetRange(int min, int max)
+void KTrackBar::setRange(int min, int max)
 {
 	rangeMin = min;
 	rangeMax = max;
@@ -55,31 +53,26 @@ void KTrackBar::SetRange(int min, int max)
 		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(min, max));	
 }
 
-void KTrackBar::SetValue(int value)
+void KTrackBar::setValue(int value)
 {
 	this->value = value;
 	if(compHWND)
 		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
 }
 
-void KTrackBar::OnChange()
+void KTrackBar::_onChange()
 {
 	value = (int)::SendMessageW(compHWND, TBM_GETPOS, 0, 0);
-	if(listener)
-		listener->OnTrackBarChange(this);
+	if(onChange)
+		onChange(this, value);
 }
 
-void KTrackBar::SetListener(KTrackBarListener* listener)
-{
-	this->listener = listener;
-}
-
-int KTrackBar::GetValue()
+int KTrackBar::getValue()
 {
 	return value;
 }
 
-bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
+bool KTrackBar::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if( (msg == WM_HSCROLL) || (msg == WM_VSCROLL) )
 	{
@@ -89,26 +82,26 @@ bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* resul
 			(TB_BOTTOM == nScrollCode) || (TB_TOP == nScrollCode) || (TB_PAGEUP == nScrollCode) || 
 			(TB_PAGEDOWN == nScrollCode) || (TB_THUMBPOSITION == nScrollCode)) // its trackbar!
 		{
-			this->OnChange();
+			this->_onChange();
 			*result = 0;
 			return true;
 		}
 	}
 
-	return KComponent::EventProc(msg, wParam, lParam, result);
+	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KTrackBar::Create(bool requireInitialMessages)
+bool KTrackBar::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register TRACKBAR_CLASSW class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register TRACKBAR_CLASSW class!
 
 	if(compHWND)
 	{
 		::EnableWindow(compHWND, compEnabled);
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!	
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!	
 		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(rangeMin, rangeMax));	
 		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
 

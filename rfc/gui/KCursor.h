@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -39,19 +39,19 @@ public:
 		@param resourceID resource ID of cursor file
 		@returns false if cursor load fails
 	*/
-	bool LoadFromResource(WORD resourceID);
+	bool loadFromResource(WORD resourceID);
 
 	/**
 		Loads cursor from file
 		@param filePath path to cursor file
 		@returns false if cursor load fails
 	*/
-	bool LoadFromFile(const KString& filePath);
+	bool loadFromFile(const KString& filePath);
 
 	/**
 		Returns cursor handle
 	*/
-	HCURSOR GetHandle();
+	HCURSOR getHandle();
 
 	/**
 		Returns cursor handle

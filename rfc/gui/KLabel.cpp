@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2023 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,8 +26,8 @@
 
 KLabel::KLabel() : KComponent(false)
 {
-	compClassName.AssignStaticText(TXT_WITH_LEN("STATIC"));
-	compText.AssignStaticText(TXT_WITH_LEN("Label"));
+	compClassName.assignStaticText(TXT_WITH_LEN("STATIC"));
+	compText.assignStaticText(TXT_WITH_LEN("Label"));
 
 	compWidth = 100;
 	compHeight = 25;
@@ -41,44 +41,52 @@ KLabel::KLabel() : KComponent(false)
 	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
-void KLabel::ResizeToTextSize()
+void KLabel::resizeToTextSize()
 {
-	if (compText.IsNotEmpty())
+	if (compText.isNotEmpty())
 	{
-		RECT rect = KGraphics::CalculateTextSize(compText, compFont->GetFontHandle());
-		this->SetSize(rect.right + AUTOSIZE_EXTRA_GAP, rect.bottom);
+		RECT rect = KGraphics::calculateTextSize(compText, compFont->getFontHandle());
+		this->setSize(rect.right + AUTOSIZE_EXTRA_GAP, rect.bottom);
 	}
 	else // text is empty
 	{
-		this->SetSize(20, 25);
+		this->setSize(20, 25);
 	}
 }
 
-void KLabel::EnableAutoResize(bool enable)
+void KLabel::enableAutoResize(bool enable)
 {
 	autoResize = enable;
 
 	if(autoResize)
-		this->ResizeToTextSize();
+		this->resizeToTextSize();
 }
 
-void KLabel::SetText(const KString& compText)
+void KLabel::setText(const KString& compText)
 {
-	KComponent::SetText(compText);
+	KComponent::setText(compText);
 
 	if (autoResize)
-		this->ResizeToTextSize();
+		this->resizeToTextSize();
 }
 
-void KLabel::SetFont(KFont* compFont)
+void KLabel::setFont(KFont* compFont)
 {
-	KComponent::SetFont(compFont);
+	KComponent::setFont(compFont);
 
 	if (autoResize)
-		this->ResizeToTextSize();
+		this->resizeToTextSize();
 }
 
-void KLabel::SetDPI(int newDPI)
+void KLabel::setFont(KFont& compFont)
+{
+	KComponent::setFont(&compFont);
+
+	if (autoResize)
+		this->resizeToTextSize();
+}
+
+void KLabel::setDPI(int newDPI)
 {
 	if (newDPI == compDPI)
 		return;
@@ -89,12 +97,12 @@ void KLabel::SetDPI(int newDPI)
 	this->compX = ::MulDiv(compX, newDPI, oldDPI);
 	this->compY = ::MulDiv(compY, newDPI, oldDPI);
 
-	if (!compFont->IsDefaultFont())
-		compFont->SetDPI(newDPI);
+	if (!compFont->isDefaultFont())
+		compFont->setDPI(newDPI);
 	
-	if (compText.IsNotEmpty() && autoResize)
+	if (compText.isNotEmpty() && autoResize)
 	{
-		RECT rect = KGraphics::CalculateTextSize(compText, compFont->GetFontHandle());
+		RECT rect = KGraphics::calculateTextSize(compText, compFont->getFontHandle());
 		this->compWidth = rect.right + AUTOSIZE_EXTRA_GAP;
 		this->compHeight = rect.bottom;
 	}
@@ -109,22 +117,22 @@ void KLabel::SetDPI(int newDPI)
 		::SetWindowPos(compHWND, 0, compX, compY, compWidth, 
 			compHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
 
-		if ((!compFont->IsDefaultFont()) && (compDwStyle & WS_CHILD))
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0));
+		if ((!compFont->isDefaultFont()) && (compDwStyle & WS_CHILD))
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
 	}
 }
 
-bool KLabel::Create(bool requireInitialMessages)
+bool KLabel::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register Label class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register Label class!
 
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, WM_SETFONT, 
-			(WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+			(WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 
 		::EnableWindow(compHWND, compEnabled);
 

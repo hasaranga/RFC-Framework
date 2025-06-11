@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2024 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -41,17 +41,17 @@ protected:
 	KString notifyIconToolTipText;
 	UINT taskbarRestartMsg;
 
-	virtual LRESULT OnNotifyIconMessage(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onNotifyIconMessage(WPARAM wParam, LPARAM lParam)
 	{
 		if (lParam == WM_LBUTTONUP)
-			this->OnNotifyIconLeftClick();
+			this->onNotifyIconLeftClick();
 		else if (lParam == WM_RBUTTONUP)
-			this->OnNotifyIconRightClick();
+			this->onNotifyIconRightClick();
 
 		return 0;
 	}
 
-	virtual void CreateNotifyIcon(HWND window, HICON icon, const KString& toolTipText)
+	virtual void createNotifyIcon(HWND window, HICON icon, const KString& toolTipText)
 	{
 		NOTIFYICONDATAW nid = { 0 };
 
@@ -68,23 +68,23 @@ protected:
 	}
 
 	// on explorer crash
-	virtual LRESULT OnTaskBarReCreate(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onTaskBarReCreate(WPARAM wParam, LPARAM lParam)
 	{
 		if (notifyIconHandle)
-			this->CreateNotifyIcon(this->compHWND, notifyIconHandle, notifyIconToolTipText);
+			this->createNotifyIcon(this->compHWND, notifyIconHandle, notifyIconToolTipText);
 
 		return 0;
 	}
 
 	// override this method in your subclass and show popup menu.
-	virtual void OnNotifyIconRightClick()
+	virtual void onNotifyIconRightClick()
 	{
 		::SetForegroundWindow(this->compHWND);
 		// show you popup menu here...
 	}
 
 	// override this method in your subclass.
-	virtual void OnNotifyIconLeftClick()
+	virtual void onNotifyIconLeftClick()
 	{
 		::SetForegroundWindow(this->compHWND);
 	}
@@ -104,7 +104,7 @@ public:
 
 	// window must be created.
 	// maximum tooltip text size is 128
-	virtual void AddNotifyIcon(WORD iconResourceID, const KString& tooltipText)
+	virtual void addNotifyIcon(WORD iconResourceID, const KString& tooltipText)
 	{
 		// supports high dpi.
 		// LoadIconMetric: only for system tray. cannot use for a window. because multiple window can have different dpi.
@@ -113,10 +113,10 @@ public:
 
 		notifyIconToolTipText = tooltipText;
 
-		this->CreateNotifyIcon(this->compHWND, notifyIconHandle, notifyIconToolTipText);
+		this->createNotifyIcon(this->compHWND, notifyIconHandle, notifyIconToolTipText);
 	}
 
-	virtual void UpdateNotifyIcon(WORD iconResourceID)
+	virtual void updateNotifyIcon(WORD iconResourceID)
 	{
 		if (notifyIconHandle)
 			::DestroyIcon(notifyIconHandle);
@@ -137,7 +137,7 @@ public:
 	}
 
 	// maximum tooltip text size is 128
-	virtual void UpdateNotifyIconToolTip(const KString& tooltipText)
+	virtual void updateNotifyIconToolTip(const KString& tooltipText)
 	{
 		notifyIconToolTipText = tooltipText;
 
@@ -153,7 +153,7 @@ public:
 		::Shell_NotifyIconW(NIM_MODIFY, &nid);
 	}
 
-	virtual void DestroyNotifyIcon()
+	virtual void destroyNotifyIcon()
 	{
 		NOTIFYICONDATAW nid = { 0 };
 		nid.cbSize = sizeof(NOTIFYICONDATAW);
@@ -163,13 +163,13 @@ public:
 		::Shell_NotifyIconW(NIM_DELETE, &nid);
 	}
 
-	virtual LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override
 	{
 		if (msg == RFC_NOTIFY_ICON_MESSAGE)
-			return this->OnNotifyIconMessage(wParam, lParam);
+			return this->onNotifyIconMessage(wParam, lParam);
 		else if (msg == taskbarRestartMsg)
-			return this->OnTaskBarReCreate(wParam, lParam);
+			return this->onTaskBarReCreate(wParam, lParam);
 		else
-			return T::WindowProc(hwnd, msg, wParam, lParam);
+			return T::windowProc(hwnd, msg, wParam, lParam);
 	}
 };

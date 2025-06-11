@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -20,15 +20,12 @@
 */
 
 #include "KButton.h"
-#include "KButtonListener.h"
 #include "KGUIProc.h"
 
 KButton::KButton() : KComponent(false)
 {
-	listener = nullptr;
-
-	compClassName.AssignStaticText(TXT_WITH_LEN("BUTTON"));
-	compText.AssignStaticText(TXT_WITH_LEN("Button"));
+	compClassName.assignStaticText(TXT_WITH_LEN("BUTTON"));
+	compText.assignStaticText(TXT_WITH_LEN("Button"));
 
 	compWidth = 100;
 	compHeight = 30;
@@ -40,45 +37,35 @@ KButton::KButton() : KComponent(false)
 	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
-void KButton::SetListener(KButtonListener *listener)
+void KButton::_onPress()
 {
-	this->listener = listener;
+	if(onClick)
+		onClick(this);
 }
 
-KButtonListener* KButton::GetListener()
-{
-	return listener;
-}
-
-void KButton::OnPress()
-{
-	if(listener)
-		listener->OnButtonPress(this);
-}
-
-bool KButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 {
 	if ((msg == WM_COMMAND) && (HIWORD(wParam) == BN_CLICKED))
 	{
-		this->OnPress();
+		this->_onPress();
 
 		*result = 0;
 		return true;
 	}
 
-	return KComponent::EventProc(msg, wParam, lParam, result);
+	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KButton::Create(bool requireInitialMessages)
+bool KButton::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)

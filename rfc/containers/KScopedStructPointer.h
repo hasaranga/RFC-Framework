@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,7 +28,7 @@ template<class StructType>
 class KReleaseUsingFree
 {
 public:
-	static void Release(StructType* structPtr)
+	static void release(StructType* structPtr)
 	{
 		::free(structPtr);
 	}
@@ -38,7 +38,7 @@ template<class StructType>
 class KReleaseUsingTaskMemFree
 {
 public:
-	static void Release(StructType* memory)
+	static void release(StructType* memory)
 	{
 		::CoTaskMemFree(memory);
 	}
@@ -77,7 +77,7 @@ public:
 		structPointerToTransferFrom.structPointer = nullptr;
 	}
 
-	bool IsNull()
+	bool isNull()
 	{
 		return (structPointer == nullptr);
 	}
@@ -86,7 +86,7 @@ public:
 		Removes the current struct pointer from this KScopedStructPointer without freeing it.
 		This will return the current struct pointer, and set the KScopedStructPointer to a null pointer.
 	*/
-	StructType* Detach()
+	StructType* detach()
 	{ 
 		StructType* m = structPointer;
 		structPointer = nullptr;
@@ -96,7 +96,7 @@ public:
 	~KScopedStructPointer()
 	{
 		if (structPointer)
-			ReleaseMethod::Release(structPointer);
+			ReleaseMethod::release(structPointer);
 	}
 
 	/** 
@@ -115,7 +115,7 @@ public:
 			structPointer = newStructPointer;
 
 			if (oldStructPointer)
-				ReleaseMethod::Release(oldStructPointer);
+				ReleaseMethod::release(oldStructPointer);
 		}
 
 		return *this;

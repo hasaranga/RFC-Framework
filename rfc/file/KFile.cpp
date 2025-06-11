@@ -1,7 +1,7 @@
 
 /*
 	RFC - KFile.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,21 +30,19 @@ KFile::KFile()
 	fileHandle = INVALID_HANDLE_VALUE;
 }
 
-KFile::KFile(const KString& fileName, DWORD desiredAccess, bool autoCloseHandle)
+KFile::KFile(const wchar_t* fileName, DWORD desiredAccess, bool autoCloseHandle)
 {
-	this->fileName = fileName;
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
 	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 }
 
-bool KFile::OpenFile(const KString& fileName, DWORD desiredAccess, bool autoCloseHandle)
+bool KFile::openFile(const wchar_t* fileName, DWORD desiredAccess, bool autoCloseHandle)
 {
 	if (fileHandle != INVALID_HANDLE_VALUE) // close old file
 		::CloseHandle(fileHandle);
 
-	this->fileName = fileName;
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
@@ -53,7 +51,7 @@ bool KFile::OpenFile(const KString& fileName, DWORD desiredAccess, bool autoClos
 	return (fileHandle == INVALID_HANDLE_VALUE) ? false : true;
 }
 
-bool KFile::CloseFile()
+bool KFile::closeFile()
 {
 	if (::CloseHandle(fileHandle) != 0)
 	{
@@ -63,7 +61,7 @@ bool KFile::CloseFile()
 	return false;
 }
 
-HANDLE KFile::GetFileHandle()
+HANDLE KFile::getFileHandle()
 {
 	return fileHandle;
 }
@@ -73,7 +71,7 @@ KFile::operator HANDLE()const
 	return fileHandle;
 }
 
-DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
+DWORD KFile::readFile(void* buffer, DWORD numberOfBytesToRead)
 {
 	DWORD numberOfBytesRead = 0;
 	::ReadFile(fileHandle, buffer, numberOfBytesToRead, &numberOfBytesRead, NULL);
@@ -81,7 +79,7 @@ DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
 	return numberOfBytesRead;
 }
 
-DWORD KFile::WriteFile(void* buffer, DWORD numberOfBytesToWrite)
+DWORD KFile::writeFile(const void* buffer, DWORD numberOfBytesToWrite)
 {
 	DWORD numberOfBytesWritten = 0;
 	::WriteFile(fileHandle, buffer, numberOfBytesToWrite, &numberOfBytesWritten, NULL);
@@ -89,40 +87,40 @@ DWORD KFile::WriteFile(void* buffer, DWORD numberOfBytesToWrite)
 	return numberOfBytesWritten;
 }
 
-bool KFile::SetFilePointerToStart()
+bool KFile::setFilePointerToStart()
 {
 	return (::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
-bool KFile::SetFilePointerTo(long distance, DWORD startingPoint)
+bool KFile::setFilePointerTo(long distance, DWORD startingPoint)
 {
 	return (::SetFilePointer(fileHandle, distance, NULL, startingPoint) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
-DWORD KFile::GetFilePointerPosition()
+DWORD KFile::getFilePointerPosition()
 {
 	return ::SetFilePointer(fileHandle, 0, NULL, FILE_CURRENT);
 }
 
-bool KFile::SetFilePointerToEnd()
+bool KFile::setFilePointerToEnd()
 {
 	return (::SetFilePointer(fileHandle, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
-DWORD KFile::GetFileSize()
+DWORD KFile::getFileSize()
 {
 	const DWORD fileSize = ::GetFileSize(fileHandle, NULL);
 	return (fileSize == INVALID_FILE_SIZE) ? 0 : fileSize;
 }
 
-void* KFile::ReadAsData()
+void* KFile::readAsData()
 {
-	const DWORD fileSize = this->GetFileSize();
+	const DWORD fileSize = getFileSize();
 
 	if (fileSize)
 	{
 		void* buffer = (void*)::malloc(fileSize);
-		const DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
+		const DWORD numberOfBytesRead = readFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
 			return buffer;
@@ -133,33 +131,33 @@ void* KFile::ReadAsData()
 	return NULL;
 }
 
-bool KFile::WriteString(const KString& text, bool isUnicode)
+bool KFile::writeString(const KString& text, bool isUnicode)
 {
 	if (isUnicode)
 	{
 		void* buffer = (void*)(const wchar_t*)text;
-		const DWORD numberOfBytesToWrite = text.GetLength() * sizeof(wchar_t);
-		const DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
+		const DWORD numberOfBytesToWrite = text.length() * sizeof(wchar_t);
+		const DWORD numberOfBytesWritten = writeFile(buffer, numberOfBytesToWrite);
 		return (numberOfBytesWritten == numberOfBytesToWrite);
 	}
 	else
 	{
-		void* buffer = (void*)KString::ToAnsiString(text);
-		const DWORD numberOfBytesToWrite = text.GetLength() * sizeof(char);
-		const DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
+		void* buffer = (void*)KString::toAnsiString(text);
+		const DWORD numberOfBytesToWrite = text.length() * sizeof(char);
+		const DWORD numberOfBytesWritten = writeFile(buffer, numberOfBytesToWrite);
 		::free(buffer);
 		return (numberOfBytesWritten == numberOfBytesToWrite);
 	}
 }
 
-KString KFile::ReadAsString(bool isUnicode)
+KString KFile::readAsString(bool isUnicode)
 {
-	DWORD fileSize = this->GetFileSize();
+	DWORD fileSize = getFileSize();
 
 	if (fileSize)
 	{
 		char* buffer = (char*)::malloc(fileSize + 2); // +2 is for null
-		const DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
+		const DWORD numberOfBytesRead = readFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
 		{
@@ -168,7 +166,7 @@ KString KFile::ReadAsString(bool isUnicode)
 
 			if (isUnicode)
 			{
-				return KString((const wchar_t*)buffer, KString::FREE_TEXT_WHEN_DONE);
+				return KString((const wchar_t*)buffer, KStringBehaviour::FREE_ON_DESTROY);
 			}
 			else
 			{
@@ -184,39 +182,35 @@ KString KFile::ReadAsString(bool isUnicode)
 	return KString();
 }
 
-bool KFile::DeleteFile(const KString& fileName)
+bool KFile::deleteFile(const wchar_t* fileName)
 {
 	return (::DeleteFileW(fileName) == 0) ? false : true;
 }
 
-bool KFile::CopyFile(const KString& sourceFileName, const KString& destFileName)
+bool KFile::copyFile(const wchar_t* sourceFileName, const wchar_t* destFileName)
 {
 	return (::CopyFileW(sourceFileName, destFileName, FALSE) == 0) ? false : true;
 }
 
-KString KFile::GetFileNameFromPath(const KString& path)
+KString KFile::getFileNameFromPath(const wchar_t* path)
 {
-	const wchar_t* pathStr = (const wchar_t*)path;
-	const wchar_t* fileNamePtr = ::PathFindFileNameW(pathStr);
+	const wchar_t* fileNamePtr = ::PathFindFileNameW(path);
 
-	if (pathStr != fileNamePtr)
-		return KString(fileNamePtr);
+	if (path != fileNamePtr)
+		return KString(fileNamePtr, KStringBehaviour::MAKE_A_COPY);
 
 	return KString();
 }
 
-KString KFile::GetFileExtension(const KString& path)
+KString KFile::getFileExtension(const wchar_t* path)
 {
-	const wchar_t* pathStr = (const wchar_t*)path;
-	const wchar_t* extPtr = ::PathFindExtensionW(pathStr);
-
-	return KString(extPtr);
+	const wchar_t* extPtr = ::PathFindExtensionW(path);
+	return KString(extPtr, KStringBehaviour::MAKE_A_COPY);
 }
 
-bool KFile::IsFileExists(const KString& fileName)
+bool KFile::isFileExists(const wchar_t* fileName)
 {
 	const DWORD dwAttrib = ::GetFileAttributesW(fileName);
-
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 

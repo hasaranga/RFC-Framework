@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,18 +26,18 @@ KSettingsReader::KSettingsReader()
 
 }
 
-bool KSettingsReader::OpenFile(const KString& fileName, int formatID)
+bool KSettingsReader::openFile(const wchar_t* fileName, int formatID)
 {
-	if (!KFile::IsFileExists(fileName))
+	if (!KFile::isFileExists(fileName))
 		return false;
 
-	if (!settingsFile.OpenFile(fileName, KFile::KREAD))
+	if (!settingsFile.openFile(fileName, KFile::KREAD))
 		return false;
 
-	settingsFile.SetFilePointerToStart();
+	settingsFile.setFilePointerToStart();
 
 	int fileFormatID = 0;
-	settingsFile.ReadFile(&fileFormatID, sizeof(int));
+	settingsFile.readFile(&fileFormatID, sizeof(int));
 
 	if (formatID != fileFormatID) // invalid settings file
 		return false;
@@ -45,23 +45,23 @@ bool KSettingsReader::OpenFile(const KString& fileName, int formatID)
 	return true;
 }
 
-void KSettingsReader::ReadData(DWORD size, void *buffer)
+void KSettingsReader::readData(DWORD size, void *buffer)
 {
 	if (buffer)
-		settingsFile.ReadFile(buffer, size);
+		settingsFile.readFile(buffer, size);
 }
 
-KString KSettingsReader::ReadString()
+KString KSettingsReader::readString()
 {
 	int size = 0;
-	settingsFile.ReadFile(&size, sizeof(int));
+	settingsFile.readFile(&size, sizeof(int));
 
 	if (size)
 	{
 		wchar_t *buffer = (wchar_t*)malloc(size);
-		settingsFile.ReadFile(buffer, size);
+		settingsFile.readFile(buffer, size);
 
-		return KString(buffer, KString::FREE_TEXT_WHEN_DONE);
+		return KString(buffer, KStringBehaviour::FREE_ON_DESTROY);
 	}
 	else
 	{
@@ -69,34 +69,34 @@ KString KSettingsReader::ReadString()
 	}
 }
 
-int KSettingsReader::ReadInt()
+int KSettingsReader::readInt()
 {
 	int value = 0;
-	settingsFile.ReadFile(&value, sizeof(int));
+	settingsFile.readFile(&value, sizeof(int));
 
 	return value;
 }
 
-float KSettingsReader::ReadFloat()
+float KSettingsReader::readFloat()
 {
 	float value = 0;
-	settingsFile.ReadFile(&value, sizeof(float));
+	settingsFile.readFile(&value, sizeof(float));
 
 	return value;
 }
 
-double KSettingsReader::ReadDouble()
+double KSettingsReader::readDouble()
 {
 	double value = 0;
-	settingsFile.ReadFile(&value, sizeof(double));
+	settingsFile.readFile(&value, sizeof(double));
 
 	return value;
 }
 
-bool KSettingsReader::ReadBool()
+bool KSettingsReader::readBool()
 {
 	bool value = 0;
-	settingsFile.ReadFile(&value, sizeof(bool));
+	settingsFile.readFile(&value, sizeof(bool));
 
 	return value;
 }

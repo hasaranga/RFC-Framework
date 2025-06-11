@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2024 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -38,17 +38,17 @@ public:
 		this method automatically applies the browser proxy settings if available.
 		no need to use win8.1 only WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY flag when calling WinHttpOpen.
 	*/
-	static void ApplyProxySettings(const wchar_t* url, HINTERNET hInternet);
+	static void applyProxySettings(const wchar_t* url, HINTERNET hInternet);
 
 	/**
 		convert string into url format.
 	*/
-	static KString UrlEncodeString(const KString &text);
+	static KString urlEncodeString(const KString &text);
 
 	/**
 		converts url formatted string into regular string.
 	*/
-	static KString UrlDecodeString(const KString &text);
+	static KString urlDecodeString(const KString &text);
 
 	/**
 		url is domain name without "http(s)://" prefix.
@@ -57,7 +57,7 @@ public:
 		if no post data then pass NULL and set postDataLength to 0.
 		this method automatically applies the browser proxy settings if available.
 	*/
-	static KString SendRequest(const wchar_t* url,
+	static KString sendRequest(const wchar_t* url,
 		const wchar_t* objectName,
 		const bool isHttps,
 		const wchar_t* headersData,
@@ -75,7 +75,7 @@ public:
 		ignoreCertificateErros parameter will be ignored if isHttps is false.
 		this method automatically applies the browser proxy settings if available.
 	*/
-	static KString PostText(const wchar_t* url,
+	static KString postText(const wchar_t* url,
 		const wchar_t* objectName,
 		const bool isHttps,
 		const char* postData,
@@ -84,7 +84,7 @@ public:
 		const wchar_t* userAgent = L"RFC Application/1.0");
 
 	// each extraHeaderData must end with \r\n
-	static KString PostJSONData(const wchar_t* url,
+	static KString postJSONData(const wchar_t* url,
 		const wchar_t* objectName,
 		const bool isHttps,
 		const char* postData,
@@ -94,7 +94,7 @@ public:
 		const wchar_t* userAgent = L"RFC Application/1.0");
 
 	// each extraHeaderData must end with \r\n
-	static KString GetJSONData(const wchar_t* url,
+	static KString getJSONData(const wchar_t* url,
 		const wchar_t* objectName,
 		const bool isHttps,
 		const wchar_t* extraHeaderData = nullptr,
@@ -102,7 +102,7 @@ public:
 		const wchar_t* userAgent = L"RFC Application/1.0");
 
 	// fileSize will become zero on error or stopped
-	static void DownloadFile(const wchar_t* url,
+	static void downloadFile(const wchar_t* url,
 		const wchar_t* objectName,
 		const bool isHttps,
 		const wchar_t* outFilePath,

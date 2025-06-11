@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,7 +26,7 @@ KCursor::KCursor()
 	hCursor = 0;
 }
 
-bool KCursor::LoadFromResource(WORD resourceID)
+bool KCursor::loadFromResource(WORD resourceID)
 {
 	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
@@ -34,7 +34,7 @@ bool KCursor::LoadFromResource(WORD resourceID)
 	return false;
 }
 
-bool KCursor::LoadFromFile(const KString& filePath)
+bool KCursor::loadFromFile(const KString& filePath)
 {
 	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
@@ -42,7 +42,7 @@ bool KCursor::LoadFromFile(const KString& filePath)
 	return false;
 }
 
-HCURSOR KCursor::GetHandle()
+HCURSOR KCursor::getHandle()
 {
 	return hCursor;
 }

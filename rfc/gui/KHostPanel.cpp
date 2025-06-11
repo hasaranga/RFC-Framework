@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2023 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -31,65 +31,65 @@ KHostPanel::KHostPanel() : KComponent(true)
 	compDwExStyle = compDwExStyle | WS_EX_CONTROLPARENT; // non-top-level windows that contain child controls/dialogs must have the WS_EX_CONTROLPARENT style.
 	// otherwise you will get infinite loop when calling IsDialogMessage.
 
-	compText.AssignStaticText(TXT_WITH_LEN("KHostPanel"));
+	compText.assignStaticText(TXT_WITH_LEN("KHostPanel"));
 	enableDPIUnawareMode = false;
 	componentList = nullptr;
 }
 
-void KHostPanel::SetComponentList(KPointerList<KComponent*>* componentList)
+void KHostPanel::setComponentList(KPointerList<KComponent*, 24, false>* componentList)
 {
 	this->componentList = componentList;
 }
 
-void KHostPanel::SetEnableDPIUnawareMode(bool enable)
+void KHostPanel::setEnableDPIUnawareMode(bool enable)
 {
 	enableDPIUnawareMode = enable;
 }
 
-bool KHostPanel::AddComponent(KComponent* component, bool requireInitialMessages)
+bool KHostPanel::addComponent(KComponent* component, bool requireInitialMessages)
 {
 	if (component)
 	{
 		if ((compHWND != 0) && (componentList != nullptr))
 		{
-			component->SetParentHWND(compHWND);
+			component->setParentHWND(compHWND);
 
 			if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
-				component->SetDPI(compDPI);
+				component->setDPI(compDPI);
 
-			componentList->AddPointer(component);
+			componentList->add(component);
 
-			return component->Create(requireInitialMessages);
+			return component->create(requireInitialMessages);
 		}
 	}
 	return false;
 }
 
-void KHostPanel::RemoveComponent(KComponent* component)
+void KHostPanel::removeComponent(KComponent* component)
 {
 	if (componentList == nullptr)
 		return;
 
-	int index = componentList->GetID(component);
+	int index = componentList->getIndex(component);
 	if (index != -1)
 	{
-		componentList->RemovePointer(index);
-		component->Destroy();
+		componentList->remove(index);
+		component->destroy();
 	}
 }
 
-bool KHostPanel::AddContainer(KHostPanel* container, bool requireInitialMessages)
+bool KHostPanel::addContainer(KHostPanel* container, bool requireInitialMessages)
 {
 	if (container)
 	{
-		container->SetComponentList(componentList);
-		container->SetEnableDPIUnawareMode(enableDPIUnawareMode);
-		return this->AddComponent(static_cast<KComponent*>(container), requireInitialMessages);
+		container->setComponentList(componentList);
+		container->setEnableDPIUnawareMode(enableDPIUnawareMode);
+		return this->addComponent(static_cast<KComponent*>(container), requireInitialMessages);
 	}
 	return false;
 }
 
-LRESULT KHostPanel::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
@@ -98,31 +98,31 @@ LRESULT KHostPanel::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 			if (wParam != 0) // ignore menus
 			{
 				KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, 
-					MAKEINTATOM(KGUIProc::AtomComponent));
+					MAKEINTATOM(KGUIProc::atomComponent));
 
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}
 			}
 		}
-		return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 		{
 			KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, 
-				MAKEINTATOM(KGUIProc::AtomComponent));
+				MAKEINTATOM(KGUIProc::atomComponent));
 
 			if (component)
 			{
 				LRESULT result = 0; // just for safe
-				if (component->EventProc(msg, wParam, lParam, &result))
+				if (component->eventProc(msg, wParam, lParam, &result))
 					return result;
 			}
 		}
-		return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_VKEYTOITEM:
 		case WM_CHARTOITEM:
@@ -134,78 +134,78 @@ LRESULT KHostPanel::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
 		case WM_CTLCOLORSTATIC: // static controls
 		{
-			KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
+			KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::atomComponent));
 			if (component)
 			{
 				LRESULT result = 0; // just for safe
-				if (component->EventProc(msg, wParam, lParam, &result))
+				if (component->eventProc(msg, wParam, lParam, &result))
 					return result;
 			}
 		}
-		return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_MEASUREITEM: // combo box, list box, list-view control... (menu ignored. use windowProc of parent window if you want to set the size of menu)
 		{
 			if (wParam != 0) // ignore menus
 			{
 				KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd, 
-					((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::AtomComponent));
+					((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::atomComponent));
 
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}
 			}
 		}
-		return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 		{
 			KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, 
-				MAKEINTATOM(KGUIProc::AtomComponent));
+				MAKEINTATOM(KGUIProc::atomComponent));
 
 			if (component)
 			{
 				LRESULT result = 0; // just for safe
-				if (component->EventProc(msg, wParam, lParam, &result))
+				if (component->eventProc(msg, wParam, lParam, &result))
 					return result;
 			}
 		}
-		return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_TIMER:
 		{
-			KTimer* timer = KIDGenerator::GetInstance()->GetTimerByID((UINT)wParam);
+			KTimer* timer = KIDGenerator::getInstance()->getTimerByID((UINT)wParam);
 			if (timer)
 			{
-				timer->OnTimer();
+				timer->_onTimer();
 				break;
 			}
 		}
-		return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_COMMAND: // button, checkbox, radio button, listbox, combobox or menu-item
 		{
 			if ((HIWORD(wParam) == 0) && (lParam == 0)) // its menu item! unfortunately windows does not send menu handle with clicked event!
 			{
-				KMenuItem* menuItem = KIDGenerator::GetInstance()->GetMenuItemByID(LOWORD(wParam));
+				KMenuItem* menuItem = KIDGenerator::getInstance()->getMenuItemByID(LOWORD(wParam));
 				if (menuItem)
 				{
-					menuItem->OnPress();
+					menuItem->_onPress();
 					break;
 				}
 			}
 			else if (lParam)// send to appropriate component
 			{
 				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, 
-					MAKEINTATOM(KGUIProc::AtomComponent));
+					MAKEINTATOM(KGUIProc::atomComponent));
 
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}
 			}
@@ -232,10 +232,10 @@ LRESULT KHostPanel::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 				return 0;
 			}
 		}
-		return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		default:
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 	}
 	return 0;
 }

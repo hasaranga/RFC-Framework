@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -22,20 +22,20 @@
 #include "KModuleManager.h"
 
 
-bool KModuleManager::RegisterRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc)
+bool KModuleManager::registerRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc)
 {
-	KModuleManager::RFCModuleInitFuncList()[index] = initFunc;
-	KModuleManager::RFCModuleFreeFuncList()[index] = freeFunc;
+	KModuleManager::rfcModuleInitFuncList()[index] = initFunc;
+	KModuleManager::rfcModuleFreeFuncList()[index] = freeFunc;
 	return true;
 }
 
-RFCModuleInitFunc* KModuleManager::RFCModuleInitFuncList()
+RFCModuleInitFunc* KModuleManager::rfcModuleInitFuncList()
 {
 	static RFCModuleInitFunc funcList[MAX_RFC_MODULE_COUNT] = {0};
 	return funcList;
 }
 
-RFCModuleFreeFunc* KModuleManager::RFCModuleFreeFuncList()
+RFCModuleFreeFunc* KModuleManager::rfcModuleFreeFuncList()
 {
 	static RFCModuleFreeFunc funcList[MAX_RFC_MODULE_COUNT] = {0};
 	return funcList;

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -49,7 +49,7 @@ public:
 		this->handle = handle;
 	}
 
-	HANDLE Detach()
+	HANDLE detach()
 	{
 		HANDLE h = handle;
 		handle = 0;
@@ -70,7 +70,7 @@ public:
 		return *this;
 	}
 
-	bool IsNull()
+	bool isNull()
 	{
 		return (handle == 0);
 	}

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,57 +23,56 @@
 
 #include "KComponent.h"
 #include "../containers/ContainersModule.h"
-
-class KListBoxListener;
+#include <functional>
 
 class KListBox : public KComponent
 {
 protected:
-	KPointerList<KString*>* stringList;
+	KVector<KString, 10, false> stringList;
 	int selectedItemIndex;
 	int selectedItemEnd;
 	bool multipleSelection;
 
-	KListBoxListener* listener;
-
 public:
+	std::function<void(KListBox*)> onItemSelect;
+	std::function<void(KListBox*)> onItemRightClick;
+	std::function<void(KListBox*)> onItemDoubleClick;
+
 	KListBox(bool multipleSelection=false, bool sort=false, bool vscroll=true);
 
-	virtual void SetListener(KListBoxListener *listener);
+	virtual void addItem(const KString& text);
 
-	virtual void AddItem(const KString& text);
+	virtual void removeItem(int index);
 
-	virtual void RemoveItem(int index);
+	virtual void removeItem(const KString& text);
 
-	virtual void RemoveItem(const KString& text);
+	virtual void updateItem(int index, const KString& text);
 
-	virtual void UpdateItem(int index, const KString& text);
+	virtual int getItemIndex(const KString& text);
 
-	virtual int GetItemIndex(const KString& text);
+	virtual int getItemCount();
 
-	virtual int GetItemCount();
+	virtual int getSelectedItemIndex();
 
-	virtual int GetSelectedItemIndex();
+	virtual KString getSelectedItem();
 
-	virtual KString GetSelectedItem();
+	virtual int getSelectedItems(int* itemArray, int itemCountInArray);
 
-	virtual int GetSelectedItems(int* itemArray, int itemCountInArray);
+	virtual void clearList();
 
-	virtual void ClearList();
+	virtual void selectItem(int index);
 
-	virtual void SelectItem(int index);
+	virtual void selectItems(int start, int end);
 
-	virtual void SelectItems(int start, int end);
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
-	virtual bool EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
+	virtual bool create(bool requireInitialMessages = false) override;
 
-	virtual bool Create(bool requireInitialMessages = false) override;
+	virtual void _onItemSelect();
 
-	virtual void OnItemSelect();
+	virtual void _onItemDoubleClick();
 
-	virtual void OnItemDoubleClick();
-
-	virtual void OnItemRightClick();
+	virtual void _onItemRightClick();
 
 	virtual ~KListBox();
 };

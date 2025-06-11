@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -34,12 +34,12 @@ public:
         hEvent = ::CreateEventW(NULL, FALSE, FALSE, NULL);
     }
 
-    void Interrupt()
+    void interrupt()
     {
         ::SetEvent(hEvent);
     }
 
-    bool Sleep(DWORD mills)
+    bool sleep(DWORD mills)
     {
         return ::WaitForSingleObject(hEvent, mills) == WAIT_TIMEOUT;
     }

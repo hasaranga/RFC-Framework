@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -24,7 +24,7 @@
 
 KPushButton::KPushButton()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("Push Button"));
+	compText.assignStaticText(TXT_WITH_LEN("Push Button"));
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | 
 		BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP;
 }

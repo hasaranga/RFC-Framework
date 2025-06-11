@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2023 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -56,7 +56,7 @@ public:
 			::InitializeCriticalSection(&criticalSection);
 	}
 
-	virtual void Push(T value)
+	virtual void push(T value)
 	{
 		KQueueNode<T>* newNode = new KQueueNode<T>();
 		newNode->data = value;
@@ -80,7 +80,7 @@ public:
 			::LeaveCriticalSection(&criticalSection);
 	}
 
-	virtual T Pop()
+	virtual T pop()
 	{
 		if (isThreadSafe)
 			::EnterCriticalSection(&criticalSection);
@@ -110,7 +110,7 @@ public:
 	}
 
 	// calls desctructor of all the T objects in the queue. also clear the queue.
-	virtual void DeleteAllObjects()
+	virtual void deleteAllObjects()
 	{
 		if (isThreadSafe)
 			::EnterCriticalSection(&criticalSection);

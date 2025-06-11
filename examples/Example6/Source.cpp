@@ -8,14 +8,14 @@ class CustomComponent : public KComponent
 protected:
 	COLORREF colBTNFACE, colBTNFRAME;
 	KScopedGdiObject<HBRUSH> hFaceBrush, hFrameBrush;
-	KScopedClassPointer<KFont> font1;
+	KFont font1;
 
 public:
 	CustomComponent() : KComponent(true) // we are generating a new class name.
 	{
-		this->SetStyle(WS_CHILD); // don't forget this!
-		this->SetSize(100, 25);
-		this->SetText(L"Hello World");
+		this->setStyle(WS_CHILD); // don't forget this!
+		this->setSize(100, 25);
+		this->setText(L"Hello World");
 
 		colBTNFACE = RGB(147, 196, 255);
 		colBTNFRAME = RGB(89, 164, 255);
@@ -23,11 +23,11 @@ public:
 		hFaceBrush = ::CreateSolidBrush(colBTNFACE);
 		hFrameBrush = ::CreateSolidBrush(colBTNFRAME);
 
-		font1 = new KFont(L"Courier New", 14, false, false, false, true, USER_DEFAULT_SCREEN_DPI);
-		this->SetFont(font1);
+		font1.load(L"Courier New", 14);
+		setFont(font1);
 	}
 
-	LRESULT OnPaint(WPARAM wParam, LPARAM lParam)
+	LRESULT onPaint(WPARAM wParam, LPARAM lParam)
 	{
 		HDC hdc;
 		PAINTSTRUCT ps;
@@ -66,16 +66,14 @@ public:
 		return 0;
 	}
 
-	LRESULT OnEraseBackground(WPARAM wParam, LPARAM lParam)
+	LRESULT onEraseBackground(WPARAM wParam, LPARAM lParam)
 	{
 		return 1; // avoids flickering
 	}
 
-	virtual ~CustomComponent() {}
-
 	BEGIN_KMSG_HANDLER
-		ON_KMSG(WM_PAINT, OnPaint)
-		ON_KMSG(WM_ERASEBKGND, OnEraseBackground)
+		ON_KMSG(WM_PAINT, onPaint)
+		ON_KMSG(WM_ERASEBKGND, onEraseBackground)
 	END_KMSG_HANDLER
 
 };
@@ -88,28 +86,26 @@ protected:
 public:
 	ShinyGUI()
 	{
-		this->Create();
-		this->SetText(L"ShinyGUI");
+		setText(L"ShinyGUI");
+		create();	
 
 		customComp.SetPosition(50, 50);
-
-		this->AddComponent(&customComp);
+		addComponent(customComp);
 	}
 
 };
 
 class MyGreatApp : public KApplication
 {
-
 public:
-	int Main(KString** argv, int argc)
+	int main(wchar_t** argv, int argc)
 	{
 		ShinyGUI mainWnd;
 
-		mainWnd.CenterScreen();
-		mainWnd.SetVisible(true);
+		mainWnd.cnterScreen();
+		mainWnd.setVisible(true);
 
-		KApplication::MessageLoop();
+		KApplication::messageLoop();
 
 		return 0;
 	}

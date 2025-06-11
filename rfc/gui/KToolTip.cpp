@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,7 +26,7 @@
 KToolTip::KToolTip() : KComponent(false)
 {
 	attachedCompHWND = 0;
-	compClassName.AssignStaticText(TXT_WITH_LEN("tooltips_class32"));
+	compClassName.assignStaticText(TXT_WITH_LEN("tooltips_class32"));
 
 	compDwStyle = WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX;
 }
@@ -35,10 +35,10 @@ KToolTip::~KToolTip()
 {
 }
 
-void KToolTip::AttachToComponent(KWindow* parentWindow, KComponent* attachedComponent)
+void KToolTip::attachToComponent(KWindow* parentWindow, KComponent* attachedComponent)
 {
-	compParentHWND = parentWindow->GetHWND();
-	attachedCompHWND = attachedComponent->GetHWND();
+	compParentHWND = parentWindow->getHWND();
+	attachedCompHWND = attachedComponent->getHWND();
 
 	compHWND = ::CreateWindowExW(0, compClassName, NULL, 
 		compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
@@ -49,25 +49,25 @@ void KToolTip::AttachToComponent(KWindow* parentWindow, KComponent* attachedComp
 		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, 
 			SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
-		KGUIProc::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);
+		KGUIProc::attachRFCPropertiesToHWND(compHWND, (KComponent*)this);
 
 		TOOLINFOW toolInfo = { 0 };
 		toolInfo.cbSize = sizeof(TOOLINFOW);
 		toolInfo.hwnd = compParentHWND;
 		toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 		toolInfo.uId = (UINT_PTR)attachedCompHWND;
-		toolInfo.lpszText = compText;
+		toolInfo.lpszText = (wchar_t*)(const wchar_t*)compText;
 
 		SendMessageW(compHWND, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 	}
 }
 
-bool KToolTip::Create(bool requireInitialMessages)
+bool KToolTip::create(bool requireInitialMessages)
 {
 	return false;
 }
 
-void KToolTip::SetText(const KString& compText)
+void KToolTip::setText(const KString& compText)
 {
 	this->compText = compText;
 	if (compHWND)
@@ -77,7 +77,7 @@ void KToolTip::SetText(const KString& compText)
 		toolInfo.hwnd = compParentHWND;
 		toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 		toolInfo.uId = (UINT_PTR)attachedCompHWND;
-		toolInfo.lpszText = compText;
+		toolInfo.lpszText = (wchar_t*)(const wchar_t*)compText;
 		toolInfo.hinst = KApplication::hInstance;
 
 		SendMessageW(compHWND, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolInfo);

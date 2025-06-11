@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -38,14 +38,14 @@ public:
 		"attachedComponent" must be added to a window before you call this method.
 		do not attach same tooltip into multiple components.
 	*/
-	virtual void AttachToComponent(KWindow* parentWindow, KComponent* attachedComponent);
+	virtual void attachToComponent(KWindow* parentWindow, KComponent* attachedComponent);
 
 	/**
 		calling this method has no effect.
 	*/
-	virtual bool Create(bool requireInitialMessages = false) override;
+	virtual bool create(bool requireInitialMessages = false) override;
 
-	virtual void SetText(const KString& compText) override;
+	virtual void setText(const KString& compText) override;
 };
 
 

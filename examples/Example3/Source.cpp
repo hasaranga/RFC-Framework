@@ -4,62 +4,55 @@
 
 #include "rfc/rfc.h"
 
-class MyWindow : public KFrame , public KButtonListener
+class MyWindow : public KFrame
 {
 protected:
 	KButton btn1;
-	KFont* fontSegoeUI;
+	KFont fontSegoeUI;
 
 public:
 	MyWindow()
 	{
-		this->SetText(L"My Window");
-		this->Create(); // create the window before you add child controls to it!
+		setText(L"My Window");
 
-		// create font for controls after creating the window. So GetDPI will return the current dpi of the screen and the font size will be resized.
+		// create the window before you add child controls to it!
+		// after calling Create, you need to consider dpi scale when calling SetSize.
+		create();
+
+		// create font for controls after creating the window. So getDPI will return the current dpi of the screen and the font size will be resized.
 		// can use the same font object for multiple controls if they use the same font size.
 		// use precisely scaled fonts. for example, 20pt font is exactly twice the height and width of 10pt font. "Segoe UI" is a good choice.
-		fontSegoeUI = new KFont(L"Segoe UI", 14, false, false, false, true, this->GetDPI());
+		fontSegoeUI.load(L"Segoe UI", 14, false, false, false, true, this->GetDPI());
 
 		// set size,font and position of the controls before adding them to window. 
 		// so they will automatically rescale/reposition according to the current dpi.
-		btn1.SetPosition(10, 10);
-		btn1.SetText(L"My Button");
-		btn1.SetListener(this); // set MyWindow class as the button listener
+		btn1.setPosition(10, 10);
+		btn1.setText(L"My Button");
+
+		btn1.onClick = [this](KButton* button) {
+			::MessageBoxW(this->getHWND(), L"Hello World!", L"Welcome", MB_ICONINFORMATION);		
+		};
 
 		// we need to set custom font for standard controls to scale properly when dpi changes.
 		// when the dpi change, font size will be automatically resized by the control if it has a custom font.
 		// (control will not resize the default system font. remove the following line and see the effect when the dpi change!)
-		btn1.SetFont(fontSegoeUI); 
+		btn1.setFont(fontSegoeUI); 
 
-		this->AddComponent(&btn1);
-	}
-
-	void OnButtonPress(KButton* button) override
-	{
-		if (button == &btn1)
-		{
-			MessageBoxW(this->GetHWND(), L"Hello World!", L"Welcome", MB_ICONINFORMATION);
-		}
-	}
-
-	~MyWindow()
-	{
-		delete fontSegoeUI;
+		addComponent(btn1);
 	}
 };
 
 class MyApplication : public KApplication
 {
 public:
-	int Main(KString** argv, int argc)
+	int main(wchar_t** argv, int argc)
 	{
 		MyWindow window;
 
-		window.CenterScreen();
-		window.SetVisible(true);
+		window.centerScreen();
+		window.setVisible(true);
 
-		KApplication::MessageLoop();
+		KApplication::messageLoop();
 
 		return 0;
 	}

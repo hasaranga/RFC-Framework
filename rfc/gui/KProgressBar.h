@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -31,11 +31,11 @@ protected:
 public:
 	KProgressBar(bool smooth=true, bool vertical=false);
 
-	virtual int GetValue();
+	virtual int getValue();
 
-	virtual void SetValue(int value);
+	virtual void setValue(int value);
 
-	virtual bool Create(bool requireInitialMessages = false) override;
+	virtual bool create(bool requireInitialMessages = false) override;
 
 	virtual ~KProgressBar();
 };

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2024 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,32 +25,49 @@
 #include "KLeakDetector.h"
 
 /**
-	This class holds reference counted string.
+	This class holds reference counted heap memory which is allocated using malloc.
+	when ref count reach zero, the memory will be released using ::free.
 */
-class KStringHolder
+template<class T>
+class KRefCountedMemory
 {
+private:
+	~KRefCountedMemory() {}
+
+protected:
 	volatile LONG refCount;
 
 public:
-	wchar_t* w_text; // unicode version
-	int count; // character count
+	T buffer;
 
-	KStringHolder(wchar_t* w_text, int count);
-
-	~KStringHolder();
+	KRefCountedMemory(T buffer) : refCount(1), buffer(buffer) {}
+	
+	/**
+		Make sure to call this method if you construct new KRefCountedMemory or keep reference to another KRefCountedMemory object.
+	*/
+	void addReference()
+	{
+		::InterlockedIncrement(&refCount);
+	}
 
 	/**
-		Make sure to call this method if you contruct new KStringHolder or keep reference to another KStringHolder object.
+		Make sure to call this method if you clear reference to KRefCountedMemory object. 
+		it will release allocated memory for string if ref count is zero.
 	*/
-	void AddReference();
+	void releaseReference()
+	{
+		const LONG res = ::InterlockedDecrement(&refCount);
+		if (res == 0)
+		{
+			if (buffer)
+				::free(buffer);
 
-	/**
-		Make sure to call this method if you clear reference to KStringHolder object. it will release allocated memory for string.
-	*/
-	void ReleaseReference();
+			delete this;
+		}
+	}
 
 private:
-	RFC_LEAK_DETECTOR(KStringHolder)
+	RFC_LEAK_DETECTOR(KRefCountedMemory)
 };
 
 

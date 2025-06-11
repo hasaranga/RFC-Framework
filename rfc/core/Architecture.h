@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -21,13 +21,13 @@
 
 #pragma once
 
+#define RFC_PTR_SIZE sizeof(void*) 
+
 #ifdef _WIN64
 	#define RFC64
-	#define RFC_PTR_SIZE 8
 	#define RFC_NATIVE_INT __int64
 #else
 	#define RFC32
-	#define RFC_PTR_SIZE 4
 	#define RFC_NATIVE_INT int
 #endif
 

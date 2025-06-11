@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2024 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,7 +30,7 @@ KInternet::KInternet(){}
 
 KInternet::~KInternet(){}
 
-void KInternet::ApplyProxySettings(const wchar_t* url, HINTERNET hInternet)
+void KInternet::applyProxySettings(const wchar_t* url, HINTERNET hInternet)
 {
 	WINHTTP_CURRENT_USER_IE_PROXY_CONFIG proxyConfig;
 	WINHTTP_PROXY_INFO proxyInfoTemp, proxyInfo;
@@ -78,17 +78,17 @@ void KInternet::ApplyProxySettings(const wchar_t* url, HINTERNET hInternet)
 	}
 }
 
-KString KInternet::UrlEncodeString(const KString &text)
+KString KInternet::urlEncodeString(const KString &text)
 {
-	if (text.GetLength() == 0)
+	if (text.length() == 0)
 		return KString();
 
 	KString new_str;
 	char c;
 	int ic;
-	char* chars = KString::ToAnsiString(text);
+	char* chars = KString::toAnsiString(text);
 	char bufHex[10];
-	int len = text.GetLength();
+	int len = text.length();
 
 	for (int i = 0; i < len; i++)
 	{
@@ -97,39 +97,39 @@ KString KInternet::UrlEncodeString(const KString &text)
 
 		if (c == ' ')
 		{
-			new_str = new_str.AppendStaticText(L"+", 1, true);
+			new_str = new_str.appendStaticText(L"+", 1, true);
 		}
 		else if (::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~')
 		{		
 			char tmp[] = { c, 0 };
-			new_str = new_str.Append(KString(tmp));
+			new_str = new_str.append(KString(tmp));
 		}
 		else
 		{
 			::sprintf_s(bufHex, 10, "%X", c);
 
 			if (ic < 16)
-				new_str = new_str.AppendStaticText(L"%0", 2, true);
+				new_str = new_str.appendStaticText(L"%0", 2, true);
 			else
-				new_str = new_str.AppendStaticText(L"%", 1, true);
+				new_str = new_str.appendStaticText(L"%", 1, true);
 
-			new_str = new_str.Append(KString(bufHex));
+			new_str = new_str.append(KString(bufHex));
 		}
 	}
 	::free(chars);
 	return new_str;
 }
 
-KString KInternet::UrlDecodeString(const KString &text)
+KString KInternet::urlDecodeString(const KString &text)
 {
-	if (text.GetLength() == 0)
+	if (text.length() == 0)
 		return KString();
 
 	KString ret;
-	char* str = KString::ToAnsiString(text);
+	char* str = KString::toAnsiString(text);
 
 	char ch;
-	int i, ii, len = text.GetLength();
+	int i, ii, len = text.length();
 
 	for (i = 0; i < len; i++)
 	{
@@ -137,22 +137,22 @@ KString KInternet::UrlDecodeString(const KString &text)
 		{
 			if (str[i] == '+')
 			{
-				ret = ret.AppendStaticText(L" ", 1, true);
+				ret = ret.appendStaticText(L" ", 1, true);
 			}
 			else
 			{
 				char tmp[] = { str[i], 0 };
-				ret = ret.Append(KString(tmp));
+				ret = ret.append(KString(tmp));
 			}
 		}
 		else
 		{
-			char* sub = KString::ToAnsiString(text.SubString(i + 1, i + 2));
+			char* sub = KString::toAnsiString(text.subString(i + 1, i + 2));
 			::sscanf_s(sub, "%x", &ii);
 			ch = static_cast<char>(ii);
 
 			char tmp[] = { ch, 0 };
-			ret = ret.Append(KString(tmp));
+			ret = ret.append(KString(tmp));
 
 			::free(sub);
 
@@ -163,7 +163,7 @@ KString KInternet::UrlDecodeString(const KString &text)
 	return ret;
 }
 
-KString KInternet::SendRequest(const wchar_t* url,
+KString KInternet::sendRequest(const wchar_t* url,
 	const wchar_t* objectName,
 	const bool isHttps,
 	const wchar_t* headersData,
@@ -181,7 +181,7 @@ KString KInternet::SendRequest(const wchar_t* url,
 	hInternet = ::WinHttpOpen(userAgent, WINHTTP_ACCESS_TYPE_NO_PROXY, 0, WINHTTP_NO_PROXY_BYPASS, 0);
 
 	if (hInternet)
-		KInternet::ApplyProxySettings(url, hInternet);
+		KInternet::applyProxySettings(url, hInternet);
 
 	if (hInternet)
 		hConnect = ::WinHttpConnect(hInternet, url, INTERNET_DEFAULT_PORT, 0);
@@ -239,7 +239,7 @@ KString KInternet::SendRequest(const wchar_t* url,
 	return receivedText;
 }
 
-KString KInternet::PostText(const wchar_t* url,
+KString KInternet::postText(const wchar_t* url,
 	const wchar_t* objectName,
 	const bool isHttps,
 	const char* postData,
@@ -247,12 +247,12 @@ KString KInternet::PostText(const wchar_t* url,
 	const bool ignoreCertificateErros,
 	const wchar_t* userAgent)
 {
-	return KInternet::SendRequest(url, objectName, isHttps,
+	return KInternet::sendRequest(url, objectName, isHttps,
 		L"Content-Type: application/x-www-form-urlencoded\r\n", postData,
 		postDataLength, ignoreCertificateErros, userAgent, L"POST");
 }
 
-KString KInternet::PostJSONData(const wchar_t* url,
+KString KInternet::postJSONData(const wchar_t* url,
 	const wchar_t* objectName,
 	const bool isHttps,
 	const char* postData,
@@ -263,13 +263,13 @@ KString KInternet::PostJSONData(const wchar_t* url,
 {
 	KString headers(L"accept: application/json\r\ncontent-type: application/json\r\n");
 	if (extraHeaderData)
-		headers = headers + KString(extraHeaderData);
+		headers = headers + KString(extraHeaderData, KStringBehaviour::DO_NOT_FREE);
 
-	return KInternet::SendRequest(url, objectName, isHttps, headers, postData, postDataLength,
+	return KInternet::sendRequest(url, objectName, isHttps, headers, postData, postDataLength,
 		ignoreCertificateErros, userAgent, L"POST");
 }
 
-KString KInternet::GetJSONData(const wchar_t* url,
+KString KInternet::getJSONData(const wchar_t* url,
 	const wchar_t* objectName,
 	const bool isHttps,
 	const wchar_t* extraHeaderData,
@@ -278,13 +278,13 @@ KString KInternet::GetJSONData(const wchar_t* url,
 {
 	KString headers(L"accept: application/json\r\n");
 	if (extraHeaderData)
-		headers = headers + KString(extraHeaderData);
+		headers = headers + KString(extraHeaderData, KStringBehaviour::DO_NOT_FREE);
 
-	return KInternet::SendRequest(url, objectName, isHttps, headers, NULL, 0,
+	return KInternet::sendRequest(url, objectName, isHttps, headers, NULL, 0,
 		ignoreCertificateErros, userAgent, L"GET");
 }
 
-void KInternet::DownloadFile(const wchar_t* url,
+void KInternet::downloadFile(const wchar_t* url,
 	const wchar_t* objectName,
 	const bool isHttps,
 	const wchar_t* outFilePath,
@@ -305,7 +305,7 @@ void KInternet::DownloadFile(const wchar_t* url,
 	hInternet = ::WinHttpOpen(userAgent, WINHTTP_ACCESS_TYPE_NO_PROXY, 0, WINHTTP_NO_PROXY_BYPASS, 0);
 
 	if (hInternet)
-		KInternet::ApplyProxySettings(url, hInternet);
+		KInternet::applyProxySettings(url, hInternet);
 
 	if (hInternet)
 		hConnect = ::WinHttpConnect(hInternet, url, INTERNET_DEFAULT_PORT, 0);

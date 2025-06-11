@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,7 +30,7 @@ unsigned __stdcall RFCThread_Proc(void* lpParameter)
 		return 0;
 
 	KThread* thread = (KThread*)lpParameter;
-	thread->Run();
+	thread->run();
 
 	return 0;
 }
@@ -45,7 +45,7 @@ bool CreateRFCThread(KThread* thread)
 
 		if (handle)
 		{
-			thread->SetHandle(handle);
+			thread->setHandle(handle);
 			::ResumeThread(handle);
 
 			return true;
@@ -58,20 +58,20 @@ KThread::KThread()
 {
 	handle = 0; 
 	runnable = nullptr;
-	threadShouldStop = false;
+	shouldStop = false;
 }
 
-void KThread::SetHandle(HANDLE handle)
+void KThread::setHandle(HANDLE handle)
 {
 	this->handle = handle;
 }
 
-void KThread::SetRunnable(KRunnable* runnable)
+void KThread::setRunnable(KRunnable* runnable)
 {
 	this->runnable = runnable;
 }
 
-HANDLE KThread::GetHandle()
+HANDLE KThread::getHandle()
 {
 	return handle;
 }
@@ -81,18 +81,20 @@ KThread::operator HANDLE()const
 	return handle;
 }
 
-bool KThread::ShouldRun()
+bool KThread::shouldRun()
 {
-	return !threadShouldStop;
+	return !shouldStop;
 }
 
-void KThread::Run()
+void KThread::run()
 {
 	if (runnable)
-		runnable->Run(this);
+		runnable->run(this);
+	else if (onRun)
+		onRun(this);
 }
 
-bool KThread::IsThreadRunning()
+bool KThread::isThreadRunning()
 {
 	if (handle)
 	{
@@ -103,12 +105,12 @@ bool KThread::IsThreadRunning()
 	return false;
 }
 
-void KThread::ThreadShouldStop()
+void KThread::threadShouldStop()
 {
-	threadShouldStop = true;
+	shouldStop = true;
 }
 
-DWORD KThread::WaitUntilThreadFinish(bool pumpMessages)
+DWORD KThread::waitUntilThreadFinish(bool pumpMessages)
 {
 	if (!pumpMessages)
 		return ::WaitForSingleObject(handle, INFINITE);
@@ -143,9 +145,9 @@ DWORD KThread::WaitUntilThreadFinish(bool pumpMessages)
 	return false;
 }
 
-bool KThread::StartThread()
+bool KThread::startThread()
 {
-	threadShouldStop = false;
+	shouldStop = false;
 
 	if (handle) // close old handle
 	{

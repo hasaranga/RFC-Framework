@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -78,26 +78,26 @@ public:
 
 	KLogger(DWORD bufferSize = (SZ_MEGABYTE * 10));
 
-	virtual bool WriteNewEvent(unsigned char eventType = EVT_INFORMATION);
+	virtual bool writeNewEvent(unsigned char eventType = EVT_INFORMATION);
 
-	virtual bool EndEvent();
+	virtual bool endEvent();
 
 	/**
 		textLength is number of chars. max value is 255.
 	*/
-	virtual bool AddTextParam(const char *text, unsigned char textLength);
+	virtual bool addTextParam(const char *text, unsigned char textLength);
 
-	virtual bool AddIntParam(int value);
+	virtual bool addIntParam(int value);
 
-	virtual bool AddShortParam(unsigned short value);
+	virtual bool addShortParam(unsigned short value);
 
-	virtual bool AddFloatParam(float value);
+	virtual bool addFloatParam(float value);
 	
-	virtual bool AddDoubleParam(double value);
+	virtual bool addDoubleParam(double value);
 
-	virtual bool IsBufferFull();
+	virtual bool isBufferFull();
 
-	virtual bool WriteToFile(const KString &filePath);
+	virtual bool writeToFile(const KString &filePath);
 
 	virtual ~KLogger();
 

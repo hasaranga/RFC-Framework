@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -24,9 +24,9 @@
 #include "KTimer.h"
 #include "KIDGenerator.h"
 
-KWindow::KWindow() : KComponent(true), componentList(50, false)
+KWindow::KWindow() : KComponent(true)
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KWindow"));
+	compText.assignStaticText(TXT_WITH_LEN("KWindow"));
 
 	compWidth = 400;
 	compHeight = 200;
@@ -48,7 +48,7 @@ KWindow::KWindow() : KComponent(true), componentList(50, false)
 	closeOperation = KCloseOperation::DestroyAndExit;
 }
 
-void KWindow::ApplyDPIUnawareModeToThread()
+void KWindow::applyDPIUnawareModeToThread()
 {
 	if ((KApplication::dpiAwareness == KDPIAwareness::MIXEDMODE_ONLY) && KApplication::dpiAwareAPICalled && enableDPIUnawareMode)
 	{
@@ -60,38 +60,38 @@ void KWindow::ApplyDPIUnawareModeToThread()
 	}
 }
 
-void KWindow::RestoreDPIModeOfThread()
+void KWindow::restoreDPIModeOfThread()
 {
 	if (dpiAwarenessContextChanged)
 		KDPIUtility::pSetThreadDpiAwarenessContext(prevDPIContext);
 }
 
-bool KWindow::Create(bool requireInitialMessages)
+bool KWindow::create(bool requireInitialMessages)
 {
 	if (enableDPIUnawareMode)
-		this->ApplyDPIUnawareModeToThread();
+		this->applyDPIUnawareModeToThread();
 
-	bool retVal = KComponent::Create(requireInitialMessages);
+	bool retVal = KComponent::create(requireInitialMessages);
 
 	if (enableDPIUnawareMode)
-		this->RestoreDPIModeOfThread();
+		this->restoreDPIModeOfThread();
 
 	if(retVal && (KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
 	{
-		int dpi = KDPIUtility::GetWindowDPI(compHWND);
+		int dpi = KDPIUtility::getWindowDPI(compHWND);
 		if (dpi != USER_DEFAULT_SCREEN_DPI)
-			this->SetDPI(dpi);
+			this->setDPI(dpi);
 	}
 
 	return retVal;
 }
 
-void KWindow::Flash()
+void KWindow::flash()
 {
 	::FlashWindow(compHWND, TRUE);
 }
 
-void KWindow::UpdateWindowIconForNewDPI()
+void KWindow::updateWindowIconForNewDPI()
 {
 	if (windowIcon == nullptr)
 		return;
@@ -107,72 +107,72 @@ void KWindow::UpdateWindowIconForNewDPI()
 
 	if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
 	{
-		largeIconHandle = windowIcon->GetScaledIcon(KDPIUtility::ScaleToNewDPI(32, compDPI));
-		smallIconHandle = windowIcon->GetScaledIcon(KDPIUtility::ScaleToNewDPI(16, compDPI));
+		largeIconHandle = windowIcon->getScaledIcon(KDPIUtility::scaleToNewDPI(32, compDPI));
+		smallIconHandle = windowIcon->getScaledIcon(KDPIUtility::scaleToNewDPI(16, compDPI));
 	}
 	else
 	{
-		largeIconHandle = windowIcon->GetScaledIcon(32);
-		smallIconHandle = windowIcon->GetScaledIcon(16);
+		largeIconHandle = windowIcon->getScaledIcon(32);
+		smallIconHandle = windowIcon->getScaledIcon(16);
 	}
 
 	::SetClassLongPtrW(compHWND, GCLP_HICON, (LONG_PTR)largeIconHandle);
 	::SetClassLongPtrW(compHWND, GCLP_HICONSM, (LONG_PTR)smallIconHandle);
 }
 
-void KWindow::SetIcon(KIcon* icon)
+void KWindow::setIcon(KIcon* icon)
 {
 	windowIcon = icon;
 
 	if (compHWND)
-		this->UpdateWindowIconForNewDPI();
+		this->updateWindowIconForNewDPI();
 }
 
-void KWindow::SetCloseOperation(KCloseOperation closeOperation)
+void KWindow::setCloseOperation(KCloseOperation closeOperation)
 {
 	this->closeOperation = closeOperation;
 }
 
-void KWindow::SetDPIChangeListener(KDPIChangeListener* dpiChangeListener)
+void KWindow::setDPIChangeListener(KDPIChangeListener* dpiChangeListener)
 {
 	this->dpiChangeListener = dpiChangeListener;
 }
 
-void KWindow::SetEnableDPIUnawareMode(bool enable)
+void KWindow::setEnableDPIUnawareMode(bool enable)
 {
 	enableDPIUnawareMode = enable;
 }
 
-void KWindow::OnClose()
+void KWindow::onClose()
 {
 	if (closeOperation == KCloseOperation::DestroyAndExit)
-		this->Destroy();
+		this->destroy();
 	else if (closeOperation == KCloseOperation::Hide)
-		this->SetVisible(false);
+		this->setVisible(false);
 }
 
-void KWindow::OnDestroy()
+void KWindow::onDestroy()
 {
 	if (closeOperation == KCloseOperation::DestroyAndExit)
 		::PostQuitMessage(0);
 }
 
-void KWindow::PostCustomMessage(WPARAM msgID, LPARAM param)
+void KWindow::postCustomMessage(WPARAM msgID, LPARAM param)
 {
 	::PostMessageW(compHWND, RFC_CUSTOM_MESSAGE, msgID, param);
 }
 
-void KWindow::OnCustomMessage(WPARAM msgID, LPARAM param)
+void KWindow::onCustomMessage(WPARAM msgID, LPARAM param)
 {
 
 }
 
-void KWindow::CenterScreen()
+void KWindow::centerScreen()
 {
-	this->SetPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
+	this->setPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
 }
 
-void KWindow::CenterOnSameMonitor(HWND window)
+void KWindow::centerOnSameMonitor(HWND window)
 {
 	if (window)
 	{
@@ -188,36 +188,54 @@ void KWindow::CenterOnSameMonitor(HWND window)
 			{
 				const int posX = monitorInfo.rcMonitor.left + (((monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) - compWidth) / 2);
 				const int posY = monitorInfo.rcMonitor.top + (((monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top) - compHeight) / 2);
-				this->SetPosition(posX, posY);
+				this->setPosition(posX, posY);
 
 				return;
 			}
 		}
 	}
 
-	this->CenterScreen();
+	this->centerScreen();
 }
 
-bool KWindow::AddComponent(KComponent* component, bool requireInitialMessages)
+void KWindow::getNormalSize(int* width, int* height)
+{
+	if (compHWND)
+	{
+		WINDOWPLACEMENT wndPlacement{ 0 };
+		wndPlacement.length = sizeof(WINDOWPLACEMENT);
+		::GetWindowPlacement(compHWND, &wndPlacement);
+
+		*width = wndPlacement.rcNormalPosition.right - wndPlacement.rcNormalPosition.left;
+		*height = wndPlacement.rcNormalPosition.bottom - wndPlacement.rcNormalPosition.top;
+	}
+	else
+	{
+		*width = compWidth;
+		*height = compHeight;
+	}
+}
+
+bool KWindow::addComponent(KComponent* component, bool requireInitialMessages)
 {
 	if(component)
 	{
 		if(compHWND)
 		{		
-			component->SetParentHWND(compHWND);
+			component->setParentHWND(compHWND);
 
 			if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled )
-				component->SetDPI(compDPI);
+				component->setDPI(compDPI);
 
-			componentList.AddPointer(component);
-
-			if (enableDPIUnawareMode)
-				this->ApplyDPIUnawareModeToThread();
-
-			bool retVal = component->Create(requireInitialMessages);
+			componentList.add(component);
 
 			if (enableDPIUnawareMode)
-				this->RestoreDPIModeOfThread();
+				this->applyDPIUnawareModeToThread();
+
+			bool retVal = component->create(requireInitialMessages);
+
+			if (enableDPIUnawareMode)
+				this->restoreDPIModeOfThread();
 
 			return retVal;
 		}
@@ -225,28 +243,33 @@ bool KWindow::AddComponent(KComponent* component, bool requireInitialMessages)
 	return false;
 }
 
-void KWindow::RemoveComponent(KComponent* component)
+bool KWindow::addComponent(KComponent& component, bool requireInitialMessages)
 {
-	int index = componentList.GetID(component);
+	return addComponent(&component, requireInitialMessages);
+}
+
+void KWindow::removeComponent(KComponent* component)
+{
+	int index = componentList.getIndex(component);
 	if (index != -1)
 	{
-		componentList.RemovePointer(index);
-		component->Destroy();
+		componentList.remove(index);
+		component->destroy();
 	}
 }
 
-bool KWindow::AddContainer(KHostPanel* container, bool requireInitialMessages)
+bool KWindow::addContainer(KHostPanel* container, bool requireInitialMessages)
 {
 	if (container)
 	{
-		container->SetComponentList(&componentList);
-		container->SetEnableDPIUnawareMode(enableDPIUnawareMode);
-		return this->AddComponent(static_cast<KComponent*>(container), requireInitialMessages);
+		container->setComponentList(&componentList);
+		container->setEnableDPIUnawareMode(enableDPIUnawareMode);
+		return this->addComponent(static_cast<KComponent*>(container), requireInitialMessages);
 	}
 	return false;
 }
 
-bool KWindow::SetClientAreaSize(int width, int height)
+bool KWindow::setClientAreaSize(int width, int height)
 {
 	if (compHWND)
 	{
@@ -256,17 +279,17 @@ bool KWindow::SetClientAreaSize(int width, int height)
 		wndRect.right = wndRect.left + width;
 		wndRect.bottom = wndRect.top + height;
 
-		KDPIUtility::AdjustWindowRectExForDpi(&wndRect, compDwStyle,
+		KDPIUtility::adjustWindowRectExForDpi(&wndRect, compDwStyle,
 			::GetMenu(compHWND) == NULL ? FALSE : TRUE, compDwExStyle, compDPI);
 
-		this->SetSize(wndRect.right - wndRect.left, wndRect.bottom - wndRect.top);
+		this->setSize(wndRect.right - wndRect.left, wndRect.bottom - wndRect.top);
 
 		return true;
 	}
 	return false;
 }
 
-bool KWindow::IsOffScreen(int posX, int posY)
+bool KWindow::isOffScreen(int posX, int posY)
 {
 	POINT point;
 	point.x = posX;
@@ -274,7 +297,7 @@ bool KWindow::IsOffScreen(int posX, int posY)
 	return (::MonitorFromPoint(point, MONITOR_DEFAULTTONULL) == NULL);
 }
 
-bool KWindow::GetClientAreaSize(int* width, int* height)
+bool KWindow::getClientAreaSize(int* width, int* height)
 {
 	if (compHWND)
 	{
@@ -292,17 +315,17 @@ bool KWindow::GetClientAreaSize(int* width, int* height)
 	return false;
 }
 
-void KWindow::OnMoved()
+void KWindow::onMoved()
 {
 
 }
 
-void KWindow::OnResized()
+void KWindow::onResized()
 {
 
 }
 
-LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
 	{
@@ -310,28 +333,28 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
+					KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::atomComponent));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
-						if (component->EventProc(msg, wParam, lParam, &result))
+						if (component->eventProc(msg, wParam, lParam, &result))
 							return result;
 					}
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 			{
-				KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(KGUIProc::atomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_VKEYTOITEM:
 		case WM_CHARTOITEM:
@@ -343,53 +366,53 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
 		case WM_CTLCOLORSTATIC: // static controls
 			{
-				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::atomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}				
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_MEASUREITEM: // combo box, list box, list-view control... (menu ignored. use windowProc of parent window if you want to set the size of menu)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::AtomComponent));
+					KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::atomComponent));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
-						if (component->EventProc(msg, wParam, lParam, &result))
+						if (component->eventProc(msg, wParam, lParam, &result))
 							return result;
 					}
 				}			
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 			{
-				KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::atomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_TIMER:
 			{
-				KTimer* timer = KIDGenerator::GetInstance()->GetTimerByID((UINT)wParam);
+				KTimer* timer = KIDGenerator::getInstance()->getTimerByID((UINT)wParam);
 				if(timer)
 				{
-					timer->OnTimer();
+					timer->_onTimer();
 					break;
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_SIZE: // window has been resized! we can't use lparam since it's giving client area size instead of window...
 			{
@@ -399,9 +422,9 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				this->compWidth = rect.right - rect.left;
 				this->compHeight = rect.bottom - rect.top;
 
-				this->OnResized();
+				this->onResized();
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_MOVE: // window has been moved! we can't use lparam since it's giving client area pos instead of window...
 			{
@@ -411,14 +434,14 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				this->compX = rect.left;
 				this->compY = rect.top;
 
-				this->OnMoved();
+				this->onMoved();
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_DPICHANGED:
 			{
 				if ((KApplication::dpiAwareness == KDPIAwareness::UNAWARE_MODE) || enableDPIUnawareMode || (!KApplication::dpiAwareAPICalled))
-					return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+					return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 				this->compDPI = HIWORD(wParam);
 				RECT* const prcNewWindow = (RECT*)lParam;
@@ -436,17 +459,17 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					this->compHeight,
 					SWP_NOZORDER | SWP_NOACTIVATE);
 
-				this->UpdateWindowIconForNewDPI();
+				this->updateWindowIconForNewDPI();
 
 				::InvalidateRect(compHWND, NULL, TRUE);
 
-				for (int i = 0; i < componentList.GetSize(); i++)
+				for (int i = 0; i < componentList.size(); i++)
 				{
-					componentList[i]->SetDPI(compDPI);
+					componentList[i]->setDPI(compDPI);
 				}
 
 				if (dpiChangeListener)
-					dpiChangeListener->OnDPIChange(compHWND, compDPI);
+					dpiChangeListener->onDPIChange(compHWND, compDPI);
 
 				return 0;
 			}
@@ -455,22 +478,22 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if( (HIWORD(wParam) == 0) && (lParam == 0) ) // its menu item! unfortunately windows does not send menu handle with clicked event!
 				{
-					KMenuItem* menuItem = KIDGenerator::GetInstance()->GetMenuItemByID(LOWORD(wParam));
+					KMenuItem* menuItem = KIDGenerator::getInstance()->getMenuItemByID(LOWORD(wParam));
 					if(menuItem)
 					{
-						menuItem->OnPress();
+						menuItem->_onPress();
 						break;
 					}
 				}
 				else if(lParam)// send to appropriate component
 				{
 					KComponent* component = (KComponent*)::GetPropW((HWND)lParam, 
-						MAKEINTATOM(KGUIProc::AtomComponent));
+						MAKEINTATOM(KGUIProc::atomComponent));
 
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
-						if (component->EventProc(msg, wParam, lParam, &result))
+						if (component->eventProc(msg, wParam, lParam, &result))
 							return result;
 					}
 				}
@@ -497,23 +520,23 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					return 0;
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_CONTEXTMENU:
 			{
-				KComponent* component = (KComponent*)::GetPropW((HWND)wParam, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW((HWND)wParam, MAKEINTATOM(KGUIProc::atomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_ACTIVATE: // save last focused item when inactive
 			if (wParam != WA_INACTIVE)
-				return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+				return KComponent::windowProc(hwnd, msg, wParam, lParam);
 			this->lastFocusedChild = ::GetFocus();
 			break;
 
@@ -535,19 +558,20 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case WM_CLOSE:
-			this->OnClose();
+			this->onClose();
 			break;
 
 		case WM_DESTROY:
-			this->OnDestroy();
+			// os automatically destroy child controls after WM_DESTROY.
+			this->onDestroy();
 			break;
 
 		case RFC_CUSTOM_MESSAGE:
-			this->OnCustomMessage(wParam, lParam);
+			this->onCustomMessage(wParam, lParam);
 			break;
 
 		default:
-			return KComponent::WindowProc(hwnd,msg,wParam,lParam);
+			return KComponent::windowProc(hwnd,msg,wParam,lParam);
 	}
 	return 0;
 }

@@ -5,10 +5,70 @@
 #include "rfc.h"
 
 
+// =========== KStaticAllocator.cpp ===========
+
+/*
+    Copyright (C) 2013-2025 CrownSoft
+
+    This software is provided 'as-is', without any express or implied
+    warranty.  In no event will the authors be held liable for any damages
+    arising from the use of this software.
+
+    Permission is granted to anyone to use this software for any purpose,
+    including commercial applications, and to alter it and redistribute it
+    freely, subject to the following restrictions:
+
+    1. The origin of this software must not be misrepresented; you must not
+       claim that you wrote the original software. If you use this software
+       in a product, an acknowledgment in the product documentation would be
+       appreciated but is not required.
+    2. Altered source versions must be plainly marked as such, and must not be
+       misrepresented as being the original software.
+    3. This notice may not be removed or altered from any source distribution.
+*/
+
+
+// Static member definitions
+char KStaticAllocator::memory_pool[KStaticAllocator::POOL_SIZE];
+std::atomic<size_t> KStaticAllocator::current_offset{ 0 };
+
+void* KStaticAllocator::allocate(size_t size, size_t alignment)
+{
+    size_t old_offset, new_offset;
+
+    do {
+        old_offset = current_offset.load(std::memory_order_acquire);
+
+        // Align the offset
+        size_t aligned_offset = (old_offset + alignment - 1) & ~(alignment - 1);
+
+        if (aligned_offset + size > POOL_SIZE)
+        {
+            K_ASSERT(false, "KStaticAllocator KSTATIC_POOL_SIZE not enough!");
+            return nullptr; // Pool exhausted
+        }
+
+        new_offset = aligned_offset + size;
+
+    } while (!current_offset.compare_exchange_weak(
+        old_offset, new_offset,
+        std::memory_order_release,
+        std::memory_order_acquire));
+
+    // Calculate the actual aligned offset for the successful allocation
+    size_t final_aligned_offset = (old_offset + alignment - 1) & ~(alignment - 1);
+    return memory_pool + final_aligned_offset;
+}
+
+void KStaticAllocator::reset()
+{
+    current_offset.store(0, std::memory_order_release);
+}
+
 // =========== Core.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,10 +88,10 @@
 */
 
 
-void InitRFC()
+void InitRFCModules()
 {
 	// initialize modules
-	RFCModuleInitFunc* initFuncList = KModuleManager::RFCModuleInitFuncList();
+	RFCModuleInitFunc* initFuncList = KModuleManager::rfcModuleInitFuncList();
 	for (int i = 0; i < MAX_RFC_MODULE_COUNT; ++i)
 	{
 		if (initFuncList[i])
@@ -50,10 +110,10 @@ void InitRFC()
 	}
 }
 
-void DeInitRFC()
+void DeInitRFCModules()
 {
 	// free modules
-	RFCModuleFreeFunc* freeFuncList = KModuleManager::RFCModuleFreeFuncList();
+	RFCModuleFreeFunc* freeFuncList = KModuleManager::rfcModuleFreeFuncList();
 	for (int i = (MAX_RFC_MODULE_COUNT-1); i >= 0; --i)
 	{
 		if (freeFuncList[i])
@@ -61,10 +121,23 @@ void DeInitRFC()
 	}
 }
 
+void RFCDllInit()
+{
+	CoreModuleInitParams::hInstance = 0;
+	CoreModuleInitParams::initCOMAsSTA = false;
+	CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE;
+	::InitRFCModules();
+}
+
+void RFCDllFree()
+{
+	::DeInitRFCModules();
+}
+
 // =========== CoreModule.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -90,12 +163,14 @@ KDPIAwareness CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE;
 
 class RFC_CoreModule {
 public:
-	static bool RFCModuleInit()
+	static bool rfcModuleInit()
 	{
 		if (!CoreModuleInitParams::hInstance)
 		{
 			//hInstance = ::GetModuleHandleW(NULL); // not work for dll
-			::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCWSTR)&InitRFC, &CoreModuleInitParams::hInstance);
+			::GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | 
+				GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, 
+				(LPCWSTR)&InitRFCModules, &CoreModuleInitParams::hInstance);
 		}
 
 		KApplication::hInstance = CoreModuleInitParams::hInstance;
@@ -103,8 +178,8 @@ public:
 
 		if (KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE)
 		{
-			KDPIUtility::InitDPIFunctions();
-			KDPIUtility::MakeProcessDPIAware(KApplication::dpiAwareness);
+			KDPIUtility::initDPIFunctions();
+			KDPIUtility::makeProcessDPIAware(KApplication::dpiAwareness);
 		}
 
 		if (CoreModuleInitParams::initCOMAsSTA)
@@ -113,7 +188,7 @@ public:
 		return true;
 	}
 
-	static void RFCModuleFree()
+	static void rfcModuleFree()
 	{
 		if (CoreModuleInitParams::initCOMAsSTA)
 			::CoUninitialize();
@@ -125,7 +200,7 @@ REGISTER_RFC_MODULE(0, RFC_CoreModule)
 // =========== KApplication.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -153,32 +228,32 @@ KApplication::KApplication()
 {
 }
 
-void KApplication::ModifyModuleInitParams()
+void KApplication::modifyModuleInitParams()
 {
 
 }
 
-int KApplication::Main(KString **argv, int argc)
+int KApplication::main(wchar_t** argv, int argc)
 {
 	return 0;
 }
 
-bool KApplication::AllowMultipleInstances()
+bool KApplication::allowMultipleInstances()
 {
 	return true;
 }
 
-int KApplication::AnotherInstanceIsRunning(KString **argv, int argc)
+int KApplication::anotherInstanceIsRunning(wchar_t** argv, int argc)
 {
 	return 0;
 }
 
-const wchar_t* KApplication::GetApplicationID()
+const wchar_t* KApplication::getApplicationID()
 {
 	return L"RFC_APPLICATION";
 }
 
-void KApplication::MessageLoop(bool handleTabKey)
+void KApplication::messageLoop(bool handleTabKey)
 {
 	MSG msg;
 
@@ -201,7 +276,7 @@ KApplication::~KApplication()
 // =========== KDPIUtility.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -220,16 +295,15 @@ KApplication::~KApplication()
 	3. This notice may not be removed or altered from any source distribution.
 */
 
-#pragma once
 
+KGetDpiForMonitor KDPIUtility::pGetDpiForMonitor = nullptr;
+KSetProcessDpiAwarenessContext KDPIUtility::pSetProcessDpiAwarenessContext = nullptr;
+KSetProcessDpiAwareness KDPIUtility::pSetProcessDpiAwareness = nullptr;
+KSetProcessDPIAware KDPIUtility::pSetProcessDPIAware = nullptr;
+KSetThreadDpiAwarenessContext KDPIUtility::pSetThreadDpiAwarenessContext = nullptr;
+KAdjustWindowRectExForDpi KDPIUtility::pAdjustWindowRectExForDpi = nullptr;
 
-KGetDpiForMonitor KDPIUtility::pGetDpiForMonitor = NULL;
-KSetProcessDpiAwarenessContext KDPIUtility::pSetProcessDpiAwarenessContext = NULL;
-KSetProcessDpiAwareness KDPIUtility::pSetProcessDpiAwareness = NULL;
-KSetProcessDPIAware KDPIUtility::pSetProcessDPIAware = NULL;
-KSetThreadDpiAwarenessContext KDPIUtility::pSetThreadDpiAwarenessContext = NULL;
-
-void KDPIUtility::InitDPIFunctions()
+void KDPIUtility::initDPIFunctions()
 {
 	HMODULE hShcore = ::LoadLibraryW(L"Shcore.dll");
 	if (hShcore)
@@ -254,6 +328,10 @@ void KDPIUtility::InitDPIFunctions()
 			reinterpret_cast<KSetProcessDpiAwarenessContext>
 			(::GetProcAddress(hUser32, "SetProcessDpiAwarenessContext")); // win10
 
+		KDPIUtility::pAdjustWindowRectExForDpi =
+			reinterpret_cast<KAdjustWindowRectExForDpi>
+			(::GetProcAddress(hUser32, "AdjustWindowRectExForDpi")); // win10
+
 		KDPIUtility::pSetProcessDPIAware =
 			reinterpret_cast<KSetProcessDPIAware>
 			(::GetProcAddress(hUser32, "SetProcessDPIAware")); // win7,8
@@ -261,9 +339,9 @@ void KDPIUtility::InitDPIFunctions()
 }
 
 // https://building.enlyze.com/posts/writing-win32-apps-like-its-2020-part-3/
-WORD KDPIUtility::GetWindowDPI(HWND hWnd)
+WORD KDPIUtility::getWindowDPI(HWND hWnd)
 {
-	if (KDPIUtility::pGetDpiForMonitor != 0)
+	if (KDPIUtility::pGetDpiForMonitor != nullptr)
 	{
 		HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY);
 		UINT uiDpiX, uiDpiY;
@@ -281,7 +359,15 @@ WORD KDPIUtility::GetWindowDPI(HWND hWnd)
 	return static_cast<WORD>(iDpiX);
 }
 
-void KDPIUtility::MakeProcessDPIAware(KDPIAwareness dpiAwareness)
+BOOL KDPIUtility::adjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi)
+{
+	if (KDPIUtility::pAdjustWindowRectExForDpi)
+		return pAdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi);
+
+	return ::AdjustWindowRectEx(lpRect, dwStyle, bMenu, dwExStyle);
+}
+
+void KDPIUtility::makeProcessDPIAware(KDPIAwareness dpiAwareness)
 {
 	if (dpiAwareness == KDPIAwareness::MIXEDMODE_ONLY)
 	{
@@ -313,10 +399,37 @@ void KDPIUtility::MakeProcessDPIAware(KDPIAwareness dpiAwareness)
 	}
 }
 
+// https://stackoverflow.com/questions/70976583/get-real-screen-resolution-using-win32-api
+float KDPIUtility::getMonitorScalingRatio(HMONITOR monitor)
+{
+	MONITORINFOEXW info = {};
+	info.cbSize = sizeof(MONITORINFOEXW);
+	::GetMonitorInfoW(monitor, &info);
+	DEVMODEW devmode = {};
+	devmode.dmSize = sizeof(DEVMODEW);
+	::EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
+	return (info.rcMonitor.right - info.rcMonitor.left) / static_cast<float>(devmode.dmPelsWidth);
+}
+
+float KDPIUtility::getScaleForMonitor(HMONITOR monitor)
+{
+	return (float)(::GetDpiForSystem() / 96.0 / getMonitorScalingRatio(monitor));
+}
+
+int KDPIUtility::scaleToWindowDPI(int valueFor96DPI, HWND window)
+{
+	return KDPIUtility::scaleToNewDPI(valueFor96DPI, KDPIUtility::getWindowDPI(window));
+}
+
+int KDPIUtility::scaleToNewDPI(int valueFor96DPI, int newDPI)
+{
+	return ::MulDiv(valueFor96DPI, newDPI, USER_DEFAULT_SCREEN_DPI);
+}
+
 // =========== KModuleManager.cpp ===========
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -337,29 +450,28 @@ void KDPIUtility::MakeProcessDPIAware(KDPIAwareness dpiAwareness)
 
 
 
-bool KModuleManager::RegisterRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc)
+bool KModuleManager::registerRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc)
 {
-	KModuleManager::RFCModuleInitFuncList()[index] = initFunc;
-	KModuleManager::RFCModuleFreeFuncList()[index] = freeFunc;
+	KModuleManager::rfcModuleInitFuncList()[index] = initFunc;
+	KModuleManager::rfcModuleFreeFuncList()[index] = freeFunc;
 	return true;
 }
 
-RFCModuleInitFunc* KModuleManager::RFCModuleInitFuncList()
+RFCModuleInitFunc* KModuleManager::rfcModuleInitFuncList()
 {
 	static RFCModuleInitFunc funcList[MAX_RFC_MODULE_COUNT] = {0};
 	return funcList;
 }
 
-RFCModuleFreeFunc* KModuleManager::RFCModuleFreeFuncList()
+RFCModuleFreeFunc* KModuleManager::rfcModuleFreeFuncList()
 {
 	static RFCModuleFreeFunc funcList[MAX_RFC_MODULE_COUNT] = {0};
 	return funcList;
 }
 
 // =========== KString.cpp ===========
-
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -383,126 +495,203 @@ RFCModuleFreeFunc* KModuleManager::RFCModuleFreeFuncList()
 const KString operator+ (const char* const string1, const KString& string2)
 {
 	KString s(string1);
-	return s.Append(string2);
+	return s.append(string2);
 }
 
 const KString operator+ (const wchar_t* const string1, const KString& string2)
 {
-	KString s(string1);
-	return s.Append(string2);
+	KString s(string1, KStringBehaviour::DO_NOT_FREE, -1);
+	return s.append(string2);
 }
 
 const KString operator+ (const KString& string1, const KString& string2)
 {
-	return string1.Append(string2);
+	return string1.append(string2);
+}
+
+namespace kstring_literals {
+	KString operator"" _st(const wchar_t* str, size_t len) {
+		return KString(str, KStringBehaviour::DO_NOT_FREE, (int)len);
+	}
+}
+
+void KString::markAsEmptyString()
+{
+	characterCount = 0;
+	data.ssoBuffer[0] = 0;
+	bufferType = KStringBufferType::SSOText;
 }
 
 KString::KString()
 {
-	isZeroLength = true;
-	stringHolder = 0;
-	isStaticText = false;
+	markAsEmptyString();
 }
 
-KString::KString(const KString& other)
+void KString::initFromLiteral(const wchar_t* literal, size_t N)
 {
-	isZeroLength = other.isZeroLength;
+	characterCount = (int)N-1;
+	data.staticText = literal;
+	bufferType = KStringBufferType::StaticText;
+}
 
-	if (other.isStaticText)
+void KString::assignFromLiteral(const wchar_t* literal, size_t N)
+{
+	if (bufferType == KStringBufferType::HeapText)
+		data.refCountedMem->releaseReference();
+
+	initFromLiteral(literal, N);
+}
+
+void KString::copyFromOther(const KString& other)
+{
+	bufferType = other.bufferType;
+	characterCount = other.characterCount;
+
+	if (bufferType == KStringBufferType::StaticText)
 	{
-		stringHolder = 0;
-
-		isStaticText = true;
-		staticText = other.staticText;
-		staticTextLength = other.staticTextLength;
+		data.staticText = other.data.staticText;
 	}
-	else if (other.stringHolder)
+	else if (bufferType == KStringBufferType::SSOText)
 	{
-		other.stringHolder->AddReference();
-		stringHolder = other.stringHolder;
-
-		isStaticText = false;
+		// Copy SSO buffer
+		::memcpy(data.ssoBuffer, other.data.ssoBuffer, (characterCount + 1) * sizeof(wchar_t));
+	}
+	else if (bufferType == KStringBufferType::HeapText)
+	{
+		other.data.refCountedMem->addReference();
+		data.refCountedMem = other.data.refCountedMem;
 	}
 	else
 	{
-		stringHolder = 0;
-		isStaticText = false;
+		markAsEmptyString();
+		K_ASSERT(false, "other string type is not sso, static or heap");
 	}
+}
+
+
+KString::KString(const KString& other)
+{
+	copyFromOther(other);
+}
+
+KString::KString(KString&& other) noexcept
+{
+	copyFromOther(other);
+	other.clear();
 }
 
 KString::KString(const char* const text, UINT codePage)
 {
-	isStaticText = false;
-
-	if (text != 0)
+	if (text != nullptr)
 	{
-		int count = ::MultiByteToWideChar(codePage, 0, text, -1, 0, 0); // get char count with null character
-		if (count)
+		int countWithNull = ::MultiByteToWideChar(codePage, 0, text, -1, 0, 0); // get char count with null character
+		if (countWithNull > 1)
 		{
-			wchar_t *w_text = (wchar_t *)::malloc(count * sizeof(wchar_t));
-			if (::MultiByteToWideChar(codePage, 0, text, -1, w_text, count))
+			if (countWithNull <= SSO_BUFFER_SIZE)
 			{
-				count--; // ignore null character
-
-				stringHolder = new KStringHolder(w_text, count);
-				isZeroLength = (count == 0);
-				return;
+				if (::MultiByteToWideChar(codePage, 0, text, -1, data.ssoBuffer, countWithNull))
+				{
+					characterCount = countWithNull - 1; // ignore null character
+					bufferType = KStringBufferType::SSOText;
+					return;
+				}
 			}
 			else
 			{
-				::free(w_text);
+				wchar_t* w_text = (wchar_t*)::malloc(countWithNull * sizeof(wchar_t));
+				if (::MultiByteToWideChar(codePage, 0, text, -1, w_text, countWithNull))
+				{
+					data.refCountedMem = new KRefCountedMemory<wchar_t*>(w_text);
+					characterCount = countWithNull - 1; // ignore null character
+					bufferType = KStringBufferType::HeapText;
+					return;
+				}
+				else
+				{
+					::free(w_text);
+				}
 			}
 		}
 	}
 
-	isZeroLength = true;
-	stringHolder = 0;
+	markAsEmptyString();
 }
 
-KString::KString(const wchar_t* const text, unsigned char behaviour, int length)
+KString::KString(const wchar_t* const text, KStringBehaviour behaviour, int length)
 {
-	if (text != 0)
+	if (text != nullptr)
 	{
-		staticTextLength = ((length == -1) ? (int)::wcslen(text) : length);
-		if (staticTextLength)
+		int textLength = ((length == -1) ? (int)::wcslen(text) : length);
+		if (textLength > 0)
 		{
-			isZeroLength = false;
-			isStaticText = (behaviour == STATIC_TEXT_DO_NOT_FREE);
+			characterCount = textLength;
 
-			if (isStaticText)
+			if (behaviour == KStringBehaviour::DO_NOT_FREE)
 			{
-				staticText = (wchar_t*)text;
-				stringHolder = 0;
+				data.staticText = text;
+				bufferType = KStringBufferType::StaticText;
 				return;
 			}
-
-			stringHolder = new KStringHolder(((behaviour == FREE_TEXT_WHEN_DONE) ? (wchar_t*)text : _wcsdup(text)), staticTextLength);
-			return;
+			else if (behaviour == KStringBehaviour::FREE_ON_DESTROY)
+			{
+				data.refCountedMem = new KRefCountedMemory<wchar_t*>((wchar_t*)text);
+				bufferType = KStringBufferType::HeapText;
+				return;
+			}
+			else if (behaviour == KStringBehaviour::MAKE_A_COPY)
+			{
+				if (characterCount < SSO_BUFFER_SIZE)
+				{
+					::memcpy(data.ssoBuffer, text, (characterCount + 1) * sizeof(wchar_t));
+					bufferType = KStringBufferType::SSOText;
+					return;
+				}
+				else
+				{
+					// since we already know the length, we can use malloc and memcpy instead of wcsdup.
+					const int countWithNull = characterCount + 1;
+					wchar_t* buffer = (wchar_t*)::malloc(countWithNull * sizeof(wchar_t));
+					::memcpy(buffer, text, countWithNull * sizeof(wchar_t));
+					data.refCountedMem = new KRefCountedMemory<wchar_t*>(buffer);
+					bufferType = KStringBufferType::HeapText;
+					return;
+				}
+			}
+			else
+			{
+				K_ASSERT(false, "unknown KString behaviour");
+			}
 		}
 	}
 
-	isZeroLength = true;
-	isStaticText = false;
-	stringHolder = 0;
+	markAsEmptyString();
 }
 
 KString::KString(const int value, const int radix)
 {
-	stringHolder = new KStringHolder((wchar_t *)::malloc(33 * sizeof(wchar_t)), 0); // max 32 digits
-	::_itow_s(value, stringHolder->w_text, 33, radix);
+	// Min Buffer Size required to convert radix 10 integer is 11 chars.
 
-	stringHolder->count = (int)::wcslen(stringHolder->w_text);
-	isZeroLength = (stringHolder->count == 0);
-	isStaticText = false;
+	if ((radix == 10) && (12 <= SSO_BUFFER_SIZE))
+	{
+		::_itow_s(value, data.ssoBuffer, 12, radix);
+		characterCount = (int)::wcslen(data.ssoBuffer);
+		bufferType = KStringBufferType::SSOText;
+	}
+	else
+	{
+		wchar_t* buffer = (wchar_t*)::malloc(34 * sizeof(wchar_t)); // max 33 digits
+		::_itow_s(value, buffer, 34, radix);
+		characterCount = (int)::wcslen(buffer);
+		data.refCountedMem = new KRefCountedMemory<wchar_t*>(buffer);
+		bufferType = KStringBufferType::HeapText;	
+	}
 }
 
 KString::KString(const float value, const int numDecimals, bool compact)
 {
-	isStaticText = false;
-
 	// round it to given digits
-	char *str_fmtp = (char*)malloc(32);
-	char *str_buf = (char*)malloc(64);
+	char str_fmtp[32];
+	char str_buf[64];
 
 	sprintf_s(str_fmtp, 32, "%%.%df", numDecimals);
 	sprintf_s(str_buf, 64, str_fmtp, value);
@@ -524,172 +713,118 @@ KString::KString(const float value, const int numDecimals, bool compact)
 			str_buf[len] = 0; // kill it
 	}
 
-	int count = ::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, 0, 0); // get char count with null character
-	if (count)
+	const int countWithNull = ::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, 0, 0); // get char count with null character
+	if (countWithNull > 1)
 	{
-		wchar_t *w_text = (wchar_t *)::malloc(count * sizeof(wchar_t));
-		if (::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, w_text, count))
+		if (countWithNull <= SSO_BUFFER_SIZE)
 		{
-			count--; // ignore null character
-
-			stringHolder = new KStringHolder(w_text, count);
-			isZeroLength = (count == 0);
-
-			::free(str_buf);
-			::free(str_fmtp);
-			return;
+			if (::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, data.ssoBuffer, countWithNull))
+			{
+				characterCount = countWithNull - 1; // ignore null character
+				bufferType = KStringBufferType::SSOText;
+				return;
+			}
 		}
 		else
 		{
-			::free(w_text);
+			wchar_t* w_text = (wchar_t*)::malloc(countWithNull * sizeof(wchar_t));
+			if (::MultiByteToWideChar(CP_UTF8, 0, str_buf, -1, w_text, countWithNull))
+			{
+				characterCount = countWithNull - 1;
+				data.refCountedMem = new KRefCountedMemory<wchar_t*>(w_text);
+				bufferType = KStringBufferType::HeapText;
+				return;
+			}
+			else
+			{
+				::free(w_text);
+			}
 		}
 	}
 
-	::free(str_buf);
-	::free(str_fmtp);
-
-	isZeroLength = true;
-	stringHolder = 0;
+	markAsEmptyString();
 }
 
 const KString& KString::operator= (const KString& other)
 {
-	if (stringHolder)
-		stringHolder->ReleaseReference();
-
-	if (other.isStaticText)
+	if (this != &other)
 	{
-		isStaticText = true;
-		staticText = other.staticText;
-		staticTextLength = other.staticTextLength;
+		if (bufferType == KStringBufferType::HeapText)
+			data.refCountedMem->releaseReference();
+		
+		copyFromOther(other);
 	}
-	else if (other.stringHolder)
-	{
-		other.stringHolder->AddReference();
-		isStaticText = false;
-	}
-	else // other is empty
-	{
-		isStaticText = false;
-	}
-
-	stringHolder = other.stringHolder;
-	isZeroLength = other.isZeroLength;
-
 	return *this;
 }
 
-const KString& KString::operator= (const wchar_t* const other)
+KString& KString::operator= (KString&& other)
 {
-	isStaticText = false;
-
-	if (stringHolder)
-		stringHolder->ReleaseReference();
-
-	if (other != 0)
+	if (this != &other)
 	{
-		const int count = (int)::wcslen(other);
-		if (count)
-		{
-			stringHolder = new KStringHolder(::_wcsdup(other), count);
-			isZeroLength = false;
-			return *this;
-		}
-	}
+		if (bufferType == KStringBufferType::HeapText)
+			data.refCountedMem->releaseReference();
 
-	isZeroLength = true;
-	stringHolder = 0;
+		copyFromOther(other);
+		other.clear();
+	}
 	return *this;
 }
 
 const KString KString::operator+ (const KString& stringToAppend)
 {
-	return Append(stringToAppend);
+	return append(stringToAppend);
 }
 
-const KString KString::operator+ (const wchar_t* const textToAppend)
+bool KString::operator== (const KString& other) const
 {
-	return Append(KString(textToAppend, USE_COPY_OF_TEXT, -1));
-}
-
-void KString::ConvertToRefCountedStringIfStatic()const
-{
-	if (isStaticText)
-	{
-		isStaticText = false;
-		stringHolder = new KStringHolder(::_wcsdup(staticText), staticTextLength);
-	}
-}
-
-KString::operator const char*()const
-{
-	if (!isZeroLength)
-	{
-		this->ConvertToRefCountedStringIfStatic();
-		return stringHolder->GetAnsiVersion();
-	}
-	return "";
+	return compare(other);
 }
 
 KString::operator const wchar_t*()const
 {
-	if (isStaticText)
-	{
-		return staticText;
-	}
-	else if (stringHolder)
-	{
-		return stringHolder->w_text;
-	}
-	else
-	{
-		return L"";
-	}
+	return getStringPtr();
 }
 
-KString::operator wchar_t*()const
+const wchar_t KString::operator[](const int index)const
 {
-	if (isStaticText)
+	if (characterCount > 0)
 	{
-		return staticText;
-	}
-	else if (stringHolder)
-	{
-		return stringHolder->w_text;
-	}
-	else
-	{
-		return (wchar_t*)L"";
-	}
-}
-
-const char KString::operator[](const int index)const
-{
-	if (!isZeroLength)
-	{
-		this->ConvertToRefCountedStringIfStatic();
-
-		if ((0 <= index) && (index <= (stringHolder->count - 1)))
-		{
-			return stringHolder->GetAnsiVersion()[index];
-		}
+		if ((0 <= index) && (index < characterCount))
+			return getStringPtr()[index];
 	}
 	return -1;
 }
 
-KString KString::Append(const KString& otherString)const
+KString KString::append(const KString& otherString)const
 {
-	if (!otherString.isZeroLength)
+	if (otherString.characterCount != 0)
 	{
-		if (!this->isZeroLength)
+		if (characterCount != 0)
 		{
-			const int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + (otherString.isStaticText ? otherString.staticTextLength : otherString.stringHolder->count);
-			wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
+			const int totalCharacterCount = characterCount + otherString.characterCount;
+			const int sizeWithNull = totalCharacterCount + 1;
 
-			::wcscpy_s(destText, (totalCount + 1), isStaticText ? staticText : stringHolder->w_text);
-			::wcscat_s(destText, (totalCount + 1), otherString.isStaticText ? otherString.staticText : otherString.stringHolder->w_text);
+			if (totalCharacterCount < SSO_BUFFER_SIZE)
+			{
+				KString retStr;
+				retStr.characterCount = totalCharacterCount;
+				retStr.bufferType = KStringBufferType::SSOText;
 
-			return KString(destText, FREE_TEXT_WHEN_DONE, totalCount);
+				::memcpy(retStr.data.ssoBuffer, getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+				::memcpy(&retStr.data.ssoBuffer[characterCount], otherString.getStringPtr(), 
+					(otherString.characterCount + 1) * sizeof(wchar_t));
+
+				return retStr;
+			}
+			else
+			{		
+				wchar_t* destText = (wchar_t*)::malloc(sizeWithNull * sizeof(wchar_t));
+				::memcpy(destText, getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+				::memcpy(&destText[characterCount], otherString.getStringPtr(),
+					(otherString.characterCount + 1) * sizeof(wchar_t));
+
+				return KString(destText, KStringBehaviour::FREE_ON_DESTROY, totalCharacterCount);
+			}
 		}
 		else // this string is empty
 		{
@@ -702,182 +837,217 @@ KString KString::Append(const KString& otherString)const
 	}
 }
 
-KString KString::AppendStaticText(const wchar_t* const text, int length, bool appendToEnd)const
+KString KString::appendStaticText(const wchar_t* const text, int length, bool appendToEnd)const
 {
-	if (!this->isZeroLength)
+	if(length == 0)
+		return *this;
+
+	if (characterCount != 0)
 	{
-		const int totalCount = (isStaticText ? staticTextLength : stringHolder->count) + length;
-		wchar_t* destText = (wchar_t*)::malloc((totalCount + 1) * sizeof(wchar_t));
+		const int totalCharacterCount = characterCount + length;
+		const int sizeWithNull = totalCharacterCount + 1;
 
-		::wcscpy_s(destText, (totalCount + 1), appendToEnd ? (isStaticText ? staticText : stringHolder->w_text) : text);
-		::wcscat_s(destText, (totalCount + 1), appendToEnd ? text : (isStaticText ? staticText : stringHolder->w_text));
+		if (totalCharacterCount < SSO_BUFFER_SIZE)
+		{
+			KString retStr;
+			retStr.characterCount = totalCharacterCount;
+			retStr.bufferType = KStringBufferType::SSOText;
 
-		return KString(destText, FREE_TEXT_WHEN_DONE, totalCount);
+			if (appendToEnd)
+			{
+				::memcpy(retStr.data.ssoBuffer, getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+				::memcpy(&retStr.data.ssoBuffer[characterCount], text, (length + 1) * sizeof(wchar_t));
+			}
+			else
+			{
+				::memcpy(retStr.data.ssoBuffer, text, (length + 1) * sizeof(wchar_t));
+				::memcpy(&retStr.data.ssoBuffer[length], getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+			}
+
+			return retStr;
+		}
+		else
+		{
+			wchar_t* destText = (wchar_t*)::malloc(sizeWithNull * sizeof(wchar_t));
+
+			if (appendToEnd)
+			{
+				::memcpy(destText, getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+				::memcpy(&destText[characterCount], text, (length + 1) * sizeof(wchar_t));
+			}
+			else
+			{
+				::memcpy(destText, text, (length + 1) * sizeof(wchar_t));
+				::memcpy(&destText[length], getStringPtr(), (characterCount + 1) * sizeof(wchar_t));
+			}
+
+			return KString(destText, KStringBehaviour::FREE_ON_DESTROY, totalCharacterCount);
+		}
 	}
 	else // this string is empty
 	{
-		return KString(text, KString::STATIC_TEXT_DO_NOT_FREE, length);
+		return KString(text, KStringBehaviour::DO_NOT_FREE, length);
 	}
 }
 
-void KString::AssignStaticText(const wchar_t* const text, int length)
+void KString::assignStaticText(const wchar_t* const text, int length)
 {
-	if (stringHolder)
-		stringHolder->ReleaseReference();
+	if (bufferType == KStringBufferType::HeapText)
+		data.refCountedMem->releaseReference();
 	
-	stringHolder = 0;
-	isZeroLength = false;
-	isStaticText = true;
-	staticText = (wchar_t*)text;
-	staticTextLength = length;
+	characterCount = length;
+	bufferType = KStringBufferType::StaticText;
+	data.staticText = text;
 }
 
-KString KString::SubString(int start, int end)const
+void KString::clear()
 {
-	const int count = this->GetLength();
+	if (bufferType == KStringBufferType::HeapText)
+		data.refCountedMem->releaseReference();
 
-	if ((0 <= start) && (start <= (count - 1)))
+	markAsEmptyString();
+}
+
+void KString::accessRawSSOBuffer(wchar_t** ssoBuffer, int** ppLength)
+{
+	clear();
+
+	*ppLength = &characterCount;
+	*ssoBuffer = data.ssoBuffer;
+}
+
+KString KString::subString(int start, int end)const
+{
+	const int lastIndex = characterCount -1;
+
+	if ((0 <= start) && (start <= lastIndex))
 	{
-		if ((start < end) && (end <= (count - 1)))
+		if ((start < end) && (end <= lastIndex))
 		{
 			int size = (end - start) + 1;
+
+			// todo: can be optimized with sso buffer
+
 			wchar_t* buf = (wchar_t*)::malloc((size + 1) * sizeof(wchar_t));
-			wchar_t* src = (isStaticText ? staticText : stringHolder->w_text);
+			const wchar_t* src = getStringPtr();
 			::wcsncpy_s(buf, (size + 1), &src[start], size);
 			buf[size] = 0;
 
-			return KString(buf, FREE_TEXT_WHEN_DONE, size);
+			return KString(buf, KStringBehaviour::FREE_ON_DESTROY, size);
 		}
 	}
 	return KString();
 }
 
-bool KString::CompareIgnoreCase(const KString& otherString)const
+bool KString::compareIgnoreCase(const KString& otherString)const
 {
-	if ((!otherString.isZeroLength) && (!this->isZeroLength))
-		return (::_wcsicmp((isStaticText ? staticText : stringHolder->w_text), (otherString.isStaticText ? otherString.staticText : otherString.stringHolder->w_text)) == 0);
+	if ((otherString.characterCount != 0) && (characterCount != 0))
+		return (::_wcsicmp(getStringPtr(), otherString.getStringPtr()) == 0);
 
 	return false;
 }
 
-bool KString::Compare(const KString& otherString)const
+bool KString::compare(const KString& otherString)const
 {
-	if ((!otherString.isZeroLength) && (!this->isZeroLength))
-		return (::wcscmp((isStaticText ? staticText : stringHolder->w_text), (otherString.isStaticText ? otherString.staticText : otherString.stringHolder->w_text)) == 0);
+	if ((otherString.characterCount != 0) && (characterCount != 0))
+		return (::wcscmp(getStringPtr(), otherString.getStringPtr()) == 0);
 
 	return false;
 }
 
-bool KString::CompareWithStaticText(const wchar_t* const text)const
+bool KString::compareWithStaticText(const wchar_t* const text)const
 {
-	if (!this->isZeroLength)
-		return (::wcscmp((isStaticText ? staticText : stringHolder->w_text), text) == 0);
+	if (characterCount != 0)
+		return (::wcscmp(getStringPtr(), text) == 0);
 
 	return false;
 }
 
-bool KString::StartsWithChar(wchar_t character)const
+bool KString::startsWithChar(wchar_t character)const
 {
-	if (!this->isZeroLength)
-		return (isStaticText ? (staticText[0] == character) : (stringHolder->w_text[0] == character));
+	if (characterCount != 0)
+		return (getStringPtr()[0] == character);
 
 	return false;
 }
 
-bool KString::StartsWithChar(char character)const
+bool KString::endsWithChar(wchar_t character)const
 {
-	if (!this->isZeroLength)
-	{
-		this->ConvertToRefCountedStringIfStatic();
-		return (stringHolder->GetAnsiVersion()[0] == character);
-	}
-	return false;
-}
-
-bool KString::EndsWithChar(wchar_t character)const
-{
-	if (!this->isZeroLength)
-		return (isStaticText ? (staticText[staticTextLength - 1] == character) : (stringHolder->w_text[stringHolder->count - 1] == character));
+	if (characterCount != 0)
+		return (getStringPtr()[characterCount - 1] == character);
 
 	return false;
 }
 
-bool KString::EndsWithChar(char character)const
+bool KString::isQuotedString()const
 {
-	if (!this->isZeroLength)
-	{
-		this->ConvertToRefCountedStringIfStatic();
-		return (stringHolder->GetAnsiVersion()[stringHolder->count - 1] == character);
-	}
-	return false;
-}
-
-bool KString::IsQuotedString()const
-{
-	if ((isStaticText && (staticTextLength > 1)) || ((stringHolder != 0) && (stringHolder->count > 1))) // not empty + count greater than 1
-		return (StartsWithChar(L'\"') && EndsWithChar(L'\"'));
+	if (characterCount > 1) // not empty + count greater than 1
+		return (startsWithChar(L'\"') && endsWithChar(L'\"'));
 
 	return false;
 }
 
-wchar_t KString::GetCharAt(int index)const
+wchar_t KString::getCharAt(int index)const
 {
-	const int count = this->GetLength();
-
-	if ((0 <= index) && (index <= (count - 1)))
-		return (isStaticText ? staticText[index] : stringHolder->w_text[index]);
+	if ((0 <= index) && (index < characterCount))
+		return getStringPtr()[index];
 
 	return -1;
 }
 
-int KString::GetLength()const
+KStringBufferType KString::getBufferType()const
 {
-	return (isStaticText ? staticTextLength : ((stringHolder != 0) ? stringHolder->count : 0));
+	return bufferType;
 }
 
-bool KString::IsEmpty()const
+int KString::length()const
 {
-	return isZeroLength;
+	return characterCount;
 }
 
-bool KString::IsNotEmpty()const
+bool KString::isEmpty()const
 {
-	return !isZeroLength;
+	return (characterCount == 0);
 }
 
-int KString::GetIntValue()const
+bool KString::isNotEmpty()const
 {
-	if (isZeroLength)
+	return (characterCount != 0);
+}
+
+int KString::getIntValue()const
+{
+	if (characterCount == 0)
 		return 0;
 
-	return ::_wtoi(isStaticText ? staticText : stringHolder->w_text);
+	return ::_wtoi(getStringPtr());
 }
 
-KString KString::ToUpperCase()const
+KString KString::toUpperCase()const
 {
-	if (this->GetLength() == 0)
+	if (characterCount == 0)
 		return KString();
 
-	KString result((const wchar_t*)*this, KString::USE_COPY_OF_TEXT);
-	::CharUpperBuffW((wchar_t*)result, result.GetLength());
+	KString result(getStringPtr(), KStringBehaviour::MAKE_A_COPY, characterCount);
+	::CharUpperBuffW((wchar_t*)result.getStringPtr(), result.characterCount);
 
 	return result;
 }
 
-KString KString::ToLowerCase()const
+KString KString::toLowerCase()const
 {
-	if (this->GetLength() == 0)
+	if (characterCount == 0)
 		return KString();
 
-	KString result((const wchar_t*)*this, KString::USE_COPY_OF_TEXT);
-	::CharLowerBuffW((wchar_t*)result, result.GetLength());
+	KString result(getStringPtr(), KStringBehaviour::MAKE_A_COPY, characterCount);
+	::CharLowerBuffW((wchar_t*)result.getStringPtr(), result.characterCount);
 
 	return result;
 }
 
-char* KString::ToAnsiString(const wchar_t* text)
+char* KString::toAnsiString(const wchar_t* text)
 {
-	if (text != NULL)
+	if (text != nullptr)
 	{
 		const int length = ::WideCharToMultiByte(CP_UTF8, 0, text, -1, 0, 0, 0, 0);
 		if (length)
@@ -897,9 +1067,9 @@ char* KString::ToAnsiString(const wchar_t* text)
 	return retText;
 }
 
-wchar_t* KString::ToUnicodeString(const char* text)
+wchar_t* KString::toUnicodeString(const char* text)
 {
-	if (text != NULL)
+	if (text != nullptr)
 	{
 		const int length = ::MultiByteToWideChar(CP_UTF8, 0, text, -1, 0, 0);
 		if (length)
@@ -919,115 +1089,28 @@ wchar_t* KString::ToUnicodeString(const char* text)
 	return retText;	
 }
 
+const wchar_t* KString::getStringPtr() const
+{
+	if (bufferType == KStringBufferType::StaticText)
+		return data.staticText;
+	else if (bufferType == KStringBufferType::SSOText)
+		return data.ssoBuffer;
+	else if (bufferType == KStringBufferType::HeapText)
+		return data.refCountedMem->buffer;
+	else
+		return L"";
+}
+
 KString::~KString()
 {
-	if (stringHolder)
-		stringHolder->ReleaseReference();
-}
-
-// =========== KStringHolder.cpp ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-
-
-KStringHolder::KStringHolder(wchar_t *w_text, int count)
-{
-	refCount = 1;
-	a_text = 0;
-	this->w_text = w_text;
-	this->count = count;
-
-	#ifndef RFC_NO_SAFE_ANSI_STR
-	::InitializeCriticalSection(&cs_a_text);
-	#endif
-}
-
-KStringHolder::~KStringHolder()
-{
-	#ifndef RFC_NO_SAFE_ANSI_STR
-	::DeleteCriticalSection(&cs_a_text);
-	#endif
-}
-
-void KStringHolder::AddReference()
-{
-	::InterlockedIncrement(&refCount);
-}
-
-void KStringHolder::ReleaseReference()
-{
-	const LONG res = ::InterlockedDecrement(&refCount);
-	if(res == 0)
-	{
-		if(a_text)
-			::free(a_text);
-
-		if(w_text)
-			::free(w_text);
-
-		delete this;
-	}
-}
-
-const char* KStringHolder::GetAnsiVersion(UINT codePage)
-{
-	#ifndef RFC_NO_SAFE_ANSI_STR
-	::EnterCriticalSection(&cs_a_text);
-	#endif
-
-	if(a_text)
-	{
-		#ifndef RFC_NO_SAFE_ANSI_STR
-		::LeaveCriticalSection(&cs_a_text);
-		#endif
-		return a_text;
-	}else
-	{
-		const int length = ::WideCharToMultiByte(codePage, 0, w_text, -1, 0, 0, 0, 0);
-		if (length)
-		{
-			a_text = (char*)::malloc(length);
-			if (::WideCharToMultiByte(codePage, 0, w_text, -1, a_text, length, 0, 0))
-			{
-				#ifndef RFC_NO_SAFE_ANSI_STR
-				::LeaveCriticalSection(&cs_a_text);
-				#endif
-				return a_text;
-			}
-			::free(a_text);
-			a_text = 0;
-		}
-
-		#ifndef RFC_NO_SAFE_ANSI_STR
-		::LeaveCriticalSection(&cs_a_text);
-		#endif
-		return 0; // conversion error
-	}
+	if (bufferType == KStringBufferType::HeapText)
+		data.refCountedMem->releaseReference();
 }
 
 // =========== KDirectory.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1052,74 +1135,119 @@ KDirectory::KDirectory(){}
 
 KDirectory::~KDirectory(){}
 
-bool KDirectory::IsDirExists(const KString& dirName)
+bool KDirectory::isDirExists(const KString& dirName)
 {
 	const DWORD dwAttrib = ::GetFileAttributesW(dirName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-bool KDirectory::CreateDir(const KString& dirName)
+bool KDirectory::createDir(const KString& dirName)
 {
 	return (::CreateDirectoryW(dirName, NULL) == 0 ? false : true);
 }
 
-bool KDirectory::RemoveDir(const KString& dirName)
+bool KDirectory::removeDir(const KString& dirName)
 {
 	return (::RemoveDirectoryW(dirName) == 0 ? false : true);
 }
 
-KString KDirectory::GetModuleDir(HMODULE hModule)
+void KDirectory::getModuleDir(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars)
 {
-	// assumes MAX_PATH * 2 is enough!
-
-	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
-	path[0] = 0;
-	::GetModuleFileNameW(hModule, path, MAX_PATH * 2);
+	outBuffer[0] = 0;
+	::GetModuleFileNameW(hModule, outBuffer, bufferSizeInWChars);
 
 	wchar_t *p;
-	for (p = path; *p; p++) {}	// find end
-	for (; p > path && *p != L'\\'; p--) {} // back up to last backslash
+	for (p = outBuffer; *p; p++) {}	// find end
+	for (; p > outBuffer && *p != L'\\'; p--) {} // back up to last backslash
 	*p = 0;	// kill it
-
-	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
-KString KDirectory::GetParentDir(const KString& filePath)
+void KDirectory::getModuleFilePath(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars)
 {
-	wchar_t *path = ::_wcsdup(filePath);
+	outBuffer[0] = 0;
+	::GetModuleFileNameW(hModule, outBuffer, bufferSizeInWChars);
+}
+
+void KDirectory::getParentDir(const wchar_t* filePath, wchar_t* outBuffer, int bufferSizeInWChars)
+{
+	::wcscpy_s(outBuffer, bufferSizeInWChars, filePath);
 
 	wchar_t *p;
-	for (p = path; *p; p++) {}	// find end
-	for (; p > path && *p != L'\\'; p--) {} // back up to last backslash
+	for (p = outBuffer; *p; p++) {}	// find end
+	for (; p > outBuffer && *p != L'\\'; p--) {} // back up to last backslash
 	*p = 0;	// kill it
-
-	return KString(path, KString::FREE_TEXT_WHEN_DONE);
 }
 
-KString KDirectory::GetTempDir()
+void KDirectory::getTempDir(wchar_t* outBuffer, int bufferSizeInWChars)
 {
-	wchar_t *path = (wchar_t*)::malloc( (MAX_PATH + 1) * sizeof(wchar_t) );
-	path[0] = 0;
-	::GetTempPathW(MAX_PATH + 1, path);
-
-	return KString(path, KString::FREE_TEXT_WHEN_DONE);
+	outBuffer[0] = 0;
+	::GetTempPathW(bufferSizeInWChars, outBuffer);
 }
 
-KString KDirectory::GetApplicationDataDir(bool isAllUsers)
+void KDirectory::getAllUserDataDir(wchar_t* outBuffer)
 {
-	wchar_t *path = (wchar_t*)::malloc( MAX_PATH * sizeof(wchar_t) );
-	path[0] = 0;
-	::SHGetFolderPathW(NULL, isAllUsers ? CSIDL_COMMON_APPDATA : CSIDL_APPDATA, NULL, 0, path);
+	outBuffer[0] = 0;
+	::SHGetFolderPathW(NULL, CSIDL_COMMON_APPDATA, NULL, 0, outBuffer);
+}
 
-	return KString(path, KString::FREE_TEXT_WHEN_DONE);
+void KDirectory::getLoggedInUserFolderPath(int csidl, wchar_t* outBuffer)
+{
+	DWORD dwProcessId;
+	::GetWindowThreadProcessId(::GetShellWindow(), &dwProcessId);
+
+	HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, dwProcessId);
+
+	HANDLE tokenHandle = NULL;
+	::OpenProcessToken(hProcess, TOKEN_QUERY | TOKEN_IMPERSONATE, &tokenHandle);
+	::CloseHandle(hProcess);
+
+	outBuffer[0] = 0;
+	::SHGetFolderPathW(NULL, csidl, tokenHandle, 0, outBuffer);
+	::CloseHandle(tokenHandle);
+}
+
+void KDirectory::getRoamingFolder(wchar_t* outBuffer)
+{
+	KDirectory::getLoggedInUserFolderPath(CSIDL_APPDATA, outBuffer);
+}
+
+void KDirectory::getNonRoamingFolder(wchar_t* outBuffer)
+{
+	KDirectory::getLoggedInUserFolderPath(CSIDL_LOCAL_APPDATA, outBuffer);
+}
+
+KPointerList<KString*,32, false>* KDirectory::scanFolderForExtension(const KString& folderPath, const KString& extension)
+{
+	KPointerList<KString*,32,false>* result = new KPointerList<KString*,32,false>();
+	WIN32_FIND_DATAW findData;
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+
+	KString searchPath(folderPath + L"\\*." + extension);
+
+	hFind = ::FindFirstFileW(searchPath, &findData);
+
+	if (hFind == INVALID_HANDLE_VALUE)
+		return result;
+
+	do
+	{
+		if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+		{
+			result->add(new KString(findData.cFileName,KStringBehaviour::MAKE_A_COPY));
+		}
+	} while (::FindNextFileW(hFind, &findData) != 0);
+
+	::FindClose(hFind);
+
+	return result;
 }
 
 // =========== KFile.cpp ===========
 
 /*
 	RFC - KFile.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1147,21 +1275,19 @@ KFile::KFile()
 	fileHandle = INVALID_HANDLE_VALUE;
 }
 
-KFile::KFile(const KString& fileName, DWORD desiredAccess, bool autoCloseHandle)
+KFile::KFile(const wchar_t* fileName, DWORD desiredAccess, bool autoCloseHandle)
 {
-	this->fileName = fileName;
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
 	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 }
 
-bool KFile::OpenFile(const KString& fileName, DWORD desiredAccess, bool autoCloseHandle)
+bool KFile::openFile(const wchar_t* fileName, DWORD desiredAccess, bool autoCloseHandle)
 {
 	if (fileHandle != INVALID_HANDLE_VALUE) // close old file
 		::CloseHandle(fileHandle);
 
-	this->fileName = fileName;
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
@@ -1170,7 +1296,7 @@ bool KFile::OpenFile(const KString& fileName, DWORD desiredAccess, bool autoClos
 	return (fileHandle == INVALID_HANDLE_VALUE) ? false : true;
 }
 
-bool KFile::CloseFile()
+bool KFile::closeFile()
 {
 	if (::CloseHandle(fileHandle) != 0)
 	{
@@ -1180,7 +1306,7 @@ bool KFile::CloseFile()
 	return false;
 }
 
-HANDLE KFile::GetFileHandle()
+HANDLE KFile::getFileHandle()
 {
 	return fileHandle;
 }
@@ -1190,7 +1316,7 @@ KFile::operator HANDLE()const
 	return fileHandle;
 }
 
-DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
+DWORD KFile::readFile(void* buffer, DWORD numberOfBytesToRead)
 {
 	DWORD numberOfBytesRead = 0;
 	::ReadFile(fileHandle, buffer, numberOfBytesToRead, &numberOfBytesRead, NULL);
@@ -1198,7 +1324,7 @@ DWORD KFile::ReadFile(void* buffer, DWORD numberOfBytesToRead)
 	return numberOfBytesRead;
 }
 
-DWORD KFile::WriteFile(void* buffer, DWORD numberOfBytesToWrite)
+DWORD KFile::writeFile(const void* buffer, DWORD numberOfBytesToWrite)
 {
 	DWORD numberOfBytesWritten = 0;
 	::WriteFile(fileHandle, buffer, numberOfBytesToWrite, &numberOfBytesWritten, NULL);
@@ -1206,40 +1332,40 @@ DWORD KFile::WriteFile(void* buffer, DWORD numberOfBytesToWrite)
 	return numberOfBytesWritten;
 }
 
-bool KFile::SetFilePointerToStart()
+bool KFile::setFilePointerToStart()
 {
 	return (::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
-bool KFile::SetFilePointerTo(long distance, DWORD startingPoint)
+bool KFile::setFilePointerTo(long distance, DWORD startingPoint)
 {
 	return (::SetFilePointer(fileHandle, distance, NULL, startingPoint) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
-DWORD KFile::GetFilePointerPosition()
+DWORD KFile::getFilePointerPosition()
 {
 	return ::SetFilePointer(fileHandle, 0, NULL, FILE_CURRENT);
 }
 
-bool KFile::SetFilePointerToEnd()
+bool KFile::setFilePointerToEnd()
 {
 	return (::SetFilePointer(fileHandle, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ? false : true;
 }
 
-DWORD KFile::GetFileSize()
+DWORD KFile::getFileSize()
 {
 	const DWORD fileSize = ::GetFileSize(fileHandle, NULL);
 	return (fileSize == INVALID_FILE_SIZE) ? 0 : fileSize;
 }
 
-void* KFile::ReadAsData()
+void* KFile::readAsData()
 {
-	const DWORD fileSize = this->GetFileSize();
+	const DWORD fileSize = getFileSize();
 
 	if (fileSize)
 	{
 		void* buffer = (void*)::malloc(fileSize);
-		const DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
+		const DWORD numberOfBytesRead = readFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
 			return buffer;
@@ -1250,24 +1376,33 @@ void* KFile::ReadAsData()
 	return NULL;
 }
 
-bool KFile::WriteString(const KString& text, bool isUnicode)
+bool KFile::writeString(const KString& text, bool isUnicode)
 {
-	void* buffer = isUnicode ? (void*)(const wchar_t*)text : (void*)(const char*)text;
-	const DWORD numberOfBytesToWrite = text.GetLength() * ( isUnicode ? sizeof(wchar_t) : sizeof(char) );
-
-	const DWORD numberOfBytesWritten = this->WriteFile(buffer, numberOfBytesToWrite);
-
-	return (numberOfBytesWritten == numberOfBytesToWrite);
+	if (isUnicode)
+	{
+		void* buffer = (void*)(const wchar_t*)text;
+		const DWORD numberOfBytesToWrite = text.length() * sizeof(wchar_t);
+		const DWORD numberOfBytesWritten = writeFile(buffer, numberOfBytesToWrite);
+		return (numberOfBytesWritten == numberOfBytesToWrite);
+	}
+	else
+	{
+		void* buffer = (void*)KString::toAnsiString(text);
+		const DWORD numberOfBytesToWrite = text.length() * sizeof(char);
+		const DWORD numberOfBytesWritten = writeFile(buffer, numberOfBytesToWrite);
+		::free(buffer);
+		return (numberOfBytesWritten == numberOfBytesToWrite);
+	}
 }
 
-KString KFile::ReadAsString(bool isUnicode)
+KString KFile::readAsString(bool isUnicode)
 {
-	DWORD fileSize = this->GetFileSize();
+	DWORD fileSize = getFileSize();
 
 	if (fileSize)
 	{
 		char* buffer = (char*)::malloc(fileSize + 2); // +2 is for null
-		const DWORD numberOfBytesRead = this->ReadFile(buffer, fileSize);
+		const DWORD numberOfBytesRead = readFile(buffer, fileSize);
 
 		if (numberOfBytesRead == fileSize)
 		{
@@ -1276,7 +1411,7 @@ KString KFile::ReadAsString(bool isUnicode)
 
 			if (isUnicode)
 			{
-				return KString((const wchar_t*)buffer, KString::FREE_TEXT_WHEN_DONE);
+				return KString((const wchar_t*)buffer, KStringBehaviour::FREE_ON_DESTROY);
 			}
 			else
 			{
@@ -1292,20 +1427,35 @@ KString KFile::ReadAsString(bool isUnicode)
 	return KString();
 }
 
-bool KFile::DeleteFile(const KString& fileName)
+bool KFile::deleteFile(const wchar_t* fileName)
 {
 	return (::DeleteFileW(fileName) == 0) ? false : true;
 }
 
-bool KFile::CopyFile(const KString& sourceFileName, const KString& destFileName)
+bool KFile::copyFile(const wchar_t* sourceFileName, const wchar_t* destFileName)
 {
 	return (::CopyFileW(sourceFileName, destFileName, FALSE) == 0) ? false : true;
 }
 
-bool KFile::IsFileExists(const KString& fileName)
+KString KFile::getFileNameFromPath(const wchar_t* path)
+{
+	const wchar_t* fileNamePtr = ::PathFindFileNameW(path);
+
+	if (path != fileNamePtr)
+		return KString(fileNamePtr, KStringBehaviour::MAKE_A_COPY);
+
+	return KString();
+}
+
+KString KFile::getFileExtension(const wchar_t* path)
+{
+	const wchar_t* extPtr = ::PathFindExtensionW(path);
+	return KString(extPtr, KStringBehaviour::MAKE_A_COPY);
+}
+
+bool KFile::isFileExists(const wchar_t* fileName)
 {
 	const DWORD dwAttrib = ::GetFileAttributesW(fileName);
-
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
@@ -1318,7 +1468,7 @@ KFile::~KFile()
 // =========== KLogger.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1349,7 +1499,7 @@ KLogger::KLogger(DWORD bufferSize)
 	isFirstCall = true;
 }
 
-bool KLogger::WriteNewEvent(unsigned char eventType)
+bool KLogger::writeNewEvent(unsigned char eventType)
 {
 	if (!bufferFull)
 	{
@@ -1364,18 +1514,18 @@ bool KLogger::WriteNewEvent(unsigned char eventType)
 
 		if (isFirstCall)
 		{
-			pCounter.StartCounter();
+			pCounter.startCounter();
 			isFirstCall = false;
 			totalMills = 0;
 		}
 		else{
-			const double deltaMills = pCounter.EndCounter();
+			const double deltaMills = pCounter.endCounter();
 			totalMills += (unsigned int)deltaMills;
 
 			secs = (unsigned short)(totalMills/1000);
 			mills = (unsigned short)(totalMills % 1000);
 
-			pCounter.StartCounter();
+			pCounter.startCounter();
 		}
 
 		buffer[bufferIndex] = eventType; // write event type
@@ -1394,7 +1544,7 @@ bool KLogger::WriteNewEvent(unsigned char eventType)
 	return false;
 }
 
-bool KLogger::EndEvent()
+bool KLogger::endEvent()
 {
 	if (!bufferFull)
 	{
@@ -1406,9 +1556,9 @@ bool KLogger::EndEvent()
 	return false;
 }
 
-bool KLogger::AddTextParam(const char *text, unsigned char textLength)
+bool KLogger::addTextParam(const char *text, unsigned char textLength)
 {
-	if( (textLength < 256) && (!bufferFull) )
+	if( (textLength < 255) && (!bufferFull) )
 	{
 		buffer[bufferIndex] = PARAM_STRING; // write param type
 		bufferIndex += sizeof(unsigned char);
@@ -1427,7 +1577,7 @@ bool KLogger::AddTextParam(const char *text, unsigned char textLength)
 	return false;
 }
 
-bool KLogger::AddIntParam(int value)
+bool KLogger::addIntParam(int value)
 {
 	if(!bufferFull)
 	{
@@ -1442,7 +1592,7 @@ bool KLogger::AddIntParam(int value)
 	return false;
 }
 
-bool KLogger::AddShortParam(unsigned short value)
+bool KLogger::addShortParam(unsigned short value)
 {
 	if(!bufferFull)
 	{
@@ -1457,7 +1607,7 @@ bool KLogger::AddShortParam(unsigned short value)
 	return false;
 }
 
-bool KLogger::AddFloatParam(float value)
+bool KLogger::addFloatParam(float value)
 {
 	if(!bufferFull)
 	{
@@ -1472,7 +1622,7 @@ bool KLogger::AddFloatParam(float value)
 	return false;
 }
 	
-bool KLogger::AddDoubleParam(double value)
+bool KLogger::addDoubleParam(double value)
 {
 	if(!bufferFull)
 	{
@@ -1487,23 +1637,23 @@ bool KLogger::AddDoubleParam(double value)
 	return false;
 }
 
-bool KLogger::IsBufferFull()
+bool KLogger::isBufferFull()
 {
 	return bufferFull;
 }
 
-bool KLogger::WriteToFile(const KString &filePath)
+bool KLogger::writeToFile(const KString &filePath)
 {
 	KFile file;
 
-	if (KFile::IsFileExists(filePath))
-		KFile::DeleteFile(filePath);
+	if (KFile::isFileExists(filePath))
+		KFile::deleteFile(filePath);
 
-	if (file.OpenFile(filePath, KFile::KWRITE))
+	if (file.openFile(filePath, KFile::KWRITE))
 	{
-		file.WriteFile((void*)"RLOG", 4);
-		file.WriteFile(&totalEvents, 4);
-		file.WriteFile(buffer, bufferIndex);
+		file.writeFile((void*)"RLOG", 4);
+		file.writeFile(&totalEvents, 4);
+		file.writeFile(buffer, bufferIndex);
 
 		return true;
 	}
@@ -1519,7 +1669,7 @@ KLogger::~KLogger()
 // =========== KSettingsReader.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1544,18 +1694,18 @@ KSettingsReader::KSettingsReader()
 
 }
 
-bool KSettingsReader::OpenFile(const KString& fileName, int formatID)
+bool KSettingsReader::openFile(const wchar_t* fileName, int formatID)
 {
-	if (!KFile::IsFileExists(fileName))
+	if (!KFile::isFileExists(fileName))
 		return false;
 
-	if (!settingsFile.OpenFile(fileName, KFile::KREAD))
+	if (!settingsFile.openFile(fileName, KFile::KREAD))
 		return false;
 
-	settingsFile.SetFilePointerToStart();
+	settingsFile.setFilePointerToStart();
 
 	int fileFormatID = 0;
-	settingsFile.ReadFile(&fileFormatID, sizeof(int));
+	settingsFile.readFile(&fileFormatID, sizeof(int));
 
 	if (formatID != fileFormatID) // invalid settings file
 		return false;
@@ -1563,23 +1713,23 @@ bool KSettingsReader::OpenFile(const KString& fileName, int formatID)
 	return true;
 }
 
-void KSettingsReader::ReadData(DWORD size, void *buffer)
+void KSettingsReader::readData(DWORD size, void *buffer)
 {
 	if (buffer)
-		settingsFile.ReadFile(buffer, size);
+		settingsFile.readFile(buffer, size);
 }
 
-KString KSettingsReader::ReadString()
+KString KSettingsReader::readString()
 {
 	int size = 0;
-	settingsFile.ReadFile(&size, sizeof(int));
+	settingsFile.readFile(&size, sizeof(int));
 
 	if (size)
 	{
 		wchar_t *buffer = (wchar_t*)malloc(size);
-		settingsFile.ReadFile(buffer, size);
+		settingsFile.readFile(buffer, size);
 
-		return KString(buffer, KString::FREE_TEXT_WHEN_DONE);
+		return KString(buffer, KStringBehaviour::FREE_ON_DESTROY);
 	}
 	else
 	{
@@ -1587,34 +1737,34 @@ KString KSettingsReader::ReadString()
 	}
 }
 
-int KSettingsReader::ReadInt()
+int KSettingsReader::readInt()
 {
 	int value = 0;
-	settingsFile.ReadFile(&value, sizeof(int));
+	settingsFile.readFile(&value, sizeof(int));
 
 	return value;
 }
 
-float KSettingsReader::ReadFloat()
+float KSettingsReader::readFloat()
 {
 	float value = 0;
-	settingsFile.ReadFile(&value, sizeof(float));
+	settingsFile.readFile(&value, sizeof(float));
 
 	return value;
 }
 
-double KSettingsReader::ReadDouble()
+double KSettingsReader::readDouble()
 {
 	double value = 0;
-	settingsFile.ReadFile(&value, sizeof(double));
+	settingsFile.readFile(&value, sizeof(double));
 
 	return value;
 }
 
-bool KSettingsReader::ReadBool()
+bool KSettingsReader::readBool()
 {
 	bool value = 0;
-	settingsFile.ReadFile(&value, sizeof(bool));
+	settingsFile.readFile(&value, sizeof(bool));
 
 	return value;
 }
@@ -1627,7 +1777,7 @@ KSettingsReader::~KSettingsReader()
 // =========== KSettingsWriter.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1647,65 +1797,62 @@ KSettingsReader::~KSettingsReader()
 */
 
 
-KSettingsWriter::KSettingsWriter()
+KSettingsWriter::KSettingsWriter() {}
+
+bool KSettingsWriter::openFile(const wchar_t* fileName, int formatID)
 {
+	if (KFile::isFileExists(fileName))
+		KFile::deleteFile(fileName);
 
-}
-
-bool KSettingsWriter::OpenFile(const KString& fileName, int formatID)
-{
-	if (KFile::IsFileExists(fileName))
-		KFile::DeleteFile(fileName);
-
-	if (!settingsFile.OpenFile(fileName, KFile::KWRITE))
+	if (!settingsFile.openFile(fileName, KFile::KWRITE))
 		return false;
 
-	settingsFile.SetFilePointerToStart();
-	settingsFile.WriteFile(&formatID, sizeof(int));
+	settingsFile.setFilePointerToStart();
+	settingsFile.writeFile(&formatID, sizeof(int));
 
 	return true;
 }
 
-void KSettingsWriter::WriteData(DWORD size, void *buffer)
+void KSettingsWriter::writeData(DWORD size, void *buffer)
 {
 	if (buffer)
-		settingsFile.WriteFile(buffer, size);
+		settingsFile.writeFile(buffer, size);
 }
 
-void KSettingsWriter::WriteString(const KString& text)
+void KSettingsWriter::writeString(const KString& text)
 {
-	int size = text.GetLength();
+	int size = text.length();
 	if (size)
 	{
 		size = (size + 1) * sizeof(wchar_t);
-		settingsFile.WriteFile(&size, sizeof(int));
+		settingsFile.writeFile(&size, sizeof(int));
 
-		settingsFile.WriteFile((wchar_t*)text, size);
+		settingsFile.writeFile((const wchar_t*)text, size);
 	}
 	else // write only empty size
 	{
-		settingsFile.WriteFile(&size, sizeof(int));
+		settingsFile.writeFile(&size, sizeof(int));
 	}
 }
 
-void KSettingsWriter::WriteInt(int value)
+void KSettingsWriter::writeInt(int value)
 {
-	settingsFile.WriteFile(&value, sizeof(int));
+	settingsFile.writeFile(&value, sizeof(int));
 }
 
-void KSettingsWriter::WriteFloat(float value)
+void KSettingsWriter::writeFloat(float value)
 {
-	settingsFile.WriteFile(&value, sizeof(float));
+	settingsFile.writeFile(&value, sizeof(float));
 }
 
-void KSettingsWriter::WriteDouble(double value)
+void KSettingsWriter::writeDouble(double value)
 {
-	settingsFile.WriteFile(&value, sizeof(double));
+	settingsFile.writeFile(&value, sizeof(double));
 }
 
-void KSettingsWriter::WriteBool(bool value)
+void KSettingsWriter::writeBool(bool value)
 {
-	settingsFile.WriteFile(&value, sizeof(bool));
+	settingsFile.writeFile(&value, sizeof(bool));
 }
 
 KSettingsWriter::~KSettingsWriter()
@@ -1716,7 +1863,7 @@ KSettingsWriter::~KSettingsWriter()
 // =========== GUIModule.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1740,27 +1887,23 @@ KSettingsWriter::~KSettingsWriter()
 class RFC_GUIModule 
 {
 public:
-	static bool RFCModuleInit()
+	static bool rfcModuleInit()
 	{		
 		INITCOMMONCONTROLSEX icx;
 		icx.dwSize = sizeof(INITCOMMONCONTROLSEX);
 		icx.dwICC = ICC_WIN95_CLASSES;
 		::InitCommonControlsEx(&icx);
 		
-		KGUIProc::AtomComponent = ::GlobalAddAtomW(L"RFCComponent");
-		KGUIProc::AtomOldProc = ::GlobalAddAtomW(L"RFCOldProc");
+		KGUIProc::atomComponent = ::GlobalAddAtomW(L"RFCComponent");
+		KGUIProc::atomOldProc = ::GlobalAddAtomW(L"RFCOldProc");
 
 		return true;
 	}
 
-	static void RFCModuleFree()
+	static void rfcModuleFree()
 	{
-		::GlobalDeleteAtom(KGUIProc::AtomComponent);
-		::GlobalDeleteAtom(KGUIProc::AtomOldProc);
-
-		// delete singletons
-		KFont::DeleteDefaultFont();
-		delete KIDGenerator::GetInstance();
+		::GlobalDeleteAtom(KGUIProc::atomComponent);
+		::GlobalDeleteAtom(KGUIProc::atomOldProc);
 	}
 };
 
@@ -1769,7 +1912,7 @@ REGISTER_RFC_MODULE(1, RFC_GUIModule)
 // =========== KBitmap.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1799,7 +1942,7 @@ KBitmap::operator HBITMAP()const
 	return hBitmap;
 }
 
-bool KBitmap::LoadFromResource(WORD resourceID)
+bool KBitmap::loadFromResource(WORD resourceID)
 {
 	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
@@ -1807,7 +1950,7 @@ bool KBitmap::LoadFromResource(WORD resourceID)
 	return false;
 }
 
-bool KBitmap::LoadFromFile(const KString& filePath)
+bool KBitmap::loadFromFile(const KString& filePath)
 {
 	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hBitmap)
@@ -1815,7 +1958,7 @@ bool KBitmap::LoadFromFile(const KString& filePath)
 	return false;
 }
 
-void KBitmap::DrawOnHDC(HDC hdc, int x, int y, int width, int height)
+void KBitmap::drawOnHDC(HDC hdc, int x, int y, int width, int height)
 {
 	HDC memHDC = ::CreateCompatibleDC(hdc);
 
@@ -1825,7 +1968,7 @@ void KBitmap::DrawOnHDC(HDC hdc, int x, int y, int width, int height)
 	::DeleteDC(memHDC);
 }
 
-HBITMAP KBitmap::GetHandle()
+HBITMAP KBitmap::getHandle()
 {
 	return hBitmap;
 }
@@ -1839,7 +1982,7 @@ KBitmap::~KBitmap()
 // =========== KButton.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1861,10 +2004,8 @@ KBitmap::~KBitmap()
 
 KButton::KButton() : KComponent(false)
 {
-	listener = 0;
-
-	compClassName.AssignStaticText(TXT_WITH_LEN("BUTTON"));
-	compText.AssignStaticText(TXT_WITH_LEN("Button"));
+	compClassName.assignStaticText(TXT_WITH_LEN("BUTTON"));
+	compText.assignStaticText(TXT_WITH_LEN("Button"));
 
 	compWidth = 100;
 	compHeight = 30;
@@ -1876,46 +2017,35 @@ KButton::KButton() : KComponent(false)
 	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
-void KButton::SetListener(KButtonListener *listener)
+void KButton::_onPress()
 {
-	this->listener = listener;
+	if(onClick)
+		onClick(this);
 }
 
-KButtonListener* KButton::GetListener()
-{
-	return listener;
-}
-
-void KButton::OnPress()
-{
-	if(listener)
-		listener->OnButtonPress(this);
-}
-
-bool KButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 {
 	if ((msg == WM_COMMAND) && (HIWORD(wParam) == BN_CLICKED))
 	{
-		this->OnPress();
+		this->_onPress();
 
 		*result = 0;
 		return true;
 	}
 
-	return KComponent::EventProc(msg, wParam, lParam, result);
+	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KButton::Create(bool requireInitialMessages)
+bool KButton::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
-
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)
@@ -1930,39 +2060,10 @@ KButton::~KButton()
 {
 }
 
-// =========== KButtonListener.cpp ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
-*/
-
-
-KButtonListener::KButtonListener(){}
-
-KButtonListener::~KButtonListener(){}
-
-void KButtonListener::OnButtonPress(KButton *button){}
-
 // =========== KCheckBox.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -1985,20 +2086,20 @@ void KButtonListener::OnButtonPress(KButton *button){}
 KCheckBox::KCheckBox()
 {
 	checked = false;
-	compText.AssignStaticText(TXT_WITH_LEN("CheckBox"));
+	compText.assignStaticText(TXT_WITH_LEN("CheckBox"));
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP;
 }
 
-bool KCheckBox::Create(bool requireInitialMessages)
+bool KCheckBox::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::SendMessageW(compHWND, BM_SETCHECK, checked, 0);
 		::EnableWindow(compHWND, compEnabled);
 
@@ -2010,23 +2111,23 @@ bool KCheckBox::Create(bool requireInitialMessages)
 	return false;
 }
 
-void KCheckBox::OnPress()
+void KCheckBox::_onPress()
 {
 	if(::SendMessageW(compHWND, BM_GETCHECK, 0, 0) == BST_CHECKED)
 		checked = true;
 	else
 		checked = false;
 
-	if(listener)
-		listener->OnButtonPress(this);
+	if(onClick)
+		onClick(this);
 }
 
-bool KCheckBox::IsChecked()
+bool KCheckBox::isChecked()
 {
 	return checked;
 }
 
-void KCheckBox::SetCheckedState(bool state)
+void KCheckBox::setCheckedState(bool state)
 {
 	checked = state;
 
@@ -2041,7 +2142,7 @@ KCheckBox::~KCheckBox()
 // =========== KComboBox.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2064,10 +2165,9 @@ KCheckBox::~KCheckBox()
 
 KComboBox::KComboBox(bool sort) : KComponent(false)
 {
-	listener = 0;
 	selectedItemIndex = -1;
 
-	compClassName.AssignStaticText(TXT_WITH_LEN("COMBOBOX"));
+	compClassName.assignStaticText(TXT_WITH_LEN("COMBOBOX"));
 
 	compWidth = 100;
 	compHeight = 100;
@@ -2081,58 +2181,42 @@ KComboBox::KComboBox(bool sort) : KComponent(false)
 		compDwStyle = compDwStyle | CBS_SORT;
 
 	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
-
-	stringList = new KPointerList<KString*>(50);
 }
 
-void KComboBox::AddItem(const KString& text)
+void KComboBox::addItem(const KString& text)
 {
-	KString *str = new KString(text);
-	stringList->AddPointer(str);
+	stringList.add(text);
 
 	if(compHWND)
-		::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*str);
+		::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)text);
 }
 
-void KComboBox::RemoveItem(int index)
+void KComboBox::removeItem(int index)
 {
-	KString *text = stringList->GetPointer(index);
-	if (text)
-		delete text;
-
-	stringList->RemovePointer(index);
+	stringList.remove(index);
 
 	if(compHWND)	 
 		::SendMessageW(compHWND, CB_DELETESTRING, index, 0);
 }
 
-void KComboBox::RemoveItem(const KString& text)
+void KComboBox::removeItem(const KString& text)
 {
-	const int itemIndex = this->GetItemIndex(text);
+	const int itemIndex = getItemIndex(text);
 	if(itemIndex > -1)
-		this->RemoveItem(itemIndex);
+		this->removeItem(itemIndex);
 }
 
-int KComboBox::GetItemIndex(const KString& text)
+int KComboBox::getItemIndex(const KString& text)
 {
-	const int listSize = stringList->GetSize();
-	if(listSize)
-	{
-		for(int i = 0; i < listSize; i++)
-		{
-			if(stringList->GetPointer(i)->Compare(text))
-				return i;
-		}
-	}
-	return -1;
+	return stringList.getIndex(text);
 }
 
-int KComboBox::GetItemCount()
+int KComboBox::getItemCount()
 {
-	return stringList->GetSize();
+	return stringList.size();
 }
 
-int KComboBox::GetSelectedItemIndex()
+int KComboBox::getSelectedItemIndex()
 {
 	if(compHWND)
 	{	 
@@ -2143,58 +2227,61 @@ int KComboBox::GetSelectedItemIndex()
 	return -1;		
 }
 
-KString KComboBox::GetSelectedItem()
+KString KComboBox::getSelectedItem()
 {
-	const int itemIndex = this->GetSelectedItemIndex();
+	const int itemIndex = getSelectedItemIndex();
 	if(itemIndex > -1)
-		return *stringList->GetPointer(itemIndex);
+		return stringList.get(itemIndex);
+
 	return KString();
 }
 
-void KComboBox::ClearList()
+void KComboBox::clearList()
 {
-	stringList->DeleteAll(true);
+	stringList.removeAll();
 	if(compHWND)
 		::SendMessageW(compHWND, CB_RESETCONTENT, 0, 0);
 }
 
-void KComboBox::SelectItem(int index)
+void KComboBox::selectItem(int index)
 {
 	selectedItemIndex = index;
 	if(compHWND)
 		::SendMessageW(compHWND, CB_SETCURSEL, index, 0);
 }
 
-bool KComboBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KComboBox::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 {
 	if ((msg == WM_COMMAND) && (HIWORD(wParam) == CBN_SELENDOK))
 	{
-		this->OnItemSelect();
+		_onItemSelect();
 
 		*result = 0;
 		return true;
 	}
 
-	return KComponent::EventProc(msg, wParam, lParam, result);
+	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KComboBox::Create(bool requireInitialMessages)
+bool KComboBox::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register COMBOBOX class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register COMBOBOX class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
-		const int listSize = stringList->GetSize();
+		const int listSize = stringList.size();
 		if(listSize)
 		{
-			for(int i = 0; i < listSize; i++)
-				::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*stringList->GetPointer(i));
+			for (int i = 0; i < listSize; i++)
+			{
+				::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)stringList.get(i));
+			}
 		}
 
 		if(selectedItemIndex > -1)
@@ -2209,58 +2296,20 @@ bool KComboBox::Create(bool requireInitialMessages)
 	return false;
 }
 
-void KComboBox::SetListener(KComboBoxListener *listener)
+void KComboBox::_onItemSelect()
 {
-	this->listener = listener;
+	if(onItemSelect)
+		onItemSelect(this);
 }
 
-void KComboBox::OnItemSelect()
-{
-	if(listener)
-		listener->OnComboBoxItemSelect(this);
-}
-
-KComboBox::~KComboBox()
-{
-	stringList->DeleteAll(false);
-	delete stringList;
-}
+KComboBox::~KComboBox() {}
 
 
-
-// =========== KComboBoxListener.cpp ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-
-KComboBoxListener::KComboBoxListener(){}
-
-KComboBoxListener::~KComboBoxListener(){}
-
-void KComboBoxListener::OnComboBoxItemSelect(KComboBox *comboBox){}
 
 // =========== KCommonDialogBox.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2281,14 +2330,14 @@ void KComboBoxListener::OnComboBoxItemSelect(KComboBox *comboBox){}
 
 
 
-const wchar_t* const RFC_OSD_REG_LOCATION = L"Software\\CrownSoft\\RFC\\OSD";
+#define RFC_OSD_REG_LOCATION L"Software\\CrownSoft\\RFC\\OSD"
 
-bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window, 
+bool KCommonDialogBox::showOpenFileDialog(KWindow* window, 
 	const KString& title, 
 	const wchar_t* filter, 
-	KString *fileName, 
+	KString* fileName, 
 	bool saveLastLocation, 
-	const wchar_t* dialogGuid)
+	const KString& dialogGuid)
 {
 	// assumes MAX_PATH * 2 is enough!	
 	wchar_t *buff = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
@@ -2300,14 +2349,14 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window,
 	KString lastLocation;
 	if (saveLastLocation)
 	{
-		KRegistry::ReadString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
+		KRegistry::readString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
 
-		if (lastLocation.GetLength() > 0)
+		if (lastLocation.length() > 0)
 			ofn.lpstrInitialDir = (const wchar_t*)lastLocation;
 	}
 
 	ofn.lStructSize = sizeof(OPENFILENAMEW);
-	ofn.hwndOwner = (window != NULL) ? window->GetHWND() : NULL;
+	ofn.hwndOwner = (window != NULL) ? window->getHWND() : NULL;
 	ofn.lpstrFilter = filter;
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
@@ -2316,15 +2365,18 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window,
 
 	if(::GetOpenFileNameW(&ofn))
 	{
-		KString path(buff, KString::FREE_TEXT_WHEN_DONE);
+		KString path(buff, KStringBehaviour::FREE_ON_DESTROY);
 		*fileName = path;
 
 		if (saveLastLocation)
 		{
-			KString parentDir(KDirectory::GetParentDir(path).AppendStaticText(L"\\", 1, true));
+			wchar_t parentDir[RFC_MAX_PATH];
+			KDirectory::getParentDir(path, parentDir, RFC_MAX_PATH);
+			::wcscat_s(parentDir, RFC_MAX_PATH, L"\\");
 
-			KRegistry::CreateKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
-			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, parentDir);
+			KRegistry::createKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
+			KRegistry::writeString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, 
+				KString(parentDir, KStringBehaviour::DO_NOT_FREE));
 		}
 
 		return true;
@@ -2336,12 +2388,12 @@ bool KCommonDialogBox::ShowOpenFileDialog(KWindow *window,
 	}
 }
 
-bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window, 
+bool KCommonDialogBox::showSaveFileDialog(KWindow* window, 
 	const KString& title, 
 	const wchar_t* filter, 
-	KString *fileName,
+	KString* fileName,
 	bool saveLastLocation,
-	const wchar_t* dialogGuid)
+	const KString& dialogGuid)
 {
 	// assumes MAX_PATH * 2 is enough!
 	wchar_t *buff = (wchar_t*)::malloc((MAX_PATH * 2) * sizeof(wchar_t));
@@ -2353,14 +2405,14 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window,
 	KString lastLocation;
 	if (saveLastLocation)
 	{		
-		KRegistry::ReadString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
+		KRegistry::readString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, &lastLocation);
 
-		if (lastLocation.GetLength() > 0)
+		if (lastLocation.length() > 0)
 			ofn.lpstrInitialDir = (const wchar_t*)lastLocation;
 	}
 
 	ofn.lStructSize = sizeof(OPENFILENAMEW);
-	ofn.hwndOwner = (window != NULL) ? window->GetHWND() : NULL;
+	ofn.hwndOwner = (window != NULL) ? window->getHWND() : NULL;
 	ofn.lpstrFilter = filter;
 	ofn.lpstrFile = buff;
 	ofn.nMaxFile = MAX_PATH * 2;
@@ -2369,15 +2421,18 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window,
 
 	if(::GetSaveFileNameW(&ofn))
 	{
-		KString path(buff, KString::FREE_TEXT_WHEN_DONE);
+		KString path(buff, KStringBehaviour::FREE_ON_DESTROY);
 		*fileName = path;
 
 		if (saveLastLocation)
 		{
-			KString parentDir(KDirectory::GetParentDir(path).AppendStaticText(L"\\", 1, true));
+			wchar_t parentDir[RFC_MAX_PATH];
+			KDirectory::getParentDir(path, parentDir, RFC_MAX_PATH);
+			::wcscat_s(parentDir, RFC_MAX_PATH, L"\\");
 
-			KRegistry::CreateKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
-			KRegistry::WriteString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, parentDir);
+			KRegistry::createKey(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION);	// if not exists
+			KRegistry::writeString(HKEY_CURRENT_USER, RFC_OSD_REG_LOCATION, dialogGuid, 
+				KString(parentDir, KStringBehaviour::DO_NOT_FREE));
 		}
 
 		return true;
@@ -2393,7 +2448,7 @@ bool KCommonDialogBox::ShowSaveFileDialog(KWindow *window,
 
 /*
 	RFC - KComponent.cpp
-	Copyright (C) 2013-2019 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2419,8 +2474,8 @@ KComponent::KComponent(bool generateWindowClassDetails)
 {
 	isRegistered = false;
 
-	KIDGenerator *idGenerator = KIDGenerator::GetInstance();
-	compCtlID = idGenerator->GenerateControlID();
+	KIDGenerator *idGenerator = KIDGenerator::getInstance();
+	compCtlID = idGenerator->generateControlID();
 
 	compHWND = 0;
 	compParentHWND = 0;
@@ -2437,7 +2492,7 @@ KComponent::KComponent(bool generateWindowClassDetails)
 
 	if (generateWindowClassDetails)
 	{
-		compClassName = idGenerator->GenerateClassName();
+		idGenerator->generateClassName(compClassName);
 		wc.cbSize = sizeof(WNDCLASSEX);
 		wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
 		wc.hIcon = 0;
@@ -2450,10 +2505,10 @@ KComponent::KComponent(bool generateWindowClassDetails)
 		wc.hInstance = KApplication::hInstance;
 		wc.lpszClassName = compClassName;
 
-		wc.lpfnWndProc = KGUIProc::WindowProc;
+		wc.lpfnWndProc = KGUIProc::windowProc;
 	}
 
-	compFont = KFont::GetDefaultFont();
+	compFont = KFont::getDefaultFont();
 }
 
 KComponent::operator HWND()const
@@ -2461,12 +2516,12 @@ KComponent::operator HWND()const
 	return compHWND;
 }
 
-void KComponent::OnHotPlug()
+void KComponent::onHotPlug()
 {
 
 }
 
-void KComponent::HotPlugInto(HWND component, bool fetchInfo)
+void KComponent::hotPlugInto(HWND component, bool fetchInfo)
 {
 	compHWND = component;
 
@@ -2475,7 +2530,7 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 		wchar_t *clsName = (wchar_t*)::malloc(256 * sizeof(wchar_t));  // assume 256 is enough
 		clsName[0] = 0;
 		::GetClassNameW(compHWND, clsName, 256);
-		compClassName = KString(clsName, KString::FREE_TEXT_WHEN_DONE);
+		compClassName = KString(clsName, KStringBehaviour::FREE_ON_DESTROY);
 
 		::GetClassInfoExW(KApplication::hInstance, compClassName, &wc);
 
@@ -2499,175 +2554,183 @@ void KComponent::HotPlugInto(HWND component, bool fetchInfo)
 		wchar_t *buff = (wchar_t*)::malloc(256 * sizeof(wchar_t)); // assume 256 is enough
 		buff[0] = 0;
 		::GetWindowTextW(compHWND, buff, 256);
-		compText = KString(buff, KString::FREE_TEXT_WHEN_DONE);
+		compText = KString(buff, KStringBehaviour::FREE_ON_DESTROY);
 	}
 
-	KGUIProc::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);	
+	KGUIProc::attachRFCPropertiesToHWND(compHWND, (KComponent*)this);	
 
-	this->OnHotPlug();
+	this->onHotPlug();
 }
 
-UINT KComponent::GetControlID()
+UINT KComponent::getControlID()
 {
 	return compCtlID;
 }
 
-void KComponent::SetMouseCursor(KCursor *cursor)
+void KComponent::setMouseCursor(KCursor *cursor)
 {
 	this->cursor = cursor;
 	if(compHWND)
-		::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->GetHandle());
+		::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->getHandle());
 }
 
-KString KComponent::GetComponentClassName()
+KString KComponent::getComponentClassName()
 {
 	return compClassName;
 }
 
-bool KComponent::Create(bool requireInitialMessages)
+bool KComponent::create(bool requireInitialMessages)
 {
 	if(!::RegisterClassExW(&wc))
 		return false;
 
 	isRegistered = true;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages);
+	KGUIProc::createComponent(this, requireInitialMessages);
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled ? TRUE : FALSE);
 		::ShowWindow(compHWND, compVisible ? SW_SHOW : SW_HIDE);
 
 		if(cursor)
-			::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->GetHandle());
+			::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->getHandle());
 
 		return true;
 	}
 	return false;
 }
 
-void KComponent::Destroy()
+void KComponent::destroy()
 {
 	if (compHWND)
+	{
 		::DestroyWindow(compHWND);
+		compHWND = 0;
+	}
 }
 
-LRESULT KComponent::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KComponent::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::AtomOldProc));
+	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::atomOldProc));
 	if(lpfnOldWndProc)
-		if((void*)lpfnOldWndProc != (void*)KGUIProc::WindowProc) // it's a subclassed common control or hot-plugged dialog! RFCOldProc property of subclassed control|dialog is not KGUIProc::WindowProc function.
+		if((void*)lpfnOldWndProc != (void*)KGUIProc::windowProc) // it's a subclassed common control or hot-plugged dialog! RFCOldProc property of subclassed control|dialog is not KGUIProc::windowProc function.
 			return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }
 
-bool KComponent::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KComponent::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 {
 	return false;
 }
 
-void KComponent::SetFont(KFont *compFont)
+void KComponent::setFont(KFont *compFont)
 {
 	this->compFont = compFont;
 	if(compHWND)
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0));
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
 }
 
-KFont* KComponent::GetFont()
+void KComponent::setFont(KFont& compFont)
+{
+	setFont(&compFont);
+}
+
+KFont* KComponent::getFont()
 {
 	return compFont;
 }
 
-KString KComponent::GetText()
+KString KComponent::getText()
 {
 	return compText;
 }
 
-void KComponent::SetText(const KString& compText)
+void KComponent::setText(const KString& compText)
 {
 	this->compText = compText;
 	if(compHWND)
 		::SetWindowTextW(compHWND, this->compText);
 }
 
-void KComponent::SetHWND(HWND compHWND)
+void KComponent::setHWND(HWND compHWND)
 {
 	this->compHWND = compHWND;
 }
 
-HWND KComponent::GetHWND()
+HWND KComponent::getHWND()
 {
 	return compHWND;
 }
 
-void KComponent::SetParentHWND(HWND compParentHWND)
+void KComponent::setParentHWND(HWND compParentHWND)
 {
 	this->compParentHWND = compParentHWND;
 	if(compHWND)
 		::SetParent(compHWND, compParentHWND);
 }
 
-HWND KComponent::GetParentHWND()
+HWND KComponent::getParentHWND()
 {
 	return compParentHWND;
 }
 
-DWORD KComponent::GetStyle()
+DWORD KComponent::getStyle()
 {
 	return compDwStyle;
 }
 
-void KComponent::SetStyle(DWORD compStyle)
+void KComponent::setStyle(DWORD compStyle)
 {
 	this->compDwStyle = compStyle;
 	if(compHWND)
 		::SetWindowLongPtrW(compHWND, GWL_STYLE, compStyle);
 }
 
-DWORD KComponent::GetExStyle()
+DWORD KComponent::getExStyle()
 {
 	return compDwExStyle;
 }
 
-void KComponent::SetExStyle(DWORD compDwExStyle)
+void KComponent::setExStyle(DWORD compDwExStyle)
 {
 	this->compDwExStyle = compDwExStyle;
 	if(compHWND)
 		::SetWindowLongPtrW(compHWND, GWL_EXSTYLE, compDwExStyle);
 }
 
-int KComponent::GetDPI()
+int KComponent::getDPI()
 {
 	return compDPI;
 }
 
-int KComponent::GetX()
+int KComponent::getX()
 {
 	return compX; 
 }
 
-int KComponent::GetY()
+int KComponent::getY()
 {
 	return compY;
 }
 
-int KComponent::GetWidth()
+int KComponent::getWidth()
 {
 	return compWidth;
 }
 
-int KComponent::GetHeight()
+int KComponent::getHeight()
 {
 	return compHeight;
 }
 
-void KComponent::SetDPI(int newDPI)
+void KComponent::setDPI(int newDPI)
 {
 	if (newDPI == compDPI)
 		return;
 
-	int oldDPI = compDPI;
+	const int oldDPI = compDPI;
 	compDPI = newDPI;
 
 	if (compDwStyle & WS_CHILD) // do not change position and font size of top level windows.
@@ -2675,8 +2738,8 @@ void KComponent::SetDPI(int newDPI)
 		this->compX = ::MulDiv(compX, newDPI, oldDPI);
 		this->compY = ::MulDiv(compY, newDPI, oldDPI);
 
-		if (!compFont->IsDefaultFont())
-			compFont->SetDPI(newDPI);
+		if (!compFont->isDefaultFont())
+			compFont->setDPI(newDPI);
 	}
 
 	this->compWidth = ::MulDiv(compWidth, newDPI, oldDPI);
@@ -2685,12 +2748,12 @@ void KComponent::SetDPI(int newDPI)
 	if (compHWND)
 	{
 		::SetWindowPos(compHWND, 0, compX, compY, compWidth, compHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
-		if((!compFont->IsDefaultFont()) && (compDwStyle & WS_CHILD))
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0));
+		if((!compFont->isDefaultFont()) && (compDwStyle & WS_CHILD))
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
 	}
 }
 
-void KComponent::SetSize(int compWidth, int compHeight)
+void KComponent::setSize(int compWidth, int compHeight)
 {
 	this->compWidth = compWidth;
 	this->compHeight = compHeight;
@@ -2699,7 +2762,7 @@ void KComponent::SetSize(int compWidth, int compHeight)
 		::SetWindowPos(compHWND, 0, 0, 0, compWidth, compHeight, SWP_NOMOVE | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
-void KComponent::SetPosition(int compX, int compY)
+void KComponent::setPosition(int compX, int compY)
 {
 	this->compX = compX;
 	this->compY = compY;
@@ -2708,14 +2771,14 @@ void KComponent::SetPosition(int compX, int compY)
 		::SetWindowPos(compHWND, 0, compX, compY, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
-void KComponent::SetVisible(bool state)
+void KComponent::setVisible(bool state)
 {
 	compVisible = state;
 	if(compHWND)
 		::ShowWindow(compHWND, state ? SW_SHOW : SW_HIDE);
 }
 
-bool KComponent::IsVisible()
+bool KComponent::isVisible()
 {
 	if (compHWND)
 	{
@@ -2726,7 +2789,7 @@ bool KComponent::IsVisible()
 	return false;
 }
 
-bool KComponent::IsEnabled()
+bool KComponent::isEnabled()
 {
 	if (compHWND)
 		compEnabled = (::IsWindowEnabled(compHWND) == TRUE);
@@ -2734,7 +2797,7 @@ bool KComponent::IsEnabled()
 	return compEnabled;
 }
 
-void KComponent::SetEnabled(bool state)
+void KComponent::setEnabled(bool state)
 {
 	compEnabled = state;
 
@@ -2742,19 +2805,19 @@ void KComponent::SetEnabled(bool state)
 		::EnableWindow(compHWND, compEnabled);
 }
 
-void KComponent::BringToFront()
+void KComponent::bringToFront()
 {
 	if(compHWND)
 		::BringWindowToTop(compHWND);
 }
 
-void KComponent::SetKeyboardFocus()
+void KComponent::setKeyboardFocus()
 {
 	if(compHWND)
 		::SetFocus(compHWND);
 }
 
-void KComponent::Repaint()
+void KComponent::repaint()
 {
 	if (compHWND)
 	{
@@ -2772,7 +2835,7 @@ KComponent::~KComponent()
 // =========== KCursor.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2797,7 +2860,7 @@ KCursor::KCursor()
 	hCursor = 0;
 }
 
-bool KCursor::LoadFromResource(WORD resourceID)
+bool KCursor::loadFromResource(WORD resourceID)
 {
 	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
@@ -2805,7 +2868,7 @@ bool KCursor::LoadFromResource(WORD resourceID)
 	return false;
 }
 
-bool KCursor::LoadFromFile(const KString& filePath)
+bool KCursor::loadFromFile(const KString& filePath)
 {
 	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
 	if(hCursor)
@@ -2813,7 +2876,7 @@ bool KCursor::LoadFromFile(const KString& filePath)
 	return false;
 }
 
-HCURSOR KCursor::GetHandle()
+HCURSOR KCursor::getHandle()
 {
 	return hCursor;
 }
@@ -2832,7 +2895,7 @@ KCursor::~KCursor()
 // =========== KFont.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2852,12 +2915,11 @@ KCursor::~KCursor()
 */
 
 
-KFont* KFont::defaultInstance=0;
-
 KFont::KFont()
 {
 	hFont = (HFONT)::GetStockObject(DEFAULT_GUI_FONT);
 	customFont = false;
+	currentDPI = USER_DEFAULT_SCREEN_DPI;
 }
 
 KFont::KFont(const KString& face, int sizeFor96DPI, bool bold, bool italic, bool underline, bool antiAliased, int requiredDPI)
@@ -2878,7 +2940,36 @@ KFont::KFont(const KString& face, int sizeFor96DPI, bool bold, bool italic, bool
 		customFont = true;
 }
 
-void KFont::SetDPI(int newDPI)
+bool KFont::load(const KString& face, int sizeFor96DPI, bool bold, bool italic, bool underline, bool antiAliased, int requiredDPI)
+{
+	if (customFont)
+		::DeleteObject(hFont);
+
+	this->fontFace = face;
+	this->fontSizeFor96DPI = sizeFor96DPI;
+	this->isBold = bold;
+	this->isItalic = italic;
+	this->isUnderline = underline;
+	this->isAntiAliased = antiAliased;
+	this->currentDPI = requiredDPI;
+
+	hFont = ::CreateFontW(fontSizeFor96DPI * requiredDPI / USER_DEFAULT_SCREEN_DPI,
+		0, 0, 0, bold ? FW_BOLD : FW_NORMAL, italic ? TRUE : FALSE, underline ? TRUE : FALSE, 0, DEFAULT_CHARSET,
+		0, 0, antiAliased ? DEFAULT_QUALITY : NONANTIALIASED_QUALITY, VARIABLE_PITCH | FF_DONTCARE, face);
+
+	if (hFont)
+	{
+		customFont = true;
+		return true;
+	}
+	else
+	{
+		customFont = false;
+		return false;
+	}	
+}
+
+void KFont::setDPI(int newDPI)
 {
 	if( customFont && (currentDPI != newDPI) )
 	{
@@ -2892,39 +2983,28 @@ void KFont::SetDPI(int newDPI)
 	}
 }
 
-KFont* KFont::GetDefaultFont()
+KFont* KFont::getDefaultFont()
 {
-	if(KFont::defaultInstance == 0)
-		KFont::defaultInstance = new KFont();
-
-	return KFont::defaultInstance;
+	static KFont defaultInstance;  // Created once, on first use (Meyer's Singleton)
+	return &defaultInstance;
 }
 
-void KFont::DeleteDefaultFont()
-{
-	if (KFont::defaultInstance)
-	{
-		delete KFont::defaultInstance;
-		KFont::defaultInstance = 0;
-	}
-}
-
-bool KFont::IsDefaultFont()
+bool KFont::isDefaultFont()
 {
 	return !customFont;
 }
 
-bool KFont::LoadFont(const KString& path)
+bool KFont::loadPrivateFont(const KString& path)
 {
 	return (::AddFontResourceExW(path, FR_PRIVATE, 0) == 0) ? false : true;
 }
 
-void KFont::RemoveFont(const KString& path)
+void KFont::removePrivateFont(const KString& path)
 {
 	::RemoveFontResourceExW(path, FR_PRIVATE, 0);
 }
 
-HFONT KFont::GetFontHandle()
+HFONT KFont::getFontHandle()
 {
 	return hFont;
 }
@@ -2943,7 +3023,7 @@ KFont::~KFont()
 // =========== KGlyphButton.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -2967,8 +3047,8 @@ KFont::~KFont()
 
 KGlyphButton::KGlyphButton()
 {
-	glyphFont = 0;
-	glyphChar = 0;
+	glyphFont = nullptr;
+	glyphChar = nullptr;
 	glyphLeft = 6;
 }
 
@@ -2976,25 +3056,25 @@ KGlyphButton::~KGlyphButton()
 {
 }
 
-void KGlyphButton::SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor, int glyphLeft)
+void KGlyphButton::setGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor, int glyphLeft)
 {
 	this->glyphChar = glyphChar;
 	this->glyphFont = glyphFont;
 	this->glyphColor = glyphColor;
 	this->glyphLeft = glyphLeft;
 
-	this->Repaint();
+	this->repaint();
 }
 
-void KGlyphButton::SetDPI(int newDPI)
+void KGlyphButton::setDPI(int newDPI)
 {
 	if (glyphFont)
-		glyphFont->SetDPI(newDPI);
+		glyphFont->setDPI(newDPI);
 
-	KButton::SetDPI(newDPI);
+	KButton::setDPI(newDPI);
 }
 
-bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KGlyphButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if (glyphFont)
 	{
@@ -3015,7 +3095,7 @@ bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *re
 					const RECT rc = lpNMCD->rc;
 					const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED | CDIS_GRAYED)) != 0;
 
-					HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, glyphFont->GetFontHandle());
+					HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, glyphFont->getFontHandle());
 					const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
 					const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
@@ -3034,13 +3114,13 @@ bool KGlyphButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *re
 		}
 	}
 
-	return KButton::EventProc(msg, wParam, lParam, result); // pass unprocessed messages to parent
+	return KButton::eventProc(msg, wParam, lParam, result); // pass unprocessed messages to parent
 }
 
 // =========== KGraphics.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3064,73 +3144,122 @@ KGraphics::KGraphics(){}
 
 KGraphics::~KGraphics(){}
 
-void KGraphics::Draw3dVLine(HDC hdc, int startX, int startY, int height)
+void KGraphics::draw3dVLine(HDC hdc, int startX, int startY, int height)
 {
-	KGraphics::Draw3dRect(hdc, startX, startY, 2, height, ::GetSysColor(COLOR_BTNSHADOW), ::GetSysColor(COLOR_BTNHIGHLIGHT));
+	KGraphics::draw3dRect(hdc, startX, startY, 2, 
+		height, ::GetSysColor(COLOR_BTNSHADOW), 
+		::GetSysColor(COLOR_BTNHIGHLIGHT));
 }
 
-void KGraphics::Draw3dHLine(HDC hdc, int startX, int startY, int width)
+void KGraphics::draw3dHLine(HDC hdc, int startX, int startY, int width)
 {
-	KGraphics::Draw3dRect(hdc, startX, startY, width, 2, ::GetSysColor(COLOR_BTNSHADOW), ::GetSysColor(COLOR_BTNHIGHLIGHT));
+	KGraphics::draw3dRect(hdc, startX, startY, width, 
+		2, ::GetSysColor(COLOR_BTNSHADOW), 
+		::GetSysColor(COLOR_BTNHIGHLIGHT));
 }
 
-void KGraphics::Draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight)
+void KGraphics::draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight)
 {
-	KGraphics::Draw3dRect(hdc, lpRect->left, lpRect->top, lpRect->right - lpRect->left, lpRect->bottom - lpRect->top, clrTopLeft, clrBottomRight);
+	KGraphics::draw3dRect(hdc, lpRect->left, lpRect->top, 
+		lpRect->right - lpRect->left, lpRect->bottom - lpRect->top, 
+		clrTopLeft, clrBottomRight);
 }
 
-void KGraphics::Draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight)
+void KGraphics::draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight)
 {
-	KGraphics::FillSolidRect(hdc, x, y, cx - 1, 1, clrTopLeft);
-	KGraphics::FillSolidRect(hdc, x, y, 1, cy - 1, clrTopLeft);
-	KGraphics::FillSolidRect(hdc, x + cx, y, -1, cy, clrBottomRight);
-	KGraphics::FillSolidRect(hdc, x, y + cy, cx, -1, clrBottomRight);
+	KGraphics::fillSolidRect(hdc, x, y, cx - 1, 1, clrTopLeft);
+	KGraphics::fillSolidRect(hdc, x, y, 1, cy - 1, clrTopLeft);
+	KGraphics::fillSolidRect(hdc, x + cx, y, -1, cy, clrBottomRight);
+	KGraphics::fillSolidRect(hdc, x, y + cy, cx, -1, clrBottomRight);
 }
 
-void KGraphics::FillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color)
+void KGraphics::fillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color)
 {
 	RECT rect = { x, y, x + cx, y + cy };
-	KGraphics::FillSolidRect(hdc, &rect, color);
+	KGraphics::fillSolidRect(hdc, &rect, color);
 }
 
-void KGraphics::FillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
+void KGraphics::fillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
 {
 	const COLORREF clrOld = ::SetBkColor(hdc, color);
 
-	::ExtTextOut(hdc, 0, 0, ETO_OPAQUE, lpRect, NULL, 0, NULL);
+	::ExtTextOutW(hdc, 0, 0, ETO_OPAQUE, lpRect, NULL, 0, NULL);
 	::SetBkColor(hdc, clrOld);
 }
 
-RECT KGraphics::CalculateTextSize(const wchar_t *text, HFONT hFont)
+RECT KGraphics::calculateTextSize(const wchar_t* text, HFONT hFont)
 {
 	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
 	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
 	RECT sz = {0, 0, 0, 0};
 
-	::DrawText(hDC, text, ::lstrlenW(text), &sz, DT_CALCRECT | DT_NOPREFIX);
+	::DrawTextW(hDC, text, ::lstrlenW(text), &sz, DT_CALCRECT | DT_NOPREFIX);
 	::SelectObject(hDC, hOldFont);
 
 	::DeleteDC(hDC);
 	return sz;
 }
 
-int KGraphics::CalculateTextHeight(wchar_t* text, HFONT hFont, int width)
+int KGraphics::calculateTextHeight(const wchar_t* text, HFONT hFont, int width)
 {
 	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
 	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
 	RECT sz = { 0, 0, width, 0 };
 
-	::DrawText(hDC, text, ::lstrlenW(text), &sz, DT_CALCRECT | DT_NOPREFIX | DT_WORDBREAK | DT_EDITCONTROL | DT_LEFT);
+	::DrawTextW(hDC, text, ::lstrlenW(text), &sz, 
+		DT_CALCRECT | DT_NOPREFIX | DT_WORDBREAK | DT_EDITCONTROL | DT_LEFT);
+
 	::SelectObject(hDC, hOldFont);
 
 	::DeleteDC(hDC);
 	return sz.bottom;
 }
 
+// https://devblogs.microsoft.com/oldnewthing/20210915-00/?p=105687
+void KGraphics::makeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy)
+{
+	BITMAPINFO bi = {};
+	bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bi.bmiHeader.biWidth = 1;
+	bi.bmiHeader.biHeight = 1;
+	bi.bmiHeader.biPlanes = 1;
+	bi.bmiHeader.biBitCount = 32;
+	bi.bmiHeader.biCompression = BI_RGB;
+
+	RGBQUAD bitmapBits = { 0x00, 0x00, 0x00, 0xFF };
+
+	::StretchDIBits(hdc, x, y, cx, cy,
+		0, 0, 1, 1, &bitmapBits, &bi,
+		DIB_RGB_COLORS, SRCPAINT);
+}
+
+void KGraphics::setBitmapAlphaChannel(HDC hdc, int x, int y, int cx, int cy, BYTE alpha)
+{
+	BITMAPINFO bi = {};
+	bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bi.bmiHeader.biWidth = 1;
+	bi.bmiHeader.biHeight = 1;
+	bi.bmiHeader.biPlanes = 1;
+	bi.bmiHeader.biBitCount = 32;
+	bi.bmiHeader.biCompression = BI_RGB;
+
+	if (alpha != 255) {
+		RGBQUAD zeroAlpha = { 0xFF, 0xFF, 0xFF, 0x00 };
+		::StretchDIBits(hdc, x, y, cx, cy,
+			0, 0, 1, 1, &zeroAlpha, &bi,
+			DIB_RGB_COLORS, SRCAND);
+	}
+
+	RGBQUAD alphaOnly = { 0x00, 0x00, 0x00, alpha };
+	::StretchDIBits(hdc, x, y, cx, cy,
+		0, 0, 1, 1, &alphaOnly, &bi,
+		DIB_RGB_COLORS, SRCPAINT);
+}
+
 // =========== KGridView.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3155,9 +3284,8 @@ KGridView::KGridView(bool sortItems) : KComponent(false)
 {
 	itemCount = 0;
 	colCount = 0;
-	listener = 0;
 
-	compClassName.AssignStaticText(TXT_WITH_LEN("SysListView32"));
+	compClassName.assignStaticText(TXT_WITH_LEN("SysListView32"));
 
 	compWidth = 300;
 	compHeight = 200;
@@ -3165,7 +3293,9 @@ KGridView::KGridView(bool sortItems) : KComponent(false)
 	compX = 0;
 	compY = 0;
 
-	compDwStyle = WS_CHILD | WS_TABSTOP | WS_BORDER | LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
+	compDwStyle = WS_CHILD | WS_TABSTOP | WS_BORDER | 
+		LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
+
 	compDwExStyle = WS_EX_WINDOWEDGE;
 
 	if (sortItems)
@@ -3174,125 +3304,122 @@ KGridView::KGridView(bool sortItems) : KComponent(false)
 
 KGridView::~KGridView(){}
 
-void KGridView::SetListener(KGridViewListener *listener)
+void KGridView::insertRecord(KString** columnsData)
 {
-	this->listener = listener;
-}
-
-KGridViewListener* KGridView::GetListener()
-{
-	return listener;
-}
-
-void KGridView::InsertRecord(KString **columnsData)
-{
-	LVITEMW lvi = { 0 };
+	LVITEMW lvi = {};
 	lvi.mask = LVIF_TEXT;
-	lvi.pszText = (*columnsData[0]);
+	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
 	lvi.iItem = itemCount;
 
-	const int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
+	const int row = (int)::SendMessageW(compHWND, 
+		LVM_INSERTITEMW, 0, (LPARAM)&lvi);
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvItem = { 0 };
+		LV_ITEMW lvItem = {};
 		lvItem.iSubItem = i;
-		lvItem.pszText = (*columnsData[i]);
+		lvItem.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
 
-		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvItem);
+		::SendMessageW(compHWND, LVM_SETITEMTEXTW, 
+			(WPARAM)row, (LPARAM)&lvItem);
 	}
 
 	++itemCount;
 }
 
-void KGridView::InsertRecordTo(int rowIndex, KString **columnsData)
+void KGridView::insertRecordTo(int rowIndex, KString **columnsData)
 {
-	LVITEMW lvi = { 0 };
+	LVITEMW lvi = {};
 	lvi.mask = LVIF_TEXT;
-	lvi.pszText = (*columnsData[0]);
+	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
 	lvi.iItem = rowIndex;
 
-	const int row = (int)::SendMessageW(compHWND, LVM_INSERTITEMW, 0, (LPARAM)&lvi);
+	const int row = (int)::SendMessageW(compHWND, 
+		LVM_INSERTITEMW, 0, (LPARAM)&lvi);
 
 	for (int i = 1; i < colCount; i++) // first column already added, lets add the others
 	{
-		LV_ITEMW lvItem= { 0 };
+		LV_ITEMW lvItem= {};
 		lvItem.iSubItem = i;
-		lvItem.pszText = (*columnsData[i]);
+		lvItem.pszText = (wchar_t*)(const wchar_t*)(*columnsData[i]);
 
-		::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)row, (LPARAM)&lvItem);
+		::SendMessageW(compHWND, LVM_SETITEMTEXTW, 
+			(WPARAM)row, (LPARAM)&lvItem);
 	}
 
 	++itemCount;
 }
 
-KString KGridView::GetRecordAt(int rowIndex, int columnIndex)
+KString KGridView::getRecordAt(int rowIndex, int columnIndex)
 {
 	wchar_t *buffer = (wchar_t*)::malloc(512 * sizeof(wchar_t));
 	buffer[0] = 0;
 
-	LV_ITEMW lvi = { 0 };
+	LV_ITEMW lvi = {};
 	lvi.iSubItem = columnIndex;
 	lvi.cchTextMax = 512;
 	lvi.pszText = buffer;
 
-	::SendMessageW(compHWND, LVM_GETITEMTEXTW, (WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_GetItemText macro. it relies on preprocessor defs.
+	::SendMessageW(compHWND, LVM_GETITEMTEXTW, 
+		(WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_GetItemText macro. it relies on preprocessor defs.
 
-	return KString(buffer, KString::FREE_TEXT_WHEN_DONE);
+	return KString(buffer, KStringBehaviour::FREE_ON_DESTROY);
 }
 
-int KGridView::GetSelectedRow()
+int KGridView::getSelectedRow()
 {
 	return ListView_GetNextItem(compHWND, -1, LVNI_SELECTED);
 }
 
-void KGridView::RemoveRecordAt(int rowIndex)
+void KGridView::removeRecordAt(int rowIndex)
 {
 	if (ListView_DeleteItem(compHWND, rowIndex))
 		--itemCount;
 }
 
-void KGridView::RemoveAll()
+void KGridView::removeAll()
 {
 	ListView_DeleteAllItems(compHWND);
 	itemCount = 0;
 }
 
-void KGridView::UpdateRecordAt(int rowIndex, int columnIndex, const KString& text)
+void KGridView::updateRecordAt(int rowIndex, int columnIndex, const KString& text)
 {
-	LV_ITEMW lvi = { 0 };
+	LV_ITEMW lvi = {};
 	lvi.iSubItem = columnIndex;
-	lvi.pszText = text;
+	lvi.pszText = (wchar_t*)(const wchar_t*)text;
 
-	::SendMessageW(compHWND, LVM_SETITEMTEXTW, (WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_SetItemText macro. it relies on preprocessor defs.
+	::SendMessageW(compHWND, LVM_SETITEMTEXTW, 
+		(WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_SetItemText macro. it relies on preprocessor defs.
 }
 
-void KGridView::SetColumnWidth(int columnIndex, int columnWidth)
+void KGridView::setColumnWidth(int columnIndex, int columnWidth)
 {
 	ListView_SetColumnWidth(compHWND, columnIndex, columnWidth);
 }
 
-int KGridView::GetColumnWidth(int columnIndex)
+int KGridView::getColumnWidth(int columnIndex)
 {
 	return ListView_GetColumnWidth(compHWND, columnIndex);
 }
 
-void KGridView::CreateColumn(const KString& text, int columnWidth)
+void KGridView::createColumn(const KString& text, int columnWidth)
 {
-	LVCOLUMN lvc = { 0 };
+	LVCOLUMNW lvc = {};
 
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 	lvc.fmt = LVCFMT_LEFT;
 	lvc.cx = columnWidth;
-	lvc.pszText = text;
+	lvc.pszText = (wchar_t*)(const wchar_t*)text;
 	lvc.iSubItem = colCount;
 
-	::SendMessageW(compHWND, LVM_INSERTCOLUMNW, (WPARAM)colCount, (LPARAM)&lvc);
+	::SendMessageW(compHWND, LVM_INSERTCOLUMNW, 
+		(WPARAM)colCount, (LPARAM)&lvc);
 
 	++colCount;
 }
 
-bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KGridView::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 {
 	if (msg == WM_NOTIFY)
 	{
@@ -3301,39 +3428,43 @@ bool KGridView::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 			LPNMLISTVIEW pNMListView = (LPNMLISTVIEW)lParam;
 			if ((pNMListView->uChanged & LVIF_STATE) && (pNMListView->uNewState & LVIS_SELECTED))
 			{
-				this->OnItemSelect();
+				_onItemSelect();
 				*result = 0;
 				return true;
 			}
 		}
 		else if (((LPNMHDR)lParam)->code == NM_RCLICK) // List view item right click
 		{
-			this->OnItemRightClick();
+			_onItemRightClick();
 			*result = 0;
 			return true;
 		}
 		else if (((LPNMHDR)lParam)->code == NM_DBLCLK) // List view item double click
 		{
-			this->OnItemDoubleClick();
+			_onItemDoubleClick();
 			*result = 0;
 			return true;
 		}
 	}
 
-	return KComponent::EventProc(msg, wParam, lParam, result);
+	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KGridView::Create(bool requireInitialMessages)
+bool KGridView::create(bool requireInitialMessages)
 {
 	if (!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register WC_LISTVIEWW class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register WC_LISTVIEWW class!
 
 	if (compHWND)
 	{
-		ListView_SetExtendedListViewStyle(compHWND, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		ListView_SetExtendedListViewStyle(compHWND, 
+			LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
+		::SendMessageW(compHWND, WM_SETFONT, 
+			(WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)
@@ -3344,62 +3475,29 @@ bool KGridView::Create(bool requireInitialMessages)
 	return false;
 }
 
-void KGridView::OnItemSelect()
+void KGridView::_onItemSelect()
 {
-	if (listener)
-		listener->OnGridViewItemSelect(this);
+	if (onItemSelect)
+		onItemSelect(this);
 }
 
-void KGridView::OnItemRightClick()
+void KGridView::_onItemRightClick()
 {
-	if (listener)
-		listener->OnGridViewItemRightClick(this);
+	if (onItemRightClick)
+		onItemRightClick(this);
 }
 
-void KGridView::OnItemDoubleClick()
+void KGridView::_onItemDoubleClick()
 {
-	if (listener)
-		listener->OnGridViewItemDoubleClick(this);
+	if (onItemRightClick)
+		onItemRightClick(this);
 }
 
-
-// =========== KGridViewListener.cpp ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-
-KGridViewListener::KGridViewListener(){}
-
-KGridViewListener::~KGridViewListener(){}
-
-void KGridViewListener::OnGridViewItemSelect(KGridView *gridView){}
-
-void KGridViewListener::OnGridViewItemRightClick(KGridView *gridView){}
-
-void KGridViewListener::OnGridViewItemDoubleClick(KGridView *gridView){}
 
 // =========== KGroupBox.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3421,12 +3519,14 @@ void KGridViewListener::OnGridViewItemDoubleClick(KGridView *gridView){}
 
 KGroupBox::KGroupBox()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("GroupBox"));
+	compText.assignStaticText(TXT_WITH_LEN("GroupBox"));
 	compWidth = 100;
 	compHeight = 100;
 
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_GROUPBOX;
+	compDwExStyle = WS_EX_WINDOWEDGE;
 }
+
 
 KGroupBox::~KGroupBox()
 {
@@ -3435,7 +3535,7 @@ KGroupBox::~KGroupBox()
 // =========== KGUIProc.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3462,11 +3562,11 @@ public:
 	static HHOOK wnd_hook;
 };
 
-KComponent* RFCInternalVariables::currentComponent = 0;
+KComponent* RFCInternalVariables::currentComponent = nullptr;
 HHOOK RFCInternalVariables::wnd_hook = 0;
 
-ATOM KGUIProc::AtomComponent;
-ATOM KGUIProc::AtomOldProc;
+ATOM KGUIProc::atomComponent;
+ATOM KGUIProc::atomOldProc;
 
 LRESULT CALLBACK RFCCTL_CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -3482,10 +3582,11 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 			{
 				if (cbtCreateWnd->lpcs->lpCreateParams == RFCInternalVariables::currentComponent) // only catch what we created. ignore unknown windows.
 				{
-					KGUIProc::AttachRFCPropertiesToHWND(hwnd, RFCInternalVariables::currentComponent);
+					KGUIProc::attachRFCPropertiesToHWND(hwnd, RFCInternalVariables::currentComponent);
 
 					// Call the next hook, if there is one
-					const LRESULT result = ::CallNextHookEx(RFCInternalVariables::wnd_hook, nCode, wParam, lParam);
+					const LRESULT result = ::CallNextHookEx(RFCInternalVariables::wnd_hook, 
+						nCode, wParam, lParam);
 
 					// we subclassed what we created. so remove the hook.
 					::UnhookWindowsHookEx(RFCInternalVariables::wnd_hook); // unhooking at here will allow child creation at WM_CREATE. otherwise this will hook child also!
@@ -3500,36 +3601,36 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 	return ::CallNextHookEx(RFCInternalVariables::wnd_hook, nCode, wParam, lParam);
 }
 
-void KGUIProc::AttachRFCPropertiesToHWND(HWND hwnd, KComponent* component)
+void KGUIProc::attachRFCPropertiesToHWND(HWND hwnd, KComponent* component)
 {
-	::SetPropW(hwnd, MAKEINTATOM(KGUIProc::AtomComponent), (HANDLE)component);
+	::SetPropW(hwnd, MAKEINTATOM(KGUIProc::atomComponent), (HANDLE)component);
 
 	FARPROC lpfnOldWndProc = (FARPROC)::GetWindowLongPtrW(hwnd, GWLP_WNDPROC);
-	::SetPropW(hwnd, MAKEINTATOM(KGUIProc::AtomOldProc), (HANDLE)lpfnOldWndProc);
+	::SetPropW(hwnd, MAKEINTATOM(KGUIProc::atomOldProc), (HANDLE)lpfnOldWndProc);
 
-	if (lpfnOldWndProc != (void*)KGUIProc::WindowProc) // sublcass only if window proc is not KGUIProc::WindowProc (common control or dialog)
-		::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)KGUIProc::WindowProc); // subclassing...
+	if (lpfnOldWndProc != (void*)KGUIProc::windowProc) // sublcass only if window proc is not KGUIProc::windowProc (common control or dialog)
+		::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)KGUIProc::windowProc); // subclassing...
 }
 
-LRESULT CALLBACK KGUIProc::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK KGUIProc::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	KComponent* component = (KComponent*)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::AtomComponent));
+	KComponent* component = (KComponent*)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::atomComponent));
 
 	if (!component) // for safe!
 		return ::DefWindowProcW(hwnd, msg, wParam, lParam);
 
-	if (!component->GetHWND()) // window recieve msg for the first time!
-		component->SetHWND(hwnd);
+	if (!component->getHWND()) // window recieve msg for the first time!
+		component->setHWND(hwnd);
 
 	if (msg == WM_NCDESTROY) {
-		::RemovePropW(hwnd, MAKEINTATOM(KGUIProc::AtomComponent));
+		::RemovePropW(hwnd, MAKEINTATOM(KGUIProc::atomComponent));
 
-		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::AtomOldProc));
-		::RemovePropW(hwnd, MAKEINTATOM(KGUIProc::AtomOldProc));
+		FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::atomOldProc));
+		::RemovePropW(hwnd, MAKEINTATOM(KGUIProc::atomOldProc));
 
 		if (lpfnOldWndProc)
 		{
-			if (lpfnOldWndProc != (void*)KGUIProc::WindowProc) // common control or dialog
+			if (lpfnOldWndProc != (void*)KGUIProc::windowProc) // common control or dialog
 			{
 				::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)lpfnOldWndProc); // restore default wnd proc!
 				return ::CallWindowProcW((WNDPROC)lpfnOldWndProc, hwnd, msg, wParam, lParam);
@@ -3539,23 +3640,23 @@ LRESULT CALLBACK KGUIProc::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 		return ::DefWindowProcW(hwnd, msg, wParam, lParam);
 	}
 
-	return component->WindowProc(hwnd, msg, wParam, lParam);
+	return component->windowProc(hwnd, msg, wParam, lParam);
 }
 
-INT_PTR CALLBACK KGUIProc::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK KGUIProc::dialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_INITDIALOG)
 	{
 		KComponent* comp = (KComponent*)lParam;
 		if (comp)
-			comp->HotPlugInto(hwndDlg, true);
+			comp->hotPlugInto(hwndDlg, true);
 
 		return FALSE;
 	}
 	return FALSE;
 }
 
-HWND KGUIProc::CreateComponent(KComponent* component, bool requireInitialMessages)
+HWND KGUIProc::createComponent(KComponent* component, bool requireInitialMessages)
 {
 	if (requireInitialMessages)
 	{
@@ -3565,9 +3666,9 @@ HWND KGUIProc::CreateComponent(KComponent* component, bool requireInitialMessage
 		RFCInternalVariables::wnd_hook = ::SetWindowsHookExW(WH_CBT, &RFCCTL_CBTProc, 0, ::GetCurrentThreadId());
 
 		// pass current component as lpParam. so CBT proc can ignore other unknown windows.
-		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(),
-			component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(),
-			component->GetParentHWND(), (HMENU)(UINT_PTR)component->GetControlID(), KApplication::hInstance, (LPVOID)component);
+		HWND hwnd = ::CreateWindowExW(component->getExStyle(), component->getComponentClassName(), component->getText(),
+			component->getStyle(), component->getX(), component->getY(), component->getWidth(), component->getHeight(),
+			component->getParentHWND(), (HMENU)(UINT_PTR)component->getControlID(), KApplication::hInstance, (LPVOID)component);
 
 		// unhook at here will cause catching childs which are created at WM_CREATE. so, unhook at CBT proc.
 		//::UnhookWindowsHookEx(RFCInternalVariables::wnd_hook);
@@ -3576,31 +3677,272 @@ HWND KGUIProc::CreateComponent(KComponent* component, bool requireInitialMessage
 	}
 	else
 	{
-		HWND hwnd = ::CreateWindowExW(component->GetExStyle(), component->GetComponentClassName(), component->GetText(),
-			component->GetStyle(), component->GetX(), component->GetY(), component->GetWidth(), component->GetHeight(),
-			component->GetParentHWND(), (HMENU)(UINT_PTR)component->GetControlID(), KApplication::hInstance, 0);
+		HWND hwnd = ::CreateWindowExW(component->getExStyle(), component->getComponentClassName(), component->getText(),
+			component->getStyle(), component->getX(), component->getY(), component->getWidth(), component->getHeight(),
+			component->getParentHWND(), (HMENU)(UINT_PTR)component->getControlID(), KApplication::hInstance, 0);
 
-		KGUIProc::AttachRFCPropertiesToHWND(hwnd, component);
-		component->SetHWND(hwnd);
+		KGUIProc::attachRFCPropertiesToHWND(hwnd, component);
+		component->setHWND(hwnd);
 
 		return hwnd;
 	}
 }
 
-int KGUIProc::HotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
+int KGUIProc::hotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
 {
-	return (int)::DialogBoxParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, KGUIProc::DialogProc, (LPARAM)component);
+	return (int)::DialogBoxParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, KGUIProc::dialogProc, (LPARAM)component);
 }
 
-HWND KGUIProc::HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
+HWND KGUIProc::hotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
 {
-	return ::CreateDialogParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, KGUIProc::DialogProc, (LPARAM)component);
+	return ::CreateDialogParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, KGUIProc::dialogProc, (LPARAM)component);
 }
+
+// =========== KHostPanel.cpp ===========
+
+/*
+	Copyright (C) 2013-2025 CrownSoft
+
+	This software is provided 'as-is', without any express or implied
+	warranty.  In no event will the authors be held liable for any damages
+	arising from the use of this software.
+
+	Permission is granted to anyone to use this software for any purpose,
+	including commercial applications, and to alter it and redistribute it
+	freely, subject to the following restrictions:
+
+	1. The origin of this software must not be misrepresented; you must not
+	   claim that you wrote the original software. If you use this software
+	   in a product, an acknowledgment in the product documentation would be
+	   appreciated but is not required.
+	2. Altered source versions must be plainly marked as such, and must not be
+	   misrepresented as being the original software.
+	3. This notice may not be removed or altered from any source distribution.
+*/
+
+
+
+KHostPanel::KHostPanel() : KComponent(true)
+{
+	compDwStyle = WS_CHILD | WS_CLIPCHILDREN;
+	compDwExStyle = compDwExStyle | WS_EX_CONTROLPARENT; // non-top-level windows that contain child controls/dialogs must have the WS_EX_CONTROLPARENT style.
+	// otherwise you will get infinite loop when calling IsDialogMessage.
+
+	compText.assignStaticText(TXT_WITH_LEN("KHostPanel"));
+	enableDPIUnawareMode = false;
+	componentList = nullptr;
+}
+
+void KHostPanel::setComponentList(KPointerList<KComponent*, 24, false>* componentList)
+{
+	this->componentList = componentList;
+}
+
+void KHostPanel::setEnableDPIUnawareMode(bool enable)
+{
+	enableDPIUnawareMode = enable;
+}
+
+bool KHostPanel::addComponent(KComponent* component, bool requireInitialMessages)
+{
+	if (component)
+	{
+		if ((compHWND != 0) && (componentList != nullptr))
+		{
+			component->setParentHWND(compHWND);
+
+			if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
+				component->setDPI(compDPI);
+
+			componentList->add(component);
+
+			return component->create(requireInitialMessages);
+		}
+	}
+	return false;
+}
+
+void KHostPanel::removeComponent(KComponent* component)
+{
+	if (componentList == nullptr)
+		return;
+
+	int index = componentList->getIndex(component);
+	if (index != -1)
+	{
+		componentList->remove(index);
+		component->destroy();
+	}
+}
+
+bool KHostPanel::addContainer(KHostPanel* container, bool requireInitialMessages)
+{
+	if (container)
+	{
+		container->setComponentList(componentList);
+		container->setEnableDPIUnawareMode(enableDPIUnawareMode);
+		return this->addComponent(static_cast<KComponent*>(container), requireInitialMessages);
+	}
+	return false;
+}
+
+LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+		case WM_DRAWITEM: // owner-drawn button, combo box and list box... (menu ignored. use windowProc of parent window if you want to draw menu)
+		{
+			if (wParam != 0) // ignore menus
+			{
+				KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, 
+					MAKEINTATOM(KGUIProc::atomComponent));
+
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->eventProc(msg, wParam, lParam, &result))
+						return result;
+				}
+			}
+		}
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
+
+		case WM_NOTIFY: // GridView, Custom drawing etc...
+		{
+			KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, 
+				MAKEINTATOM(KGUIProc::atomComponent));
+
+			if (component)
+			{
+				LRESULT result = 0; // just for safe
+				if (component->eventProc(msg, wParam, lParam, &result))
+					return result;
+			}
+		}
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
+
+		case WM_VKEYTOITEM:
+		case WM_CHARTOITEM:
+		case WM_HSCROLL: // trackbar
+		case WM_VSCROLL:
+		case WM_CTLCOLORBTN: // buttons 
+		case WM_CTLCOLOREDIT: // edit controls 
+		case WM_CTLCOLORLISTBOX: // listbox controls 
+		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
+		case WM_CTLCOLORSTATIC: // static controls
+		{
+			KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::atomComponent));
+			if (component)
+			{
+				LRESULT result = 0; // just for safe
+				if (component->eventProc(msg, wParam, lParam, &result))
+					return result;
+			}
+		}
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
+
+		case WM_MEASUREITEM: // combo box, list box, list-view control... (menu ignored. use windowProc of parent window if you want to set the size of menu)
+		{
+			if (wParam != 0) // ignore menus
+			{
+				KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd, 
+					((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::atomComponent));
+
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->eventProc(msg, wParam, lParam, &result))
+						return result;
+				}
+			}
+		}
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
+
+		case WM_COMPAREITEM: // owner-drawn combo box or list box
+		{
+			KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, 
+				MAKEINTATOM(KGUIProc::atomComponent));
+
+			if (component)
+			{
+				LRESULT result = 0; // just for safe
+				if (component->eventProc(msg, wParam, lParam, &result))
+					return result;
+			}
+		}
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
+
+		case WM_TIMER:
+		{
+			KTimer* timer = KIDGenerator::getInstance()->getTimerByID((UINT)wParam);
+			if (timer)
+			{
+				timer->_onTimer();
+				break;
+			}
+		}
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
+
+		case WM_COMMAND: // button, checkbox, radio button, listbox, combobox or menu-item
+		{
+			if ((HIWORD(wParam) == 0) && (lParam == 0)) // its menu item! unfortunately windows does not send menu handle with clicked event!
+			{
+				KMenuItem* menuItem = KIDGenerator::getInstance()->getMenuItemByID(LOWORD(wParam));
+				if (menuItem)
+				{
+					menuItem->_onPress();
+					break;
+				}
+			}
+			else if (lParam)// send to appropriate component
+			{
+				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, 
+					MAKEINTATOM(KGUIProc::atomComponent));
+
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->eventProc(msg, wParam, lParam, &result))
+						return result;
+				}
+			}
+			else if (LOWORD(wParam) == IDOK) // enter key pressed. (lParam does not contain current comp hwnd)
+			{
+				HWND currentComponent = ::GetFocus();
+
+				// simulate enter key pressed event into current component. (might be a window)
+				::SendMessageW(currentComponent, WM_KEYDOWN, VK_RETURN, 0);
+				::SendMessageW(currentComponent, WM_KEYUP, VK_RETURN, 0);
+				::SendMessageW(currentComponent, WM_CHAR, VK_RETURN, 0);
+
+				return 0;
+			}
+			else if (LOWORD(wParam) == IDCANCEL) // Esc key pressed. (lParam does not contain current comp hwnd)
+			{
+				HWND currentComponent = ::GetFocus();
+
+				// simulate esc key pressed event into current component. (might be a window)
+				::SendMessageW(currentComponent, WM_KEYDOWN, VK_ESCAPE, 0);
+				::SendMessageW(currentComponent, WM_KEYUP, VK_ESCAPE, 0);
+				::SendMessageW(currentComponent, WM_CHAR, VK_ESCAPE, 0);
+
+				return 0;
+			}
+		}
+		return KComponent::windowProc(hwnd, msg, wParam, lParam);
+
+		default:
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
+	}
+	return 0;
+}
+
+KHostPanel::~KHostPanel() {}
 
 // =========== KIcon.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3619,29 +3961,54 @@ HWND KGUIProc::HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComp
 	3. This notice may not be removed or altered from any source distribution.	  
 */
 
+#include <commctrl.h>
 
 KIcon::KIcon()
 {
+	resourceID = 0;
 	hIcon = 0;
 }
 
-bool KIcon::LoadFromResource(WORD resourceID)
+void KIcon::setResource(WORD resourceID)
 {
-	hIcon = (HICON)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	this->resourceID = resourceID;
+}
+
+HICON KIcon::getScaledIcon(int size)
+{
+	HICON icon = 0;
+	::LoadIconWithScaleDown(KApplication::hInstance,
+		MAKEINTRESOURCEW(resourceID), size, size,
+		&icon);
+
+	return icon;
+}
+
+bool KIcon::loadFromResource(WORD resourceID)
+{
+	this->resourceID = resourceID;
+
+	hIcon = (HICON)::LoadImageW(KApplication::hInstance, 
+		MAKEINTRESOURCEW(resourceID), IMAGE_ICON, 0, 0, 
+		LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+
 	if(hIcon)
 		return true;	
 	return false;
 }
 
-bool KIcon::LoadFromFile(const KString& filePath)
+bool KIcon::loadFromFile(const KString& filePath)
 {
-	hIcon = (HICON)::LoadImageW(KApplication::hInstance, filePath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hIcon = (HICON)::LoadImageW(KApplication::hInstance, 
+		filePath, IMAGE_ICON, 0, 0, 
+		LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+
 	if(hIcon)
 		return true;	
 	return false;
 }
 
-HICON KIcon::GetHandle()
+HICON KIcon::getHandle()
 {
 	return hIcon;
 }
@@ -3660,7 +4027,7 @@ KIcon::~KIcon()
 // =========== KIDGenerator.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3680,119 +4047,84 @@ KIcon::~KIcon()
 */
 
 
-static const int rfc_InitialMenuItemCount	= 400;
-static const int rfc_InitialTimerCount		= 40;
-static const int rfc_InitialControlID		= 100;
-static const int rfc_InitialMenuItemID		= 30000;
-static const int rfc_InitialTimerID			= 1000;
-
-KIDGenerator* KIDGenerator::_instance = 0;
-
 KIDGenerator::KIDGenerator()
 {
 	timerCount = 0;
 	menuItemCount = 0;
 	classCount = 0;
 	controlCount = 0;
-	menuItemList = 0;
-	timerList = 0;
 }
 
-KIDGenerator* KIDGenerator::GetInstance()
+KIDGenerator* KIDGenerator::getInstance()
 {
-	if(_instance)
-		return _instance;
-	_instance = new KIDGenerator();
-	return _instance;
+	static KIDGenerator defaultInstance;  // Created once, on first use (Meyer's Singleton)
+	return &defaultInstance;
 }
 
-UINT KIDGenerator::GenerateControlID()
+UINT KIDGenerator::generateControlID()
 {
 	++controlCount;
 	return controlCount + rfc_InitialControlID;
 }
 
-UINT KIDGenerator::GenerateMenuItemID(KMenuItem *menuItem)
+UINT KIDGenerator::generateMenuItemID(KMenuItem* menuItem)
 {
-	if (menuItemList == 0) // generate on first call
-		menuItemList = new KPointerList<KMenuItem*>(rfc_InitialMenuItemCount);
-
 	++menuItemCount;
-	menuItemList->AddPointer(menuItem);
+	menuItemList.add(menuItem);
 
 	return menuItemCount + rfc_InitialMenuItemID;
 }
 
-KMenuItem* KIDGenerator::GetMenuItemByID(UINT id)
+KMenuItem* KIDGenerator::getMenuItemByID(UINT id)
 {
-	if (menuItemList)
-		return menuItemList->GetPointer(id - (rfc_InitialMenuItemID + 1));
-	return 0;
+	return menuItemList.get(id - (rfc_InitialMenuItemID + 1));
 }
 
-KString KIDGenerator::GenerateClassName()
+void KIDGenerator::generateClassName(KString& stringToModify)
 { 
-	wchar_t *className = (wchar_t*)::malloc(32 * sizeof(wchar_t));
+	// can generate up to 9999 class names.
+	wchar_t* classNameBuffer;
+	int* pLength;
+	stringToModify.accessRawSSOBuffer(&classNameBuffer, &pLength);
 
-	className[0] = L'R';
-	className[1] = L'F';
-	className[2] = L'C';
-	className[3] = L'_';
-
-	int hInstance32 = HandleToLong(KApplication::hInstance);
+	int hInstance32 = ::HandleToLong(KApplication::hInstance);
 	if (hInstance32 < 0)
 		hInstance32 *= -1;
 
-	::_itow_s(hInstance32, &className[4],28, 10); // 28 is buffer size
+	::_itow_s(hInstance32, classNameBuffer, KString::SSO_BUFFER_SIZE, 16);  // using hex code reduces char usage.
 
-	int lastPos = (int)::wcslen(className);
-	className[lastPos] = L'_';
+	int pos = (int)::wcslen(classNameBuffer);
+	if (pos < 11) {  // Safety check
+		::_itow_s(classCount, &classNameBuffer[pos], KString::SSO_BUFFER_SIZE - pos, 10);
+		classCount++;
 
-	::_itow_s(classCount, &className[lastPos + 1],32 - (lastPos + 1), 10);
-
-	/*
-	#ifdef _MSC_VER
-		::swprintf(className, 32, L"RFC_%d_%d", (int)hInstance, classCount);
-	#else
-		::swprintf(className,L"RFC_%d_%d", (int)hInstance, classCount);
-	#endif */
-
-	++classCount;
-
-	return KString(className, KString::FREE_TEXT_WHEN_DONE);
+		*pLength = (int)::wcslen(classNameBuffer);
+	}
+	else
+	{
+		K_ASSERT(false, "class count overflow in KIDGenerator::generateClassName");
+	}
 }
 
-UINT KIDGenerator::GenerateTimerID(KTimer *timer)
+UINT KIDGenerator::generateTimerID(KTimer* timer)
 {
-	if (timerList == 0) // generate on first call
-		timerList = new KPointerList<KTimer*>(rfc_InitialTimerCount);
-
 	++timerCount;
-	timerList->AddPointer(timer);
+	timerList.add(timer);
 
 	return timerCount + rfc_InitialTimerID;
 }
 
-KTimer* KIDGenerator::GetTimerByID(UINT id)
+KTimer* KIDGenerator::getTimerByID(UINT id)
 {
-	if (timerList)
-		return timerList->GetPointer(id - (rfc_InitialTimerID + 1));
-	return 0;
+	return timerList.get(id - (rfc_InitialTimerID + 1));
 }
 
-KIDGenerator::~KIDGenerator()
-{
-	if (menuItemList)
-		delete menuItemList;
-
-	if (timerList)
-		delete timerList;
-}
+KIDGenerator::~KIDGenerator() {}
 
 // =========== KLabel.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3815,8 +4147,8 @@ KIDGenerator::~KIDGenerator()
 
 KLabel::KLabel() : KComponent(false)
 {
-	compClassName.AssignStaticText(TXT_WITH_LEN("STATIC"));
-	compText.AssignStaticText(TXT_WITH_LEN("Label"));
+	compClassName.assignStaticText(TXT_WITH_LEN("STATIC"));
+	compText.assignStaticText(TXT_WITH_LEN("Label"));
 
 	compWidth = 100;
 	compHeight = 25;
@@ -3824,20 +4156,105 @@ KLabel::KLabel() : KComponent(false)
 	compX = 0;
 	compY = 0;
 
+	autoResize = false;
+
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY;
 	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
-bool KLabel::Create(bool requireInitialMessages)
+void KLabel::resizeToTextSize()
+{
+	if (compText.isNotEmpty())
+	{
+		RECT rect = KGraphics::calculateTextSize(compText, compFont->getFontHandle());
+		this->setSize(rect.right + AUTOSIZE_EXTRA_GAP, rect.bottom);
+	}
+	else // text is empty
+	{
+		this->setSize(20, 25);
+	}
+}
+
+void KLabel::enableAutoResize(bool enable)
+{
+	autoResize = enable;
+
+	if(autoResize)
+		this->resizeToTextSize();
+}
+
+void KLabel::setText(const KString& compText)
+{
+	KComponent::setText(compText);
+
+	if (autoResize)
+		this->resizeToTextSize();
+}
+
+void KLabel::setFont(KFont* compFont)
+{
+	KComponent::setFont(compFont);
+
+	if (autoResize)
+		this->resizeToTextSize();
+}
+
+void KLabel::setFont(KFont& compFont)
+{
+	KComponent::setFont(&compFont);
+
+	if (autoResize)
+		this->resizeToTextSize();
+}
+
+void KLabel::setDPI(int newDPI)
+{
+	if (newDPI == compDPI)
+		return;
+
+	int oldDPI = compDPI;
+	compDPI = newDPI;
+
+	this->compX = ::MulDiv(compX, newDPI, oldDPI);
+	this->compY = ::MulDiv(compY, newDPI, oldDPI);
+
+	if (!compFont->isDefaultFont())
+		compFont->setDPI(newDPI);
+	
+	if (compText.isNotEmpty() && autoResize)
+	{
+		RECT rect = KGraphics::calculateTextSize(compText, compFont->getFontHandle());
+		this->compWidth = rect.right + AUTOSIZE_EXTRA_GAP;
+		this->compHeight = rect.bottom;
+	}
+	else
+	{
+		this->compWidth = ::MulDiv(compWidth, newDPI, oldDPI);
+		this->compHeight = ::MulDiv(compHeight, newDPI, oldDPI);
+	}
+
+	if (compHWND)
+	{
+		::SetWindowPos(compHWND, 0, compX, compY, compWidth, 
+			compHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+
+		if ((!compFont->isDefaultFont()) && (compDwStyle & WS_CHILD))
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
+	}
+}
+
+bool KLabel::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register Label class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register Label class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, 
+			(WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)
@@ -3855,7 +4272,7 @@ KLabel::~KLabel()
 // =========== KListBox.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -3874,16 +4291,16 @@ KLabel::~KLabel()
 	3. This notice may not be removed or altered from any source distribution.	  
 */
 
+#include <windowsx.h>
 
 KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent(false)
 {
 	this->multipleSelection = multipleSelection;
-	listener = 0;
 
 	selectedItemIndex = -1;
 	selectedItemEnd = -1;
 
-	compClassName.AssignStaticText(TXT_WITH_LEN("LISTBOX"));
+	compClassName.assignStaticText(TXT_WITH_LEN("LISTBOX"));
 
 	compWidth = 100;
 	compHeight = 100;
@@ -3900,63 +4317,55 @@ KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent
 		compDwStyle = compDwStyle | LBS_SORT;
 	if(vscroll)
 		compDwStyle = compDwStyle | WS_VSCROLL;
-
-	stringList = new KPointerList<KString*>(100);
 }
 
-void KListBox::SetListener(KListBoxListener *listener)
+void KListBox::addItem(const KString& text)
 {
-	this->listener = listener;
-}
-
-void KListBox::AddItem(const KString& text)
-{
-	KString *str = new KString(text);
-	stringList->AddPointer(str);
+	stringList.add(text);
 
 	if(compHWND)
-		::SendMessageW(compHWND, LB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*str);
+		::SendMessageW(compHWND, LB_ADDSTRING, 0, (LPARAM)(const wchar_t*)text);
 }
 
-void KListBox::RemoveItem(int index)
+void KListBox::removeItem(int index)
 {
-	KString *text = stringList->GetPointer(index);
-	if (text)
-		delete text;
-
-	stringList->RemovePointer(index);
-
-	if(compHWND)	 
-		::SendMessageW(compHWND, LB_DELETESTRING, index, 0);
-}
-
-void KListBox::RemoveItem(const KString& text)
-{
-	const int itemIndex = this->GetItemIndex(text);
-	if(itemIndex > -1)
-		this->RemoveItem(itemIndex);
-}
-
-int KListBox::GetItemIndex(const KString& text)
-{
-	const int listSize = stringList->GetSize();
-	if(listSize)
+	if(stringList.remove(index))
 	{
-		for(int i = 0; i < listSize; i++)
+		if (compHWND)
+			::SendMessageW(compHWND, LB_DELETESTRING, index, 0);
+	}
+}
+
+void KListBox::removeItem(const KString& text)
+{
+	const int itemIndex = getItemIndex(text);
+	if(itemIndex > -1)
+		this->removeItem(itemIndex);
+}
+
+void KListBox::updateItem(int index, const KString& text)
+{
+	if (stringList.set(index, text))
+	{
+		if (compHWND)
 		{
-			if (stringList->GetPointer(i)->Compare(text))
-				return i;
+			::SendMessageW(compHWND, LB_DELETESTRING, index, 0);
+			::SendMessageW(compHWND, LB_INSERTSTRING, index, (LPARAM)(const wchar_t*)text);
 		}
 	}
-	return -1;
 }
 
-int KListBox::GetItemCount()
+int KListBox::getItemIndex(const KString& text)
 {
-	return stringList->GetSize();
+	return stringList.getIndex(text);
 }
 
-int KListBox::GetSelectedItemIndex()
+int KListBox::getItemCount()
+{
+	return stringList.size();
+}
+
+int KListBox::getSelectedItemIndex()
 {
 	if(compHWND)
 	{	 
@@ -3967,34 +4376,37 @@ int KListBox::GetSelectedItemIndex()
 	return -1;	
 }
 
-KString KListBox::GetSelectedItem()
+KString KListBox::getSelectedItem()
 {
-	const int itemIndex = this->GetSelectedItemIndex();
+	const int itemIndex = getSelectedItemIndex();
 	if(itemIndex > -1)
-		return *stringList->GetPointer(itemIndex);
+		return stringList.get(itemIndex);
+
 	return KString();
 }
 
-int KListBox::GetSelectedItems(int* itemArray, int itemCountInArray)
+int KListBox::getSelectedItems(int* itemArray, int itemCountInArray)
 {
 	if(compHWND)
 	{	 
-		const int items = (int)::SendMessageW(compHWND, LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
+		const int items = (int)::SendMessageW(compHWND, 
+			LB_GETSELITEMS, itemCountInArray, (LPARAM)itemArray);
+
 		if(items != LB_ERR)
 			return items;
 	}
 	return -1;
 }
 
-void KListBox::ClearList()
+void KListBox::clearList()
 {
-	stringList->DeleteAll(true);
+	stringList.removeAll();
 
 	if(compHWND)
 		::SendMessageW(compHWND, LB_RESETCONTENT, 0, 0);
 }
 
-void KListBox::SelectItem(int index)
+void KListBox::selectItem(int index)
 {
 	selectedItemIndex = index;
 
@@ -4002,7 +4414,7 @@ void KListBox::SelectItem(int index)
 		::SendMessageW(compHWND, LB_SETCURSEL, index, 0);
 }
 
-void KListBox::SelectItems(int start, int end)
+void KListBox::selectItems(int start, int end)
 {
 	if(multipleSelection)
 	{
@@ -4014,44 +4426,71 @@ void KListBox::SelectItems(int start, int end)
 	}
 }
 
-bool KListBox::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KListBox::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if (msg == WM_COMMAND) 
 	{
 		if (HIWORD(wParam) == LBN_SELCHANGE) // listbox sel change!
 		{
-			this->OnItemSelect();
+			_onItemSelect();
 			*result = 0;
 			return true;
 		}
 		else if (HIWORD(wParam) == LBN_DBLCLK) // listbox double click
 		{
-			this->OnItemDoubleClick();
+			_onItemDoubleClick();
+			*result = 0;
+			return true;
+		}
+	}
+	else if (msg == WM_CONTEXTMENU)
+	{
+		POINT pt;
+		pt.x = GET_X_LPARAM(lParam);
+		pt.y = GET_Y_LPARAM(lParam);
+
+		// Convert screen coordinates to client coordinates for the ListBox
+		::ScreenToClient(compHWND, &pt);
+
+		// Determine which item is at the clicked position
+		DWORD index = (DWORD)::SendMessageW(compHWND, LB_ITEMFROMPOINT, 0, MAKELPARAM(pt.x, pt.y));
+
+		// HIWORD is 0 if the click is on a valid item
+		if (HIWORD(index) == 0)
+		{
+			DWORD itemIndex = LOWORD(index);
+			::SendMessageW(compHWND, LB_SETCURSEL, itemIndex, 0); // select it
+
+			_onItemRightClick();
 			*result = 0;
 			return true;
 		}
 	}
 
-	return KComponent::EventProc(msg, wParam, lParam, result);
+	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KListBox::Create(bool requireInitialMessages)
+bool KListBox::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register LISTBOX class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register LISTBOX class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, 
+			(WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
+
 		::EnableWindow(compHWND, compEnabled);
 
-		const int listSize = stringList->GetSize();
+		const int listSize = stringList.size();
 		if(listSize)
 		{
-			for(int i = 0; i < listSize; i++)
-				::SendMessageW(compHWND, LB_ADDSTRING, 0, (LPARAM)(const wchar_t*)*stringList->GetPointer(i));
+			for (int i = 0; i < listSize; i++)
+			{
+				::SendMessageW(compHWND, LB_ADDSTRING, 0, (LPARAM)(const wchar_t*)stringList.get(i));
+			}
 		}
 
 		if(!multipleSelection) // single selction!
@@ -4073,58 +4512,30 @@ bool KListBox::Create(bool requireInitialMessages)
 	return false;
 }
 
-void KListBox::OnItemSelect()
+void KListBox::_onItemSelect()
 {
-	if(listener)
-		listener->OnListBoxItemSelect(this);
+	if(onItemSelect)
+		onItemSelect(this);
 }
 
-void KListBox::OnItemDoubleClick()
+void KListBox::_onItemDoubleClick()
 {
-	if(listener)
-		listener->OnListBoxItemDoubleClick(this);
+	if(onItemDoubleClick)
+		onItemDoubleClick(this);
 }
 
-KListBox::~KListBox()
+void KListBox::_onItemRightClick()
 {
-	stringList->DeleteAll(false);
-	delete stringList;
+	if (onItemRightClick)
+		onItemRightClick(this);
 }
 
-// =========== KListBoxListener.cpp ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-
-KListBoxListener::KListBoxListener(){}
-KListBoxListener::~KListBoxListener(){}
-
-void KListBoxListener::OnListBoxItemSelect(KListBox *listBox){}
-
-void KListBoxListener::OnListBoxItemDoubleClick(KListBox *listBox){}
+KListBox::~KListBox() {}
 
 // =========== KMenu.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4149,17 +4560,18 @@ KMenu::KMenu()
 	hMenu = ::CreatePopupMenu();
 }
 
-void KMenu::AddMenuItem(KMenuItem *menuItem)
+void KMenu::addMenuItem(KMenuItem* menuItem)
 {
-	menuItem->AddToMenu(hMenu);
+	menuItem->addToMenu(hMenu);
 }
 
-void KMenu::AddSubMenu(const KString& text, KMenu *menu)
+void KMenu::addSubMenu(const KString& text, KMenu* menu)
 {
-	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), text);
+	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, 
+		(UINT_PTR)menu->getMenuHandle(), text);
 }
 
-void KMenu::AddSeperator()
+void KMenu::addSeperator()
 {
 	MENUITEMINFOW mii;
 	::ZeroMemory(&mii, sizeof(mii));
@@ -4171,19 +4583,19 @@ void KMenu::AddSeperator()
 	::InsertMenuItemW(hMenu, 0xFFFFFFFF, FALSE, &mii);
 }
 
-HMENU KMenu::GetMenuHandle()
+HMENU KMenu::getMenuHandle()
 {
 	return hMenu;
 }
 
-void KMenu::PopUpMenu(KWindow *window)
+void KMenu::popUpMenu(HWND window, bool bringWindowToForeground)
 {
-	if(window)
-	{
-		POINT p;
-		::GetCursorPos(&p);
-		::TrackPopupMenu(hMenu, TPM_LEFTBUTTON, p.x, p.y, 0, window->GetHWND(), NULL);
-	}
+	if (bringWindowToForeground)
+		::SetForegroundWindow(window);
+
+	POINT p;
+	::GetCursorPos(&p);
+	::TrackPopupMenu(hMenu, TPM_LEFTBUTTON, p.x, p.y, 0, window, NULL);
 }
 
 KMenu::~KMenu()
@@ -4194,7 +4606,7 @@ KMenu::~KMenu()
 // =========== KMenuBar.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4219,14 +4631,15 @@ KMenuBar::KMenuBar()
 	hMenu = ::CreateMenu();
 }
 
-void KMenuBar::AddMenu(const KString& text, KMenu *menu)
+void KMenuBar::addMenu(const KString& text, KMenu* menu)
 {
-	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT_PTR)menu->GetMenuHandle(), text);
+	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, 
+		(UINT_PTR)menu->getMenuHandle(), text);
 }
 
-void KMenuBar::AddToWindow(KWindow *window)
+void KMenuBar::addToWindow(KWindow* window)
 {
-	HWND hwnd = window->GetHWND();
+	HWND hwnd = window->getHWND();
 	if(hwnd)
 		::SetMenu(hwnd, hMenu);
 }
@@ -4239,7 +4652,7 @@ KMenuBar::~KMenuBar()
 // =========== KMenuButton.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4260,57 +4673,55 @@ KMenuBar::~KMenuBar()
 
 #include <commctrl.h>
 
-KMenuButton::KMenuButton()
+KMenuButton::KMenuButton() : arrowFont(L"Webdings", 18, false, false, false, false, USER_DEFAULT_SCREEN_DPI)
 {
-	buttonMenu = 0;
-	glyphFont = 0;
-	glyphChar = 0;
+	buttonMenu = nullptr;
+	glyphFont = nullptr;
+	glyphChar = nullptr;
 	glyphLeft = 6;
-	arrowFont = new KFont(CONST_TXT("Webdings"), 18, false, false, false, false, USER_DEFAULT_SCREEN_DPI);
 }	
 
-KMenuButton::~KMenuButton()
-{
-	delete arrowFont;
-}
+KMenuButton::~KMenuButton() {}
 
-void KMenuButton::SetMenu(KMenu *buttonMenu)
+void KMenuButton::setMenu(KMenu* buttonMenu)
 {
 	this->buttonMenu = buttonMenu;
 }
 
-void KMenuButton::SetGlyph(const wchar_t *glyphChar, KFont *glyphFont, COLORREF glyphColor, int glyphLeft)
+void KMenuButton::setGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor, int glyphLeft)
 {
 	this->glyphChar = glyphChar;
 	this->glyphFont = glyphFont;
 	this->glyphColor = glyphColor;
 	this->glyphLeft = glyphLeft;
 
-	this->Repaint();
+	this->repaint();
 }
 
-void KMenuButton::SetDPI(int newDPI)
+void KMenuButton::setDPI(int newDPI)
 {
 	if (glyphFont)
-		glyphFont->SetDPI(newDPI);
+		glyphFont->setDPI(newDPI);
 
-	arrowFont->SetDPI(newDPI);
+	arrowFont.setDPI(newDPI);
 
-	KButton::SetDPI(newDPI);
+	KButton::setDPI(newDPI);
 }
 
-void KMenuButton::OnPress()
+void KMenuButton::_onPress()
 {
 	if (buttonMenu)
 	{
 		POINT point = {compX, compY};
 		::ClientToScreen(compParentHWND, &point); // get screen cordinates
 
-		::TrackPopupMenu(buttonMenu->GetMenuHandle(), TPM_LEFTBUTTON, point.x, point.y + compHeight, 0, compParentHWND, NULL);
+		::TrackPopupMenu(buttonMenu->getMenuHandle(), 
+			TPM_LEFTBUTTON, point.x, point.y + compHeight, 
+			0, compParentHWND, NULL);
 	}
 }
 
-bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KMenuButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if (msg == WM_NOTIFY)
 	{		
@@ -4327,13 +4738,13 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 			else if ( CDDS_POSTPAINT== lpNMCD->dwDrawStage ) //  postpaint stage
 			{
 				const RECT rc = lpNMCD->rc;
-				KGraphics::Draw3dVLine(lpNMCD->hdc, rc.right - ::MulDiv(22, compDPI, USER_DEFAULT_SCREEN_DPI),
+				KGraphics::draw3dVLine(lpNMCD->hdc, rc.right - ::MulDiv(22, compDPI, USER_DEFAULT_SCREEN_DPI),
 					rc.top + ::MulDiv(6, compDPI, USER_DEFAULT_SCREEN_DPI), 
 					rc.bottom - ::MulDiv(12, compDPI, USER_DEFAULT_SCREEN_DPI)); // draw line
 
 				const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED|CDIS_GRAYED)) != 0;
 
-				HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, arrowFont->GetFontHandle());
+				HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, arrowFont.getFontHandle());
 				const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, ::GetSysColor(bDisabled ? COLOR_GRAYTEXT : COLOR_BTNTEXT));
 				const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
@@ -4342,7 +4753,7 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 
 				if (glyphFont) // draw glyph
 				{
-					::SelectObject(lpNMCD->hdc, glyphFont->GetFontHandle());
+					::SelectObject(lpNMCD->hdc, glyphFont->getFontHandle());
 					::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
 
 					rcIcon = { rc.left + ::MulDiv(glyphLeft, compDPI, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
@@ -4360,13 +4771,13 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 		}
 	}
 
-	return KButton::EventProc(msg, wParam, lParam, result); // pass unprocessed messages to parent
+	return KButton::eventProc(msg, wParam, lParam, result); // pass unprocessed messages to parent
 }
 
 // =========== KMenuItem.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4389,13 +4800,14 @@ bool KMenuButton::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *res
 KMenuItem::KMenuItem()
 {
 	hMenu = 0;
-	listener = 0;
+	param = nullptr;
+	intParam = -1;
 	enabled = true;
 	checked = false;
-	itemID = KIDGenerator::GetInstance()->GenerateMenuItemID(this);
+	itemID = KIDGenerator::getInstance()->generateMenuItemID(this);
 }
 
-void KMenuItem::AddToMenu(HMENU hMenu)
+void KMenuItem::addToMenu(HMENU hMenu)
 {
 	this->hMenu = hMenu;
 
@@ -4406,7 +4818,7 @@ void KMenuItem::AddToMenu(HMENU hMenu)
 	mii.fMask = MIIM_DATA | MIIM_ID | MIIM_STATE | MIIM_TYPE;
 	mii.fType = MFT_STRING;
 	mii.dwTypeData = (LPWSTR)(const wchar_t*)itemText;
-	mii.cch = lstrlenW((LPWSTR)(const wchar_t*)itemText);
+	mii.cch = itemText.length();
 	mii.fState = (enabled ? MFS_ENABLED : MFS_DISABLED) | (checked ? MFS_CHECKED : MFS_UNCHECKED);
 	mii.wID = itemID;
 	mii.dwItemData = (ULONG_PTR)this; // for future!
@@ -4415,12 +4827,32 @@ void KMenuItem::AddToMenu(HMENU hMenu)
 
 }
 
-bool KMenuItem::IsChecked()
+void KMenuItem::setParam(void* param)
+{
+	this->param = param;
+}
+
+void KMenuItem::setIntParam(int intParam)
+{
+	this->intParam = intParam;
+}
+
+int KMenuItem::getIntParam()
+{
+	return intParam;
+}
+
+void* KMenuItem::getParam()
+{
+	return param;
+}
+
+bool KMenuItem::isChecked()
 {
 	return checked;
 }
 
-void KMenuItem::SetCheckedState(bool state)
+void KMenuItem::setCheckedState(bool state)
 {
 	checked = state;
 	if(hMenu) // already created menu item
@@ -4436,12 +4868,12 @@ void KMenuItem::SetCheckedState(bool state)
 	}
 }
 
-bool KMenuItem::IsEnabled()
+bool KMenuItem::isEnabled()
 {
 	return enabled; 
 }
 
-void KMenuItem::SetEnabled(bool state)
+void KMenuItem::setEnabled(bool state)
 {
 	enabled = state;
 	if(hMenu) // already created menu item
@@ -4457,7 +4889,7 @@ void KMenuItem::SetEnabled(bool state)
 	}
 }
 
-void KMenuItem::SetText(const KString& text)
+void KMenuItem::setText(const KString& text)
 {
 	itemText = text;
 	if(hMenu) // already created menu item
@@ -4475,35 +4907,25 @@ void KMenuItem::SetText(const KString& text)
 	}
 }
 
-KString KMenuItem::GetText()
+KString KMenuItem::getText()
 {
 	return itemText;
 }
 
-UINT KMenuItem::GetItemID()
+UINT KMenuItem::getItemID()
 {
 	return itemID;
 }
 
-HMENU KMenuItem::GetMenuHandle()
+HMENU KMenuItem::getMenuHandle()
 {
 	return hMenu;
 }
 
-void KMenuItem::SetListener(KMenuItemListener *listener)
+void KMenuItem::_onPress()
 {
-	this->listener = listener;
-}
-
-KMenuItemListener* KMenuItem::GetListener()
-{
-	return listener;
-}
-
-void KMenuItem::OnPress()
-{
-	if(listener)
-		listener->OnMenuItemPress(this);
+	if(onPress)
+		onPress(this);
 }
 
 KMenuItem::~KMenuItem()
@@ -4511,39 +4933,10 @@ KMenuItem::~KMenuItem()
 }
 
 
-// =========== KMenuItemListener.cpp ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-
-KMenuItemListener::KMenuItemListener(){}
-
-KMenuItemListener::~KMenuItemListener(){}
-
-void KMenuItemListener::OnMenuItemPress(KMenuItem *menuItem){}
-
 // =========== KNumericField.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4574,7 +4967,7 @@ KNumericField::~KNumericField(){}
 // =========== KPasswordBox.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4600,24 +4993,24 @@ KPasswordBox::KPasswordBox(bool readOnly):KTextBox(readOnly)
 	compDwStyle = compDwStyle | ES_PASSWORD;
 }
 
-void KPasswordBox::SetPasswordChar(const wchar_t pwdChar)
+void KPasswordBox::setPasswordChar(const wchar_t pwdChar)
 {
 	this->pwdChar = pwdChar;
 	if(compHWND)
 	{
 		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
-		this->Repaint();
+		this->repaint();
 	}
 }
 
-wchar_t KPasswordBox::GetPasswordChar()
+wchar_t KPasswordBox::getPasswordChar()
 {
 	return pwdChar;
 }
 
-bool KPasswordBox::Create(bool requireInitialMessages)
+bool KPasswordBox::create(bool requireInitialMessages)
 {
-	if(KTextBox::Create(requireInitialMessages))
+	if(KTextBox::create(requireInitialMessages))
 	{
 		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
 		return true;
@@ -4632,7 +5025,7 @@ KPasswordBox::~KPasswordBox()
 // =========== KProgressBar.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4658,7 +5051,7 @@ KProgressBar::KProgressBar(bool smooth, bool vertical) : KComponent(false)
 {
 	value = 0;
 
-	compClassName.AssignStaticText(TXT_WITH_LEN("msctls_progress32"));
+	compClassName.assignStaticText(TXT_WITH_LEN("msctls_progress32"));
 
 	compWidth = 100;
 	compHeight = 20;
@@ -4676,12 +5069,12 @@ KProgressBar::KProgressBar(bool smooth, bool vertical) : KComponent(false)
 		compDwStyle = compDwStyle | PBS_VERTICAL;
 }
 
-int KProgressBar::GetValue()
+int KProgressBar::getValue()
 {
 	return value;
 }
 
-void KProgressBar::SetValue(int value)
+void KProgressBar::setValue(int value)
 {
 	this->value=value;
 
@@ -4689,12 +5082,12 @@ void KProgressBar::SetValue(int value)
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
-bool KProgressBar::Create(bool requireInitialMessages)
+bool KProgressBar::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register PROGRESS_CLASSW class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register PROGRESS_CLASSW class!
 
 	if(compHWND)
 	{
@@ -4717,7 +5110,7 @@ KProgressBar::~KProgressBar()
 // =========== KPushButton.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4740,8 +5133,9 @@ KProgressBar::~KProgressBar()
 
 KPushButton::KPushButton()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("Push Button"));
-	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP;
+	compText.assignStaticText(TXT_WITH_LEN("Push Button"));
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | 
+		BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP;
 }
 
 KPushButton::~KPushButton()
@@ -4751,7 +5145,7 @@ KPushButton::~KPushButton()
 // =========== KRadioButton.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4774,8 +5168,9 @@ KPushButton::~KPushButton()
 
 KRadioButton::KRadioButton()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("RadioButton"));
-	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_RADIOBUTTON | BS_NOTIFY | WS_TABSTOP;
+	compText.assignStaticText(TXT_WITH_LEN("RadioButton"));
+	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | 
+		BS_RADIOBUTTON | BS_NOTIFY | WS_TABSTOP;
 }
 
 KRadioButton::~KRadioButton()
@@ -4785,7 +5180,7 @@ KRadioButton::~KRadioButton()
 // =========== KTextArea.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4818,11 +5213,11 @@ KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
 		compDwStyle = compDwStyle | WS_HSCROLL | WS_VSCROLL;
 }
 
-LRESULT KTextArea::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KTextArea::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	if(msg == WM_GETDLGCODE)
 		return DLGC_WANTALLKEYS; // to catch TAB key
-	return KTextBox::WindowProc(hwnd, msg, wParam, lParam);
+	return KTextBox::windowProc(hwnd, msg, wParam, lParam);
 }
 
 KTextArea::~KTextArea()
@@ -4832,7 +5227,7 @@ KTextArea::~KTextArea()
 // =========== KTextBox.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4854,7 +5249,7 @@ KTextArea::~KTextArea()
 
 KTextBox::KTextBox(bool readOnly) : KComponent(false)
 {
-	compClassName.AssignStaticText(TXT_WITH_LEN("EDIT"));
+	compClassName.assignStaticText(TXT_WITH_LEN("EDIT"));
 
 	compWidth = 100;
 	compHeight = 20;
@@ -4870,7 +5265,7 @@ KTextBox::KTextBox(bool readOnly) : KComponent(false)
 	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
 }
 
-KString KTextBox::GetText()
+KString KTextBox::getText()
 {
 	if(compHWND)
 	{
@@ -4881,7 +5276,7 @@ KString KTextBox::GetText()
 			wchar_t *text = (wchar_t*)::malloc(size);
 			text[0] = 0;
 			::GetWindowTextW(compHWND, text, size);
-			compText = KString(text, KString::FREE_TEXT_WHEN_DONE);
+			compText = KString(text, KStringBehaviour::FREE_ON_DESTROY);
 		}else
 		{
 			compText = KString();
@@ -4891,16 +5286,16 @@ KString KTextBox::GetText()
 }
 
 
-bool KTextBox::Create(bool requireInitialMessages)
+bool KTextBox::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register EDIT class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register EDIT class!
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled);
 
 		if(compVisible)
@@ -4918,7 +5313,7 @@ KTextBox::~KTextBox()
 // =========== KTimer.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -4942,43 +5337,42 @@ KTimer::KTimer()
 {
 	resolution = 1000;
 	started = false;
-	listener = 0;
-	timerID = KIDGenerator::GetInstance()->GenerateTimerID(this);
+	timerID = KIDGenerator::getInstance()->generateTimerID(this);
 }
 
-void KTimer::SetInterval(int resolution)
+void KTimer::setInterval(int resolution)
 {
 	this->resolution = resolution;
 }
 
-int KTimer::GetInterval()
+int KTimer::getInterval()
 {
 	return resolution;
 }
 
-void KTimer::SetTimerWindow(KWindow *window)
+void KTimer::setTimerWindow(KWindow* window)
 {
 	this->window = window;
 }
 
-void KTimer::SetTimerID(UINT timerID)
+void KTimer::setTimerID(UINT timerID)
 {
 	this->timerID = timerID;
 }
 
-UINT KTimer::GetTimerID()
+UINT KTimer::getTimerID()
 {
 	return timerID;
 }
 
-void KTimer::StartTimer()
+void KTimer::startTimer()
 {
 	if(started)
 		return;
 
 	if(window)
 	{
-		HWND hwnd = window->GetHWND();
+		HWND hwnd = window->getHWND();
 		if(hwnd)
 		{
 			::SetTimer(hwnd, timerID, resolution, 0);
@@ -4987,11 +5381,11 @@ void KTimer::StartTimer()
 	}
 }
 
-void KTimer::StopTimer()
+void KTimer::stopTimer()
 {
 	if(window)
 	{
-		HWND hwnd = window->GetHWND();
+		HWND hwnd = window->getHWND();
 		if(hwnd)
 		{
 			if(started)
@@ -5002,63 +5396,27 @@ void KTimer::StopTimer()
 	}
 }
 
-bool KTimer::IsTimerRunning()
+bool KTimer::isTimerRunning()
 {
 	return started;
 }
 
-void KTimer::OnTimer()
+void KTimer::_onTimer()
 {
-	if(listener)
-		listener->OnTimer(this);
-}
-
-void KTimer::SetListener(KTimerListener *listener)
-{
-	this->listener = listener;
+	if(onTimer)
+		onTimer(this);
 }
 
 KTimer::~KTimer()
 {
 	if(started)
-		this->StopTimer();
+		this->stopTimer();
 }
-
-// =========== KTimerListener.cpp ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.	  
-*/
-
-
-KTimerListener::KTimerListener(){}
-
-KTimerListener::~KTimerListener(){}
-
-void KTimerListener::OnTimer(KTimer *timer){}
-
-
 
 // =========== KToolTip.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5082,7 +5440,7 @@ void KTimerListener::OnTimer(KTimer *timer){}
 KToolTip::KToolTip() : KComponent(false)
 {
 	attachedCompHWND = 0;
-	compClassName.AssignStaticText(TXT_WITH_LEN("tooltips_class32"));
+	compClassName.assignStaticText(TXT_WITH_LEN("tooltips_class32"));
 
 	compDwStyle = WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX;
 }
@@ -5091,36 +5449,39 @@ KToolTip::~KToolTip()
 {
 }
 
-void KToolTip::AttachToComponent(KWindow *parentWindow, KComponent *attachedComponent)
+void KToolTip::attachToComponent(KWindow* parentWindow, KComponent* attachedComponent)
 {
-	compParentHWND = parentWindow->GetHWND();
-	attachedCompHWND = attachedComponent->GetHWND();
+	compParentHWND = parentWindow->getHWND();
+	attachedCompHWND = attachedComponent->getHWND();
 
-	compHWND = ::CreateWindowExW(0, compClassName, NULL, compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, compParentHWND, NULL, KApplication::hInstance, 0);
+	compHWND = ::CreateWindowExW(0, compClassName, NULL, 
+		compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
+		CW_USEDEFAULT, compParentHWND, NULL, KApplication::hInstance, 0);
 
 	if (compHWND)
 	{
-		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		::SetWindowPos(compHWND, HWND_TOPMOST, 0, 0, 0, 0, 
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
-		KGUIProc::AttachRFCPropertiesToHWND(compHWND, (KComponent*)this);
+		KGUIProc::attachRFCPropertiesToHWND(compHWND, (KComponent*)this);
 
 		TOOLINFOW toolInfo = { 0 };
 		toolInfo.cbSize = sizeof(TOOLINFOW);
 		toolInfo.hwnd = compParentHWND;
 		toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 		toolInfo.uId = (UINT_PTR)attachedCompHWND;
-		toolInfo.lpszText = compText;
+		toolInfo.lpszText = (wchar_t*)(const wchar_t*)compText;
 
 		SendMessageW(compHWND, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
 	}
 }
 
-bool KToolTip::Create(bool requireInitialMessages)
+bool KToolTip::create(bool requireInitialMessages)
 {
 	return false;
 }
 
-void KToolTip::SetText(const KString& compText)
+void KToolTip::setText(const KString& compText)
 {
 	this->compText = compText;
 	if (compHWND)
@@ -5130,7 +5491,7 @@ void KToolTip::SetText(const KString& compText)
 		toolInfo.hwnd = compParentHWND;
 		toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 		toolInfo.uId = (UINT_PTR)attachedCompHWND;
-		toolInfo.lpszText = compText;
+		toolInfo.lpszText = (wchar_t*)(const wchar_t*)compText;
 		toolInfo.hinst = KApplication::hInstance;
 
 		SendMessageW(compHWND, TTM_UPDATETIPTEXT, 0, (LPARAM)&toolInfo);
@@ -5141,7 +5502,7 @@ void KToolTip::SetText(const KString& compText)
 // =========== KTrackBar.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5165,7 +5526,6 @@ void KToolTip::SetText(const KString& compText)
 
 KTrackBar::KTrackBar(bool showTicks, bool vertical) : KComponent(false)
 {
-	listener = 0;
 	rangeMin = 0;
 	rangeMax = 100;
 	value = 0;
@@ -5176,13 +5536,16 @@ KTrackBar::KTrackBar(bool showTicks, bool vertical) : KComponent(false)
 	compX = 0;
 	compY = 0;
 
-	compDwStyle = (WS_TABSTOP | WS_CHILD | WS_CLIPSIBLINGS) | (showTicks ? TBS_AUTOTICKS : TBS_NOTICKS) | (vertical ? TBS_VERT : TBS_HORZ);
+	compDwStyle = (WS_TABSTOP | WS_CHILD | WS_CLIPSIBLINGS) | 
+		(showTicks ? TBS_AUTOTICKS : TBS_NOTICKS) | 
+		(vertical ? TBS_VERT : TBS_HORZ);
+
 	compDwExStyle = WS_EX_WINDOWEDGE;
 
-	compClassName.AssignStaticText(TXT_WITH_LEN("msctls_trackbar32"));
+	compClassName.assignStaticText(TXT_WITH_LEN("msctls_trackbar32"));
 }
 
-void KTrackBar::SetRange(int min, int max)
+void KTrackBar::setRange(int min, int max)
 {
 	rangeMin = min;
 	rangeMax = max;
@@ -5190,31 +5553,26 @@ void KTrackBar::SetRange(int min, int max)
 		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(min, max));	
 }
 
-void KTrackBar::SetValue(int value)
+void KTrackBar::setValue(int value)
 {
 	this->value = value;
 	if(compHWND)
 		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
 }
 
-void KTrackBar::OnChange()
+void KTrackBar::_onChange()
 {
 	value = (int)::SendMessageW(compHWND, TBM_GETPOS, 0, 0);
-	if(listener)
-		listener->OnTrackBarChange(this);
+	if(onChange)
+		onChange(this, value);
 }
 
-void KTrackBar::SetListener(KTrackBarListener *listener)
-{
-	this->listener = listener;
-}
-
-int KTrackBar::GetValue()
+int KTrackBar::getValue()
 {
 	return value;
 }
 
-bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KTrackBar::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
 	if( (msg == WM_HSCROLL) || (msg == WM_VSCROLL) )
 	{
@@ -5224,26 +5582,26 @@ bool KTrackBar::EventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 			(TB_BOTTOM == nScrollCode) || (TB_TOP == nScrollCode) || (TB_PAGEUP == nScrollCode) || 
 			(TB_PAGEDOWN == nScrollCode) || (TB_THUMBPOSITION == nScrollCode)) // its trackbar!
 		{
-			this->OnChange();
+			this->_onChange();
 			*result = 0;
 			return true;
 		}
 	}
 
-	return KComponent::EventProc(msg, wParam, lParam, result);
+	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KTrackBar::Create(bool requireInitialMessages)
+bool KTrackBar::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register TRACKBAR_CLASSW class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register TRACKBAR_CLASSW class!
 
 	if(compHWND)
 	{
 		::EnableWindow(compHWND, compEnabled);
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->GetFontHandle(), MAKELPARAM(true, 0)); // set font!	
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!	
 		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(rangeMin, rangeMax));	
 		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
 
@@ -5261,39 +5619,10 @@ KTrackBar::~KTrackBar()
 }
 
 
-// =========== KTrackBarListener.cpp ===========
-
-/*
-	Copyright (C) 2013-2022 CrownSoft
-  
-	This software is provided 'as-is', without any express or implied
-	warranty.  In no event will the authors be held liable for any damages
-	arising from the use of this software.
-
-	Permission is granted to anyone to use this software for any purpose,
-	including commercial applications, and to alter it and redistribute it
-	freely, subject to the following restrictions:
-
-	1. The origin of this software must not be misrepresented; you must not
-	   claim that you wrote the original software. If you use this software
-	   in a product, an acknowledgment in the product documentation would be
-	   appreciated but is not required.
-	2. Altered source versions must be plainly marked as such, and must not be
-	   misrepresented as being the original software.
-	3. This notice may not be removed or altered from any source distribution.  
-*/
-
-
-KTrackBarListener::KTrackBarListener(){}
-
-KTrackBarListener::~KTrackBarListener(){}
-
-void KTrackBarListener::OnTrackBarChange(KTrackBar *trackBar){}
-
 // =========== KTransparentBitmap.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5322,7 +5651,7 @@ KTransparentBitmap::KTransparentBitmap(void* data, int width, int height, int st
 		height = 0;
 		hbm = 0;
 		hbmPrev = 0;
-		pvBits = 0;
+		pvBits = nullptr;
 		return;
 	}
 
@@ -5331,7 +5660,7 @@ KTransparentBitmap::KTransparentBitmap(void* data, int width, int height, int st
 
 	hdcMem = ::CreateCompatibleDC(NULL);
 
-	BITMAPINFO bmi = { 0 };
+	BITMAPINFO bmi = {};
 	bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
 	bmi.bmiHeader.biWidth = width;
 	bmi.bmiHeader.biHeight = -height; // top-down
@@ -5358,17 +5687,17 @@ KTransparentBitmap::KTransparentBitmap(void* data, int width, int height, int st
 
 KTransparentBitmap::KTransparentBitmap(int width, int height)
 {
-	this->CreateEmptyBitmap(width, height);
+	this->createEmptyBitmap(width, height);
 }
 
-void KTransparentBitmap::CreateEmptyBitmap(int width, int height)
+void KTransparentBitmap::createEmptyBitmap(int width, int height)
 {
 	this->width = width;
 	this->height = height;
 
 	hdcMem = ::CreateCompatibleDC(NULL);
 
-	BITMAPINFO bmi = { 0 };
+	BITMAPINFO bmi = {};
 	bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
 	bmi.bmiHeader.biWidth = width;
 	bmi.bmiHeader.biHeight = -height; // top-down
@@ -5385,7 +5714,7 @@ void KTransparentBitmap::CreateEmptyBitmap(int width, int height)
 	hbmPrev = (HBITMAP)::SelectObject(hdcMem, hbm);
 }
 
-void KTransparentBitmap::ReleaseResources()
+void KTransparentBitmap::releaseResources()
 {
 	if (hdcMem == 0)
 		return;
@@ -5395,9 +5724,9 @@ void KTransparentBitmap::ReleaseResources()
 	::DeleteDC(hdcMem);
 }
 
-bool KTransparentBitmap::HitTest(int x, int y)
+bool KTransparentBitmap::hitTest(int x, int y)
 {
-	if (pvBits == 0)
+	if (pvBits == nullptr)
 		return false;
 
 	if ((x < 0) || (y < 0) || (x > (width - 1)) || (y > (height - 1)))
@@ -5407,9 +5736,9 @@ bool KTransparentBitmap::HitTest(int x, int y)
 	return ((pixelColor >> 24) == 0xff);
 }
 
-unsigned int KTransparentBitmap::GetPixel(int x, int y)
+unsigned int KTransparentBitmap::getPixel(int x, int y)
 {
-	if (pvBits == 0)
+	if (pvBits == nullptr)
 		return 0;
 
 	if ((x < 0) || (y < 0) || (x > (width - 1)) || (y > (height - 1)))
@@ -5418,38 +5747,38 @@ unsigned int KTransparentBitmap::GetPixel(int x, int y)
 	return ((unsigned int*)pvBits)[x + y * width];
 }
 
-int KTransparentBitmap::GetWidth()
+int KTransparentBitmap::getWidth()
 {
 	return width;
 }
 
-int KTransparentBitmap::GetHeight()
+int KTransparentBitmap::getHeight()
 {
 	return height;
 }
 
-void KTransparentBitmap::Resize(int width, int height)
+void KTransparentBitmap::resize(int width, int height)
 {
-	this->ReleaseResources();
-	this->CreateEmptyBitmap(width, height);
+	this->releaseResources();
+	this->createEmptyBitmap(width, height);
 }
 
-HDC KTransparentBitmap::GetDC()
+HDC KTransparentBitmap::getDC()
 {
 	return hdcMem;
 }
 
-void KTransparentBitmap::Draw(HDC destHdc, int destX, int destY, BYTE alpha)
+void KTransparentBitmap::draw(HDC destHdc, int destX, int destY, BYTE alpha)
 {
-	this->Draw(destHdc, destX, destY, width, height, 0, 0, width, height, alpha);
+	this->draw(destHdc, destX, destY, width, height, 0, 0, width, height, alpha);
 }
 
-void KTransparentBitmap::Draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha)
+void KTransparentBitmap::draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha)
 {
-	this->Draw(destHdc, destX, destY, destWidth, destHeight, 0, 0, width, height, alpha);
+	this->draw(destHdc, destX, destY, destWidth, destHeight, 0, 0, width, height, alpha);
 }
 
-void KTransparentBitmap::Draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha)
+void KTransparentBitmap::draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha)
 {
 	BLENDFUNCTION bf = { AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
 	::AlphaBlend(destHdc, destX, destY, destWidth, destHeight,
@@ -5458,7 +5787,7 @@ void KTransparentBitmap::Draw(HDC destHdc, int destX, int destY, int destWidth, 
 
 KTransparentBitmap::~KTransparentBitmap()
 {
-	this->ReleaseResources();
+	this->releaseResources();
 }
 
 
@@ -5466,7 +5795,7 @@ KTransparentBitmap::~KTransparentBitmap()
 // =========== KWindow.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5486,127 +5815,252 @@ KTransparentBitmap::~KTransparentBitmap()
 */
 
 
-KWindow::KWindow() : KComponent(true), componentList(50, false)
+KWindow::KWindow() : KComponent(true)
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KWindow"));
+	compText.assignStaticText(TXT_WITH_LEN("KWindow"));
 
 	compWidth = 400;
 	compHeight = 200;
 
 	compVisible = false;
 	enableDPIUnawareMode = false;
+	prevDPIContext = 0;
+	dpiAwarenessContextChanged = false;
 	compDwStyle = WS_POPUP;
 	compDwExStyle = WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	compCtlID = 0; // control id is zero for top level window
 	lastFocusedChild = 0;
-	dpiChangeListener = NULL;
+	dpiChangeListener = nullptr;
+	windowIcon = nullptr;
+	largeIconHandle = 0;
+	smallIconHandle = 0;
+
+	closeOperation = KCloseOperation::DestroyAndExit;
 }
 
-bool KWindow::Create(bool requireInitialMessages)
+void KWindow::applyDPIUnawareModeToThread()
 {
-	DPI_AWARENESS_CONTEXT prevContext = 0;
-	bool dpiAwarenessContextChanged = false;
-
 	if ((KApplication::dpiAwareness == KDPIAwareness::MIXEDMODE_ONLY) && KApplication::dpiAwareAPICalled && enableDPIUnawareMode)
 	{
 		if (KDPIUtility::pSetThreadDpiAwarenessContext)
 		{
-			prevContext = KDPIUtility::pSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
+			prevDPIContext = KDPIUtility::pSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
 			dpiAwarenessContextChanged = true;
 		}
 	}
+}
 
-	bool retVal = KComponent::Create(requireInitialMessages);
+void KWindow::restoreDPIModeOfThread()
+{
+	if (dpiAwarenessContextChanged)
+		KDPIUtility::pSetThreadDpiAwarenessContext(prevDPIContext);
+}
 
-	if(dpiAwarenessContextChanged)
-		KDPIUtility::pSetThreadDpiAwarenessContext(prevContext);
+bool KWindow::create(bool requireInitialMessages)
+{
+	if (enableDPIUnawareMode)
+		this->applyDPIUnawareModeToThread();
+
+	bool retVal = KComponent::create(requireInitialMessages);
+
+	if (enableDPIUnawareMode)
+		this->restoreDPIModeOfThread();
 
 	if(retVal && (KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
 	{
-		int dpi = KDPIUtility::GetWindowDPI(compHWND);
+		int dpi = KDPIUtility::getWindowDPI(compHWND);
 		if (dpi != USER_DEFAULT_SCREEN_DPI)
-			this->SetDPI(dpi);
+			this->setDPI(dpi);
 	}
 
 	return retVal;
 }
 
-void KWindow::Flash()
+void KWindow::flash()
 {
 	::FlashWindow(compHWND, TRUE);
 }
 
-void KWindow::SetIcon(KIcon *icon)
+void KWindow::updateWindowIconForNewDPI()
 {
-	::SetClassLongPtrW(compHWND, GCLP_HICON, (LONG_PTR)icon->GetHandle());
+	if (windowIcon == nullptr)
+		return;
+
+	if (largeIconHandle)
+		::DestroyIcon(largeIconHandle);
+
+	if (smallIconHandle)
+		::DestroyIcon(smallIconHandle);
+
+	// 32x32 for large icon
+	// 16x16 for small icon
+
+	if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
+	{
+		largeIconHandle = windowIcon->getScaledIcon(KDPIUtility::scaleToNewDPI(32, compDPI));
+		smallIconHandle = windowIcon->getScaledIcon(KDPIUtility::scaleToNewDPI(16, compDPI));
+	}
+	else
+	{
+		largeIconHandle = windowIcon->getScaledIcon(32);
+		smallIconHandle = windowIcon->getScaledIcon(16);
+	}
+
+	::SetClassLongPtrW(compHWND, GCLP_HICON, (LONG_PTR)largeIconHandle);
+	::SetClassLongPtrW(compHWND, GCLP_HICONSM, (LONG_PTR)smallIconHandle);
 }
 
-void KWindow::SetDPIChangeListener(KDPIChangeListener* dpiChangeListener)
+void KWindow::setIcon(KIcon* icon)
+{
+	windowIcon = icon;
+
+	if (compHWND)
+		this->updateWindowIconForNewDPI();
+}
+
+void KWindow::setCloseOperation(KCloseOperation closeOperation)
+{
+	this->closeOperation = closeOperation;
+}
+
+void KWindow::setDPIChangeListener(KDPIChangeListener* dpiChangeListener)
 {
 	this->dpiChangeListener = dpiChangeListener;
 }
 
-void KWindow::SetEnableDPIUnawareMode(bool enable)
+void KWindow::setEnableDPIUnawareMode(bool enable)
 {
 	enableDPIUnawareMode = enable;
 }
 
-void KWindow::OnClose()
+void KWindow::onClose()
 {
-	this->Destroy();
+	if (closeOperation == KCloseOperation::DestroyAndExit)
+		this->destroy();
+	else if (closeOperation == KCloseOperation::Hide)
+		this->setVisible(false);
 }
 
-void KWindow::OnDestroy()
+void KWindow::onDestroy()
 {
-	::PostQuitMessage(0);
+	if (closeOperation == KCloseOperation::DestroyAndExit)
+		::PostQuitMessage(0);
 }
 
-void KWindow::PostCustomMessage(WPARAM msgID, LPARAM param)
+void KWindow::postCustomMessage(WPARAM msgID, LPARAM param)
 {
 	::PostMessageW(compHWND, RFC_CUSTOM_MESSAGE, msgID, param);
 }
 
-void KWindow::OnCustomMessage(WPARAM msgID, LPARAM param)
+void KWindow::onCustomMessage(WPARAM msgID, LPARAM param)
 {
 
 }
 
-void KWindow::CenterScreen()
+void KWindow::centerScreen()
 {
-	this->SetPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
+	this->setPosition((::GetSystemMetrics(SM_CXSCREEN) - compWidth) / 2, (::GetSystemMetrics(SM_CYSCREEN) - compHeight) / 2);
 }
 
-bool KWindow::AddComponent(KComponent *component, bool requireInitialMessages)
+void KWindow::centerOnSameMonitor(HWND window)
+{
+	if (window)
+	{
+		HMONITOR hmon = ::MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+
+		if (hmon != NULL)
+		{
+			MONITORINFO monitorInfo;
+			::ZeroMemory(&monitorInfo, sizeof(MONITORINFO));
+			monitorInfo.cbSize = sizeof(MONITORINFO);
+
+			if (::GetMonitorInfoW(hmon, &monitorInfo))
+			{
+				const int posX = monitorInfo.rcMonitor.left + (((monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left) - compWidth) / 2);
+				const int posY = monitorInfo.rcMonitor.top + (((monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top) - compHeight) / 2);
+				this->setPosition(posX, posY);
+
+				return;
+			}
+		}
+	}
+
+	this->centerScreen();
+}
+
+void KWindow::getNormalSize(int* width, int* height)
+{
+	if (compHWND)
+	{
+		WINDOWPLACEMENT wndPlacement{ 0 };
+		wndPlacement.length = sizeof(WINDOWPLACEMENT);
+		::GetWindowPlacement(compHWND, &wndPlacement);
+
+		*width = wndPlacement.rcNormalPosition.right - wndPlacement.rcNormalPosition.left;
+		*height = wndPlacement.rcNormalPosition.bottom - wndPlacement.rcNormalPosition.top;
+	}
+	else
+	{
+		*width = compWidth;
+		*height = compHeight;
+	}
+}
+
+bool KWindow::addComponent(KComponent* component, bool requireInitialMessages)
 {
 	if(component)
 	{
 		if(compHWND)
 		{		
-			component->SetParentHWND(compHWND);
+			component->setParentHWND(compHWND);
 
 			if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled )
-				component->SetDPI(compDPI);
+				component->setDPI(compDPI);
 
-			componentList.AddPointer(component);
+			componentList.add(component);
 
-			return component->Create(requireInitialMessages);
+			if (enableDPIUnawareMode)
+				this->applyDPIUnawareModeToThread();
+
+			bool retVal = component->create(requireInitialMessages);
+
+			if (enableDPIUnawareMode)
+				this->restoreDPIModeOfThread();
+
+			return retVal;
 		}
 	}
 	return false;
 }
 
-void KWindow::RemoveComponent(KComponent* component)
+bool KWindow::addComponent(KComponent& component, bool requireInitialMessages)
 {
-	int index = componentList.GetID(component);
+	return addComponent(&component, requireInitialMessages);
+}
+
+void KWindow::removeComponent(KComponent* component)
+{
+	int index = componentList.getIndex(component);
 	if (index != -1)
 	{
-		componentList.RemovePointer(index);
-		component->Destroy();
+		componentList.remove(index);
+		component->destroy();
 	}
 }
 
-bool KWindow::SetClientAreaSize(int width, int height)
+bool KWindow::addContainer(KHostPanel* container, bool requireInitialMessages)
+{
+	if (container)
+	{
+		container->setComponentList(&componentList);
+		container->setEnableDPIUnawareMode(enableDPIUnawareMode);
+		return this->addComponent(static_cast<KComponent*>(container), requireInitialMessages);
+	}
+	return false;
+}
+
+bool KWindow::setClientAreaSize(int width, int height)
 {
 	if (compHWND)
 	{
@@ -5616,15 +6070,17 @@ bool KWindow::SetClientAreaSize(int width, int height)
 		wndRect.right = wndRect.left + width;
 		wndRect.bottom = wndRect.top + height;
 
-		::AdjustWindowRect(&wndRect, compDwStyle, ::GetMenu(compHWND) == NULL ? FALSE : TRUE);
-		this->SetSize(wndRect.right - wndRect.left, wndRect.bottom - wndRect.top);
+		KDPIUtility::adjustWindowRectExForDpi(&wndRect, compDwStyle,
+			::GetMenu(compHWND) == NULL ? FALSE : TRUE, compDwExStyle, compDPI);
+
+		this->setSize(wndRect.right - wndRect.left, wndRect.bottom - wndRect.top);
 
 		return true;
 	}
 	return false;
 }
 
-bool KWindow::IsOffScreen(int posX, int posY)
+bool KWindow::isOffScreen(int posX, int posY)
 {
 	POINT point;
 	point.x = posX;
@@ -5632,7 +6088,7 @@ bool KWindow::IsOffScreen(int posX, int posY)
 	return (::MonitorFromPoint(point, MONITOR_DEFAULTTONULL) == NULL);
 }
 
-bool KWindow::GetClientAreaSize(int *width, int *height)
+bool KWindow::getClientAreaSize(int* width, int* height)
 {
 	if (compHWND)
 	{
@@ -5650,17 +6106,17 @@ bool KWindow::GetClientAreaSize(int *width, int *height)
 	return false;
 }
 
-void KWindow::OnMoved()
+void KWindow::onMoved()
 {
 
 }
 
-void KWindow::OnResized()
+void KWindow::onResized()
 {
 
 }
 
-LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
 	{
@@ -5668,28 +6124,28 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
+					KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::atomComponent));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
-						if (component->EventProc(msg, wParam, lParam, &result))
+						if (component->eventProc(msg, wParam, lParam, &result))
 							return result;
 					}
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, MAKEINTATOM(KGUIProc::atomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_VKEYTOITEM:
 		case WM_CHARTOITEM:
@@ -5701,53 +6157,53 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
 		case WM_CTLCOLORSTATIC: // static controls
 			{
-				KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::atomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}				
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_MEASUREITEM: // combo box, list box, list-view control... (menu ignored. use windowProc of parent window if you want to set the size of menu)
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent *component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::AtomComponent));
+					KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::atomComponent));
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
-						if (component->EventProc(msg, wParam, lParam, &result))
+						if (component->eventProc(msg, wParam, lParam, &result))
 							return result;
 					}
 				}			
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 			{
-				KComponent *component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::AtomComponent));
+				KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, MAKEINTATOM(KGUIProc::atomComponent));
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
-					if (component->EventProc(msg, wParam, lParam, &result))
+					if (component->eventProc(msg, wParam, lParam, &result))
 						return result;
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_TIMER:
 			{
-				KTimer *timer = KIDGenerator::GetInstance()->GetTimerByID((UINT)wParam);
+				KTimer* timer = KIDGenerator::getInstance()->getTimerByID((UINT)wParam);
 				if(timer)
 				{
-					timer->OnTimer();
+					timer->_onTimer();
 					break;
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_SIZE: // window has been resized! we can't use lparam since it's giving client area size instead of window...
 			{
@@ -5757,9 +6213,9 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				this->compWidth = rect.right - rect.left;
 				this->compHeight = rect.bottom - rect.top;
 
-				this->OnResized();
+				this->onResized();
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_MOVE: // window has been moved! we can't use lparam since it's giving client area pos instead of window...
 			{
@@ -5769,14 +6225,14 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				this->compX = rect.left;
 				this->compY = rect.top;
 
-				this->OnMoved();
+				this->onMoved();
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_DPICHANGED:
 			{
 				if ((KApplication::dpiAwareness == KDPIAwareness::UNAWARE_MODE) || enableDPIUnawareMode || (!KApplication::dpiAwareAPICalled))
-					return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+					return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 				this->compDPI = HIWORD(wParam);
 				RECT* const prcNewWindow = (RECT*)lParam;
@@ -5794,15 +6250,17 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					this->compHeight,
 					SWP_NOZORDER | SWP_NOACTIVATE);
 
+				this->updateWindowIconForNewDPI();
+
 				::InvalidateRect(compHWND, NULL, TRUE);
 
-				for (int i = 0; i < componentList.GetSize(); i++)
+				for (int i = 0; i < componentList.size(); i++)
 				{
-					componentList[i]->SetDPI(compDPI);
+					componentList[i]->setDPI(compDPI);
 				}
 
 				if (dpiChangeListener)
-					dpiChangeListener->OnDPIChange(compHWND, compDPI);
+					dpiChangeListener->onDPIChange(compHWND, compDPI);
 
 				return 0;
 			}
@@ -5811,20 +6269,22 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if( (HIWORD(wParam) == 0) && (lParam == 0) ) // its menu item! unfortunately windows does not send menu handle with clicked event!
 				{
-					KMenuItem *menuItem = KIDGenerator::GetInstance()->GetMenuItemByID(LOWORD(wParam));
+					KMenuItem* menuItem = KIDGenerator::getInstance()->getMenuItemByID(LOWORD(wParam));
 					if(menuItem)
 					{
-						menuItem->OnPress();
+						menuItem->_onPress();
 						break;
 					}
 				}
 				else if(lParam)// send to appropriate component
 				{
-					KComponent *component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::AtomComponent));
+					KComponent* component = (KComponent*)::GetPropW((HWND)lParam, 
+						MAKEINTATOM(KGUIProc::atomComponent));
+
 					if (component)
 					{
 						LRESULT result = 0; // just for safe
-						if (component->EventProc(msg, wParam, lParam, &result))
+						if (component->eventProc(msg, wParam, lParam, &result))
 							return result;
 					}
 				}
@@ -5851,35 +6311,58 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					return 0;
 				}
 			}
-			return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
+
+		case WM_CONTEXTMENU:
+			{
+				KComponent* component = (KComponent*)::GetPropW((HWND)wParam, MAKEINTATOM(KGUIProc::atomComponent));
+				if (component)
+				{
+					LRESULT result = 0; // just for safe
+					if (component->eventProc(msg, wParam, lParam, &result))
+						return result;
+				}
+			}
+			return KComponent::windowProc(hwnd, msg, wParam, lParam);
 
 		case WM_ACTIVATE: // save last focused item when inactive
 			if (wParam != WA_INACTIVE)
-				return KComponent::WindowProc(hwnd, msg, wParam, lParam);
+				return KComponent::windowProc(hwnd, msg, wParam, lParam);
 			this->lastFocusedChild = ::GetFocus();
 			break;
 
 		case WM_SETFOCUS:
 			if (this->lastFocusedChild) // set focus to last item
+			{
 				::SetFocus(this->lastFocusedChild);
+			}
 			else // set focus to first child
-				::SetFocus(::GetNextDlgTabItem(this->compHWND, NULL, FALSE));
+			{
+				// if hCtl is NULL, GetNextDlgTabItem returns first control of the window.
+				HWND hFirstControl = ::GetNextDlgTabItem(this->compHWND, NULL, FALSE);
+				if (hFirstControl)
+				{
+					if (::GetWindowLongPtrW(hFirstControl, GWL_STYLE) & WS_TABSTOP)
+						::SetFocus(hFirstControl);
+				}
+			}
 			break;
 
 		case WM_CLOSE:
-			this->OnClose();
+			this->onClose();
 			break;
 
 		case WM_DESTROY:
-			this->OnDestroy();
+			// os automatically destroy child controls after WM_DESTROY.
+			this->onDestroy();
 			break;
 
 		case RFC_CUSTOM_MESSAGE:
-			this->OnCustomMessage(wParam, lParam);
+			this->onCustomMessage(wParam, lParam);
 			break;
 
 		default:
-			return KComponent::WindowProc(hwnd,msg,wParam,lParam);
+			return KComponent::windowProc(hwnd,msg,wParam,lParam);
 	}
 	return 0;
 }
@@ -5887,13 +6370,17 @@ LRESULT KWindow::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 KWindow::~KWindow()
 {
+	if (largeIconHandle)
+		::DestroyIcon(largeIconHandle);
 
+	if (smallIconHandle)
+		::DestroyIcon(smallIconHandle);
 }
 
 // =========== KWindowTypes.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5917,19 +6404,19 @@ KWindow::~KWindow()
 KHotPluggedDialog::KHotPluggedDialog(){}
 
 
-void KHotPluggedDialog::OnClose()
+void KHotPluggedDialog::onClose()
 {
 	::EndDialog(compHWND, 0);
 }
 
-void KHotPluggedDialog::OnDestroy(){}
+void KHotPluggedDialog::onDestroy(){}
 
 KHotPluggedDialog::~KHotPluggedDialog(){}
 
 
 KOverlappedWindow::KOverlappedWindow()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KOverlapped Window"));
+	compText.assignStaticText(TXT_WITH_LEN("KOverlapped Window"));
 	compDwStyle = WS_OVERLAPPEDWINDOW;
 }
 
@@ -5938,7 +6425,7 @@ KOverlappedWindow::~KOverlappedWindow(){}
 
 KFrame::KFrame()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KFrame"));
+	compText.assignStaticText(TXT_WITH_LEN("KFrame"));
 	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
 }
 
@@ -5948,8 +6435,9 @@ KFrame::~KFrame(){}
 
 KDialog::KDialog()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KDialog"));
+	compText.assignStaticText(TXT_WITH_LEN("KDialog"));
 	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU;
+	compDwExStyle = WS_EX_DLGMODALFRAME;
 }
 
 KDialog::~KDialog(){}
@@ -5958,7 +6446,7 @@ KDialog::~KDialog(){}
 
 KToolWindow::KToolWindow()
 {
-	compText.AssignStaticText(TXT_WITH_LEN("KTool Window"));
+	compText.assignStaticText(TXT_WITH_LEN("KTool Window"));
 	compDwStyle = WS_OVERLAPPED | WS_SYSMENU;
 	compDwExStyle = WS_EX_TOOLWINDOW;
 }
@@ -5969,7 +6457,7 @@ KToolWindow::~KToolWindow(){}
 // =========== KPerformanceCounter.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -5997,7 +6485,7 @@ KPerformanceCounter::KPerformanceCounter()
 	this->pcFreq = double(li.QuadPart) / 1000.0;
 }
 
-void KPerformanceCounter::StartCounter()
+void KPerformanceCounter::startCounter()
 {
 	LARGE_INTEGER li;
 	::QueryPerformanceCounter(&li);
@@ -6005,7 +6493,7 @@ void KPerformanceCounter::StartCounter()
 	this->counterStart = li.QuadPart;
 }
 
-double KPerformanceCounter::EndCounter()
+double KPerformanceCounter::endCounter()
 {
 	LARGE_INTEGER li;
 	::QueryPerformanceCounter(&li);
@@ -6022,7 +6510,7 @@ KPerformanceCounter::~KPerformanceCounter()
 // =========== KRegistry.cpp ===========
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -6047,7 +6535,7 @@ KRegistry::KRegistry()
 
 }
 
-bool KRegistry::CreateKey(HKEY hKeyRoot, const KString& subKey)
+bool KRegistry::createKey(HKEY hKeyRoot, const KString& subKey)
 {
 	HKEY hkey = 0;
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
@@ -6057,12 +6545,12 @@ bool KRegistry::CreateKey(HKEY hKeyRoot, const KString& subKey)
 	return true;
 }
 
-bool KRegistry::DeleteKey(HKEY hKeyRoot, const KString& subKey)
+bool KRegistry::deleteKey(HKEY hKeyRoot, const KString& subKey)
 {
 	return ::RegDeleteKeyW(hKeyRoot, subKey) == ERROR_SUCCESS ? true : false;
 }
 
-bool KRegistry::ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString *result)
+bool KRegistry::readString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString* result)
 {
 	HKEY hkey = 0;
 	if (::RegOpenKeyExW(hKeyRoot, subKey, 0, KEY_READ, &hkey) == ERROR_SUCCESS)
@@ -6082,7 +6570,7 @@ bool KRegistry::ReadString(HKEY hKeyRoot, const KString& subKey, const KString& 
 				::ZeroMemory(buffer, requiredBytes + sizeof(wchar_t)); // zero the ending null
 
 				ret = ::RegQueryValueExW(hkey, valueName, NULL, NULL, (LPBYTE)buffer, &requiredBytes);
-				*result = KString((wchar_t*)buffer, KString::FREE_TEXT_WHEN_DONE);
+				*result = KString((wchar_t*)buffer, KStringBehaviour::FREE_ON_DESTROY);
 			}
 
 			::RegCloseKey(hkey);
@@ -6094,13 +6582,13 @@ bool KRegistry::ReadString(HKEY hKeyRoot, const KString& subKey, const KString& 
 	return false;
 }
 
-bool KRegistry::WriteString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value)
+bool KRegistry::writeString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value)
 {
 	HKEY hkey = 0;
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
 		return false;
 
-	const int bCount = (value.GetLength() + 1) * sizeof(wchar_t); // +1 for ending null
+	const int bCount = (value.length() + 1) * sizeof(wchar_t); // +1 for ending null
 	const LONG ret = ::RegSetValueExW(hkey, valueName, 0, REG_SZ, (LPBYTE)(const wchar_t*)value, bCount);
 	::RegCloseKey(hkey);
 
@@ -6110,7 +6598,7 @@ bool KRegistry::WriteString(HKEY hKeyRoot, const KString& subKey, const KString&
 	return false;
 }
 
-bool KRegistry::ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD *result)
+bool KRegistry::readDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD* result)
 {
 	HKEY hkey = 0;
 	if (::RegOpenKeyExW(hKeyRoot, subKey, 0, KEY_READ, &hkey) == ERROR_SUCCESS)
@@ -6126,7 +6614,7 @@ bool KRegistry::ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& v
 	return false;
 }
 
-bool KRegistry::WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value)
+bool KRegistry::writeDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value)
 {
 	HKEY hkey = 0;
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
@@ -6142,7 +6630,7 @@ bool KRegistry::WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& 
 	return false;
 }
 
-bool KRegistry::ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void **buffer, DWORD *buffSize)
+bool KRegistry::readBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void** buffer, DWORD* buffSize)
 {
 	HKEY hkey = 0;
 	if (::RegOpenKeyExW(hKeyRoot, subKey, 0, KEY_READ, &hkey) == ERROR_SUCCESS)
@@ -6172,7 +6660,7 @@ bool KRegistry::ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& 
 	return false;
 }
 
-bool KRegistry::WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void *buffer, DWORD buffSize)
+bool KRegistry::writeBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize)
 {
 	HKEY hkey = 0;
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)

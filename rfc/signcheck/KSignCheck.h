@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2023 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -55,7 +55,7 @@ convert base64 signature to binary and verify:
 
     static const UCHAR data[] = "Hello World2";
 
-    if (KSignCheck::Verify(BCRYPT_SHA256_ALGORITHM, szKey, szSig, data, sizeof(data) - 1) == S_OK)
+    if (KSignCheck::verify(BCRYPT_SHA256_ALGORITHM, szKey, szSig, data, sizeof(data) - 1) == S_OK)
         printf("verified");
     else
         printf("failed");
@@ -72,7 +72,7 @@ public:
         return (f ? NOERROR : ::GetLastError());
     }
 
-    HRESULT static StringToBin(_Out_ PDATA_BLOB pdb, _In_ ULONG dwFlags, _In_ PCSTR pszString, _In_ ULONG cchString = 0)
+    HRESULT static stringToBin(_Out_ PDATA_BLOB pdb, _In_ ULONG dwFlags, _In_ PCSTR pszString, _In_ ULONG cchString = 0)
     {
         PUCHAR pb = 0;
         ULONG cb = 0;
@@ -95,12 +95,12 @@ public:
     }
 
 
-    HRESULT static Verify(PCWSTR pszAlgId, PCSTR szKey, PCSTR szSig, const UCHAR* pbData, ULONG cbData)
+    HRESULT static verify(PCWSTR pszAlgId, PCSTR szKey, PCSTR szSig, const UCHAR* pbData, ULONG cbData)
     {
         DATA_BLOB db;
         HRESULT hr;
 
-        if (NOERROR == (hr = KSignCheck::StringToBin(&db, CRYPT_STRING_BASE64HEADER, szKey)))
+        if (NOERROR == (hr = KSignCheck::stringToBin(&db, CRYPT_STRING_BASE64HEADER, szKey)))
         {
             ULONG cb;
             CERT_PUBLIC_KEY_INFO* publicKeyInfo;
@@ -124,7 +124,7 @@ public:
 
                     if (NOERROR == (hr = BOOL_TO_ERROR(::CryptHashCertificate2(pszAlgId, 0, 0, pbData, cbData, hash, &(cb = sizeof(hash))))))
                     {
-                        if (0 <= (hr = KSignCheck::StringToBin(&db, CRYPT_STRING_BASE64, szSig)))
+                        if (0 <= (hr = KSignCheck::stringToBin(&db, CRYPT_STRING_BASE64, szSig)))
                         {
                             BCRYPT_PKCS1_PADDING_INFO pi = { pszAlgId };
 

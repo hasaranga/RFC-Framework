@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -29,32 +29,32 @@ KApplication::KApplication()
 {
 }
 
-void KApplication::ModifyModuleInitParams()
+void KApplication::modifyModuleInitParams()
 {
 
 }
 
-int KApplication::Main(KString **argv, int argc)
+int KApplication::main(wchar_t** argv, int argc)
 {
 	return 0;
 }
 
-bool KApplication::AllowMultipleInstances()
+bool KApplication::allowMultipleInstances()
 {
 	return true;
 }
 
-int KApplication::AnotherInstanceIsRunning(KString **argv, int argc)
+int KApplication::anotherInstanceIsRunning(wchar_t** argv, int argc)
 {
 	return 0;
 }
 
-const wchar_t* KApplication::GetApplicationID()
+const wchar_t* KApplication::getApplicationID()
 {
 	return L"RFC_APPLICATION";
 }
 
-void KApplication::MessageLoop(bool handleTabKey)
+void KApplication::messageLoop(bool handleTabKey)
 {
 	MSG msg;
 

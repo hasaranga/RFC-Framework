@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2022 CrownSoft
+    Copyright (C) 2013-2025 CrownSoft
   
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -30,18 +30,18 @@ public:
 	KRegistry();
 
 	// returns true on success or if the key already exists.
-	static bool CreateKey(HKEY hKeyRoot, const KString& subKey);
+	static bool createKey(HKEY hKeyRoot, const KString& subKey);
 
 	// the subkey to be deleted must not have subkeys. 
-	static bool DeleteKey(HKEY hKeyRoot, const KString& subKey);
+	static bool deleteKey(HKEY hKeyRoot, const KString& subKey);
 
-	static bool ReadString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString* result);
+	static bool readString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString* result);
 
-	static bool WriteString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
+	static bool writeString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
 
-	static bool ReadDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD* result);
+	static bool readDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD* result);
 
-	static bool WriteDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
+	static bool writeDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
 
 	/**
 		you must free the buffer when you are done with it.
@@ -49,7 +49,7 @@ public:
 		e.g. @code
 		void *buffer;
 		DWORD bufferSize;
-		if(KRegistry::ReadBinary(xxx, xxx, xxx, &buffer, &buffSize))
+		if(KRegistry::readBinary(xxx, xxx, xxx, &buffer, &buffSize))
 		{
 			// do your thing here...
 
@@ -57,9 +57,9 @@ public:
 		}
 		@endcode
 	*/
-	static bool ReadBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void** buffer, DWORD* buffSize);
+	static bool readBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void** buffer, DWORD* buffSize);
 
-	static bool WriteBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize);
+	static bool writeBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize);
 
 	virtual ~KRegistry();
 

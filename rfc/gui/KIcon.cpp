@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,12 +28,12 @@ KIcon::KIcon()
 	hIcon = 0;
 }
 
-void KIcon::SetResource(WORD resourceID)
+void KIcon::setResource(WORD resourceID)
 {
 	this->resourceID = resourceID;
 }
 
-HICON KIcon::GetScaledIcon(int size)
+HICON KIcon::getScaledIcon(int size)
 {
 	HICON icon = 0;
 	::LoadIconWithScaleDown(KApplication::hInstance,
@@ -43,7 +43,7 @@ HICON KIcon::GetScaledIcon(int size)
 	return icon;
 }
 
-bool KIcon::LoadFromResource(WORD resourceID)
+bool KIcon::loadFromResource(WORD resourceID)
 {
 	this->resourceID = resourceID;
 
@@ -56,7 +56,7 @@ bool KIcon::LoadFromResource(WORD resourceID)
 	return false;
 }
 
-bool KIcon::LoadFromFile(const KString& filePath)
+bool KIcon::loadFromFile(const KString& filePath)
 {
 	hIcon = (HICON)::LoadImageW(KApplication::hInstance, 
 		filePath, IMAGE_ICON, 0, 0, 
@@ -67,7 +67,7 @@ bool KIcon::LoadFromFile(const KString& filePath)
 	return false;
 }
 
-HICON KIcon::GetHandle()
+HICON KIcon::getHandle()
 {
 	return hIcon;
 }

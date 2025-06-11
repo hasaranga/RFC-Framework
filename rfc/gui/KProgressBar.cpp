@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,7 +28,7 @@ KProgressBar::KProgressBar(bool smooth, bool vertical) : KComponent(false)
 {
 	value = 0;
 
-	compClassName.AssignStaticText(TXT_WITH_LEN("msctls_progress32"));
+	compClassName.assignStaticText(TXT_WITH_LEN("msctls_progress32"));
 
 	compWidth = 100;
 	compHeight = 20;
@@ -46,12 +46,12 @@ KProgressBar::KProgressBar(bool smooth, bool vertical) : KComponent(false)
 		compDwStyle = compDwStyle | PBS_VERTICAL;
 }
 
-int KProgressBar::GetValue()
+int KProgressBar::getValue()
 {
 	return value;
 }
 
-void KProgressBar::SetValue(int value)
+void KProgressBar::setValue(int value)
 {
 	this->value=value;
 
@@ -59,12 +59,12 @@ void KProgressBar::SetValue(int value)
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
-bool KProgressBar::Create(bool requireInitialMessages)
+bool KProgressBar::create(bool requireInitialMessages)
 {
 	if(!compParentHWND) // user must specify parent handle!
 		return false;
 
-	KGUIProc::CreateComponent(this, requireInitialMessages); // we dont need to register PROGRESS_CLASSW class!
+	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register PROGRESS_CLASSW class!
 
 	if(compHWND)
 	{

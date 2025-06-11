@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,24 +28,24 @@
 class KGUIProc
 {
 public:
-	static ATOM AtomComponent;
-	static ATOM AtomOldProc;
+	static ATOM atomComponent;
+	static ATOM atomOldProc;
 
-	static LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-	static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
+	static LRESULT CALLBACK windowProc(HWND, UINT, WPARAM, LPARAM);
+	static INT_PTR CALLBACK dialogProc(HWND, UINT, WPARAM, LPARAM);
 
 	/**
 		set requireInitialMessages to true to receive initial messages lke WM_CREATE... (installs a hook)
 	*/
-	static HWND CreateComponent(KComponent* component, bool requireInitialMessages);
+	static HWND createComponent(KComponent* component, bool requireInitialMessages);
 
 	/**
 		hwnd can be window, custom control, dialog or common control.
 		hwnd will be subclassed if it is a common control or dialog.
 	*/
-	static void AttachRFCPropertiesToHWND(HWND hwnd, KComponent* component);
+	static void attachRFCPropertiesToHWND(HWND hwnd, KComponent* component);
 
-	static int HotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
-	static HWND HotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
+	static int hotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
+	static HWND hotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
 };
 

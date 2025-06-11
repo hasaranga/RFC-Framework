@@ -21,13 +21,27 @@
 
 #pragma once
 
-#include "KDirectory.h"
-#include "KFile.h"
-#include "KLogger.h"
-#include "KPropertyStorage.h"
-#include "KSettingsReader.h"
-#include "KSettingsWriter.h"
+#include <cstddef>
+#include <new>
+#include <atomic>
 
-#pragma comment(lib,"Shlwapi.lib")
+#ifndef KSTATIC_POOL_SIZE
+    #define KSTATIC_POOL_SIZE 520
+#endif
 
+// thread-safe static allocation. (Lock-free)
+class KStaticAllocator
+{
+private:
+    static constexpr size_t POOL_SIZE = KSTATIC_POOL_SIZE; // 1MB pool
+    static char memory_pool[POOL_SIZE];
+    static std::atomic<size_t> current_offset;
+
+public:
+    // once allocated, returned buffer will stay until the application exit.
+    // returns nullptr if KSTATIC_POOL_SIZE is not enough.
+    static void* allocate(size_t size, size_t alignment = alignof(std::max_align_t));
+    
+    static void reset();
+};
 

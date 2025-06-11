@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -61,7 +61,7 @@ public:
 			object->AddRef();
 	}
 
-	bool IsNull()
+	bool isNull()
 	{
 		return (object == nullptr);
 	}
@@ -70,7 +70,7 @@ public:
 		Removes the current COM object from this KScopedComPointer without releasing it.
 		This will return the current object, and set the KScopedComPointer to a null pointer.
 	*/
-	T* Detach()
+	T* detach()
 	{ 
 		T* o = object; 
 		object = nullptr;

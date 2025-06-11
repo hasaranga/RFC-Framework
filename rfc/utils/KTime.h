@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2022 CrownSoft
+	Copyright (C) 2013-2025 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -36,7 +36,7 @@ public:
 	KTime(){}
 
 	// Returns time difference in units of 100 us.
-	static _int64 Delta100us(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
+	static _int64 delta100us(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
 		union timeunion {
 			FILETIME fileTime;
@@ -46,31 +46,31 @@ public:
 		timeunion ft1;
 		timeunion ft2;
 
-		SystemTimeToFileTime(&time1, &ft1.fileTime);
-		SystemTimeToFileTime(&time2, &ft2.fileTime);
+		::SystemTimeToFileTime(&time1, &ft1.fileTime);
+		::SystemTimeToFileTime(&time2, &ft2.fileTime);
 
 		return ft2.ul.QuadPart - ft1.ul.QuadPart;
 	}
 
 	// Returns time difference in seconds.
-	static _int64 DeltaSeconds(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
+	static _int64 deltaSeconds(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
-		return (Delta100us(time1, time2) / 10000000);
+		return (delta100us(time1, time2) / 10000000);
 	}
 
 	// Returns time difference in minutes.
-	static _int64 DeltaMinutes(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
+	static _int64 deltaMinutes(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
-		return (DeltaSeconds(time1, time2) / 60);
+		return (deltaSeconds(time1, time2) / 60);
 	}
 
 	// Returns time difference in hours.
-	static _int64 DeltaHours(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
+	static _int64 deltaHours(const SYSTEMTIME& time1, const SYSTEMTIME& time2)
 	{
-		return (DeltaMinutes(time1, time2) / 60);
+		return (deltaMinutes(time1, time2) / 60);
 	}
 
-	static void GetNow(SYSTEMTIME* time, const bool isLocalTime = true)
+	static void getNow(SYSTEMTIME* time, const bool isLocalTime = true)
 	{
 		if (isLocalTime)
 			::GetLocalTime(time);
