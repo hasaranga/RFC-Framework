@@ -62,50 +62,50 @@ public:
 	/** 
 		If the file does not exist, it will be created.
 	*/
-	virtual bool openFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
+	bool openFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
 
-	virtual bool closeFile();
+	bool closeFile();
 
-	virtual HANDLE getFileHandle();
+	HANDLE getFileHandle();
 
 	operator HANDLE()const;
 
 	/** 
 		fills given buffer and returns number of bytes read.
 	*/
-	virtual DWORD readFile(void* buffer, DWORD numberOfBytesToRead);
+	DWORD readFile(void* buffer, DWORD numberOfBytesToRead);
 
 	/** 
 		You must free the returned buffer yourself. To get the size of buffer, use getFileSize method. return value will be null on read error.
 	*/
-	virtual void* readAsData();
+	void* readAsData();
 
-	virtual KString readAsString(bool isUnicode = true);
+	KString readAsString(bool isUnicode = true);
 
 	/**
 		returns number of bytes written.
 	*/
-	virtual DWORD writeFile(const void* buffer, DWORD numberOfBytesToWrite);
+	DWORD writeFile(const void* buffer, DWORD numberOfBytesToWrite);
 
-	virtual bool writeString(const KString& text, bool isUnicode = true);
+	bool writeString(const KString& text, bool isUnicode = true);
 
-	virtual bool setFilePointerToStart();
+	bool setFilePointerToStart();
 
 	/**
 		moves file pointer to given distance from "startingPoint".
 		"startingPoint" can be FILE_BEGIN, FILE_CURRENT or FILE_END
 		"distance" can be negative.
 	*/
-	virtual bool setFilePointerTo(long distance, DWORD startingPoint = FILE_BEGIN);
+	bool setFilePointerTo(long distance, DWORD startingPoint = FILE_BEGIN);
 
-	virtual DWORD getFilePointerPosition();
+	DWORD getFilePointerPosition();
 
-	virtual bool setFilePointerToEnd();
+	bool setFilePointerToEnd();
 
 	/**
 		returns zero on error
 	*/
-	virtual DWORD getFileSize();
+	DWORD getFileSize();
 
 	static bool deleteFile(const wchar_t* fileName);
 
@@ -120,7 +120,7 @@ public:
 
 	static KString getFileExtension(const wchar_t* path);
 
-	virtual ~KFile();
+	~KFile();
 
 private:
 	RFC_LEAK_DETECTOR(KFile)

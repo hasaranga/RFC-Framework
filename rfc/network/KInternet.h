@@ -27,6 +27,7 @@
 
 #include "../core/CoreModule.h"
 #include <winhttp.h>
+#include <atomic>
 
 class KInternet
 {
@@ -106,12 +107,12 @@ public:
 		const wchar_t* objectName,
 		const bool isHttps,
 		const wchar_t* outFilePath,
-		volatile bool* shouldStop,
-		volatile unsigned int* fileSize,
-		const bool ignoreCertificateErros = true,
+		std::atomic<bool>* shouldStop,
+		std::atomic<unsigned int>* fileSize,
+		const bool ignoreCertificateErrors = true,
 		const wchar_t* userAgent = L"RFC Application/1.0");
 
-	virtual ~KInternet();
+	~KInternet();
 
 private:
 	RFC_LEAK_DETECTOR(KInternet)

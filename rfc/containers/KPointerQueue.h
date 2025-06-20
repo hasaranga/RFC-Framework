@@ -23,6 +23,7 @@
 #pragma once
 
 #include "../core/CoreModule.h"
+#include "KPointerList.h"
 
 #ifndef _KQUEUE_H_
 #define _KQUEUE_H_
@@ -35,35 +36,44 @@ public:
 };
 
 // Queue implemented using a linked list. Can hold unlimited number of items. (assumes T is a pointer type which is allocated using new)
-template<class T>
-class KPointerQueue
+template<class T, bool IsThreadSafe>
+class KPointerQueue : private KThreadSafetyBase<IsThreadSafe>
 {
 protected:
 	KQueueNode<T>* firstNode;
 	KQueueNode<T>* lastNode;
 
-	CRITICAL_SECTION criticalSection;
-	volatile bool isThreadSafe;
+	// Thread safety helper methods
+	inline void enterCriticalSectionIfNeeded()
+	{
+		if constexpr (IsThreadSafe)
+		{
+			::EnterCriticalSection(&this->criticalSection);
+		}
+	}
+
+	inline void leaveCriticalSectionIfNeeded()
+	{
+		if constexpr (IsThreadSafe)
+		{
+			::LeaveCriticalSection(&this->criticalSection);
+		}
+	}
 
 public:
-	KPointerQueue(const bool isThreadSafe = true)
+	KPointerQueue()
 	{
 		firstNode = nullptr;
 		lastNode = nullptr;
-
-		this->isThreadSafe = isThreadSafe;
-		if (isThreadSafe)
-			::InitializeCriticalSection(&criticalSection);
 	}
 
-	virtual void push(T value)
+	void push(T value)
 	{
 		KQueueNode<T>* newNode = new KQueueNode<T>();
 		newNode->data = value;
 		newNode->next = nullptr;
 
-		if (isThreadSafe)
-			::EnterCriticalSection(&criticalSection);
+		enterCriticalSectionIfNeeded();
 
 		if (firstNode == nullptr)
 		{
@@ -76,20 +86,16 @@ public:
 			lastNode = newNode;
 		}
 
-		if (isThreadSafe)
-			::LeaveCriticalSection(&criticalSection);
+		leaveCriticalSectionIfNeeded();
 	}
 
-	virtual T pop()
+	T pop()
 	{
-		if (isThreadSafe)
-			::EnterCriticalSection(&criticalSection);
+		enterCriticalSectionIfNeeded();
 
 		if (firstNode == nullptr)
 		{
-			if (isThreadSafe)
-				::LeaveCriticalSection(&criticalSection);
-
+			leaveCriticalSectionIfNeeded();
 			return nullptr;
 		}
 
@@ -103,22 +109,18 @@ public:
 
 		delete tmp;
 
-		if (isThreadSafe)
-			::LeaveCriticalSection(&criticalSection);
-
+		leaveCriticalSectionIfNeeded();
 		return value;
 	}
 
 	// calls desctructor of all the T objects in the queue. also clear the queue.
-	virtual void deleteAllObjects()
+	void deleteAllObjects()
 	{
-		if (isThreadSafe)
-			::EnterCriticalSection(&criticalSection);
+		enterCriticalSectionIfNeeded();
 
 		if (firstNode == nullptr)
 		{
-			if (isThreadSafe)
-				::LeaveCriticalSection(&criticalSection);
+			leaveCriticalSectionIfNeeded();
 			return;
 		}
 
@@ -135,11 +137,10 @@ public:
 		firstNode = nullptr;
 		lastNode = nullptr;
 
-		if (isThreadSafe)
-			::LeaveCriticalSection(&criticalSection);
+		leaveCriticalSectionIfNeeded();
 	}
 
-	virtual ~KPointerQueue()
+	~KPointerQueue()
 	{
 		// delete all nodes
 
@@ -153,9 +154,6 @@ public:
 			nextNode = nextNode->next;
 			delete tmp;
 		}
-
-		if (isThreadSafe)
-			::DeleteCriticalSection(&criticalSection);
 	}
 };
 

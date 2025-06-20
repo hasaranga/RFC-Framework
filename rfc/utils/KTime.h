@@ -78,7 +78,7 @@ public:
 			::GetSystemTime(time);
 	}
 
-	virtual ~KTime(){}
+	~KTime(){}
 
 private:
 	RFC_LEAK_DETECTOR(KTime)

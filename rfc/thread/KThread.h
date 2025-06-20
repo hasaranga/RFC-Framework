@@ -24,20 +24,21 @@
 #include "../core/CoreModule.h"
 #include "KRunnable.h"
 #include <functional>
+#include <atomic>
 
 /**
 	Encapsulates a thread.
 
 	Method1:
 	Subclasses derive from KThread and implement the run() method, in which they
-	do their business. The thread can then be started with the startThread() method
+	do their business. The thread can then be started with the start() method
 	and controlled with various other methods.
 
 	run() method implementation might be like this
 	@code
 	virtual void run()
 	{
-		while(shouldRun())
+		while(isRunningAllowed())
 		{
 			// your code goes here...
 		}
@@ -51,7 +52,7 @@
 	@code
 	virtual void run(KThread* thread)
 	{
-		while(thread->shouldRun())
+		while(thread->isRunningAllowed())
 		{
 			// your code goes here...
 		}
@@ -64,7 +65,7 @@
 	Run method implementation might be like this
 	@code
 	myThread.onRun = [this](KThread* thread){
-		while(thread->shouldRun())
+		while(thread->isRunningAllowed())
 		{
 			// your code goes here...
 		}
@@ -75,8 +76,10 @@ class KThread
 {
 protected:
 	HANDLE handle;
-	volatile bool shouldStop;
+	std::atomic<bool> stopRequestedFlag;
 	KRunnable* runnable;
+
+	bool createRFCThread();
 
 public:
 	std::function<void(KThread*)> onRun;
@@ -84,52 +87,47 @@ public:
 	KThread();
 
 	/**
-		Sets thread handle.
-	*/
-	virtual void setHandle(HANDLE handle);
-
-	/**
 		Sets runnable object for this thread.
 	*/
-	virtual void setRunnable(KRunnable* runnable);
+	void setRunnable(KRunnable* runnable);
 
 	/**
 		Returns handle of the thread
 	*/
-	virtual HANDLE getHandle();
+	HANDLE getHandle();
 
 	operator HANDLE()const;
 
 	/**
-		Override this method in your class.
+		you can override this method in your subclass.
 	*/
 	virtual void run();
 
 	/**
 		Starts thread
 	*/
-	virtual bool startThread();
+	bool start();
 
 	/**
-		Another thread can signal this thread should stop. 
+		Another thread can signal this thread should stop. It is upto this thread to decide whether to stop or not.
 	*/
-	virtual void threadShouldStop();
+	void shouldStop();
 
 	/**
-		@returns true if thread should run
+		@returns true if thread should continue.
 	*/
-	virtual bool shouldRun();
+	bool isRunningAllowed();
 
 	/**
 		@returns true if thread is still running
 	*/
-	virtual bool isThreadRunning();
+	bool isRunning();
 
 	/**
 		Caller will not return until this thread finish.
 		Set pumpMessages to true to enable message processing for caller. It will help to avoid deadlocks if the caller is a gui thread!
 	*/
-	virtual DWORD waitUntilThreadFinish(bool pumpMessages = false);
+	DWORD waitUntilThreadFinish(bool pumpMessages = false);
 
 	/**
 		Sleeps calling thread to given micro seconds.
@@ -137,6 +135,12 @@ public:
 	static void uSleep(int waitTime);
 
 	virtual ~KThread();
+	
+	// no copy/movable
+	KThread(const KThread&) = delete;
+	KThread& operator=(const KThread&) = delete;
+	KThread(KThread&&) = delete;
+	KThread& operator=(KThread&&) = delete;
 
 private:
 	RFC_LEAK_DETECTOR(KThread)

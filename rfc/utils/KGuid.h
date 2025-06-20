@@ -60,7 +60,7 @@ public:
 		return result;
 	}
 
-	virtual ~KGuid(){}
+	~KGuid(){}
 
 private:
 	RFC_LEAK_DETECTOR(KGuid)

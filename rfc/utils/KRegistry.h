@@ -61,6 +61,6 @@ public:
 
 	static bool writeBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize);
 
-	virtual ~KRegistry();
+	~KRegistry();
 
 };

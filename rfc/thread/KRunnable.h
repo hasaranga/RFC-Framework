@@ -28,11 +28,11 @@ class KThread;
 class KRunnable
 {
 public:
-	KRunnable();
+	KRunnable() = default;
 
-	virtual ~KRunnable();
+	virtual ~KRunnable() = default;
 
-	virtual void run(KThread* thread);
+	virtual void run(KThread* thread) {}
 
 private:
 	RFC_LEAK_DETECTOR(KRunnable)

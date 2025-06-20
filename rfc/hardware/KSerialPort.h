@@ -34,7 +34,7 @@ public:
 		hPort = NULL;
 	}
 
-	virtual ~KSerialPort() {}
+	~KSerialPort() {}
 
 	// portText can be COM2 etc...
 	// set waitForInitialize to true if connect to arduino board

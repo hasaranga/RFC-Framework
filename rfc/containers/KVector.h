@@ -97,8 +97,6 @@ public:
 	{
 		resetToSmallBuffer();
 
-		enterCriticalSectionIfNeeded();
-
 		// If other has more items than our small buffer can hold
 		if (other.itemCount > SmallBufferSize)
 		{
@@ -113,8 +111,6 @@ public:
 		{
 			list[i] = other.list[i];
 		}
-
-		leaveCriticalSectionIfNeeded();
 	}
 
 	/**

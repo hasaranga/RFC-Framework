@@ -40,10 +40,10 @@ private:
 	~KIDGenerator();
 
 protected:
-	volatile int classCount;
-	volatile int timerCount;
-	volatile int controlCount;
-	volatile UINT menuItemCount;
+	int classCount;
+	int timerCount;
+	int controlCount;
+	UINT menuItemCount;
 
 	static const int rfc_InitialMenuItemCount = 20;
 	static const int rfc_InitialTimerCount = 10;
@@ -59,15 +59,23 @@ public:
 	// do not delete the returned instance.
 	static KIDGenerator* getInstance();
 
+	// [gui thread only]
 	UINT generateControlID();
 
 	// KApplication:hInstance must be valid before calling this method
 	// can generate up to 9999 class names.
+	// [gui thread only]
 	void generateClassName(KString& stringToModify);
 
+	// [gui thread only]
 	UINT generateMenuItemID(KMenuItem* menuItem);
+
+	// [gui thread only]
 	KMenuItem* getMenuItemByID(UINT id);
 
+	// [gui thread only]
 	UINT generateTimerID(KTimer* timer);
+
+	// [gui thread only]
 	KTimer* getTimerByID(UINT id);
 };

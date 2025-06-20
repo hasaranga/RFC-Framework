@@ -24,7 +24,7 @@
 #include "KThread.h"
 #include <process.h>
 
-unsigned __stdcall RFCThread_Proc(void* lpParameter)
+unsigned __stdcall _RFCThread_Proc(void* lpParameter)
 {
 	if (lpParameter == nullptr) // for safe!
 		return 0;
@@ -32,39 +32,28 @@ unsigned __stdcall RFCThread_Proc(void* lpParameter)
 	KThread* thread = (KThread*)lpParameter;
 	thread->run();
 
+	// handle will be closed at destructor or next "start" call.
+
 	return 0;
 }
 
-bool CreateRFCThread(KThread* thread)
+bool KThread::createRFCThread()
 {
-	if (thread)
+	// create thread in suspended state. so we can set the handle field.
+	HANDLE threadHandle = (HANDLE)::_beginthreadex(NULL, 0, _RFCThread_Proc, (KThread*)this, CREATE_SUSPENDED, NULL);
+	//HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL);
+
+	if (threadHandle)
 	{
-		// create thread in suspended state. so we can set the handle field.
-		HANDLE handle = (HANDLE)::_beginthreadex(NULL, 0, RFCThread_Proc, thread, CREATE_SUSPENDED, NULL);
-		//HANDLE handle = ::CreateThread(NULL, 0, ::GlobalThread_Proc, thread, CREATE_SUSPENDED, NULL);
+		handle = threadHandle;
+		::ResumeThread(handle);
 
-		if (handle)
-		{
-			thread->setHandle(handle);
-			::ResumeThread(handle);
-
-			return true;
-		}
+		return true;
 	}
 	return false;
 }
 
-KThread::KThread()
-{
-	handle = 0; 
-	runnable = nullptr;
-	shouldStop = false;
-}
-
-void KThread::setHandle(HANDLE handle)
-{
-	this->handle = handle;
-}
+KThread::KThread() : stopRequestedFlag(false), handle(0), runnable(nullptr) {}
 
 void KThread::setRunnable(KRunnable* runnable)
 {
@@ -81,9 +70,13 @@ KThread::operator HANDLE()const
 	return handle;
 }
 
-bool KThread::shouldRun()
+bool KThread::isRunningAllowed()
 {
-	return !shouldStop;
+	const bool mustStop = stopRequestedFlag.load(std::memory_order_relaxed);
+	if (mustStop)
+		std::atomic_thread_fence(std::memory_order_acquire);
+
+	return !mustStop;
 }
 
 void KThread::run()
@@ -94,20 +87,22 @@ void KThread::run()
 		onRun(this);
 }
 
-bool KThread::isThreadRunning()
+bool KThread::isRunning()
 {
 	if (handle)
 	{
 		const DWORD result = ::WaitForSingleObject(handle, 0);
+		if (result == WAIT_FAILED)
+			return false;
 		return (result != WAIT_OBJECT_0);
 	}
 
 	return false;
 }
 
-void KThread::threadShouldStop()
+void KThread::shouldStop()
 {
-	shouldStop = true;
+	stopRequestedFlag.store(true, std::memory_order_release);
 }
 
 DWORD KThread::waitUntilThreadFinish(bool pumpMessages)
@@ -145,17 +140,19 @@ DWORD KThread::waitUntilThreadFinish(bool pumpMessages)
 	return false;
 }
 
-bool KThread::startThread()
+bool KThread::start()
 {
-	shouldStop = false;
+	if (isRunning())
+		return false;
 
-	if (handle) // close old handle
+	if (handle) // close old stopped handle
 	{
 		::CloseHandle(handle);
 		handle = 0;
 	}
 
-	return ::CreateRFCThread(this);
+	stopRequestedFlag.store(false, std::memory_order_release);
+	return createRFCThread();
 }
 
 void KThread::uSleep(int waitTime)
@@ -172,6 +169,16 @@ void KThread::uSleep(int waitTime)
 
 KThread::~KThread()
 {
+	if (isRunning())
+	{
+		#ifdef _DEBUG
+		MessageBoxW(0, L"Thread object was destroyed while the associated thread was still running!", L"Error", MB_ICONERROR);
+		#endif
+		shouldStop();
+		::WaitForSingleObject(handle, 1000); // wait for one second
+	}
+
+	// close old stopped handle
 	if (handle)
 		::CloseHandle(handle);
 }

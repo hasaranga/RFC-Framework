@@ -35,24 +35,24 @@ protected:
 public:
 	KSettingsWriter();
 
-	virtual bool openFile(const wchar_t* fileName, int formatID);
+	bool openFile(const wchar_t* fileName, int formatID);
 
 	/**
 		save struct, array or whatever...
 	*/
-	virtual void writeData(DWORD size, void *buffer);
+	void writeData(DWORD size, void *buffer);
 
-	virtual void writeString(const KString& text);
+	void writeString(const KString& text);
 
-	virtual void writeInt(int value);
+	void writeInt(int value);
 
-	virtual void writeFloat(float value);
+	void writeFloat(float value);
 
-	virtual void writeDouble(double value);
+	void writeDouble(double value);
 
-	virtual void writeBool(bool value);
+	void writeBool(bool value);
 
-	virtual ~KSettingsWriter();
+	~KSettingsWriter();
 
 private:
 	RFC_LEAK_DETECTOR(KSettingsWriter)

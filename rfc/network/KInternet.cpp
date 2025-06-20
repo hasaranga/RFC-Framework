@@ -288,12 +288,12 @@ void KInternet::downloadFile(const wchar_t* url,
 	const wchar_t* objectName,
 	const bool isHttps,
 	const wchar_t* outFilePath,
-	volatile bool* shouldStop,
-	volatile unsigned int* fileSize,
-	const bool ignoreCertificateErros,
+	std::atomic<bool>* shouldStop,
+	std::atomic<unsigned int>* fileSize,
+	const bool ignoreCertificateErrors,
 	const wchar_t* userAgent)
 {
-	*fileSize = 0;
+	fileSize->store(0, std::memory_order_relaxed);
 
 	::DeleteFileW(outFilePath);
 	HANDLE fileHandle = ::CreateFileW(outFilePath, GENERIC_WRITE, FILE_SHARE_READ, NULL,
@@ -315,7 +315,7 @@ void KInternet::downloadFile(const wchar_t* url,
 
 	if (hRequest)
 	{
-		if (ignoreCertificateErros)
+		if (ignoreCertificateErrors)
 		{
 			DWORD dwFlags = SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE | SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
 			::WinHttpSetOption(hRequest, WINHTTP_OPTION_SECURITY_FLAGS, &dwFlags, sizeof(DWORD));
@@ -341,7 +341,7 @@ void KInternet::downloadFile(const wchar_t* url,
 
 				if (::WinHttpReadData(hRequest, (LPVOID)outBuffer, dwSize, &dwDownloaded))
 				{
-					*fileSize = (*fileSize) + dwSize;
+					fileSize->fetch_add((unsigned int)dwSize, std::memory_order_relaxed);
 					DWORD written = 0;
 					::WriteFile(fileHandle, outBuffer, dwSize, &written, NULL);
 				}
@@ -349,8 +349,11 @@ void KInternet::downloadFile(const wchar_t* url,
 				delete[] outBuffer;
 			}
 
-			if (*shouldStop)
+			if (shouldStop->load(std::memory_order_relaxed)) 
+			{
+				std::atomic_thread_fence(std::memory_order_acquire);
 				break;
+			}
 
 		} while (dwSize > 0);
 	}
@@ -366,10 +369,10 @@ void KInternet::downloadFile(const wchar_t* url,
 
 	::CloseHandle(fileHandle);
 
-	if (*shouldStop)
+	if (shouldStop->load(std::memory_order_acquire))
 	{
 		::DeleteFileW(outFilePath);
-		*fileSize = 0;
+		fileSize->store(0, std::memory_order_release);
 	}
 }
 

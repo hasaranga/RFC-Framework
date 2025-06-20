@@ -24,7 +24,6 @@
 #include <malloc.h>
 #include <Objbase.h>
 
-
 /**
 	This class holds a pointer which is allocated using malloc and it will automatically freed when this object goes
 	out of scope. 

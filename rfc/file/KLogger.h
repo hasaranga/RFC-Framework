@@ -78,28 +78,28 @@ public:
 
 	KLogger(DWORD bufferSize = (SZ_MEGABYTE * 10));
 
-	virtual bool writeNewEvent(unsigned char eventType = EVT_INFORMATION);
+	bool writeNewEvent(unsigned char eventType = EVT_INFORMATION);
 
-	virtual bool endEvent();
+	bool endEvent();
 
 	/**
 		textLength is number of chars. max value is 255.
 	*/
-	virtual bool addTextParam(const char *text, unsigned char textLength);
+	bool addTextParam(const char *text, unsigned char textLength);
 
-	virtual bool addIntParam(int value);
+	bool addIntParam(int value);
 
-	virtual bool addShortParam(unsigned short value);
+	bool addShortParam(unsigned short value);
 
-	virtual bool addFloatParam(float value);
+	bool addFloatParam(float value);
 	
-	virtual bool addDoubleParam(double value);
+	bool addDoubleParam(double value);
 
-	virtual bool isBufferFull();
+	bool isBufferFull();
 
-	virtual bool writeToFile(const KString &filePath);
+	bool writeToFile(const KString &filePath);
 
-	virtual ~KLogger();
+	~KLogger();
 
 private:
 	RFC_LEAK_DETECTOR(KLogger)

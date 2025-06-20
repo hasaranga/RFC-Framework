@@ -32,14 +32,14 @@ protected:
 public:
 	KPerformanceCounter();
 
-	virtual void startCounter();
+	void startCounter();
 
 	/**
 		returns delta time(milliseconds) between startCounter and endCounter calls.
 	*/
-	virtual double endCounter();
+	double endCounter();
 
-	virtual ~KPerformanceCounter();
+	~KPerformanceCounter();
 
 private:
 	RFC_LEAK_DETECTOR(KPerformanceCounter)

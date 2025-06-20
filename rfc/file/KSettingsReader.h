@@ -35,24 +35,24 @@ protected:
 public:
 	KSettingsReader();
 
-	virtual bool openFile(const wchar_t* fileName, int formatID);
+	bool openFile(const wchar_t* fileName, int formatID);
 
 	/**
 		read struct, array or whatever...
 	*/
-	virtual void readData(DWORD size, void *buffer);
+	void readData(DWORD size, void *buffer);
 
-	virtual KString readString();
+	KString readString();
 
-	virtual int readInt();
+	int readInt();
 
-	virtual float readFloat();
+	float readFloat();
 
-	virtual double readDouble();
+	double readDouble();
 
-	virtual bool readBool();
+	bool readBool();
 
-	virtual ~KSettingsReader();
+	~KSettingsReader();
 
 private:
 	RFC_LEAK_DETECTOR(KSettingsReader)

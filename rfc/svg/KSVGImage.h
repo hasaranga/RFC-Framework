@@ -81,7 +81,7 @@ public:
 		*stride = (int)lunaBitmap.stride();
 	}
 
-	virtual ~KSVGImage()
+	~KSVGImage()
 	{
 
 	}

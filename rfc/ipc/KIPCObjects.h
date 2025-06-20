@@ -256,7 +256,7 @@ public:
 		return dataBuffer;
 	}
 
-	virtual ~KIPCServer()
+	~KIPCServer()
 	{
 
 	}
@@ -438,7 +438,7 @@ public:
 		::SetEvent(clientDataReadyEvent);
 	}
 
-	virtual ~KIPCClient()
+	~KIPCClient()
 	{
 
 	}

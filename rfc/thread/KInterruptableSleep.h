@@ -44,7 +44,7 @@ public:
         return ::WaitForSingleObject(hEvent, mills) == WAIT_TIMEOUT;
     }
 
-    virtual ~KInterruptableSleep()
+    ~KInterruptableSleep()
     {
         ::CloseHandle(hEvent);
     }

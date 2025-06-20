@@ -110,7 +110,7 @@ public:
 	// does not scan for child folders.
 	static KPointerList<KString*, 32, false>* scanFolderForExtension(const KString& folderPath, const KString& extension);
 
-	virtual ~KDirectory();
+	~KDirectory();
 
 private:
 	RFC_LEAK_DETECTOR(KDirectory)

@@ -32,7 +32,7 @@ public:
 
 	static KString generateFromFile(const KString& fileName);
 
-	virtual ~KMD5();
+	~KMD5();
 
 private:
 	RFC_LEAK_DETECTOR(KMD5)
