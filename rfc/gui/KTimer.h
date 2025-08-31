@@ -38,47 +38,38 @@ protected:
 	UINT timerID;
 	int resolution;
 	bool started;
-	KWindow *window;
+	HWND hwndWindow;
 
 public:
 	std::function<void(KTimer*)> onTimer;
 
 	KTimer();
 
-	/**
-		@param resolution timer interval
-	*/
-	virtual void setInterval(int resolution);
+	int getInterval();
 
-	virtual int getInterval();
-
-	/**
-		Call this method before you start timer
-	*/
-	virtual void setTimerWindow(KWindow* window);
-
-	virtual void setTimerID(UINT timerID);
+	void setTimerID(UINT timerID);
 
 	/**
 		@returns unique id of this timer
 	*/
-	virtual UINT getTimerID();
+	UINT getTimerID();
+
+	// Starts timer. window must be created before calling this method. resolution in ms.
+	void start(int resolution, KWindow& window);
+
+	// Starts timer. window must be created before calling this method. resolution in ms.
+	void start(int resolution, KWindow& window, std::function<void(KTimer*)> onTimerCallback);
 
 	/**
-		Starts timer
+		Stops the timer. You can restart it by calling start() method.
 	*/
-	virtual void startTimer();
+	void stop();
 
-	/**
-		Stops the timer. You can restart it by calling startTimer() method.
-	*/
-	virtual void stopTimer();
+	bool isRunning();
 
-	virtual bool isTimerRunning();
+	void _onTimer();
 
-	virtual void _onTimer();
-
-	virtual ~KTimer();
+	~KTimer();
 
 private:
 	RFC_LEAK_DETECTOR(KTimer)

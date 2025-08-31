@@ -158,6 +158,8 @@ bool KComponent::create(bool requireInitialMessages)
 	return false;
 }
 
+void KComponent::onParentDestroy() {}
+
 void KComponent::destroy()
 {
 	if (compHWND)
@@ -186,11 +188,6 @@ void KComponent::setFont(KFont *compFont)
 	this->compFont = compFont;
 	if(compHWND)
 		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
-}
-
-void KComponent::setFont(KFont& compFont)
-{
-	setFont(&compFont);
 }
 
 KFont* KComponent::getFont()
@@ -261,6 +258,11 @@ int KComponent::getDPI()
 	return compDPI;
 }
 
+int KComponent::scaleToCurrentDPI(int valueFor96DPI)
+{
+	return MulDiv(valueFor96DPI, compDPI, USER_DEFAULT_SCREEN_DPI);
+}
+
 int KComponent::getX()
 {
 	return compX; 
@@ -325,6 +327,58 @@ void KComponent::setPosition(int compX, int compY)
 
 	if(compHWND)
 		::SetWindowPos(compHWND, 0, compX, compY, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+}
+
+void KComponent::placeToRightOf(KComponent& target, int spacing)
+{
+	setPosition(target.getX() + target.getWidth() + spacing, target.getY());
+}
+
+void KComponent::placeToLeftOf(KComponent& target, int spacing)
+{
+	setPosition(target.getX() - getWidth() - spacing, target.getY());
+}
+
+void KComponent::placeBelow(KComponent& target, int spacing)
+{
+	setPosition(target.getX(), target.getY() + target.getHeight() + spacing);
+}
+
+void KComponent::placeAbove(KComponent& target, int spacing)
+{
+	setPosition(target.getX(), target.getY() - getHeight() - spacing);
+}
+
+void KComponent::alignTopWith(KComponent& target)
+{
+	setPosition(getX(), target.getY());
+}
+
+void KComponent::alignBottomWith(KComponent& target)
+{
+	setPosition(getX(), target.getY() + target.getHeight() - getHeight());
+}
+
+void KComponent::alignLeftWith(KComponent& target)
+{
+	setPosition(target.getX(), getY());
+}
+
+void KComponent::alignRightWith(KComponent& target)
+{
+	setPosition(target.getX() + target.getWidth() - getWidth(), getY());
+}
+
+void KComponent::alignCenterHorizontallyWith(KComponent& target)
+{
+	int x = target.getX() + (target.getWidth() - getWidth()) / 2;
+	setPosition(x, getY());
+}
+
+void KComponent::alignCenterVerticallyWith(KComponent& target)
+{
+	int y = target.getY() + (target.getHeight() - getHeight()) / 2;
+	setPosition(getX(), y);
 }
 
 void KComponent::setVisible(bool state)

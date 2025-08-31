@@ -1,0 +1,7 @@
+<xml>
+	<name>Composition</name>
+	<fixed>false</fixed>
+	<dependencies>Core,GUI</dependencies>
+	<platform>Win 8.1 or higher</platform>
+	<description>Layer, XPosAnimator, BaseWindow</description>
+</xml>

@@ -29,7 +29,7 @@
 
 #define RFC_NOTIFY_ICON_MESSAGE WM_APP + 101
 
-// adds an icon into the systemtray and handles mouse messages.
+// adds an icon into the system tray and handles mouse messages.
 // detects taskbar re-creation and adds the icon again.
 // T must be derived from KWindow
 template <class T,
@@ -90,7 +90,8 @@ protected:
 	}
 
 public:
-	KNotifyIconHandler()
+	template<typename... Args>
+	KNotifyIconHandler(Args&&... args) : T(std::forward<Args>(args)...)
 	{
 		notifyIconHandle = 0;
 		taskbarRestartMsg = ::RegisterWindowMessageW(L"TaskbarCreated");

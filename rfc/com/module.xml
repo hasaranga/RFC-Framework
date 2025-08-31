@@ -1,0 +1,7 @@
+<xml>
+	<name>COM</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>WinXP or higher</platform>
+	<description>KComPtr, KComObject, KComMultiObject</description>
+</xml>

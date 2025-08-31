@@ -35,12 +35,11 @@ KWindow::KWindow() : KComponent(true)
 	enableDPIUnawareMode = false;
 	prevDPIContext = 0;
 	dpiAwarenessContextChanged = false;
-	compDwStyle = WS_POPUP;
+	compDwStyle = WS_POPUP | WS_CLIPCHILDREN;
 	compDwExStyle = WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	compCtlID = 0; // control id is zero for top level window
 	lastFocusedChild = 0;
-	dpiChangeListener = nullptr;
 	windowIcon = nullptr;
 	largeIconHandle = 0;
 	smallIconHandle = 0;
@@ -133,11 +132,6 @@ void KWindow::setCloseOperation(KCloseOperation closeOperation)
 	this->closeOperation = closeOperation;
 }
 
-void KWindow::setDPIChangeListener(KDPIChangeListener* dpiChangeListener)
-{
-	this->dpiChangeListener = dpiChangeListener;
-}
-
 void KWindow::setEnableDPIUnawareMode(bool enable)
 {
 	enableDPIUnawareMode = enable;
@@ -146,13 +140,23 @@ void KWindow::setEnableDPIUnawareMode(bool enable)
 void KWindow::onClose()
 {
 	if (closeOperation == KCloseOperation::DestroyAndExit)
-		this->destroy();
-	else if (closeOperation == KCloseOperation::Hide)
+	{
 		this->setVisible(false);
+		this->destroy();
+	}
+	else if (closeOperation == KCloseOperation::Hide)
+	{
+		this->setVisible(false);
+	}
 }
 
 void KWindow::onDestroy()
 {
+	for (int i = 0; i < componentList.size(); i++)
+	{
+		componentList[i]->onParentDestroy();
+	}
+
 	if (closeOperation == KCloseOperation::DestroyAndExit)
 		::PostQuitMessage(0);
 }
@@ -468,8 +472,8 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					componentList[i]->setDPI(compDPI);
 				}
 
-				if (dpiChangeListener)
-					dpiChangeListener->onDPIChange(compHWND, compDPI);
+				if (onDPIChange)
+					onDPIChange(this);
 
 				return 0;
 			}

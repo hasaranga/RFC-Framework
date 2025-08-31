@@ -56,6 +56,7 @@
 #include "KGridView.h"
 #include "KListBox.h"
 #include "KNotifyIconHandler.h"
+#include "KZoomRectEffect.h"
 
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "Shell32.lib")

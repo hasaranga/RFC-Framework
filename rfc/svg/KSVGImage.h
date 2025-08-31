@@ -23,67 +23,106 @@
 #pragma once
 
 #include "../core/CoreModule.h"
-#include "lunasvg/lunasvg.h"
+#include "plutosvg/plutosvg.h"
 
+// uses modified plutosvg. (removed font support, image element support & image saving)
 class KSVGImage
 {
 protected:
-	std::unique_ptr<lunasvg::Document> document;
-	lunasvg::Bitmap lunaBitmap;
+	plutosvg::plutosvg_document_t* document = nullptr;
+	plutosvg::plutovg_surface_t* surface = nullptr;
 
 public:
 	KSVGImage() {}
 
-	bool loadFromFile(const std::string& path)
+	bool loadFromFile(const char* filePath)
 	{
-		document = lunasvg::Document::loadFromFile(path);
-		if (document == nullptr)
-			return false;
-
-		return true;
+		document = plutosvg::plutosvg_document_load_from_file(filePath, -1, -1);
+		return document != NULL;
 	}
 
-	bool loadFromText(const std::string& svgText)
+	bool loadFromData(const char* data, int length)
 	{
-		document = lunasvg::Document::loadFromData(svgText);
-		if (document == nullptr)
-			return false;
-
-		return true;
-	}
-
-	void rasterize()
-	{
-		this->rasterize((unsigned int)document->width(), (unsigned int)document->height());
+		document = plutosvg::plutosvg_document_load_from_data(data, length, -1, -1, 0, 0);
+		return document != NULL;
 	}
 
 	// can call multiple times
-	void rasterize(unsigned int width, unsigned int height)
+	void rasterize(int width, int height)
 	{
-		lunaBitmap = document->renderToBitmap(width, height);
+		if (document == NULL)
+			return;
+
+		if (surface)
+		{
+			plutosvg::plutovg_surface_destroy(surface);
+			surface = nullptr;
+		}
+
+		surface = plutosvg::plutosvg_document_render_to_surface(document, nullptr, width, height, nullptr, nullptr, nullptr);
 	}
 
 	// can call multiple times
-	void rasterize(int newDPI)
+	void rasterize(int newDPI = USER_DEFAULT_SCREEN_DPI)
 	{
-		const unsigned int newWidth = (unsigned int)MulDiv((uint32_t)document->width(), newDPI, USER_DEFAULT_SCREEN_DPI);
-		const unsigned int newHeight = (unsigned int)MulDiv((uint32_t)document->height(), newDPI, USER_DEFAULT_SCREEN_DPI);
+		if (document == NULL)
+			return;
+
+		unsigned int width = (unsigned int)plutosvg::plutosvg_document_get_width(document);
+		unsigned int height = (unsigned int)plutosvg::plutosvg_document_get_height(document);
+		unsigned int newWidth = (unsigned int)MulDiv((uint32_t)width, newDPI, USER_DEFAULT_SCREEN_DPI);
+		unsigned int newHeight = (unsigned int)MulDiv((uint32_t)height, newDPI, USER_DEFAULT_SCREEN_DPI);
 		this->rasterize(newWidth, newHeight);
+	}
+
+	bool isImageRasterized()
+	{
+		return surface != NULL;
+	}
+
+	bool isDocumentLoaded()
+	{
+		return document != NULL;
 	}
 
 	// data format is premultiplied gdi 0xaarrggbb or gdiplus PixelFormat32bppPARGB or 
 	// direct2d {DXGI_FORMAT_B8G8R8A8_UNORM,D2D1_ALPHA_MODE_PREMULTIPLIED}
-	void getImageData(int* width, int* height, BYTE** data, int* stride)
+	void getImageData(int* width, int* height, unsigned char** data, int* stride)
 	{
-		*width = (int)lunaBitmap.width();
-		*height = (int)lunaBitmap.height();
-		*data = lunaBitmap.data();
-		*stride = (int)lunaBitmap.stride();
+		if (surface == NULL)
+			return;
+
+		if(width)
+			*width = surface->width;
+
+		if(height)
+			*height = surface->height;
+
+		if(data)
+			*data = surface->data;
+
+		if(stride)
+			*stride = surface->stride;
+	}
+
+	// free the generated pixel data. does not free the document.
+	// you need to call rasterize method again to generate the image data.
+	void freeRasterData()
+	{
+		if (surface)
+		{
+			plutosvg::plutovg_surface_destroy(surface);
+			surface = nullptr;
+		}
 	}
 
 	~KSVGImage()
 	{
+		if (surface)
+			plutosvg::plutovg_surface_destroy(surface);
 
+		if (document)
+			plutosvg::plutosvg_document_destroy(document);
 	}
 
 private:

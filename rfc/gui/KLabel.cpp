@@ -52,6 +52,8 @@ void KLabel::resizeToTextSize()
 	{
 		this->setSize(20, 25);
 	}
+
+	this->repaint(); // to fix bug when text contain one space character and os repaint only resized area.
 }
 
 void KLabel::enableAutoResize(bool enable)
@@ -73,14 +75,6 @@ void KLabel::setText(const KString& compText)
 void KLabel::setFont(KFont* compFont)
 {
 	KComponent::setFont(compFont);
-
-	if (autoResize)
-		this->resizeToTextSize();
-}
-
-void KLabel::setFont(KFont& compFont)
-{
-	KComponent::setFont(&compFont);
 
 	if (autoResize)
 		this->resizeToTextSize();

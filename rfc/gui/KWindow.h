@@ -25,14 +25,9 @@
 #include "KIcon.h"
 #include "KHostPanel.h"
 #include "../containers/ContainersModule.h"
+#include <functional>
 
 #define RFC_CUSTOM_MESSAGE WM_APP + 100
-
-class KDPIChangeListener
-{
-public:
-	virtual void onDPIChange(HWND hwnd, int newDPI) = 0;
-};
 
 enum class KCloseOperation { DestroyAndExit, Hide, Nothing };
 
@@ -40,7 +35,6 @@ class KWindow : public KComponent
 {
 protected:
 	HWND lastFocusedChild;
-	KDPIChangeListener* dpiChangeListener;
 	bool enableDPIUnawareMode;
 	KPointerList<KComponent*, 24, false> componentList; // KHostPanel is also using 24.
 	KCloseOperation closeOperation;
@@ -52,6 +46,8 @@ protected:
 	void updateWindowIconForNewDPI();
 
 public:
+	std::function<void(KWindow*)> onDPIChange; // called after dpi change.
+
 	KWindow();
 
 	virtual bool create(bool requireInitialMessages = false) override;
@@ -86,7 +82,19 @@ public:
 	*/
 	virtual bool addComponent(KComponent* component, bool requireInitialMessages = false);
 
-	virtual bool addComponent(KComponent& component, bool requireInitialMessages = false);
+	bool addComponent(KComponent& component, bool requireInitialMessages = false);
+
+	template<typename... Components>
+	void addComponents(bool requireInitialMessages, Components&... comps)
+	{
+		(addComponent(comps, requireInitialMessages), ...); // fold expression (C++17+)
+	}
+
+	template<typename... Components>
+	void addComponents(Components&... comps)
+	{
+		(addComponent(comps, false), ...); // fold expression (C++17+)
+	}
 
 	// Can be also use to remove a container. Also destroys the hwnd.
 	// you need to remove the component if you are deleting it before WM_DESTROY message arrived.
@@ -96,8 +104,6 @@ public:
 	virtual bool addContainer(KHostPanel* container, bool requireInitialMessages = false);
 
 	virtual bool setClientAreaSize(int width, int height);
-
-	virtual void setDPIChangeListener(KDPIChangeListener* dpiChangeListener);
 
 	// Mixed-Mode DPI Scaling - window scaled by the system. can only call before create.
 	// InitRFC must be called with KDPIAwareness::MIXEDMODE_ONLY

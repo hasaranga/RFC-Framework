@@ -21,17 +21,6 @@
 
 #pragma once
 
-#include "KPointerList.h"
-#include "KVector.h"
-#include "KPointerQueue.h"
-#include "KScopedClassPointer.h"
-#include "KScopedComPointer.h"
-#include "KScopedCriticalSection.h"
-#include "KScopedGdiObject.h"
-#include "KScopedHandle.h"
-#include "KScopedMallocPointer.h"
-#include "KScopedMemoryBlock.h"
-#include "KScopedStructPointer.h"
-#include "KStaticAllocator.h"
-#include "KFixedStack.h"
-#include "KProperty.h"
+#include "KComPtr.h"
+#include "KComObject.h"
+#include "KComMultiObject.h"

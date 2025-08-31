@@ -24,7 +24,7 @@
 typedef bool (*RFCModuleInitFunc)();
 typedef void (*RFCModuleFreeFunc)();
 
-#define MAX_RFC_MODULE_COUNT 3
+#define MAX_RFC_MODULE_COUNT 4
 
 class KModuleManager {
 public:

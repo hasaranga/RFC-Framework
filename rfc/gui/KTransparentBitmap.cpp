@@ -25,12 +25,7 @@ KTransparentBitmap::KTransparentBitmap(void* data, int width, int height, int st
 {
 	if ((width * sizeof(unsigned int)) != stride) // this should not happen! no padding in 32bpp data.
 	{
-		hdcMem = 0;
-		width = 0;
-		height = 0;
-		hbm = 0;
-		hbmPrev = 0;
-		pvBits = nullptr;
+		this->createEmptyBitmap(width, height);
 		return;
 	}
 

@@ -37,7 +37,6 @@ public:
 	virtual void enableAutoResize(bool enable);
 	virtual void setText(const KString& compText) override;
 	virtual void setFont(KFont* compFont) override;
-	virtual void setFont(KFont& compFont) override;
 	virtual void setDPI(int newDPI) override;
 
 	virtual ~KLabel();

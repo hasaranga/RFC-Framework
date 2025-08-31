@@ -21,17 +21,9 @@
 
 #pragma once
 
-#include "KPointerList.h"
-#include "KVector.h"
-#include "KPointerQueue.h"
-#include "KScopedClassPointer.h"
-#include "KScopedComPointer.h"
-#include "KScopedCriticalSection.h"
-#include "KScopedGdiObject.h"
-#include "KScopedHandle.h"
-#include "KScopedMallocPointer.h"
-#include "KScopedMemoryBlock.h"
-#include "KScopedStructPointer.h"
-#include "KStaticAllocator.h"
-#include "KFixedStack.h"
-#include "KProperty.h"
+#include "composition.h"
+
+#pragma comment(lib, "dxgi")
+#pragma comment(lib, "d3d11")
+#pragma comment(lib, "d2d1")
+#pragma comment(lib, "dcomp")

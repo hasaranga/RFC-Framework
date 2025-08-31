@@ -1,0 +1,7 @@
+<xml>
+	<name>QRCode</name>
+	<fixed>false</fixed>
+	<dependencies>Core,GUI</dependencies>
+	<platform>Win XP or higher.</platform>
+	<description>KQRCodeBox</description>
+</xml>

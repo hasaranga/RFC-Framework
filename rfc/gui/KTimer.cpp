@@ -27,21 +27,12 @@ KTimer::KTimer()
 	resolution = 1000;
 	started = false;
 	timerID = KIDGenerator::getInstance()->generateTimerID(this);
-}
-
-void KTimer::setInterval(int resolution)
-{
-	this->resolution = resolution;
+	hwndWindow = NULL;
 }
 
 int KTimer::getInterval()
 {
 	return resolution;
-}
-
-void KTimer::setTimerWindow(KWindow* window)
-{
-	this->window = window;
 }
 
 void KTimer::setTimerID(UINT timerID)
@@ -54,38 +45,41 @@ UINT KTimer::getTimerID()
 	return timerID;
 }
 
-void KTimer::startTimer()
+void KTimer::start(int resolution, KWindow& window)
 {
 	if(started)
 		return;
 
-	if(window)
+	this->resolution = resolution;
+
+	hwndWindow = window.getHWND();
+	K_ASSERT(hwndWindow != NULL, "KTimer start called without creating the window!");
+
+	if(hwndWindow)
 	{
-		HWND hwnd = window->getHWND();
-		if(hwnd)
-		{
-			::SetTimer(hwnd, timerID, resolution, 0);
-			started = true;
-		}
-	}
+		::SetTimer(hwndWindow, timerID, resolution, 0);
+		started = true;
+	}	
 }
 
-void KTimer::stopTimer()
+void KTimer::start(int resolution, KWindow& window, std::function<void(KTimer*)> onTimerCallback)
 {
-	if(window)
-	{
-		HWND hwnd = window->getHWND();
-		if(hwnd)
-		{
-			if(started)
-				::KillTimer(hwnd, timerID);
+	onTimer = std::move(onTimerCallback);
+	start(resolution, window);
+}
 
-			started = false;
-		}
+void KTimer::stop()
+{
+	if (hwndWindow)
+	{
+		if(started)
+			::KillTimer(hwndWindow, timerID);
+
+		started = false;
 	}
 }
 
-bool KTimer::isTimerRunning()
+bool KTimer::isRunning()
 {
 	return started;
 }
@@ -99,5 +93,5 @@ void KTimer::_onTimer()
 KTimer::~KTimer()
 {
 	if(started)
-		this->stopTimer();
+		this->stop();
 }

@@ -92,6 +92,9 @@ public:
 	*/
 	virtual bool create(bool requireInitialMessages = false);
 
+	// called when parent receive WM_DESTROY message.
+	virtual void onParentDestroy();
+
 	virtual void destroy();
 
 	/**
@@ -117,11 +120,6 @@ public:
 		Sets font of this component. passed font object must live until this component destroy.
 	*/
 	virtual void setFont(KFont* compFont);
-
-	/**
-		Sets font of this component. passed font object must live until this component destroy.
-	*/
-	virtual void setFont(KFont& compFont);
 
 	/**
 		Returns font of this component
@@ -197,6 +195,8 @@ public:
 
 	virtual int getDPI();
 
+	virtual int scaleToCurrentDPI(int valueFor96DPI);
+
 	/**
 		Sets width and height of the component.
 	*/
@@ -206,6 +206,22 @@ public:
 		Sets x and y position of the component. x and y are relative to parent component
 	*/
 	virtual void setPosition(int compX, int compY);
+
+	// --- Positioning relative to another component ---
+	// The width and height of both this component and the target must be set before calling these methods.
+	virtual void placeToRightOf(KComponent& target, int spacing = 10);
+	virtual void placeToLeftOf(KComponent& target, int spacing = 10);
+	virtual void placeBelow(KComponent& target, int spacing = 10);
+	virtual void placeAbove(KComponent& target, int spacing = 10);
+
+	// --- Alignments with another component ---
+	// The width and height of both this component and the target must be set before calling these methods.
+	virtual void alignTopWith(KComponent& target);
+	virtual void alignBottomWith(KComponent& target);
+	virtual void alignLeftWith(KComponent& target);
+	virtual void alignRightWith(KComponent& target);
+	virtual void alignCenterHorizontallyWith(KComponent& target);
+	virtual void alignCenterVerticallyWith(KComponent& target);
 
 	virtual void setDPI(int newDPI);
 

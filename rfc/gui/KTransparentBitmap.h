@@ -43,7 +43,8 @@ protected:
 
 public:
 	// data must be in 0xaarrggbb format with premultiplied alpha.
-	// stride must be equal to width * 4
+	// stride must be equal to width * 4.
+	// data will be copied to internal buffer.
 	KTransparentBitmap(void* data, int width, int height, int stride);
 
 	// creates a transparent empty image

@@ -1,0 +1,7 @@
+<xml>
+	<name>TOTPAuth</name>
+	<fixed>false</fixed>
+	<dependencies>Core</dependencies>
+	<platform>Win XP or higher</platform>
+	<description>KTOTPAuth</description>
+</xml>

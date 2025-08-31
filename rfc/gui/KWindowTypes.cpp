@@ -38,7 +38,7 @@ KHotPluggedDialog::~KHotPluggedDialog(){}
 KOverlappedWindow::KOverlappedWindow()
 {
 	compText.assignStaticText(TXT_WITH_LEN("KOverlapped Window"));
-	compDwStyle = WS_OVERLAPPEDWINDOW;
+	compDwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
 }
 
 KOverlappedWindow::~KOverlappedWindow(){}
@@ -47,7 +47,7 @@ KOverlappedWindow::~KOverlappedWindow(){}
 KFrame::KFrame()
 {
 	compText.assignStaticText(TXT_WITH_LEN("KFrame"));
-	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
 }
 
 KFrame::~KFrame(){}
@@ -57,7 +57,7 @@ KFrame::~KFrame(){}
 KDialog::KDialog()
 {
 	compText.assignStaticText(TXT_WITH_LEN("KDialog"));
-	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU;
+	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_CLIPCHILDREN;
 	compDwExStyle = WS_EX_DLGMODALFRAME;
 }
 
@@ -68,7 +68,7 @@ KDialog::~KDialog(){}
 KToolWindow::KToolWindow()
 {
 	compText.assignStaticText(TXT_WITH_LEN("KTool Window"));
-	compDwStyle = WS_OVERLAPPED | WS_SYSMENU;
+	compDwStyle = WS_OVERLAPPED | WS_SYSMENU | WS_CLIPCHILDREN;
 	compDwExStyle = WS_EX_TOOLWINDOW;
 }
 

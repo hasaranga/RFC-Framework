@@ -69,7 +69,7 @@ public:
 	virtual ~KToolWindow();
 };
 
-// enables client area dragging
+// enables client area dragging. window should not have a title bar.
 // T must be derived from KWindow
 template <class T,
 	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
@@ -77,7 +77,7 @@ class KDraggable : public T
 {
 protected:
 	bool enableClientAreaDragging;
-	bool windowDraging;
+	bool windowDragging;
 	short clientAreaDraggingX;
 	short clientAreaDraggingY;
 
@@ -94,7 +94,7 @@ protected:
 			if (::RealChildWindowFromPoint(T::compHWND, point) != T::compHWND)
 				return 0;
 
-			windowDraging = true;
+			windowDragging = true;
 			::SetCapture(T::compHWND);
 		}
 
@@ -103,7 +103,7 @@ protected:
 
 	virtual LRESULT onMouseMove(WPARAM wParam, LPARAM lParam)
 	{
-		if (windowDraging)
+		if (windowDragging)
 		{
 			POINT pos;
 			::GetCursorPos(&pos);
@@ -116,19 +116,23 @@ protected:
 
 	virtual LRESULT onLButtonUp(WPARAM wParam, LPARAM lParam)
 	{
-		if (windowDraging)
+		if (windowDragging)
 		{
 			::ReleaseCapture();
-			windowDraging = false;
+			windowDragging = false;
 		}
 
 		return 0;
 	}
 
 public:
-	KDraggable()
+	template<typename... Args>
+	KDraggable(Args&&... args) : T(std::forward<Args>(args)...)
 	{
 		enableClientAreaDragging = true;
+		windowDragging = false;
+		clientAreaDraggingX = 0;
+		clientAreaDraggingY = 0;
 	}
 
 	virtual void setEnableClientAreaDrag(bool enable)
@@ -194,7 +198,8 @@ protected:
 	}
 
 public:
-	KDrawable(){}
+	template<typename... Args>
+	KDrawable(Args&&... args) : T(std::forward<Args>(args)...) {}
 
 	virtual ~KDrawable() {}
 
@@ -202,6 +207,52 @@ public:
 		ON_KMSG(WM_PAINT, onWMPaint)
 		ON_KMSG(WM_ERASEBKGND, onEraseBackground)
 	END_KMSG_HANDLER
+};
+
+// adds onCloseEvent to KWindow.
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
+class KWithOnCloseEvent : public T
+{
+public:
+	std::function<void()> onCloseEvent;
+
+	template<typename... Args>
+	KWithOnCloseEvent(Args&&... args) : T(std::forward<Args>(args)...) {}
+
+	virtual ~KWithOnCloseEvent() = default;
+
+	virtual void onClose() override
+	{
+		if (onCloseEvent)
+			onCloseEvent();
+
+		__super::onClose();
+	}
+};
+
+// adds onDestroyEvent to KWindow.
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
+class KWithOnDestroyEvent : public T
+{
+public:
+	std::function<void()> onDestroyEvent;
+
+	template<typename... Args>
+	KWithOnDestroyEvent(Args&&... args) : T(std::forward<Args>(args)...) {}
+
+	virtual ~KWithOnDestroyEvent() = default;
+
+	virtual void onDestroy() override
+	{
+		if (onDestroyEvent)
+			onDestroyEvent();
+
+		__super::onDestroy();
+	}
 };
 
 class KWidget : public KDrawable<KDraggable<KWindow>>
@@ -217,3 +268,11 @@ public:
 
 	virtual ~KWidget() {}
 };
+
+class KChildControl : public KComponent
+{
+public:
+	KChildControl() : KComponent(true) { compDwStyle = WS_CHILD; }
+	virtual ~KChildControl() {}
+};
+
