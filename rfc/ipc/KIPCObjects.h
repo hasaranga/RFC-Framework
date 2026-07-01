@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -54,7 +54,7 @@ protected:
 
 	CRITICAL_SECTION csGuardMapFile;
 
-	void resetFields()
+	void resetFields() noexcept
 	{
 		hMapFile = NULL;
 		serverDataReadyEvent = NULL;
@@ -66,7 +66,7 @@ protected:
 		dataPosition = 0;
 	}
 
-	void closeClient(int timeout)
+	void closeClient(int timeout) noexcept
 	{
 		this->acquireLock();
 
@@ -79,12 +79,12 @@ protected:
 	}
 
 public:
-	KIPCServer()
+	KIPCServer() noexcept
 	{
 
 	}
 
-	bool init(const wchar_t* bridgeID, unsigned int sharedMemSize)
+	bool init(const wchar_t* bridgeID, unsigned int sharedMemSize) noexcept
 	{
 		this->resetFields();
 		::InitializeCriticalSection(&csGuardMapFile);
@@ -141,7 +141,7 @@ public:
 	}
 
 	// only disconnect if Init returns true
-	void disconnect(bool closeClient = true, int timeout = KIPC_CLOSE_CLIENT_TIMEOUT)
+	void disconnect(bool closeClient = true, int timeout = KIPC_CLOSE_CLIENT_TIMEOUT) noexcept
 	{
 		if (closeClient)
 			this->closeClient(timeout);
@@ -158,12 +158,12 @@ public:
 		::DeleteCriticalSection(&csGuardMapFile);
 	}
 
-	bool waitForClientAvailable(DWORD timeout = INFINITE)
+	bool waitForClientAvailable(DWORD timeout = INFINITE) noexcept
 	{
 		return (::WaitForSingleObject(clientStartedEvent, timeout) == WAIT_OBJECT_0);
 	}
 
-	bool isClientAlive()
+	bool isClientAlive() noexcept
 	{
 		DWORD retVal = ::WaitForSingleObject(clientLiveMutex, 0);
 		if ((retVal == WAIT_OBJECT_0) || (retVal == WAIT_ABANDONED) || (retVal == WAIT_FAILED)) // client crashed or closed.
@@ -175,18 +175,18 @@ public:
 		return true;
 	}
 
-	void acquireLock()
+	void acquireLock() noexcept
 	{
 		::EnterCriticalSection(&csGuardMapFile);
 	}
 
-	void releaseLock()
+	void releaseLock() noexcept
 	{
 		::LeaveCriticalSection(&csGuardMapFile);
 	}
 
 	// returns dataPosition of the param
-	unsigned int addParam(void* buffer, unsigned int size)
+	unsigned int addParam(void* buffer, unsigned int size) noexcept
 	{
 		unsigned int lastPos = dataPosition;
 
@@ -197,7 +197,7 @@ public:
 	}
 
 	// returns false if failed to respond within the given time.
-	bool dispatchCall(DWORD timeout, bool processMessages = false, bool ignoreMessageValid = false, UINT ignoreMessage = 0)
+	bool dispatchCall(DWORD timeout, bool processMessages = false, bool ignoreMessageValid = false, UINT ignoreMessage = 0) noexcept
 	{
 		::ResetEvent(clientDataReadyEvent);
 		::SetEvent(serverDataReadyEvent);
@@ -241,22 +241,22 @@ public:
 		return false;
 	}
 
-	void resetDataPosition()
+	void resetDataPosition() noexcept
 	{
 		dataPosition = 0;
 	}
 
-	unsigned int getCurrentDataPosition()
+	unsigned int getCurrentDataPosition() noexcept
 	{
 		return dataPosition;
 	}
 
-	unsigned char* getDataBuffer()
+	unsigned char* getDataBuffer() noexcept
 	{
 		return dataBuffer;
 	}
 
-	~KIPCServer()
+	~KIPCServer() noexcept
 	{
 
 	}
@@ -275,7 +275,7 @@ protected:
 	HANDLE serverLiveMutex;
 	HANDLE clientLiveMutex;
 
-	void resetFields()
+	void resetFields() noexcept
 	{
 		hMapFile = NULL;
 		serverDataReadyEvent = NULL;
@@ -288,12 +288,12 @@ protected:
 	}
 
 public:
-	KIPCClient()
+	KIPCClient() noexcept
 	{
 
 	}
 
-	bool Init(const wchar_t* bridgeID, unsigned int sharedMemSize)
+	bool Init(const wchar_t* bridgeID, unsigned int sharedMemSize) noexcept
 	{
 		this->resetFields();
 
@@ -371,7 +371,7 @@ public:
 		return true;
 	}
 
-	bool isServerAlive()
+	bool isServerAlive() noexcept
 	{
 		DWORD retVal = ::WaitForSingleObject(serverLiveMutex, 0);
 		if ((retVal == WAIT_OBJECT_0) || (retVal == WAIT_ABANDONED) || (retVal == WAIT_FAILED)) // server crashed or closed without informing the client.
@@ -383,13 +383,13 @@ public:
 		return true;
 	}
 
-	void informClientStarted()
+	void informClientStarted() noexcept
 	{
 		::SetEvent(clientStartedEvent);
 	}
 
 	// do not disconnect if Init returns false
-	void disconnect()
+	void disconnect() noexcept
 	{
 		if (clientLiveMutex)
 		{
@@ -417,28 +417,28 @@ public:
 	}
 
 	// returns false if timeout or error occured.
-	bool waitForMessages(DWORD timeout = INFINITE)
+	bool waitForMessages(DWORD timeout = INFINITE) noexcept
 	{
 		return (::WaitForSingleObject(serverDataReadyEvent, timeout) == WAIT_OBJECT_0);
 	}
 
-	unsigned char* getDataBuffer()
+	unsigned char* getDataBuffer() noexcept
 	{
 		return dataBuffer;
 	}
 
-	bool isQuitMessageReceived()
+	bool isQuitMessageReceived() noexcept
 	{
 		int messageID = *((int*)dataBuffer);
 		return (messageID == KIPC_CLOSE_CLIENT_MESSAGE);
 	}
 
-	void informClientProcessedMessage()
+	void informClientProcessedMessage() noexcept
 	{
 		::SetEvent(clientDataReadyEvent);
 	}
 
-	~KIPCClient()
+	~KIPCClient() noexcept
 	{
 
 	}

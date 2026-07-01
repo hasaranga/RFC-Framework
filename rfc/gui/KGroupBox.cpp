@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,17 +21,17 @@
 
 #include "KGroupBox.h"
 
-KGroupBox::KGroupBox()
+KGroupBox::KGroupBox() noexcept
 {
 	compText.assignStaticText(TXT_WITH_LEN("GroupBox"));
-	compWidth = 100;
-	compHeight = 100;
+	compLWidth = 100;
+	compLHeight = 100;
 
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_GROUPBOX;
 	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
 
-KGroupBox::~KGroupBox()
+KGroupBox::~KGroupBox() noexcept
 {
 }

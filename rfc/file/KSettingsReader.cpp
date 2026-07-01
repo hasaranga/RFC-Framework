@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,12 +21,11 @@
 
 #include "KSettingsReader.h"
 
-KSettingsReader::KSettingsReader()
-{
+KSettingsReader::KSettingsReader() noexcept : streamPtr(nullptr){}
 
-}
+KSettingsReader::KSettingsReader(KStream* stream) noexcept : streamPtr(stream) {}
 
-bool KSettingsReader::openFile(const wchar_t* fileName, int formatID)
+bool KSettingsReader::openFile(const wchar_t* fileName, int formatID) noexcept
 {
 	if (!KFile::isFileExists(fileName))
 		return false;
@@ -34,10 +33,10 @@ bool KSettingsReader::openFile(const wchar_t* fileName, int formatID)
 	if (!settingsFile.openFile(fileName, KFile::KREAD))
 		return false;
 
-	settingsFile.setFilePointerToStart();
+	streamPtr = &settingsFile;
 
 	int fileFormatID = 0;
-	settingsFile.readFile(&fileFormatID, sizeof(int));
+	streamPtr->readStream((BYTE*)&fileFormatID, sizeof(int));
 
 	if (formatID != fileFormatID) // invalid settings file
 		return false;
@@ -45,21 +44,26 @@ bool KSettingsReader::openFile(const wchar_t* fileName, int formatID)
 	return true;
 }
 
-void KSettingsReader::readData(DWORD size, void *buffer)
+bool KSettingsReader::readData(DWORD size, void *buffer) noexcept
 {
-	if (buffer)
-		settingsFile.readFile(buffer, size);
+	if (buffer && streamPtr)
+		return streamPtr->readStream((BYTE*)buffer, size);
+
+	return false;
 }
 
-KString KSettingsReader::readString()
+KString KSettingsReader::readString() noexcept
 {
-	int size = 0;
-	settingsFile.readFile(&size, sizeof(int));
+	if (!streamPtr)
+		return KString();
 
-	if (size)
+	int size = 0;
+	streamPtr->readStream((BYTE*)&size, sizeof(int));
+
+	if (size > 0)
 	{
 		wchar_t *buffer = (wchar_t*)malloc(size);
-		settingsFile.readFile(buffer, size);
+		streamPtr->readStream((BYTE*)buffer, size);
 
 		return KString(buffer, KStringBehaviour::FREE_ON_DESTROY);
 	}
@@ -69,39 +73,57 @@ KString KSettingsReader::readString()
 	}
 }
 
-int KSettingsReader::readInt()
+int KSettingsReader::readInt() noexcept
 {
 	int value = 0;
-	settingsFile.readFile(&value, sizeof(int));
+
+	if (streamPtr)
+		streamPtr->readStream((BYTE*)&value, sizeof(int));
 
 	return value;
 }
 
-float KSettingsReader::readFloat()
+unsigned int KSettingsReader::readUInt() noexcept
+{
+	unsigned int value = 0;
+
+	if (streamPtr)
+		streamPtr->readStream((BYTE*)&value, sizeof(unsigned int));
+
+	return value;
+}
+
+float KSettingsReader::readFloat() noexcept
 {
 	float value = 0;
-	settingsFile.readFile(&value, sizeof(float));
+
+	if (streamPtr)
+		streamPtr->readStream((BYTE*)&value, sizeof(float));
 
 	return value;
 }
 
-double KSettingsReader::readDouble()
+double KSettingsReader::readDouble() noexcept
 {
 	double value = 0;
-	settingsFile.readFile(&value, sizeof(double));
+
+	if (streamPtr)
+		streamPtr->readStream((BYTE*)&value, sizeof(double));
 
 	return value;
 }
 
-bool KSettingsReader::readBool()
+bool KSettingsReader::readBool() noexcept
 {
 	bool value = 0;
-	settingsFile.readFile(&value, sizeof(bool));
+
+	if (streamPtr)
+		streamPtr->readStream((BYTE*)&value, sizeof(bool));
 
 	return value;
 }
 
-KSettingsReader::~KSettingsReader()
+KSettingsReader::~KSettingsReader() noexcept
 {
 
 }

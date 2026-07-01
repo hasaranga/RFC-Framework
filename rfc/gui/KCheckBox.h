@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,18 +27,17 @@ class KCheckBox : public KButton
 {
 protected:
 	bool checked;
+	virtual void afterCreated() noexcept override;
 
 public:
-	KCheckBox();
+	KCheckBox() noexcept;
 
-	virtual bool create(bool requireInitialMessages = false) override;
+	virtual void _onPress() noexcept override;
 
-	virtual void _onPress() override;
+	bool isChecked() noexcept;
 
-	virtual bool isChecked();
+	void setCheckedState(bool state) noexcept;
 
-	virtual void setCheckedState(bool state);
-
-	virtual ~KCheckBox();
+	virtual ~KCheckBox() noexcept;
 };
 

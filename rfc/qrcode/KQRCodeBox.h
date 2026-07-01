@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -34,7 +34,7 @@ protected:
 	COLORREF qrColor = RGB(0, 0, 0);
 	bool generated = false;
 
-	virtual LRESULT onPaint(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onPaint(WPARAM wParam, LPARAM lParam) noexcept
 	{
 		HDC hdc;
 		PAINTSTRUCT ps;
@@ -87,28 +87,28 @@ protected:
 		return 0;
 	}
 
-	LRESULT onEraseBackground(WPARAM wParam, LPARAM lParam)
+	LRESULT onEraseBackground(WPARAM wParam, LPARAM lParam) noexcept
 	{
 		return 1; // avoids flickering
 	}
 
 public:
-	KQRCodeBox() : KComponent(true)
+	KQRCodeBox() noexcept : KComponent(true)
 	{
 		setStyle(WS_CHILD);
 		setSize(100, 100);
-		compText = L"QRCode";
+		compText = CONST_TXT("QRCode");
 	}
 
-	void setColor(COLORREF qrColor)
+	void setColor(COLORREF qrColor) noexcept
 	{
 		this->qrColor = qrColor;
 		repaint();
 	}
 
-	virtual void setText(const KString& compText) override
+	virtual void setText(const KString& compText) noexcept override
 	{
-		char* utf8Str = KString::toAnsiString(compText);
+		char* utf8Str = KString::toUTF8String(compText);
 
 		qrcodegen::qrcodegen_encodeText(utf8Str,
 			tempBuffer, qr0, qrcodegen::qrcodegen_Ecc_MEDIUM,

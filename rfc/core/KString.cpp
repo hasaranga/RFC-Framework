@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,49 +21,49 @@
 #include "KString.h"
 #include <stdio.h>
 
-const KString operator+ (const char* const string1, const KString& string2)
+const KString operator+ (const char* const string1, const KString& string2) noexcept
 {
 	KString s(string1);
 	return s.append(string2);
 }
 
-const KString operator+ (const wchar_t* const string1, const KString& string2)
+const KString operator+ (const wchar_t* const string1, const KString& string2) noexcept
 {
 	KString s(string1, KStringBehaviour::DO_NOT_FREE, -1);
 	return s.append(string2);
 }
 
-const KString operator+ (const KString& string1, const KString& string2)
+const KString operator+ (const KString& string1, const KString& string2) noexcept
 {
 	return string1.append(string2);
 }
 
 namespace kstring_literals {
-	KString operator"" _st(const wchar_t* str, size_t len) {
+	KString operator"" _st(const wchar_t* str, size_t len) noexcept {
 		return KString(str, KStringBehaviour::DO_NOT_FREE, (int)len);
 	}
 }
 
-void KString::markAsEmptyString()
+void KString::markAsEmptyString() noexcept
 {
 	characterCount = 0;
 	data.ssoBuffer[0] = 0;
 	bufferType = KStringBufferType::SSOText;
 }
 
-KString::KString()
+KString::KString() noexcept
 {
 	markAsEmptyString();
 }
 
-void KString::initFromLiteral(const wchar_t* literal, size_t N)
+void KString::initFromLiteral(const wchar_t* literal, size_t N) noexcept
 {
 	characterCount = (int)N-1;
 	data.staticText = literal;
 	bufferType = KStringBufferType::StaticText;
 }
 
-void KString::assignFromLiteral(const wchar_t* literal, size_t N)
+void KString::assignFromLiteral(const wchar_t* literal, size_t N) noexcept
 {
 	if (bufferType == KStringBufferType::HeapText)
 		data.refCountedMem->releaseReference();
@@ -71,7 +71,7 @@ void KString::assignFromLiteral(const wchar_t* literal, size_t N)
 	initFromLiteral(literal, N);
 }
 
-void KString::copyFromOther(const KString& other)
+void KString::copyFromOther(const KString& other) noexcept
 {
 	bufferType = other.bufferType;
 	characterCount = other.characterCount;
@@ -83,7 +83,8 @@ void KString::copyFromOther(const KString& other)
 	else if (bufferType == KStringBufferType::SSOText)
 	{
 		// Copy SSO buffer
-		::memcpy(data.ssoBuffer, other.data.ssoBuffer, (characterCount + 1) * sizeof(wchar_t));
+		::memcpy(data.ssoBuffer, other.data.ssoBuffer, 
+			(characterCount + 1) * sizeof(wchar_t));
 	}
 	else if (bufferType == KStringBufferType::HeapText)
 	{
@@ -98,7 +99,7 @@ void KString::copyFromOther(const KString& other)
 }
 
 
-KString::KString(const KString& other)
+KString::KString(const KString& other) noexcept
 {
 	copyFromOther(other);
 }
@@ -109,7 +110,7 @@ KString::KString(KString&& other) noexcept
 	other.clear();
 }
 
-KString::KString(const char* const text, UINT codePage)
+KString::KString(const char* const text, UINT codePage) noexcept
 {
 	if (text != nullptr)
 	{
@@ -146,7 +147,11 @@ KString::KString(const char* const text, UINT codePage)
 	markAsEmptyString();
 }
 
-KString::KString(const wchar_t* const text, KStringBehaviour behaviour, int length)
+// to prevent false positive C4789 of msvc. (detect as buffer overrun)
+// https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4789?view=msvc-170
+#pragma warning( push )
+#pragma warning( disable : 4789 )
+KString::KString(const wchar_t* const text, KStringBehaviour behaviour, int length) noexcept
 {
 	if (text != nullptr)
 	{
@@ -171,7 +176,9 @@ KString::KString(const wchar_t* const text, KStringBehaviour behaviour, int leng
 			{
 				if (characterCount < SSO_BUFFER_SIZE)
 				{
-					::memcpy(data.ssoBuffer, text, (characterCount + 1) * sizeof(wchar_t));
+					// user supplied length could be less than real length. so we can't assume text[characterCount] == L'\0'
+					::memcpy(data.ssoBuffer, text, characterCount * sizeof(wchar_t));
+					data.ssoBuffer[characterCount] = L'\0'; // manually assign ending null
 					bufferType = KStringBufferType::SSOText;
 					return;
 				}
@@ -180,7 +187,10 @@ KString::KString(const wchar_t* const text, KStringBehaviour behaviour, int leng
 					// since we already know the length, we can use malloc and memcpy instead of wcsdup.
 					const int countWithNull = characterCount + 1;
 					wchar_t* buffer = (wchar_t*)::malloc(countWithNull * sizeof(wchar_t));
-					::memcpy(buffer, text, countWithNull * sizeof(wchar_t));
+
+					// user supplied length could be less than real length. so we can't assume text[characterCount] == L'\0'
+					::memcpy(buffer, text, characterCount * sizeof(wchar_t));
+					buffer[characterCount] = L'\0'; // manually assign ending null
 					data.refCountedMem = new KRefCountedMemory<wchar_t*>(buffer);
 					bufferType = KStringBufferType::HeapText;
 					return;
@@ -195,8 +205,9 @@ KString::KString(const wchar_t* const text, KStringBehaviour behaviour, int leng
 
 	markAsEmptyString();
 }
+#pragma warning( pop )
 
-KString::KString(const int value, const int radix)
+KString::KString(const int value, const int radix) noexcept
 {
 	// Min Buffer Size required to convert radix 10 integer is 11 chars.
 
@@ -216,7 +227,7 @@ KString::KString(const int value, const int radix)
 	}
 }
 
-KString::KString(const float value, const int numDecimals, bool compact)
+KString::KString(const float value, const int numDecimals, bool compact) noexcept
 {
 	// round it to given digits
 	char str_fmtp[32];
@@ -274,7 +285,7 @@ KString::KString(const float value, const int numDecimals, bool compact)
 	markAsEmptyString();
 }
 
-const KString& KString::operator= (const KString& other)
+const KString& KString::operator= (const KString& other) noexcept
 {
 	if (this != &other)
 	{
@@ -286,7 +297,7 @@ const KString& KString::operator= (const KString& other)
 	return *this;
 }
 
-KString& KString::operator= (KString&& other)
+KString& KString::operator= (KString&& other) noexcept
 {
 	if (this != &other)
 	{
@@ -299,22 +310,22 @@ KString& KString::operator= (KString&& other)
 	return *this;
 }
 
-const KString KString::operator+ (const KString& stringToAppend)
+const KString KString::operator+ (const KString& stringToAppend) noexcept
 {
 	return append(stringToAppend);
 }
 
-bool KString::operator== (const KString& other) const
+bool KString::operator== (const KString& other) const noexcept
 {
 	return compare(other);
 }
 
-KString::operator const wchar_t*()const
+KString::operator const wchar_t*()const noexcept
 {
 	return getStringPtr();
 }
 
-const wchar_t KString::operator[](const int index)const
+const wchar_t KString::operator[](const int index)const noexcept
 {
 	if (characterCount > 0)
 	{
@@ -324,7 +335,11 @@ const wchar_t KString::operator[](const int index)const
 	return -1;
 }
 
-KString KString::append(const KString& otherString)const
+// to prevent false positive C4789 of msvc. (detect as buffer overrun)
+// https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4789?view=msvc-170
+#pragma warning( push )
+#pragma warning( disable : 4789 )
+KString KString::append(const KString& otherString)const noexcept
 {
 	if (otherString.characterCount != 0)
 	{
@@ -365,8 +380,13 @@ KString KString::append(const KString& otherString)const
 		return *this;
 	}
 }
+#pragma warning( pop )
 
-KString KString::appendStaticText(const wchar_t* const text, int length, bool appendToEnd)const
+// to prevent false positive C4789 of msvc. (detect as buffer overrun)
+// https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-1-c4789?view=msvc-170
+#pragma warning( push )
+#pragma warning( disable : 4789 )
+KString KString::appendStaticText(const wchar_t* const text, int length, bool appendToEnd)const noexcept
 {
 	if(length == 0)
 		return *this;
@@ -418,8 +438,9 @@ KString KString::appendStaticText(const wchar_t* const text, int length, bool ap
 		return KString(text, KStringBehaviour::DO_NOT_FREE, length);
 	}
 }
+#pragma warning( pop )
 
-void KString::assignStaticText(const wchar_t* const text, int length)
+void KString::assignStaticText(const wchar_t* const text, int length) noexcept
 {
 	if (bufferType == KStringBufferType::HeapText)
 		data.refCountedMem->releaseReference();
@@ -429,7 +450,7 @@ void KString::assignStaticText(const wchar_t* const text, int length)
 	data.staticText = text;
 }
 
-void KString::clear()
+void KString::clear() noexcept
 {
 	if (bufferType == KStringBufferType::HeapText)
 		data.refCountedMem->releaseReference();
@@ -437,7 +458,7 @@ void KString::clear()
 	markAsEmptyString();
 }
 
-void KString::accessRawSSOBuffer(wchar_t** ssoBuffer, int** ppLength)
+void KString::accessRawSSOBuffer(wchar_t** ssoBuffer, int** ppLength) noexcept
 {
 	clear();
 
@@ -445,7 +466,7 @@ void KString::accessRawSSOBuffer(wchar_t** ssoBuffer, int** ppLength)
 	*ssoBuffer = data.ssoBuffer;
 }
 
-KString KString::subString(int start, int end)const
+KString KString::subString(int start, int end)const noexcept
 {
 	const int lastIndex = characterCount -1;
 
@@ -468,7 +489,7 @@ KString KString::subString(int start, int end)const
 	return KString();
 }
 
-bool KString::compareIgnoreCase(const KString& otherString)const
+bool KString::compareIgnoreCase(const KString& otherString)const noexcept
 {
 	if ((otherString.characterCount != 0) && (characterCount != 0))
 		return (::_wcsicmp(getStringPtr(), otherString.getStringPtr()) == 0);
@@ -476,7 +497,7 @@ bool KString::compareIgnoreCase(const KString& otherString)const
 	return false;
 }
 
-bool KString::compare(const KString& otherString)const
+bool KString::compare(const KString& otherString)const noexcept
 {
 	if ((otherString.characterCount != 0) && (characterCount != 0))
 		return (::wcscmp(getStringPtr(), otherString.getStringPtr()) == 0);
@@ -484,7 +505,7 @@ bool KString::compare(const KString& otherString)const
 	return false;
 }
 
-bool KString::compareWithStaticText(const wchar_t* const text)const
+bool KString::compareWithStaticText(const wchar_t* const text)const noexcept
 {
 	if (characterCount != 0)
 		return (::wcscmp(getStringPtr(), text) == 0);
@@ -492,7 +513,7 @@ bool KString::compareWithStaticText(const wchar_t* const text)const
 	return false;
 }
 
-bool KString::startsWithChar(wchar_t character)const
+bool KString::startsWithChar(wchar_t character)const noexcept
 {
 	if (characterCount != 0)
 		return (getStringPtr()[0] == character);
@@ -500,7 +521,7 @@ bool KString::startsWithChar(wchar_t character)const
 	return false;
 }
 
-bool KString::endsWithChar(wchar_t character)const
+bool KString::endsWithChar(wchar_t character)const noexcept
 {
 	if (characterCount != 0)
 		return (getStringPtr()[characterCount - 1] == character);
@@ -508,7 +529,7 @@ bool KString::endsWithChar(wchar_t character)const
 	return false;
 }
 
-bool KString::isQuotedString()const
+bool KString::isQuotedString()const noexcept
 {
 	if (characterCount > 1) // not empty + count greater than 1
 		return (startsWithChar(L'\"') && endsWithChar(L'\"'));
@@ -516,7 +537,7 @@ bool KString::isQuotedString()const
 	return false;
 }
 
-wchar_t KString::getCharAt(int index)const
+wchar_t KString::getCharAt(int index)const noexcept
 {
 	if ((0 <= index) && (index < characterCount))
 		return getStringPtr()[index];
@@ -524,27 +545,27 @@ wchar_t KString::getCharAt(int index)const
 	return -1;
 }
 
-KStringBufferType KString::getBufferType()const
+KStringBufferType KString::getBufferType()const noexcept
 {
 	return bufferType;
 }
 
-int KString::length()const
+int KString::length()const noexcept
 {
 	return characterCount;
 }
 
-bool KString::isEmpty()const
+bool KString::isEmpty()const noexcept
 {
 	return (characterCount == 0);
 }
 
-bool KString::isNotEmpty()const
+bool KString::isNotEmpty()const noexcept
 {
 	return (characterCount != 0);
 }
 
-int KString::getIntValue()const
+int KString::getIntValue()const noexcept
 {
 	if (characterCount == 0)
 		return 0;
@@ -552,7 +573,7 @@ int KString::getIntValue()const
 	return ::_wtoi(getStringPtr());
 }
 
-KString KString::toUpperCase()const
+KString KString::toUpperCase()const noexcept
 {
 	if (characterCount == 0)
 		return KString();
@@ -563,7 +584,7 @@ KString KString::toUpperCase()const
 	return result;
 }
 
-KString KString::toLowerCase()const
+KString KString::toLowerCase()const noexcept
 {
 	if (characterCount == 0)
 		return KString();
@@ -574,7 +595,68 @@ KString KString::toLowerCase()const
 	return result;
 }
 
-char* KString::toAnsiString(const wchar_t* text)
+KString KString::trim() const noexcept
+{
+	if (characterCount == 0)
+		return KString();
+
+	const wchar_t* str = getStringPtr();
+
+	// Find first non-whitespace character
+	int start = 0;
+	while (start < characterCount && iswspace(str[start]))
+		++start;
+
+	// If all whitespace, return empty string
+	if (start == characterCount)
+		return KString();
+
+	// Find last non-whitespace character
+	int end = characterCount - 1;
+	while (end > start && iswspace(str[end]))
+		--end;
+
+	// If no trimming needed, return copy of this string
+	if (start == 0 && end == characterCount - 1)
+		return *this;
+
+	// Return substring with trimmed content (end is inclusive in subString)
+	return subString(start, end);
+}
+
+void KString::splitLines(bool ignoreEmptyLines, std::function<void(int, const KString&)> func) const noexcept
+{
+	if (characterCount == 0)
+		return;
+
+	const wchar_t* str = getStringPtr();
+	int lineIndex = 0;
+	const wchar_t* lineStart = str;
+
+	for (const wchar_t* p = str; *p != L'\0'; ++p)
+	{
+		if (*p == L'\r' || *p == L'\n')
+		{
+			int lineLength = (int)(p - lineStart);
+
+			if (!(ignoreEmptyLines && lineLength == 0))
+				func(lineIndex++, KString(lineStart, KStringBehaviour::MAKE_A_COPY, lineLength));
+
+			// skip \r\n as a single newline
+			if (*p == L'\r' && *(p + 1) == L'\n')
+				++p;
+
+			lineStart = p + 1;
+		}
+	}
+
+	// last line
+	int lastLineLength = (int)((str + characterCount) - lineStart);
+	if (!(ignoreEmptyLines && lastLineLength == 0))
+		func(lineIndex, KString(lineStart, KStringBehaviour::MAKE_A_COPY, lastLineLength));
+}
+
+char* KString::toUTF8String(const wchar_t* text) noexcept
 {
 	if (text != nullptr)
 	{
@@ -596,15 +678,15 @@ char* KString::toAnsiString(const wchar_t* text)
 	return retText;
 }
 
-wchar_t* KString::toUnicodeString(const char* text)
+wchar_t* KString::toUnicodeString(const char* utf8Text) noexcept
 {
-	if (text != nullptr)
+	if (utf8Text != nullptr)
 	{
-		const int length = ::MultiByteToWideChar(CP_UTF8, 0, text, -1, 0, 0);
+		const int length = ::MultiByteToWideChar(CP_UTF8, 0, utf8Text, -1, 0, 0);
 		if (length)
 		{
 			wchar_t* retText = (wchar_t*)::malloc(length * sizeof(wchar_t));
-			if (::MultiByteToWideChar(CP_UTF8, 0, text, -1, retText, length))
+			if (::MultiByteToWideChar(CP_UTF8, 0, utf8Text, -1, retText, length))
 				return retText;
 
 			// conversion error
@@ -618,7 +700,7 @@ wchar_t* KString::toUnicodeString(const char* text)
 	return retText;	
 }
 
-const wchar_t* KString::getStringPtr() const
+const wchar_t* KString::getStringPtr() const noexcept
 {
 	if (bufferType == KStringBufferType::StaticText)
 		return data.staticText;
@@ -630,7 +712,7 @@ const wchar_t* KString::getStringPtr() const
 		return L"";
 }
 
-KString::~KString()
+KString::~KString() noexcept
 {
 	if (bufferType == KStringBufferType::HeapText)
 		data.refCountedMem->releaseReference();

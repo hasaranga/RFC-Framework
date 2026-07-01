@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "KIDGenerator.h"
 
-KIDGenerator::KIDGenerator()
+KIDGenerator::KIDGenerator() noexcept
 {
 	timerCount = 0;
 	menuItemCount = 0;
@@ -29,19 +29,19 @@ KIDGenerator::KIDGenerator()
 	controlCount = 0;
 }
 
-KIDGenerator* KIDGenerator::getInstance()
+KIDGenerator* KIDGenerator::getInstance() noexcept
 {
 	static KIDGenerator defaultInstance;  // Created once, on first use (Meyer's Singleton)
 	return &defaultInstance;
 }
 
-UINT KIDGenerator::generateControlID()
+UINT KIDGenerator::generateControlID() noexcept
 {
 	++controlCount;
 	return controlCount + rfc_InitialControlID;
 }
 
-UINT KIDGenerator::generateMenuItemID(KMenuItem* menuItem)
+UINT KIDGenerator::generateMenuItemID(KMenuItem* menuItem) noexcept
 {
 	++menuItemCount;
 	menuItemList.add(menuItem);
@@ -49,12 +49,12 @@ UINT KIDGenerator::generateMenuItemID(KMenuItem* menuItem)
 	return menuItemCount + rfc_InitialMenuItemID;
 }
 
-KMenuItem* KIDGenerator::getMenuItemByID(UINT id)
+KMenuItem* KIDGenerator::getMenuItemByID(UINT id) noexcept
 {
 	return menuItemList.get(id - (rfc_InitialMenuItemID + 1));
 }
 
-void KIDGenerator::generateClassName(KString& stringToModify)
+void KIDGenerator::generateClassName(KString& stringToModify) noexcept
 { 
 	// can generate up to 9999 class names.
 	wchar_t* classNameBuffer;
@@ -80,7 +80,7 @@ void KIDGenerator::generateClassName(KString& stringToModify)
 	}
 }
 
-UINT KIDGenerator::generateTimerID(KTimer* timer)
+UINT KIDGenerator::generateTimerID(KTimer* timer) noexcept
 {
 	++timerCount;
 	timerList.add(timer);
@@ -88,9 +88,9 @@ UINT KIDGenerator::generateTimerID(KTimer* timer)
 	return timerCount + rfc_InitialTimerID;
 }
 
-KTimer* KIDGenerator::getTimerByID(UINT id)
+KTimer* KIDGenerator::getTimerByID(UINT id) noexcept
 {
 	return timerList.get(id - (rfc_InitialTimerID + 1));
 }
 
-KIDGenerator::~KIDGenerator() {}
+KIDGenerator::~KIDGenerator() noexcept {}

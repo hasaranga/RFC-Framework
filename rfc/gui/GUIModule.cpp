@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 class RFC_GUIModule 
 {
 public:
-	static bool rfcModuleInit()
+	static bool rfcModuleInit() noexcept
 	{		
 		INITCOMMONCONTROLSEX icx;
 		icx.dwSize = sizeof(INITCOMMONCONTROLSEX);
@@ -38,8 +38,9 @@ public:
 		return true;
 	}
 
-	static void rfcModuleFree()
+	static void rfcModuleFree() noexcept
 	{
+		KFontCache::cleanup(); // destroy cached font handles.
 		::GlobalDeleteAtom(KGUIProc::atomComponent);
 		::GlobalDeleteAtom(KGUIProc::atomOldProc);
 	}

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,16 +27,15 @@ class KPasswordBox : public KTextBox
 {
 protected:
 	wchar_t pwdChar;
+	virtual void afterCreated() noexcept override;
 
 public:
-	KPasswordBox(bool readOnly=false);
+	KPasswordBox(bool readOnly=false) noexcept;
 
-	virtual void setPasswordChar(const wchar_t pwdChar);
+	void setPasswordChar(const wchar_t pwdChar) noexcept;
 
-	virtual wchar_t getPasswordChar();
+	wchar_t getPasswordChar() noexcept;
 
-	virtual bool create(bool requireInitialMessages = false) override;
-
-	virtual ~KPasswordBox();
+	virtual ~KPasswordBox() noexcept;
 };
 

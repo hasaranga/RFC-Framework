@@ -1,7 +1,7 @@
 
 /*
 	RFC - KFile.cpp
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,22 +23,23 @@
 
 #include "KFile.h"
 
-KFile::KFile()
+KFile::KFile() noexcept
 {
 	autoCloseHandle = false;
 	desiredAccess = KFile::KBOTH;
 	fileHandle = INVALID_HANDLE_VALUE;
 }
 
-KFile::KFile(const wchar_t* fileName, DWORD desiredAccess, bool autoCloseHandle)
+KFile::KFile(const wchar_t* fileName, DWORD desiredAccess, bool autoCloseHandle) noexcept
 {
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
-	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, 
+		NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 }
 
-bool KFile::openFile(const wchar_t* fileName, DWORD desiredAccess, bool autoCloseHandle)
+bool KFile::openFile(const wchar_t* fileName, DWORD desiredAccess, bool autoCloseHandle) noexcept
 {
 	if (fileHandle != INVALID_HANDLE_VALUE) // close old file
 		::CloseHandle(fileHandle);
@@ -46,12 +47,13 @@ bool KFile::openFile(const wchar_t* fileName, DWORD desiredAccess, bool autoClos
 	this->desiredAccess = desiredAccess;
 	this->autoCloseHandle = autoCloseHandle;
 
-	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	fileHandle = ::CreateFileW(fileName, desiredAccess, FILE_SHARE_READ | FILE_SHARE_WRITE, 
+		NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	
-	return (fileHandle == INVALID_HANDLE_VALUE) ? false : true;
+	return fileHandle == INVALID_HANDLE_VALUE ? false : true;
 }
 
-bool KFile::closeFile()
+bool KFile::closeFile() noexcept
 {
 	if (::CloseHandle(fileHandle) != 0)
 	{
@@ -61,17 +63,17 @@ bool KFile::closeFile()
 	return false;
 }
 
-HANDLE KFile::getFileHandle()
+HANDLE KFile::getFileHandle() noexcept
 {
 	return fileHandle;
 }
 
-KFile::operator HANDLE()const
+KFile::operator HANDLE()const noexcept
 {
 	return fileHandle;
 }
 
-DWORD KFile::readFile(void* buffer, DWORD numberOfBytesToRead)
+DWORD KFile::readFile(void* buffer, DWORD numberOfBytesToRead) noexcept
 {
 	DWORD numberOfBytesRead = 0;
 	::ReadFile(fileHandle, buffer, numberOfBytesToRead, &numberOfBytesRead, NULL);
@@ -79,7 +81,7 @@ DWORD KFile::readFile(void* buffer, DWORD numberOfBytesToRead)
 	return numberOfBytesRead;
 }
 
-DWORD KFile::writeFile(const void* buffer, DWORD numberOfBytesToWrite)
+DWORD KFile::writeFile(const void* buffer, DWORD numberOfBytesToWrite) noexcept
 {
 	DWORD numberOfBytesWritten = 0;
 	::WriteFile(fileHandle, buffer, numberOfBytesToWrite, &numberOfBytesWritten, NULL);
@@ -87,33 +89,33 @@ DWORD KFile::writeFile(const void* buffer, DWORD numberOfBytesToWrite)
 	return numberOfBytesWritten;
 }
 
-bool KFile::setFilePointerToStart()
+bool KFile::setFilePointerToStart() noexcept
 {
-	return (::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) ? false : true;
+	return ::SetFilePointer(fileHandle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER ? false : true;
 }
 
-bool KFile::setFilePointerTo(long distance, DWORD startingPoint)
+bool KFile::setFilePointerTo(long distance, DWORD startingPoint) noexcept
 {
-	return (::SetFilePointer(fileHandle, distance, NULL, startingPoint) == INVALID_SET_FILE_POINTER) ? false : true;
+	return ::SetFilePointer(fileHandle, distance, NULL, startingPoint) == INVALID_SET_FILE_POINTER ? false : true;
 }
 
-DWORD KFile::getFilePointerPosition()
+DWORD KFile::getFilePointerPosition() noexcept
 {
 	return ::SetFilePointer(fileHandle, 0, NULL, FILE_CURRENT);
 }
 
-bool KFile::setFilePointerToEnd()
+bool KFile::setFilePointerToEnd() noexcept
 {
-	return (::SetFilePointer(fileHandle, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER) ? false : true;
+	return ::SetFilePointer(fileHandle, 0, NULL, FILE_END) == INVALID_SET_FILE_POINTER ? false : true;
 }
 
-DWORD KFile::getFileSize()
+DWORD KFile::getFileSize() noexcept
 {
 	const DWORD fileSize = ::GetFileSize(fileHandle, NULL);
-	return (fileSize == INVALID_FILE_SIZE) ? 0 : fileSize;
+	return fileSize == INVALID_FILE_SIZE ? 0 : fileSize;
 }
 
-void* KFile::readAsData()
+void* KFile::readAsData() noexcept
 {
 	const DWORD fileSize = getFileSize();
 
@@ -131,26 +133,26 @@ void* KFile::readAsData()
 	return NULL;
 }
 
-bool KFile::writeString(const KString& text, bool isUnicode)
+bool KFile::writeString(const KString& text, bool isUnicode) noexcept
 {
 	if (isUnicode)
 	{
 		void* buffer = (void*)(const wchar_t*)text;
 		const DWORD numberOfBytesToWrite = text.length() * sizeof(wchar_t);
 		const DWORD numberOfBytesWritten = writeFile(buffer, numberOfBytesToWrite);
-		return (numberOfBytesWritten == numberOfBytesToWrite);
+		return numberOfBytesWritten == numberOfBytesToWrite;
 	}
 	else
 	{
-		void* buffer = (void*)KString::toAnsiString(text);
+		void* buffer = (void*)KString::toUTF8String(text);
 		const DWORD numberOfBytesToWrite = text.length() * sizeof(char);
 		const DWORD numberOfBytesWritten = writeFile(buffer, numberOfBytesToWrite);
 		::free(buffer);
-		return (numberOfBytesWritten == numberOfBytesToWrite);
+		return numberOfBytesWritten == numberOfBytesToWrite;
 	}
 }
 
-KString KFile::readAsString(bool isUnicode)
+KString KFile::readAsString(bool isUnicode) noexcept
 {
 	DWORD fileSize = getFileSize();
 
@@ -182,40 +184,73 @@ KString KFile::readAsString(bool isUnicode)
 	return KString();
 }
 
-bool KFile::deleteFile(const wchar_t* fileName)
+bool KFile::deleteFile(const wchar_t* fileName) noexcept
 {
-	return (::DeleteFileW(fileName) == 0) ? false : true;
+	return ::DeleteFileW(fileName) == 0 ? false : true;
 }
 
-bool KFile::copyFile(const wchar_t* sourceFileName, const wchar_t* destFileName)
+bool KFile::copyFile(const wchar_t* sourceFileName, const wchar_t* destFileName) noexcept
 {
-	return (::CopyFileW(sourceFileName, destFileName, FALSE) == 0) ? false : true;
+	return ::CopyFileW(sourceFileName, destFileName, FALSE) == 0 ? false : true;
 }
 
-KString KFile::getFileNameFromPath(const wchar_t* path)
+KString KFile::getFileNameFromPath(const wchar_t* path, bool withExtension) noexcept
 {
 	const wchar_t* fileNamePtr = ::PathFindFileNameW(path);
 
 	if (path != fileNamePtr)
-		return KString(fileNamePtr, KStringBehaviour::MAKE_A_COPY);
+	{
+		if (!withExtension)
+		{
+			// Find the last dot in the filename
+			const wchar_t* dotPtr = ::wcsrchr(fileNamePtr, L'.');
+			if (dotPtr != nullptr && dotPtr != fileNamePtr)
+			{
+				// Calculate length without extension
+				const size_t lengthWithoutExt = dotPtr - fileNamePtr;
 
+				wchar_t* strBuffer = (wchar_t*)::malloc(sizeof(wchar_t) * (lengthWithoutExt + 1));
+				::wcsncpy_s(strBuffer, lengthWithoutExt + 1, fileNamePtr, lengthWithoutExt);
+				strBuffer[lengthWithoutExt] = L'\0';
+
+				return KString(strBuffer, KStringBehaviour::FREE_ON_DESTROY, (int)lengthWithoutExt);
+			}
+		}
+		return KString(fileNamePtr, KStringBehaviour::MAKE_A_COPY);
+	}
 	return KString();
 }
 
-KString KFile::getFileExtension(const wchar_t* path)
+KString KFile::getFileExtension(const wchar_t* path) noexcept
 {
 	const wchar_t* extPtr = ::PathFindExtensionW(path);
 	return KString(extPtr, KStringBehaviour::MAKE_A_COPY);
 }
 
-bool KFile::isFileExists(const wchar_t* fileName)
+bool KFile::isFileExists(const wchar_t* fileName) noexcept
 {
 	const DWORD dwAttrib = ::GetFileAttributesW(fileName);
-	return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+	return dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY);
 }
 
-KFile::~KFile()
+KFile::~KFile() noexcept
 {
 	if (autoCloseHandle)
 		::CloseHandle(fileHandle);
+}
+
+bool KFile::readStream(BYTE* buffer, DWORD bytesToRead) noexcept
+{
+	DWORD numberOfBytesRead = 0;
+	::ReadFile(fileHandle, buffer, bytesToRead, &numberOfBytesRead, NULL);
+
+	return numberOfBytesRead == bytesToRead;
+}
+
+bool KFile::writeStream(const BYTE* buffer, DWORD bytesToWrite) noexcept
+{
+	DWORD numberOfBytesWritten = 0;
+	::WriteFile(fileHandle, buffer, bytesToWrite, &numberOfBytesWritten, NULL);
+
+	return numberOfBytesWritten == bytesToWrite;
 }

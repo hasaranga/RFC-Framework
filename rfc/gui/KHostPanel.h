@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -31,30 +31,30 @@ protected:
 	KPointerList<KComponent*, 24, false>* componentList;
 
 public:
-	KHostPanel();
+	KHostPanel() noexcept;
 
 	// called by the parent
-	virtual void setComponentList(KPointerList<KComponent*, 24, false>* componentList);
+	void setComponentList(KPointerList<KComponent*, 24, false>* componentList) noexcept;
 
 	// called by the parent
-	virtual void setEnableDPIUnawareMode(bool enable);
+	void setEnableDPIUnawareMode(bool enable) noexcept;
 
 	/**
 		add KHostPanel to window(call create) before adding items to it.
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 	*/
-	virtual bool addComponent(KComponent* component, bool requireInitialMessages = false);
+	virtual bool addComponent(KComponent* component, bool requireInitialMessages = false) noexcept;
 
 	// Can be also use to remove a container. Also destroys the hwnd.
-	virtual void removeComponent(KComponent* component);
+	virtual void removeComponent(KComponent* component) noexcept;
 
 	/**
 		add KHostPanel to window(call create) before adding items to it.
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 	*/
-	virtual bool addContainer(KHostPanel* container, bool requireInitialMessages = false);
+	virtual bool addContainer(KHostPanel* container, bool requireInitialMessages = false) noexcept;
 
-	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept override;
 
-	virtual ~KHostPanel();
+	virtual ~KHostPanel() noexcept;
 };

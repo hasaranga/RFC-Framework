@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
   
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -27,21 +27,25 @@ class KRegistry
 {
 
 public:
-	KRegistry();
+	KRegistry() noexcept;
 
 	// returns true on success or if the key already exists.
-	static bool createKey(HKEY hKeyRoot, const KString& subKey);
+	static bool createKey(HKEY hKeyRoot, const KString& subKey) noexcept;
 
 	// the subkey to be deleted must not have subkeys. 
-	static bool deleteKey(HKEY hKeyRoot, const KString& subKey);
+	static bool deleteKey(HKEY hKeyRoot, const KString& subKey) noexcept;
 
-	static bool readString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString* result);
+	static bool readString(HKEY hKeyRoot, const KString& subKey, 
+		const KString& valueName, KString* result) noexcept;
 
-	static bool writeString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value);
+	static bool writeString(HKEY hKeyRoot, const KString& subKey, 
+		const KString& valueName, const KString& value) noexcept;
 
-	static bool readDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD* result);
+	static bool readDWORD(HKEY hKeyRoot, const KString& subKey, 
+		const KString& valueName, DWORD* result) noexcept;
 
-	static bool writeDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value);
+	static bool writeDWORD(HKEY hKeyRoot, const KString& subKey, 
+		const KString& valueName, DWORD value) noexcept;
 
 	/**
 		you must free the buffer when you are done with it.
@@ -57,10 +61,12 @@ public:
 		}
 		@endcode
 	*/
-	static bool readBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void** buffer, DWORD* buffSize);
+	static bool readBinary(HKEY hKeyRoot, const KString& subKey,
+		const KString& valueName, void** buffer, DWORD* buffSize) noexcept;
 
-	static bool writeBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize);
+	static bool writeBinary(HKEY hKeyRoot, const KString& subKey, 
+		const KString& valueName, void* buffer, DWORD buffSize) noexcept;
 
-	~KRegistry();
+	~KRegistry() noexcept;
 
 };

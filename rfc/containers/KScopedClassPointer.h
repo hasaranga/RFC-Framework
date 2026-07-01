@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -63,23 +63,23 @@ private:
 	void  operator delete[](void*);
 
 public:
-	inline KScopedClassPointer()
+	inline KScopedClassPointer() noexcept
 	{
 		object = nullptr;
 	}
 
-	inline KScopedClassPointer(T* object)
+	inline KScopedClassPointer(T* object) noexcept
 	{
 		this->object = object;
 	}
 
-	KScopedClassPointer(KScopedClassPointer& objectToTransferFrom)
+	KScopedClassPointer(KScopedClassPointer& objectToTransferFrom) noexcept
 	{
 		this->object = objectToTransferFrom.object;
 		objectToTransferFrom.object = nullptr;
 	}
 
-	bool isNull()
+	bool isNull() noexcept
 	{
 		return (object == nullptr);
 	}
@@ -88,14 +88,14 @@ public:
 		Removes the current object from this KScopedClassPointer without deleting it.
 		This will return the current object, and set the KScopedClassPointer to a null pointer.
 	*/
-	T* detach()
+	T* detach() noexcept
 	{ 
 		T* o = object; 
 		object = nullptr;
 		return o; 
 	}
 
-	~KScopedClassPointer()
+	~KScopedClassPointer() noexcept
 	{
 		if (object)
 			delete object;
@@ -109,7 +109,7 @@ public:
 
 		The pointer that you pass in may be a nullptr.
 	*/
-	KScopedClassPointer& operator= (T* const newObject)
+	KScopedClassPointer& operator= (T* const newObject) noexcept
 	{
 		if (object != newObject)
 		{
@@ -124,11 +124,11 @@ public:
 	}
 
 	/** Returns the object that this KScopedClassPointer refers to. */
-	inline operator T*() const { return object; }
+	inline operator T*() const noexcept { return object; }
 
 	/** Returns the object that this KScopedClassPointer refers to. */
-	inline T& operator*() const { return *object; }
+	inline T& operator*() const noexcept { return *object; }
 
 	/** Lets you access methods and properties of the object that this KScopedClassPointer refers to. */
-	inline T* operator->() const { return object; }
+	inline T* operator->() const noexcept { return object; }
 };

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -37,7 +37,7 @@ protected:
 	protected:
 		HPEN greyPen, whitePen;
 
-		void updateSizePos(const RECT& startRect, const RECT& endRect)
+		void updateSizePos(const RECT& startRect, const RECT& endRect) noexcept
 		{
 			// Calculate bounding rectangle that covers the entire animation area
 			RECT boundingRect;
@@ -56,11 +56,17 @@ protected:
 			const int width = boundingRect.right - boundingRect.left;
 			const int height = boundingRect.bottom - boundingRect.top;
 
-			setSize(width, height);
-			setPosition(boundingRect.left, boundingRect.top);
+			const int dpi = KDPIUtility::getWindowDPI(compHWND);
+			const int logicalX = KDPIUtility::toLogical(boundingRect.left, dpi);
+			const int logicalY = KDPIUtility::toLogical(boundingRect.top, dpi);
+			const int logicalWidth = KDPIUtility::toLogical(width, dpi);
+			const int logicalHeight = KDPIUtility::toLogical(height, dpi);
+
+			setSize(logicalWidth, logicalHeight);
+			setPosition(logicalX, logicalY);
 		}
 
-		void clearOverlay()
+		void clearOverlay() noexcept
 		{
 			HDC hdc = ::GetDC(compHWND);
 
@@ -72,7 +78,7 @@ protected:
 			::ReleaseDC(compHWND, hdc);
 		}
 
-		void drawRectangleOnOverlay(const RECT& rect)
+		void drawRectangleOnOverlay(const RECT& rect) noexcept
 		{
 			HDC hdc = ::GetDC(compHWND);
 
@@ -108,7 +114,7 @@ protected:
 			::ReleaseDC(compHWND, hdc);
 		}
 
-		LRESULT onWMPaint(WPARAM wParam, LPARAM lParam)
+		LRESULT onWMPaint(WPARAM wParam, LPARAM lParam) noexcept
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(compHWND, &ps);
@@ -118,13 +124,13 @@ protected:
 		}
 
 	public:
-		ZoomRectOverlay() : KComponent(true)
+		ZoomRectOverlay() noexcept : KComponent(true)
 		{
 			compText.assignStaticText(TXT_WITH_LEN("ZoomRectOverlay"));
 			compCtlID = 0; // control id is zero for top level window
 
-			compWidth = 400;
-			compHeight = 200;
+			compLWidth = 400;
+			compLHeight = 200;
 
 			compVisible = false;
 			compDwStyle = WS_POPUP;
@@ -135,13 +141,13 @@ protected:
 			whitePen = ::CreatePen(PS_SOLID, 1, RGB(255, 255, 255)); // White pen
 		}
 
-		~ZoomRectOverlay()
+		~ZoomRectOverlay() noexcept
 		{
 			::DeleteObject(greyPen);
 			::DeleteObject(whitePen);
 		}
 
-		bool create(bool requireInitialMessages) override
+		bool create(bool requireInitialMessages) noexcept override
 		{
 			if (KComponent::create(requireInitialMessages))
 			{
@@ -151,7 +157,7 @@ protected:
 			return false;
 		}
 
-		void showZoomInEffect(RECT endRect, int steps = 10, int delayMs = 18)
+		void showZoomInEffect(RECT endRect, int steps = 10, int delayMs = 18) noexcept
 		{
 			if (compHWND == NULL)
 				return;
@@ -208,7 +214,7 @@ protected:
 			setVisible(false);
 		}
 
-		void showZoomOutEffect(RECT startRect, int steps = 10, int delayMs = 18)
+		void showZoomOutEffect(RECT startRect, int steps = 10, int delayMs = 18) noexcept
 		{
 			if (compHWND == NULL)
 				return;
@@ -276,16 +282,16 @@ protected:
 
 public:
 	template<typename... Args>
-	KZoomRectEffect(Args&&... args) : T(std::forward<Args>(args)...) {}
-	virtual ~KZoomRectEffect() {}
+	KZoomRectEffect(Args&&... args)  noexcept : T(std::forward<Args>(args)...) {}
+	virtual ~KZoomRectEffect() noexcept {}
 
-	void setupZoomRect(int steps, int delayMs)
+	void setupZoomRect(int steps, int delayMs) noexcept
 	{
 		_zoomRectSteps = steps;
 		_zoomRectDelay = delayMs;
 	}
 
-	virtual bool create(bool requireInitialMessages = false) override
+	virtual bool create(bool requireInitialMessages = false) noexcept override
 	{
 		if (__super::create(requireInitialMessages))
 		{
@@ -296,13 +302,13 @@ public:
 		return false;
 	}
 
-	virtual void onDestroy() override
+	virtual void onDestroy() noexcept override
 	{
 		zoomRectOverlay.destroy();
 		__super::onDestroy();
 	}
 
-	virtual void setVisible(bool state) override
+	virtual void setVisible(bool state) noexcept override
 	{
 		// if window minimized or not created, then we don't show the effect!
 		if ((this->compHWND == NULL) || ::IsIconic(this->compHWND))

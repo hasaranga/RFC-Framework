@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,13 +22,11 @@
 
 #include "KPushButton.h"
 
-KPushButton::KPushButton()
+KPushButton::KPushButton() noexcept
 {
 	compText.assignStaticText(TXT_WITH_LEN("Push Button"));
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_AUTOCHECKBOX | 
 		BS_PUSHLIKE | BS_NOTIFY | WS_TABSTOP;
 }
 
-KPushButton::~KPushButton()
-{
-}
+KPushButton::~KPushButton() noexcept {}

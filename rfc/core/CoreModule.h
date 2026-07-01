@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <windows.h>
+#include <cassert>
 #include "Architecture.h"
 #include "Core.h"
 #include "KApplication.h"
@@ -30,7 +32,6 @@
 #include "KAssert.h"
 #include "KRefCountedMemory.h"
 #include "KString.h"
-#include <windows.h>
 
 // link default libs here so we don't need to link them from commandline(Clang).
 

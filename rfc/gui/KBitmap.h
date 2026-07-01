@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -32,36 +32,36 @@ protected:
 	HBITMAP hBitmap;
 
 public:
-	KBitmap();
+	KBitmap() noexcept;
 
 	/**
 		Loads bitmap image from resource
 		@param resourceID resource ID of image
 		@returns false if image load fails
 	*/
-	bool loadFromResource(WORD resourceID);
+	bool loadFromResource(WORD resourceID) noexcept;
 
 	/**
 		Loads bitmap image from file
 		@param filePath path to image
 		@returns false if image load fails
 	*/
-	bool loadFromFile(const KString& filePath);
+	bool loadFromFile(const KString& filePath) noexcept;
 
-	// does not scale
-	void drawOnHDC(HDC hdc, int x, int y, int width, int height);
-
-	/**
-		Returns bitmap handle
-	*/
-	HBITMAP getHandle();
+	// does not scale. all are pixel values.
+	void drawOnHDC(HDC hdc, Physical x, Physical y, Physical width, Physical height) noexcept;
 
 	/**
 		Returns bitmap handle
 	*/
-	operator HBITMAP()const;
+	HBITMAP getHandle() noexcept;
 
-	virtual ~KBitmap();
+	/**
+		Returns bitmap handle
+	*/
+	operator HBITMAP()const noexcept;
+
+	virtual ~KBitmap() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KBitmap)

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -29,22 +29,22 @@ protected:
     HANDLE hEvent;
 
 public:
-    KInterruptableSleep()
+    KInterruptableSleep() noexcept
     {
         hEvent = ::CreateEventW(NULL, FALSE, FALSE, NULL);
     }
 
-    void interrupt()
+    void interrupt() noexcept
     {
         ::SetEvent(hEvent);
     }
 
-    bool sleep(DWORD mills)
+    bool sleep(DWORD mills) noexcept
     {
         return ::WaitForSingleObject(hEvent, mills) == WAIT_TIMEOUT;
     }
 
-    ~KInterruptableSleep()
+    ~KInterruptableSleep() noexcept
     {
         ::CloseHandle(hEvent);
     }

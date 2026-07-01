@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025  CrownSoft
+	Copyright (C) 2013-2026  CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,12 +28,12 @@
 #include "KDPIUtility.h"
 #include "KModuleManager.h"
 
-void InitRFCModules();
-void DeInitRFCModules();
+void InitRFCModules() noexcept;
+void DeInitRFCModules() noexcept;
 
 // use within a dll functions. do not use inside of DllMain.
-void RFCDllInit();
-void RFCDllFree();
+void RFCDllInit() noexcept;
+void RFCDllFree() noexcept;
 
 #define RFC_MAX_PATH 512
 
@@ -176,3 +176,24 @@ int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,i
 #else 
 	#define DEBUG_PRINT(x) 
 #endif
+
+// Disable copy only
+#define K_NO_COPY(Class)                          \
+    Class(const Class&) = delete;               \
+    Class& operator=(const Class&) = delete;
+
+// Disable move only
+#define K_NO_MOVE(Class)                          \
+    Class(Class&&) = delete;                    \
+    Class& operator=(Class&&) = delete;
+
+// Disable both copy and move
+#define K_NO_COPY_MOVE(Class)                     \
+    K_NO_COPY(Class)                              \
+    K_NO_MOVE(Class)
+
+// Disable everything (default, copy, move)
+#define K_NO_DEFAULTS(Class)                      \
+    Class() = delete;                           \
+    K_NO_COPY_MOVE(Class)
+

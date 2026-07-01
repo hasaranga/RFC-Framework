@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 #include "Core.h"
 #include "CoreModule.h"
 
-void InitRFCModules()
+void InitRFCModules() noexcept
 {
 	// initialize modules
 	RFCModuleInitFunc* initFuncList = KModuleManager::rfcModuleInitFuncList();
@@ -44,7 +44,7 @@ void InitRFCModules()
 	}
 }
 
-void DeInitRFCModules()
+void DeInitRFCModules() noexcept
 {
 	// free modules
 	RFCModuleFreeFunc* freeFuncList = KModuleManager::rfcModuleFreeFuncList();
@@ -55,7 +55,7 @@ void DeInitRFCModules()
 	}
 }
 
-void RFCDllInit()
+void RFCDllInit() noexcept
 {
 	CoreModuleInitParams::hInstance = 0;
 	CoreModuleInitParams::initCOMAsSTA = false;
@@ -63,7 +63,7 @@ void RFCDllInit()
 	::InitRFCModules();
 }
 
-void RFCDllFree()
+void RFCDllFree() noexcept
 {
 	::DeInitRFCModules();
 }

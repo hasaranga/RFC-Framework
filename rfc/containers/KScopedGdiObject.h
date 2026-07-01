@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -48,17 +48,17 @@ private:
 	void  operator delete[](void*);
 
 public:
-	inline KScopedGdiObject()
+	inline KScopedGdiObject() noexcept
 	{
 		gdiObject = 0;
 	}
 
-	inline KScopedGdiObject(T gdiObject)
+	inline KScopedGdiObject(T gdiObject) noexcept
 	{
 		this->gdiObject = gdiObject;
 	}
 
-	KScopedGdiObject(KScopedGdiObject& gdiObjectToTransferFrom)
+	KScopedGdiObject(KScopedGdiObject& gdiObjectToTransferFrom) noexcept
 	{
 		this->gdiObject = gdiObjectToTransferFrom.gdiObject;
 		gdiObjectToTransferFrom.gdiObject = 0;
@@ -68,14 +68,14 @@ public:
 		Removes the current gdi object from this KScopedGdiObject without freeing it.
 		This will return the current gdi object, and set the KScopedGdiObject to a null value.
 	*/
-	T detach()
+	T detach() noexcept
 	{ 
 		T g = gdiObject;
 		gdiObject = 0;
 		return g; 
 	}
 
-	~KScopedGdiObject()
+	~KScopedGdiObject() noexcept
 	{
 		if (gdiObject)
 			::DeleteObject(gdiObject);
@@ -89,7 +89,7 @@ public:
 
 		The object that you pass in may be a zero.
 	*/
-	KScopedGdiObject& operator= (T const newGdiObject)
+	KScopedGdiObject& operator= (T const newGdiObject) noexcept
 	{
 		if (gdiObject != newGdiObject)
 		{
@@ -104,7 +104,7 @@ public:
 	}
 
 	/** Returns the gdi object that this KScopedGdiObject refers to. */
-	inline operator T() const { return gdiObject; }
+	inline operator T() const noexcept { return gdiObject; }
 
 };
 

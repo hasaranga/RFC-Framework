@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,25 +21,25 @@
 
 #include"KMenuBar.h"
 
-KMenuBar::KMenuBar()
+KMenuBar::KMenuBar() noexcept
 {
 	hMenu = ::CreateMenu();
 }
 
-void KMenuBar::addMenu(const KString& text, KMenu* menu)
+void KMenuBar::addMenu(const KString& text, KMenu* menu) noexcept
 {
 	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, 
 		(UINT_PTR)menu->getMenuHandle(), text);
 }
 
-void KMenuBar::addToWindow(KWindow* window)
+void KMenuBar::addToWindow(KWindow* window) noexcept
 {
 	HWND hwnd = window->getHWND();
-	if(hwnd)
-		::SetMenu(hwnd, hMenu);
+	K_ASSERT(hwnd != NULL, "window is not created");
+	::SetMenu(hwnd, hMenu);
 }
 
-KMenuBar::~KMenuBar()
+KMenuBar::~KMenuBar() noexcept
 {
 	::DestroyMenu(hMenu);
 }

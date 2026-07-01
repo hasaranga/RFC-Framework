@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@
 #include "KGUIProc.h"
 #include <commctrl.h>
 
-KToolTip::KToolTip() : KComponent(false)
+KToolTip::KToolTip() noexcept : KComponent(false)
 {
 	attachedCompHWND = 0;
 	compClassName.assignStaticText(TXT_WITH_LEN("tooltips_class32"));
@@ -31,14 +31,14 @@ KToolTip::KToolTip() : KComponent(false)
 	compDwStyle = WS_POPUP | TTS_ALWAYSTIP | TTS_NOPREFIX;
 }
 
-KToolTip::~KToolTip()
+KToolTip::~KToolTip() noexcept
 {
 }
 
-void KToolTip::attachToComponent(KWindow* parentWindow, KComponent* attachedComponent)
+void KToolTip::attachToComponent(HWND parentWindow, HWND attachedComponent) noexcept
 {
-	compParentHWND = parentWindow->getHWND();
-	attachedCompHWND = attachedComponent->getHWND();
+	compParentHWND = parentWindow;
+	this->attachedCompHWND = attachedComponent;
 
 	compHWND = ::CreateWindowExW(0, compClassName, NULL, 
 		compDwStyle, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
@@ -62,12 +62,12 @@ void KToolTip::attachToComponent(KWindow* parentWindow, KComponent* attachedComp
 	}
 }
 
-bool KToolTip::create(bool requireInitialMessages)
+bool KToolTip::create(bool requireInitialMessages) noexcept
 {
 	return false;
 }
 
-void KToolTip::setText(const KString& compText)
+void KToolTip::setText(const KString& compText) noexcept
 {
 	this->compText = compText;
 	if (compHWND)

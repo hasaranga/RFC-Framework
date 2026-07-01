@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 #include "KLogger.h"
 #include "KFile.h"
 
-KLogger::KLogger(DWORD bufferSize)
+KLogger::KLogger(DWORD bufferSize) noexcept
 {
 	buffer = (char*)malloc(bufferSize);
 	this->bufferSize = bufferSize;
@@ -33,7 +33,7 @@ KLogger::KLogger(DWORD bufferSize)
 	isFirstCall = true;
 }
 
-bool KLogger::writeNewEvent(unsigned char eventType)
+bool KLogger::writeNewEvent(unsigned char eventType) noexcept
 {
 	if (!bufferFull)
 	{
@@ -78,7 +78,7 @@ bool KLogger::writeNewEvent(unsigned char eventType)
 	return false;
 }
 
-bool KLogger::endEvent()
+bool KLogger::endEvent() noexcept
 {
 	if (!bufferFull)
 	{
@@ -90,7 +90,7 @@ bool KLogger::endEvent()
 	return false;
 }
 
-bool KLogger::addTextParam(const char *text, unsigned char textLength)
+bool KLogger::addTextParam(const char *text, unsigned char textLength) noexcept
 {
 	if( (textLength < 255) && (!bufferFull) )
 	{
@@ -111,7 +111,7 @@ bool KLogger::addTextParam(const char *text, unsigned char textLength)
 	return false;
 }
 
-bool KLogger::addIntParam(int value)
+bool KLogger::addIntParam(int value) noexcept
 {
 	if(!bufferFull)
 	{
@@ -126,7 +126,7 @@ bool KLogger::addIntParam(int value)
 	return false;
 }
 
-bool KLogger::addShortParam(unsigned short value)
+bool KLogger::addShortParam(unsigned short value) noexcept
 {
 	if(!bufferFull)
 	{
@@ -141,7 +141,7 @@ bool KLogger::addShortParam(unsigned short value)
 	return false;
 }
 
-bool KLogger::addFloatParam(float value)
+bool KLogger::addFloatParam(float value) noexcept
 {
 	if(!bufferFull)
 	{
@@ -156,7 +156,7 @@ bool KLogger::addFloatParam(float value)
 	return false;
 }
 	
-bool KLogger::addDoubleParam(double value)
+bool KLogger::addDoubleParam(double value) noexcept
 {
 	if(!bufferFull)
 	{
@@ -171,12 +171,12 @@ bool KLogger::addDoubleParam(double value)
 	return false;
 }
 
-bool KLogger::isBufferFull()
+bool KLogger::isBufferFull() noexcept
 {
 	return bufferFull;
 }
 
-bool KLogger::writeToFile(const KString &filePath)
+bool KLogger::writeToFile(const KString &filePath) noexcept
 {
 	KFile file;
 
@@ -195,7 +195,7 @@ bool KLogger::writeToFile(const KString &filePath)
 	return false;
 }
 
-KLogger::~KLogger()
+KLogger::~KLogger() noexcept
 {
 	free(buffer);
 }

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,55 +23,55 @@
 #include "KGraphics.h"
 #include <commctrl.h>
 
-KMenuButton::KMenuButton() : arrowFont(L"Webdings", 18, false, false, false, false, USER_DEFAULT_SCREEN_DPI)
+KMenuButton::KMenuButton() noexcept : 
+	arrowFontRef(KFontType(L"Webdings", 18, false, false, false, false), USER_DEFAULT_SCREEN_DPI)
 {
 	buttonMenu = nullptr;
-	glyphFont = nullptr;
 	glyphChar = nullptr;
 	glyphLeft = 6;
 }	
 
-KMenuButton::~KMenuButton() {}
+KMenuButton::~KMenuButton() noexcept {}
 
-void KMenuButton::setMenu(KMenu* buttonMenu)
+void KMenuButton::setMenu(KMenu* buttonMenu) noexcept
 {
 	this->buttonMenu = buttonMenu;
 }
 
-void KMenuButton::setGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor, int glyphLeft)
+void KMenuButton::setGlyph(const wchar_t* glyphChar, 
+	const KFontType& glyphFontType, COLORREF glyphColor, int glyphLeft) noexcept
 {
 	this->glyphChar = glyphChar;
-	this->glyphFont = glyphFont;
 	this->glyphColor = glyphColor;
 	this->glyphLeft = glyphLeft;
 
+	glyphFontRef.update(glyphFontType, compFontRef.getCurrentDPI());
 	this->repaint();
 }
 
-void KMenuButton::setDPI(int newDPI)
+void KMenuButton::setDPI(int newDPI) noexcept
 {
-	if (glyphFont)
-		glyphFont->setDPI(newDPI);
+	glyphFontRef.update(newDPI);
+	arrowFontRef.update(newDPI);
 
-	arrowFont.setDPI(newDPI);
-
-	KButton::setDPI(newDPI);
+	__super::setDPI(newDPI);
 }
 
-void KMenuButton::_onPress()
+void KMenuButton::_onPress() noexcept
 {
 	if (buttonMenu)
 	{
-		POINT point = {compX, compY};
+		const int dpi = KDPIUtility::getWindowDPI(compHWND);
+		POINT point = { KDPIUtility::toPhysical(getX(),dpi), KDPIUtility::toPhysical(getY(),dpi)};
 		::ClientToScreen(compParentHWND, &point); // get screen cordinates
 
 		::TrackPopupMenu(buttonMenu->getMenuHandle(), 
-			TPM_LEFTBUTTON, point.x, point.y + compHeight, 
+			TPM_LEFTBUTTON, point.x, point.y + KDPIUtility::toPhysical(getHeight(), dpi),
 			0, compParentHWND, NULL);
 	}
 }
 
-bool KMenuButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
+bool KMenuButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) noexcept
 {
 	if (msg == WM_NOTIFY)
 	{		
@@ -87,26 +87,28 @@ bool KMenuButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* res
 			}
 			else if ( CDDS_POSTPAINT== lpNMCD->dwDrawStage ) //  postpaint stage
 			{
+				const int dpi = KDPIUtility::getWindowDPI(compHWND);
+
 				const RECT rc = lpNMCD->rc;
-				KGraphics::draw3dVLine(lpNMCD->hdc, rc.right - ::MulDiv(22, compDPI, USER_DEFAULT_SCREEN_DPI),
-					rc.top + ::MulDiv(6, compDPI, USER_DEFAULT_SCREEN_DPI), 
-					rc.bottom - ::MulDiv(12, compDPI, USER_DEFAULT_SCREEN_DPI)); // draw line
+				KGraphics::draw3dVLine(lpNMCD->hdc, rc.right - ::MulDiv(22, dpi, USER_DEFAULT_SCREEN_DPI),
+					rc.top + ::MulDiv(6, dpi, USER_DEFAULT_SCREEN_DPI),
+					rc.bottom - ::MulDiv(12, dpi, USER_DEFAULT_SCREEN_DPI)); // draw line
 
 				const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED|CDIS_GRAYED)) != 0;
 
-				HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, arrowFont.getFontHandle());
+				HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, arrowFontRef.getFontHandle());
 				const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, ::GetSysColor(bDisabled ? COLOR_GRAYTEXT : COLOR_BTNTEXT));
 				const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
-				RECT rcIcon = { rc.right - ::MulDiv(18, compDPI, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
+				RECT rcIcon = { rc.right - ::MulDiv(18, dpi, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
 				::DrawTextW(lpNMCD->hdc, L"\x36", 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER); // draw arrow
 
-				if (glyphFont) // draw glyph
+				if (glyphChar) // draw glyph
 				{
-					::SelectObject(lpNMCD->hdc, glyphFont->getFontHandle());
-					::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
+					::SelectObject(lpNMCD->hdc, glyphFontRef.getFontHandle());
+					::SetTextColor(lpNMCD->hdc, bDisabled ? GetSysColor(COLOR_GRAYTEXT) : glyphColor);
 
-					rcIcon = { rc.left + ::MulDiv(glyphLeft, compDPI, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
+					rcIcon = { rc.left + ::MulDiv(glyphLeft, dpi, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
 					::DrawTextW(lpNMCD->hdc, glyphChar, 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
 				}
 

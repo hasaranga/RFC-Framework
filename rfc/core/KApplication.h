@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -58,18 +58,17 @@ public:
 	static HINSTANCE hInstance;
 
 	static KDPIAwareness dpiAwareness;
-	static bool dpiAwareAPICalled;
 
 	/** 
 		Constructs an KApplication object.
 	*/
-	KApplication();
+	KApplication() noexcept;
 
 	/**
 		Called before InitRFC function call. Use this method to modify each module InitParams.
 		Do not call framework APIs here. Only modify InitParams.
 	*/
-	virtual void modifyModuleInitParams();
+	virtual void modifyModuleInitParams() noexcept;
 
 	/** 
 		Called when the application starts.
@@ -79,32 +78,32 @@ public:
 		@param argv array of command-line arguments! access them like this wchar_t* arg1=argv[0];
 		@param argc number of arguments
 	*/
-	virtual int main(wchar_t** argv, int argc);
+	virtual int main(wchar_t** argv, int argc) noexcept;
 
 	/**
 		Return false if your application is single instance only.
 		Single instance applications must implement "getApplicationID" method.
 	*/
-	virtual bool allowMultipleInstances();
+	virtual bool allowMultipleInstances() noexcept;
 
 	/**
 		This method will be called if the application is single instance only and another instance is already running.
 		("main" method will not be called.)
 	*/
-	virtual int anotherInstanceIsRunning(wchar_t** argv, int argc);
+	virtual int anotherInstanceIsRunning(wchar_t** argv, int argc) noexcept;
 
 	/**
 		Unique id of your application which is limited to MAX_PATH characters.
 		Single instance applications must implement this method.
 	*/
-	virtual const wchar_t* getApplicationID();
+	virtual const wchar_t* getApplicationID() noexcept;
 
-	static void messageLoop(bool handleTabKey = true);
+	static void messageLoop(bool handleTabKey = true) noexcept;
 
 	/** 
 		Destructs an Application object.
 	*/
-	virtual ~KApplication();
+	virtual ~KApplication() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KApplication)

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,9 +22,9 @@
 
 #include "KNumericField.h"
 
-KNumericField::KNumericField() : KTextBox(false)
+KNumericField::KNumericField() noexcept : KTextBox(false)
 {
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP | ES_AUTOHSCROLL | ES_NUMBER;
 }
 
-KNumericField::~KNumericField(){}
+KNumericField::~KNumericField() noexcept {}

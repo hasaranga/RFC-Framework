@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -72,7 +72,7 @@ public:
     DWORD fileDataSize;
     // ============================================
 
-    KPSProperty()
+    KPSProperty() noexcept
     {
         name = NULL;
         strValue = NULL;
@@ -91,7 +91,7 @@ public:
         intArraySize = 0;
     }
 
-    virtual ~KPSProperty()
+    virtual ~KPSProperty() noexcept
     {
         if (name)
             ::free(name);
@@ -117,18 +117,18 @@ public:
 
     KPointerList<KPSProperty*, 32, false> propertyList;
 
-    KPSObject()
+    KPSObject() noexcept
     {
         name = NULL;
         nameLength = 0;     
     }
 
-    bool compare(const GUID& objectID)
+    bool compare(const GUID& objectID) noexcept
     {
         return (::IsEqualGUID(objectID, this->objectID) == TRUE);
     }
 
-    virtual ~KPSObject()
+    virtual ~KPSObject() noexcept
     {
         if (name)
             ::free(name);
@@ -145,14 +145,14 @@ public:
 
     KPSObject* parentObject;
 
-    KPSPropertyView()
+    KPSPropertyView() noexcept
     {
         parentObject = NULL;
         guidValueStr = NULL;
         intArrayStr = NULL;
     }
 
-    virtual ~KPSPropertyView()
+    virtual ~KPSPropertyView() noexcept
     {
         if (intArrayStr)
             ::free(intArrayStr);
@@ -160,7 +160,7 @@ public:
             ::RpcStringFreeW((RPC_WSTR*)&guidValueStr);
     }
 
-    void generateIntArrayString()
+    void generateIntArrayString() noexcept
     {
         if (intArrayStr)
             ::free(intArrayStr);
@@ -185,7 +185,7 @@ public:
         }
     }
 
-    void generateIntArrayByString(wchar_t* text)
+    void generateIntArrayByString(wchar_t* text) noexcept
     {
         if (intArray)
             ::free(intArray);
@@ -226,7 +226,7 @@ public:
         generateIntArrayString();
     }
 
-    void generateGUIDValueString()
+    void generateGUIDValueString() noexcept
     {
         if (guidValueStr)
             ::RpcStringFreeW((RPC_WSTR*)&guidValueStr);
@@ -238,7 +238,7 @@ public:
 
     // The string should be in the following form
     // 00000000-0000-0000-0000-000000000000
-    bool generateGUIDValueByString(const wchar_t* text)
+    bool generateGUIDValueByString(const wchar_t* text) noexcept
     {
         bool success = true;
 
@@ -258,17 +258,17 @@ class KPSObjectView : public KPSObject
 public:
     wchar_t* objectIDStr; 
 
-    KPSObjectView() : KPSObject()
+    KPSObjectView() noexcept : KPSObject()
     {
         objectIDStr = NULL;
     }
 
-    void generateObjectID()
+    void generateObjectID() noexcept
     {
         ::CoCreateGuid(&objectID);
     }
 
-    void generateObjectIDString()
+    void generateObjectIDString() noexcept
     {
         if (objectIDStr)
             ::RpcStringFreeW((RPC_WSTR*)&objectIDStr);
@@ -280,7 +280,7 @@ public:
 
     // The string should be in the following form
     // 00000000-0000-0000-0000-000000000000
-    bool generateIDByString(const wchar_t* text)
+    bool generateIDByString(const wchar_t* text) noexcept
     {
         if (::UuidFromStringW((RPC_WSTR)text, &objectID) != RPC_S_OK)
             return false;
@@ -289,7 +289,7 @@ public:
         return true;
     }
 
-    virtual ~KPSObjectView()
+    virtual ~KPSObjectView() noexcept
     {
         if (objectIDStr)
             ::RpcStringFreeW((RPC_WSTR*)&objectIDStr);
@@ -303,13 +303,13 @@ protected:
 public:
     KPointerList<KPSObject*,16, false>* psObjectList;
 
-    KPSReader()
+    KPSReader() noexcept
     {
         psObjectList = NULL;
     }
 
     // do not free returned object.
-    KPSObject* getPSObject(const GUID& objectID)
+    KPSObject* getPSObject(const GUID& objectID) noexcept
     {
         for (int i = 0; i < psObjectList->size(); i++)
         {
@@ -321,7 +321,7 @@ public:
         return NULL;
     }
 
-    bool loadFromFile(const wchar_t* path, bool readNames = true)
+    bool loadFromFile(const wchar_t* path, bool readNames = true) noexcept
     {
         if (psObjectList)
         {
@@ -483,7 +483,7 @@ public:
         return true;
     }
 
-    virtual ~KPSReader() 
+    virtual ~KPSReader() noexcept
     {
         if (psObjectList)
         {

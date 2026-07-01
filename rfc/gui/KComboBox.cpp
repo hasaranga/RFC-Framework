@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,17 +23,14 @@
 #include "KComboBox.h"
 #include "KGUIProc.h"
 
-KComboBox::KComboBox(bool sort) : KComponent(false)
+KComboBox::KComboBox(bool sort) noexcept : KComponent(false)
 {
 	selectedItemIndex = -1;
 
 	compClassName.assignStaticText(TXT_WITH_LEN("COMBOBOX"));
 
-	compWidth = 100;
-	compHeight = 100;
-
-	compX = 0;
-	compY = 0;
+	compLWidth = 100;
+	compLHeight = 100;
 
 	compDwStyle = WS_VSCROLL | CBS_DROPDOWNLIST | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP;
 
@@ -43,7 +40,7 @@ KComboBox::KComboBox(bool sort) : KComponent(false)
 	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
 }
 
-void KComboBox::addItem(const KString& text)
+void KComboBox::addItem(const KString& text) noexcept
 {
 	stringList.add(text);
 
@@ -51,7 +48,7 @@ void KComboBox::addItem(const KString& text)
 		::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)text);
 }
 
-void KComboBox::removeItem(int index)
+void KComboBox::removeItem(int index) noexcept
 {
 	stringList.remove(index);
 
@@ -59,24 +56,24 @@ void KComboBox::removeItem(int index)
 		::SendMessageW(compHWND, CB_DELETESTRING, index, 0);
 }
 
-void KComboBox::removeItem(const KString& text)
+void KComboBox::removeItem(const KString& text) noexcept
 {
 	const int itemIndex = getItemIndex(text);
 	if(itemIndex > -1)
 		this->removeItem(itemIndex);
 }
 
-int KComboBox::getItemIndex(const KString& text)
+int KComboBox::getItemIndex(const KString& text) noexcept
 {
 	return stringList.getIndex(text);
 }
 
-int KComboBox::getItemCount()
+int KComboBox::getItemCount() noexcept
 {
 	return stringList.size();
 }
 
-int KComboBox::getSelectedItemIndex()
+int KComboBox::getSelectedItemIndex() noexcept
 {
 	if(compHWND)
 	{	 
@@ -87,7 +84,7 @@ int KComboBox::getSelectedItemIndex()
 	return -1;		
 }
 
-KString KComboBox::getSelectedItem()
+KString KComboBox::getSelectedItem() noexcept
 {
 	const int itemIndex = getSelectedItemIndex();
 	if(itemIndex > -1)
@@ -96,21 +93,21 @@ KString KComboBox::getSelectedItem()
 	return KString();
 }
 
-void KComboBox::clearList()
+void KComboBox::clearList() noexcept
 {
 	stringList.removeAll();
 	if(compHWND)
 		::SendMessageW(compHWND, CB_RESETCONTENT, 0, 0);
 }
 
-void KComboBox::selectItem(int index)
+void KComboBox::selectItem(int index) noexcept
 {
 	selectedItemIndex = index;
 	if(compHWND)
 		::SendMessageW(compHWND, CB_SETCURSEL, index, 0);
 }
 
-bool KComboBox::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KComboBox::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) noexcept
 {
 	if ((msg == WM_COMMAND) && (HIWORD(wParam) == CBN_SELENDOK))
 	{
@@ -123,45 +120,29 @@ bool KComboBox::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KComboBox::create(bool requireInitialMessages)
+void KComboBox::afterCreated() noexcept
 {
-	if(!compParentHWND) // user must specify parent handle!
-		return false;
-
-	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register COMBOBOX class!
-
-	if(compHWND)
+	const int listSize = stringList.size();
+	if (listSize)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
-		::EnableWindow(compHWND, compEnabled);
-
-		const int listSize = stringList.size();
-		if(listSize)
+		for (int i = 0; i < listSize; i++)
 		{
-			for (int i = 0; i < listSize; i++)
-			{
-				::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)stringList.get(i));
-			}
+			::SendMessageW(compHWND, CB_ADDSTRING, 0, (LPARAM)(const wchar_t*)stringList.get(i));
 		}
-
-		if(selectedItemIndex > -1)
-			::SendMessageW(compHWND, CB_SETCURSEL, selectedItemIndex, 0);
-
-		if(compVisible)
-			::ShowWindow(compHWND, SW_SHOW);
-
-		return true;
 	}
 
-	return false;
+	if (selectedItemIndex > -1)
+		::SendMessageW(compHWND, CB_SETCURSEL, selectedItemIndex, 0);
+
+	__super::afterCreated();
 }
 
-void KComboBox::_onItemSelect()
+void KComboBox::_onItemSelect() noexcept
 {
 	if(onItemSelect)
 		onItemSelect(this);
 }
 
-KComboBox::~KComboBox() {}
+KComboBox::~KComboBox() noexcept {}
 
 

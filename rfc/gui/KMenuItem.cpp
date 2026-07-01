@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 #include "KMenuItem.h"
 #include "KIDGenerator.h"
 
-KMenuItem::KMenuItem()
+KMenuItem::KMenuItem() noexcept
 {
 	hMenu = 0;
 	param = nullptr;
@@ -32,7 +32,7 @@ KMenuItem::KMenuItem()
 	itemID = KIDGenerator::getInstance()->generateMenuItemID(this);
 }
 
-void KMenuItem::addToMenu(HMENU hMenu)
+void KMenuItem::addToMenu(HMENU hMenu) noexcept
 {
 	this->hMenu = hMenu;
 
@@ -52,32 +52,32 @@ void KMenuItem::addToMenu(HMENU hMenu)
 
 }
 
-void KMenuItem::setParam(void* param)
+void KMenuItem::setParam(void* param) noexcept
 {
 	this->param = param;
 }
 
-void KMenuItem::setIntParam(int intParam)
+void KMenuItem::setIntParam(int intParam) noexcept
 {
 	this->intParam = intParam;
 }
 
-int KMenuItem::getIntParam()
+int KMenuItem::getIntParam() noexcept
 {
 	return intParam;
 }
 
-void* KMenuItem::getParam()
+void* KMenuItem::getParam() noexcept
 {
 	return param;
 }
 
-bool KMenuItem::isChecked()
+bool KMenuItem::isChecked() noexcept
 {
 	return checked;
 }
 
-void KMenuItem::setCheckedState(bool state)
+void KMenuItem::setCheckedState(bool state) noexcept
 {
 	checked = state;
 	if(hMenu) // already created menu item
@@ -93,12 +93,12 @@ void KMenuItem::setCheckedState(bool state)
 	}
 }
 
-bool KMenuItem::isEnabled()
+bool KMenuItem::isEnabled() noexcept
 {
 	return enabled; 
 }
 
-void KMenuItem::setEnabled(bool state)
+void KMenuItem::setEnabled(bool state) noexcept
 {
 	enabled = state;
 	if(hMenu) // already created menu item
@@ -114,7 +114,7 @@ void KMenuItem::setEnabled(bool state)
 	}
 }
 
-void KMenuItem::setText(const KString& text)
+void KMenuItem::setText(const KString& text) noexcept
 {
 	itemText = text;
 	if(hMenu) // already created menu item
@@ -132,28 +132,28 @@ void KMenuItem::setText(const KString& text)
 	}
 }
 
-KString KMenuItem::getText()
+KString KMenuItem::getText() noexcept
 {
 	return itemText;
 }
 
-UINT KMenuItem::getItemID()
+UINT KMenuItem::getItemID() noexcept
 {
 	return itemID;
 }
 
-HMENU KMenuItem::getMenuHandle()
+HMENU KMenuItem::getMenuHandle() noexcept
 {
 	return hMenu;
 }
 
-void KMenuItem::_onPress()
+void KMenuItem::_onPress() noexcept
 {
 	if(onPress)
 		onPress(this);
 }
 
-KMenuItem::~KMenuItem()
+KMenuItem::~KMenuItem() noexcept
 {
 }
 

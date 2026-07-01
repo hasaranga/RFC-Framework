@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,11 +26,11 @@
 #include <string.h>
 #include <stdio.h>
 
-KInternet::KInternet(){}
+KInternet::KInternet() noexcept {}
 
-KInternet::~KInternet(){}
+KInternet::~KInternet() noexcept {}
 
-void KInternet::applyProxySettings(const wchar_t* url, HINTERNET hInternet)
+void KInternet::applyProxySettings(const wchar_t* url, HINTERNET hInternet) noexcept
 {
 	WINHTTP_CURRENT_USER_IE_PROXY_CONFIG proxyConfig;
 	WINHTTP_PROXY_INFO proxyInfoTemp, proxyInfo;
@@ -78,7 +78,7 @@ void KInternet::applyProxySettings(const wchar_t* url, HINTERNET hInternet)
 	}
 }
 
-KString KInternet::urlEncodeString(const KString &text)
+KString KInternet::urlEncodeString(const KString &text) noexcept
 {
 	if (text.length() == 0)
 		return KString();
@@ -86,7 +86,7 @@ KString KInternet::urlEncodeString(const KString &text)
 	KString new_str;
 	char c;
 	int ic;
-	char* chars = KString::toAnsiString(text);
+	char* chars = KString::toUTF8String(text);
 	char bufHex[10];
 	int len = text.length();
 
@@ -120,13 +120,13 @@ KString KInternet::urlEncodeString(const KString &text)
 	return new_str;
 }
 
-KString KInternet::urlDecodeString(const KString &text)
+KString KInternet::urlDecodeString(const KString &text) noexcept
 {
 	if (text.length() == 0)
 		return KString();
 
 	KString ret;
-	char* str = KString::toAnsiString(text);
+	char* str = KString::toUTF8String(text);
 
 	char ch;
 	int i, ii, len = text.length();
@@ -147,7 +147,7 @@ KString KInternet::urlDecodeString(const KString &text)
 		}
 		else
 		{
-			char* sub = KString::toAnsiString(text.subString(i + 1, i + 2));
+			char* sub = KString::toUTF8String(text.subString(i + 1, i + 2));
 			::sscanf_s(sub, "%x", &ii);
 			ch = static_cast<char>(ii);
 
@@ -171,7 +171,7 @@ KString KInternet::sendRequest(const wchar_t* url,
 	const int postDataLength,
 	const bool ignoreCertificateErros,
 	const wchar_t* userAgent,
-	const wchar_t* verb)
+	const wchar_t* verb) noexcept
 {
 	HINTERNET hInternet = 0, hConnect = 0, hRequest = 0;
 	BOOL resultOK = FALSE;
@@ -245,7 +245,7 @@ KString KInternet::postText(const wchar_t* url,
 	const char* postData,
 	const int postDataLength,
 	const bool ignoreCertificateErros,
-	const wchar_t* userAgent)
+	const wchar_t* userAgent) noexcept
 {
 	return KInternet::sendRequest(url, objectName, isHttps,
 		L"Content-Type: application/x-www-form-urlencoded\r\n", postData,
@@ -259,7 +259,7 @@ KString KInternet::postJSONData(const wchar_t* url,
 	const int postDataLength,
 	const wchar_t* extraHeaderData,
 	const bool ignoreCertificateErros,
-	const wchar_t* userAgent)
+	const wchar_t* userAgent) noexcept
 {
 	KString headers(L"accept: application/json\r\ncontent-type: application/json\r\n");
 	if (extraHeaderData)
@@ -274,7 +274,7 @@ KString KInternet::getJSONData(const wchar_t* url,
 	const bool isHttps,
 	const wchar_t* extraHeaderData,
 	const bool ignoreCertificateErros,
-	const wchar_t* userAgent)
+	const wchar_t* userAgent) noexcept
 {
 	KString headers(L"accept: application/json\r\n");
 	if (extraHeaderData)
@@ -291,7 +291,7 @@ void KInternet::downloadFile(const wchar_t* url,
 	std::atomic<bool>* shouldStop,
 	std::atomic<unsigned int>* fileSize,
 	const bool ignoreCertificateErrors,
-	const wchar_t* userAgent)
+	const wchar_t* userAgent) noexcept
 {
 	fileSize->store(0, std::memory_order_relaxed);
 

@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -22,11 +22,13 @@
 #pragma once
 
 #include "KDirectory.h"
+#include "KStream.h"
 #include "KFile.h"
 #include "KLogger.h"
 #include "KPropertyStorage.h"
 #include "KSettingsReader.h"
 #include "KSettingsWriter.h"
+#include "KBufferStream.h"
 
 #pragma comment(lib,"Shlwapi.lib")
 

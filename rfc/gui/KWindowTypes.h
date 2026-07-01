@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,45 +28,45 @@
 class KHotPluggedDialog : public KWindow
 {
 public:
-	KHotPluggedDialog();
+	KHotPluggedDialog() noexcept;
 
-	virtual void onClose();
+	virtual void onClose() noexcept;
 
-	virtual void onDestroy();
+	virtual void onDestroy() noexcept;
 
-	virtual ~KHotPluggedDialog();
+	virtual ~KHotPluggedDialog() noexcept;
 };
 
 class KOverlappedWindow : public KWindow
 {
 public:
-	KOverlappedWindow();
+	KOverlappedWindow() noexcept;
 
-	virtual ~KOverlappedWindow();
+	virtual ~KOverlappedWindow() noexcept;
 };
 
 class KFrame : public KWindow
 {
 public:
-	KFrame();
+	KFrame() noexcept;
 
-	virtual ~KFrame();
+	virtual ~KFrame() noexcept;
 };
 
 class KDialog : public KWindow
 {
 public:
-	KDialog();
+	KDialog() noexcept;
 
-	virtual ~KDialog();
+	virtual ~KDialog() noexcept;
 };
 
 class KToolWindow : public KWindow
 {
 public:
-	KToolWindow();
+	KToolWindow() noexcept;
 
-	virtual ~KToolWindow();
+	virtual ~KToolWindow() noexcept;
 };
 
 // enables client area dragging. window should not have a title bar.
@@ -78,10 +78,10 @@ class KDraggable : public T
 protected:
 	bool enableClientAreaDragging;
 	bool windowDragging;
-	short clientAreaDraggingX;
-	short clientAreaDraggingY;
+	Physical clientAreaDraggingX; // physical value
+	Physical clientAreaDraggingY; // physical value
 
-	virtual LRESULT onLButtonDown(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onLButtonDown(WPARAM wParam, LPARAM lParam) noexcept
 	{
 		if (enableClientAreaDragging)
 		{
@@ -101,20 +101,22 @@ protected:
 		return 0;
 	}
 
-	virtual LRESULT onMouseMove(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onMouseMove(WPARAM wParam, LPARAM lParam) noexcept
 	{
 		if (windowDragging)
 		{
 			POINT pos;
 			::GetCursorPos(&pos);
+			const int dpi = KDPIUtility::getWindowDPI(this->compHWND);
 
-			this->setPosition(pos.x - clientAreaDraggingX, pos.y - clientAreaDraggingY);
+			this->setPositionPhysical(pos.x - clientAreaDraggingX,
+				pos.y - clientAreaDraggingY);
 		}
 
 		return 0;
 	}
 
-	virtual LRESULT onLButtonUp(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onLButtonUp(WPARAM wParam, LPARAM lParam) noexcept
 	{
 		if (windowDragging)
 		{
@@ -127,7 +129,7 @@ protected:
 
 public:
 	template<typename... Args>
-	KDraggable(Args&&... args) : T(std::forward<Args>(args)...)
+	KDraggable(Args&&... args) noexcept : T(std::forward<Args>(args)...)
 	{
 		enableClientAreaDragging = true;
 		windowDragging = false;
@@ -135,12 +137,12 @@ public:
 		clientAreaDraggingY = 0;
 	}
 
-	virtual void setEnableClientAreaDrag(bool enable)
+	virtual void setEnableClientAreaDrag(bool enable) noexcept
 	{
 		enableClientAreaDragging = enable;
 	}
 
-	virtual ~KDraggable() {}
+	virtual ~KDraggable() noexcept {}
 
 	BEGIN_KMSG_HANDLER
 		ON_KMSG(WM_LBUTTONDOWN, onLButtonDown)
@@ -158,13 +160,14 @@ class KDrawable : public T
 protected:
 
 	// override this method in subclass and draw your stuff
-	virtual void onPaint(HDC hDCMem, RECT* rect, const int width, const int height)
+	// width & height are physical values
+	virtual void onPaint(HDC hDCMem, const RECT& clientRect, const Physical width, const Physical height) noexcept
 	{
-		::FillRect(hDCMem, rect, (HBRUSH)::GetStockObject(WHITE_BRUSH));
-		::FrameRect(hDCMem, rect, (HBRUSH)::GetStockObject(BLACK_BRUSH));
+		::FillRect(hDCMem, &clientRect, (HBRUSH)::GetStockObject(WHITE_BRUSH));
+		::FrameRect(hDCMem, &clientRect, (HBRUSH)::GetStockObject(BLACK_BRUSH));
 	}
 
-	virtual LRESULT onWMPaint(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onWMPaint(WPARAM wParam, LPARAM lParam) noexcept
 	{
 		RECT rect;
 		::GetClientRect(T::compHWND, &rect);
@@ -180,7 +183,7 @@ protected:
 		HBITMAP memBMP = ::CreateCompatibleBitmap(hdc, width, height);;
 		::SelectObject(hDCMem, memBMP);
 
-		this->onPaint(hDCMem, &rect, width, height);
+		this->onPaint(hDCMem, rect, width, height);
 
 		::BitBlt(hdc, 0, 0, width, height, hDCMem, 0, 0, SRCCOPY);
 
@@ -192,16 +195,16 @@ protected:
 		return 0;
 	}
 
-	virtual LRESULT onEraseBackground(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onEraseBackground(WPARAM wParam, LPARAM lParam) noexcept
 	{
 		return 1; // avoids flickering
 	}
 
 public:
 	template<typename... Args>
-	KDrawable(Args&&... args) : T(std::forward<Args>(args)...) {}
+	KDrawable(Args&&... args)noexcept : T(std::forward<Args>(args)...){}
 
-	virtual ~KDrawable() {}
+	virtual ~KDrawable() noexcept {}
 
 	BEGIN_KMSG_HANDLER
 		ON_KMSG(WM_PAINT, onWMPaint)
@@ -219,11 +222,11 @@ public:
 	std::function<void()> onCloseEvent;
 
 	template<typename... Args>
-	KWithOnCloseEvent(Args&&... args) : T(std::forward<Args>(args)...) {}
+	KWithOnCloseEvent(Args&&... args) noexcept : T(std::forward<Args>(args)...) {}
 
-	virtual ~KWithOnCloseEvent() = default;
+	virtual ~KWithOnCloseEvent() noexcept = default;
 
-	virtual void onClose() override
+	virtual void onClose() noexcept override
 	{
 		if (onCloseEvent)
 			onCloseEvent();
@@ -242,11 +245,11 @@ public:
 	std::function<void()> onDestroyEvent;
 
 	template<typename... Args>
-	KWithOnDestroyEvent(Args&&... args) : T(std::forward<Args>(args)...) {}
+	KWithOnDestroyEvent(Args&&... args) noexcept : T(std::forward<Args>(args)...) {}
 
-	virtual ~KWithOnDestroyEvent() = default;
+	virtual ~KWithOnDestroyEvent() noexcept = default;
 
-	virtual void onDestroy() override
+	virtual void onDestroy() noexcept override
 	{
 		if (onDestroyEvent)
 			onDestroyEvent();
@@ -255,24 +258,98 @@ public:
 	}
 };
 
+// adds onCustomMsgEvent to KWindow.
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
+class KWithOnCustomMsgEvent : public T
+{
+public:
+	std::function<void(WPARAM msgID, LPARAM param)> onCustomMsgEvent;
+
+	template<typename... Args>
+	KWithOnCustomMsgEvent(Args&&... args) noexcept : T(std::forward<Args>(args)...) {}
+
+	virtual ~KWithOnCustomMsgEvent() noexcept = default;
+
+	virtual void onCustomMessage(WPARAM msgID, LPARAM param) noexcept override
+	{
+		if (onCustomMsgEvent)
+			onCustomMsgEvent(msgID, param);
+	}
+};
+
+// adds onWindowProcEvent to KWindow.
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
+class KWithOnWindowProcEvent : public T
+{
+public:
+	// returns true if msg handled.
+	std::function<bool(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, LRESULT& result)> onWindowProcEvent;
+
+	template<typename... Args>
+	KWithOnWindowProcEvent(Args&&... args) noexcept : T(std::forward<Args>(args)...) {}
+
+	virtual ~KWithOnWindowProcEvent() noexcept = default;
+
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept override
+	{
+		if (onWindowProcEvent)
+		{
+			LRESULT result = 0;
+			if (onWindowProcEvent(hwnd, msg, wParam, lParam, result))
+				return result;
+		}
+
+		return T::windowProc(hwnd, msg, wParam, lParam);
+	}
+};
+
 class KWidget : public KDrawable<KDraggable<KWindow>>
 {
 public:
-	KWidget()
+	KWidget() noexcept
 	{
 		compDwStyle = WS_POPUP;
 		compDwExStyle = WS_EX_TOOLWINDOW | WS_EX_CONTROLPARENT;
-		compWidth = 128;
-		compHeight = 128;
+		compLWidth = 128;
+		compLHeight = 128;
 	}
 
-	virtual ~KWidget() {}
+	virtual ~KWidget() noexcept {}
 };
 
 class KChildControl : public KComponent
 {
 public:
-	KChildControl() : KComponent(true) { compDwStyle = WS_CHILD; }
-	virtual ~KChildControl() {}
+	KChildControl() noexcept : KComponent(true) { compDwStyle = WS_CHILD; }
+	virtual ~KChildControl() noexcept {}
 };
 
+// removes the titlebar from Window.
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
+class KRemoveTitleBar : public T
+{
+public:
+	template<typename... Args>
+	KRemoveTitleBar(Args&&... args) noexcept : T(std::forward<Args>(args)...) {}
+
+	virtual ~KRemoveTitleBar() noexcept = default;
+
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept override
+	{
+		if (msg == WM_NCCALCSIZE)
+			return 0; // Removes non-client area (caption, borders)
+
+		return T::windowProc(hwnd, msg, wParam, lParam);
+	}
+
+	virtual bool create(bool requireInitialMessages = false) noexcept override
+	{
+		return __super::create(true); // to catch WM_NCCALCSIZE
+	}
+};

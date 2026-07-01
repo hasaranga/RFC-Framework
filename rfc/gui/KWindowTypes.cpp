@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,55 +22,55 @@
 #include "KWindowTypes.h"
 
 
-KHotPluggedDialog::KHotPluggedDialog(){}
+KHotPluggedDialog::KHotPluggedDialog() noexcept {}
 
 
-void KHotPluggedDialog::onClose()
+void KHotPluggedDialog::onClose() noexcept
 {
 	::EndDialog(compHWND, 0);
 }
 
-void KHotPluggedDialog::onDestroy(){}
+void KHotPluggedDialog::onDestroy() noexcept {}
 
-KHotPluggedDialog::~KHotPluggedDialog(){}
+KHotPluggedDialog::~KHotPluggedDialog() noexcept {}
 
 
-KOverlappedWindow::KOverlappedWindow()
+KOverlappedWindow::KOverlappedWindow() noexcept
 {
 	compText.assignStaticText(TXT_WITH_LEN("KOverlapped Window"));
 	compDwStyle = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
 }
 
-KOverlappedWindow::~KOverlappedWindow(){}
+KOverlappedWindow::~KOverlappedWindow() noexcept {}
 
 
-KFrame::KFrame()
+KFrame::KFrame() noexcept
 {
 	compText.assignStaticText(TXT_WITH_LEN("KFrame"));
 	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN;
 }
 
-KFrame::~KFrame(){}
+KFrame::~KFrame() noexcept {}
 
 
 
-KDialog::KDialog()
+KDialog::KDialog() noexcept
 {
 	compText.assignStaticText(TXT_WITH_LEN("KDialog"));
 	compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_CLIPCHILDREN;
 	compDwExStyle = WS_EX_DLGMODALFRAME;
 }
 
-KDialog::~KDialog(){}
+KDialog::~KDialog() noexcept {}
 
 
 
-KToolWindow::KToolWindow()
+KToolWindow::KToolWindow() noexcept
 {
 	compText.assignStaticText(TXT_WITH_LEN("KTool Window"));
 	compDwStyle = WS_OVERLAPPED | WS_SYSMENU | WS_CLIPCHILDREN;
 	compDwExStyle = WS_EX_TOOLWINDOW;
 }
 
-KToolWindow::~KToolWindow(){}
+KToolWindow::~KToolWindow() noexcept {}
 

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,13 +22,11 @@
 
 #include "KRadioButton.h"
 
-KRadioButton::KRadioButton()
+KRadioButton::KRadioButton() noexcept
 {
 	compText.assignStaticText(TXT_WITH_LEN("RadioButton"));
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | 
 		BS_RADIOBUTTON | BS_NOTIFY | WS_TABSTOP;
 }
 
-KRadioButton::~KRadioButton()
-{
-}
+KRadioButton::~KRadioButton() noexcept {}

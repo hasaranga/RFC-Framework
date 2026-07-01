@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,33 +21,37 @@
 
 #include "KBitmap.h"
 
-KBitmap::KBitmap()
+KBitmap::KBitmap() noexcept
 {
 	hBitmap = 0;
 }
 
-KBitmap::operator HBITMAP()const
+KBitmap::operator HBITMAP()const noexcept
 {
 	return hBitmap;
 }
 
-bool KBitmap::loadFromResource(WORD resourceID)
+bool KBitmap::loadFromResource(WORD resourceID) noexcept
 {
-	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance,
+		MAKEINTRESOURCEW(resourceID), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+
 	if(hBitmap)
 		return true;	
 	return false;
 }
 
-bool KBitmap::loadFromFile(const KString& filePath)
+bool KBitmap::loadFromFile(const KString& filePath) noexcept
 {
-	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hBitmap = (HBITMAP)::LoadImageW(KApplication::hInstance, 
+		filePath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+
 	if(hBitmap)
 		return true;	
 	return false;
 }
 
-void KBitmap::drawOnHDC(HDC hdc, int x, int y, int width, int height)
+void KBitmap::drawOnHDC(HDC hdc, Physical x, Physical y, Physical width, Physical height) noexcept
 {
 	HDC memHDC = ::CreateCompatibleDC(hdc);
 
@@ -57,12 +61,12 @@ void KBitmap::drawOnHDC(HDC hdc, int x, int y, int width, int height)
 	::DeleteDC(memHDC);
 }
 
-HBITMAP KBitmap::getHandle()
+HBITMAP KBitmap::getHandle() noexcept
 {
 	return hBitmap;
 }
 
-KBitmap::~KBitmap()
+KBitmap::~KBitmap() noexcept
 {
 	if(hBitmap)
 		::DeleteObject(hBitmap);

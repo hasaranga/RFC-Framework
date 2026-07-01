@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -33,23 +33,23 @@ class KInternet
 {
 public:
 
-	KInternet();
+	KInternet() noexcept;
 
 	/**
 		this method automatically applies the browser proxy settings if available.
 		no need to use win8.1 only WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY flag when calling WinHttpOpen.
 	*/
-	static void applyProxySettings(const wchar_t* url, HINTERNET hInternet);
+	static void applyProxySettings(const wchar_t* url, HINTERNET hInternet) noexcept;
 
 	/**
 		convert string into url format.
 	*/
-	static KString urlEncodeString(const KString &text);
+	static KString urlEncodeString(const KString &text) noexcept;
 
 	/**
 		converts url formatted string into regular string.
 	*/
-	static KString urlDecodeString(const KString &text);
+	static KString urlDecodeString(const KString &text) noexcept;
 
 	/**
 		url is domain name without "http(s)://" prefix.
@@ -66,7 +66,7 @@ public:
 		const int postDataLength,
 		const bool ignoreCertificateErros,
 		const wchar_t* userAgent,
-		const wchar_t* verb);
+		const wchar_t* verb) noexcept;
 
 	/**
 		this method posts data to given url. post data must be in url enocoded format.
@@ -82,7 +82,7 @@ public:
 		const char* postData,
 		const int postDataLength,
 		const bool ignoreCertificateErros = true,
-		const wchar_t* userAgent = L"RFC Application/1.0");
+		const wchar_t* userAgent = L"RFC Application/1.0") noexcept;
 
 	// each extraHeaderData must end with \r\n
 	static KString postJSONData(const wchar_t* url,
@@ -92,7 +92,7 @@ public:
 		const int postDataLength,
 		const wchar_t* extraHeaderData = nullptr,
 		const bool ignoreCertificateErros = true,
-		const wchar_t* userAgent = L"RFC Application/1.0");
+		const wchar_t* userAgent = L"RFC Application/1.0") noexcept;
 
 	// each extraHeaderData must end with \r\n
 	static KString getJSONData(const wchar_t* url,
@@ -100,7 +100,7 @@ public:
 		const bool isHttps,
 		const wchar_t* extraHeaderData = nullptr,
 		const bool ignoreCertificateErros = true,
-		const wchar_t* userAgent = L"RFC Application/1.0");
+		const wchar_t* userAgent = L"RFC Application/1.0") noexcept;
 
 	// fileSize will become zero on error or stopped
 	static void downloadFile(const wchar_t* url,
@@ -110,9 +110,9 @@ public:
 		std::atomic<bool>* shouldStop,
 		std::atomic<unsigned int>* fileSize,
 		const bool ignoreCertificateErrors = true,
-		const wchar_t* userAgent = L"RFC Application/1.0");
+		const wchar_t* userAgent = L"RFC Application/1.0") noexcept;
 
-	~KInternet();
+	~KInternet() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KInternet)

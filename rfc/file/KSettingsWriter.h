@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,6 +22,7 @@
 #pragma once
 
 #include "../core/CoreModule.h"
+#include "KStream.h"
 #include "KFile.h"
 
 /**
@@ -31,28 +32,44 @@ class KSettingsWriter
 {
 protected:
 	KFile settingsFile;
-
+	KStream* streamPtr;
 public:
-	KSettingsWriter();
+	KSettingsWriter() noexcept;
 
-	bool openFile(const wchar_t* fileName, int formatID);
+	/**
+		Constructor that accepts an existing KStream reference.
+		The stream object should already be opened for writing.
+		KSettingsWriter will not use formatID or close the stream object. it just write data.
+	*/
+	KSettingsWriter(KStream* stream) noexcept;
+
+	bool openFile(const wchar_t* fileName, int formatID) noexcept;
 
 	/**
 		save struct, array or whatever...
 	*/
-	void writeData(DWORD size, void *buffer);
+	void writeData(DWORD size, void *buffer) noexcept;
 
-	void writeString(const KString& text);
+	template<typename T>
+	void writeData(T* buffer) noexcept
+	{
+		if (buffer && streamPtr)
+			streamPtr->writeStream((BYTE*)buffer, sizeof(T));
+	}
 
-	void writeInt(int value);
+	void writeString(const KString& text) noexcept;
 
-	void writeFloat(float value);
+	void writeInt(int value) noexcept;
 
-	void writeDouble(double value);
+	void writeUInt(unsigned int value) noexcept;
 
-	void writeBool(bool value);
+	void writeFloat(float value) noexcept;
 
-	~KSettingsWriter();
+	void writeDouble(double value) noexcept;
+
+	void writeBool(bool value) noexcept;
+
+	~KSettingsWriter() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KSettingsWriter)

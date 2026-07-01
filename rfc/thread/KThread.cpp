@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -37,7 +37,7 @@ unsigned __stdcall _RFCThread_Proc(void* lpParameter)
 	return 0;
 }
 
-bool KThread::createRFCThread()
+bool KThread::createRFCThread() noexcept
 {
 	// create thread in suspended state. so we can set the handle field.
 	HANDLE threadHandle = (HANDLE)::_beginthreadex(NULL, 0, _RFCThread_Proc, (KThread*)this, CREATE_SUSPENDED, NULL);
@@ -53,24 +53,24 @@ bool KThread::createRFCThread()
 	return false;
 }
 
-KThread::KThread() : stopRequestedFlag(false), handle(0), runnable(nullptr) {}
+KThread::KThread() noexcept : stopRequestedFlag(false), handle(0), runnable(nullptr) {}
 
-void KThread::setRunnable(KRunnable* runnable)
+void KThread::setRunnable(KRunnable* runnable) noexcept
 {
 	this->runnable = runnable;
 }
 
-HANDLE KThread::getHandle()
+HANDLE KThread::getHandle() noexcept
 {
 	return handle;
 }
 
-KThread::operator HANDLE()const
+KThread::operator HANDLE()const noexcept
 {
 	return handle;
 }
 
-bool KThread::isRunningAllowed()
+bool KThread::isRunningAllowed() noexcept
 {
 	const bool mustStop = stopRequestedFlag.load(std::memory_order_relaxed);
 	if (mustStop)
@@ -79,7 +79,7 @@ bool KThread::isRunningAllowed()
 	return !mustStop;
 }
 
-void KThread::run()
+void KThread::run() noexcept
 {
 	if (runnable)
 		runnable->run(this);
@@ -87,7 +87,7 @@ void KThread::run()
 		onRun(this);
 }
 
-bool KThread::isRunning()
+bool KThread::isRunning() noexcept
 {
 	if (handle)
 	{
@@ -100,12 +100,12 @@ bool KThread::isRunning()
 	return false;
 }
 
-void KThread::shouldStop()
+void KThread::shouldStop() noexcept
 {
 	stopRequestedFlag.store(true, std::memory_order_release);
 }
 
-DWORD KThread::waitUntilThreadFinish(bool pumpMessages)
+DWORD KThread::waitUntilThreadFinish(bool pumpMessages) noexcept
 {
 	if (!pumpMessages)
 		return ::WaitForSingleObject(handle, INFINITE);
@@ -140,7 +140,7 @@ DWORD KThread::waitUntilThreadFinish(bool pumpMessages)
 	return false;
 }
 
-bool KThread::start()
+bool KThread::start() noexcept
 {
 	if (isRunning())
 		return false;
@@ -155,7 +155,7 @@ bool KThread::start()
 	return createRFCThread();
 }
 
-void KThread::uSleep(int waitTime)
+void KThread::uSleep(int waitTime) noexcept
 {
 	__int64 time1 = 0, time2 = 0, freq = 0;
 
@@ -167,7 +167,7 @@ void KThread::uSleep(int waitTime)
 	} while ((time2 - time1) < ((waitTime * freq) / 1000000));
 }
 
-KThread::~KThread()
+KThread::~KThread() noexcept
 {
 	if (isRunning())
 	{

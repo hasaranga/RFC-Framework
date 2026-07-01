@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -54,7 +54,7 @@ protected:
 	T smallBuffer[SmallBufferSize]; // Stack-allocated small buffer
 	bool usingSmallBuffer;
 
-	void resetToSmallBuffer()
+	void resetToSmallBuffer() noexcept
 	{
 		usingSmallBuffer = true;
 		list = smallBuffer;
@@ -63,7 +63,7 @@ protected:
 	}
 
 	// Thread safety helper methods
-	inline void enterCriticalSectionIfNeeded()
+	inline void enterCriticalSectionIfNeeded() noexcept
 	{
 		if constexpr (IsThreadSafe)
 		{
@@ -71,7 +71,7 @@ protected:
 		}
 	}
 
-	inline void leaveCriticalSectionIfNeeded()
+	inline void leaveCriticalSectionIfNeeded() noexcept
 	{
 		if constexpr (IsThreadSafe)
 		{
@@ -84,7 +84,7 @@ public:
 		Constructs KVector object.
 		Thread safety is determined at compile time via template parameter.
 	*/
-	KVector()
+	KVector() noexcept
 	{
 		resetToSmallBuffer();
 		// Critical section initialization is handled by base class constructor
@@ -93,7 +93,7 @@ public:
 	/**
 		Copy constructor
 	*/
-	KVector(const KVector& other)
+	KVector(const KVector& other) noexcept
 	{
 		resetToSmallBuffer();
 
@@ -116,7 +116,7 @@ public:
 	/**
 		Assignment operator
 	*/
-	KVector& operator=(const KVector& other)
+	KVector& operator=(const KVector& other) noexcept
 	{
 		if (this == &other)
 			return *this;
@@ -154,7 +154,7 @@ public:
 		Adds new item to the list.
 		@returns false if memory allocation failed!
 	*/
-	bool add(const T& item)
+	bool add(const T& item) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -195,25 +195,41 @@ public:
 		}
 	}
 
-	T get(const int index)
+	T get(const int index) noexcept
 	{
-		enterCriticalSectionIfNeeded();
+		if constexpr (IsThreadSafe)
+		{
+			// Thread-safe path: need to copy under lock
+			enterCriticalSectionIfNeeded();
 
-		if ((0 <= index) && (index < itemCount)) // checks for valid range!
-		{
-			T object(list[index]);
-			leaveCriticalSectionIfNeeded();
-			return object;
+			if ((0 <= index) && (index < itemCount))
+			{
+				T object(list[index]); // make a copy under lock
+				leaveCriticalSectionIfNeeded();
+				return object;
+			}
+			else
+			{
+				leaveCriticalSectionIfNeeded();
+				return T();
+			}
 		}
-		else // out of range!
+		else
 		{
-			leaveCriticalSectionIfNeeded();
-			return T();
+			// Non-thread-safe path: direct return, no copy
+			if ((0 <= index) && (index < itemCount))
+			{
+				return list[index]; // single copy on return
+			}
+			else
+			{
+				return T();
+			}
 		}
 	}
 
 	// avoids extra copy
-	bool get(const int index, T& outItem)
+	bool get(const int index, T& outItem) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -231,7 +247,7 @@ public:
 		}
 	}
 
-	T operator[](const int index)
+	T operator[](const int index) noexcept
 	{
 		return get(index);
 	}
@@ -239,7 +255,7 @@ public:
 	/**
 		@returns false if index is out of range!
 	*/
-	bool set(const int index, const T& item)
+	bool set(const int index, const T& item) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -260,7 +276,7 @@ public:
 		Remove item of given index
 		@returns false if index is out of range!
 	*/
-	bool remove(const int index)
+	bool remove(const int index) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -283,7 +299,7 @@ public:
 		}
 	}
 
-	bool remove(const T& item)
+	bool removeItem(const T& item) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -299,7 +315,7 @@ public:
 	/**
 		Removes all items from the list! Falls back to small buffer.
 	*/
-	void removeAll()
+	void removeAll() noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -318,7 +334,7 @@ public:
 		Finds the index of the first item which matches the item passed in.
 		@returns -1 if not found!
 	*/
-	int getIndex(const T& item)
+	int getIndex(const T& item) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -337,7 +353,7 @@ public:
 	/**
 		@returns item count in the list
 	*/
-	int size() const
+	int size() const noexcept
 	{
 		return itemCount;
 	}
@@ -347,7 +363,7 @@ public:
 	 * The entire iteration is protected by critical section if thread safety is enabled.
 	 * @param func Function/lambda to call for each item in the list
 	*/
-	void forEach(std::function<void(T&)> func)
+	void forEach(std::function<void(T&)> func) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 		for (int i = 0; i < itemCount; i++)
@@ -361,7 +377,7 @@ public:
 	 * Safely iterate with index access. Useful when you need the index as well.
 	 * @param func Function/lambda that takes (item, index) as parameters
 	*/
-	void forEachWithIndex(std::function<void(T&, int)> func)
+	void forEachWithIndex(std::function<void(T&, int)> func) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -374,11 +390,33 @@ public:
 	}
 
 	/**
+	 * Safely iterate with early termination support and index.
+	 * @param func Function/lambda that returns bool (true = continue, false = stop)
+	 * @returns true if iteration completed, false if stopped early
+	*/
+	bool forEachUntilWithIndex(std::function<bool(T&, int)> func) noexcept
+	{
+		enterCriticalSectionIfNeeded();
+
+		bool completed = true;
+		for (int i = 0; i < itemCount; i++)
+		{
+			if (!func(list[i], i))
+			{
+				completed = false;
+				break;
+			}
+		}
+
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
 	 * Safely iterate with early termination support.
 	 * @param func Function/lambda that returns bool (true = continue, false = stop)
 	 * @returns true if iteration completed, false if stopped early
 	*/
-	bool forEachUntil(std::function<bool(T&)> func)
+	bool forEachUntil(std::function<bool(T&)> func) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -397,9 +435,63 @@ public:
 	}
 
 	/**
+	 * Safely iterate backwards through all items in the list with thread synchronization.
+	 * Safe for removing items during iteration since indices aren't affected by removals.
+	 * @param func Function/lambda to call for each item in the list (from last to first)
+	*/
+	void forEachReverse(std::function<void(T&)> func) noexcept
+	{
+		enterCriticalSectionIfNeeded();
+		for (int i = itemCount - 1; i >= 0; i--)
+		{
+			func(list[i]);
+		}
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+	 * Safely iterate backwards with index access.
+	 * Safe for removing items during iteration.
+	 * @param func Function/lambda that takes (item, index) as parameters
+	*/
+	void forEachReverseWithIndex(std::function<void(T&, int)> func) noexcept
+	{
+		enterCriticalSectionIfNeeded();
+		for (int i = itemCount - 1; i >= 0; i--)
+		{
+			func(list[i], i);
+		}
+		leaveCriticalSectionIfNeeded();
+	}
+
+	/**
+	 * Safely iterate backwards with early termination support and index.
+	 * Safe for removing items during iteration.
+	 * @param func Function/lambda that returns bool (true = continue, false = stop)
+	 * @returns true if iteration completed, false if stopped early
+	*/
+	bool forEachReverseUntilWithIndex(std::function<bool(T&, int)> func) noexcept
+	{
+		enterCriticalSectionIfNeeded();
+
+		bool completed = true;
+		for (int i = itemCount - 1; i >= 0; i--)
+		{
+			if (!func(list[i], i))
+			{
+				completed = false;
+				break;
+			}
+		}
+
+		leaveCriticalSectionIfNeeded();
+		return completed;
+	}
+
+	/**
 		@returns whether the list is currently using the small buffer optimization
 	*/
-	bool isUsingSmallBuffer() const
+	bool isUsingSmallBuffer() const noexcept
 	{
 		return usingSmallBuffer;
 	}
@@ -407,7 +499,7 @@ public:
 	/**
 		@returns the size of the small buffer
 	*/
-	static constexpr int getSmallBufferSize()
+	static constexpr int getSmallBufferSize() noexcept
 	{
 		return SmallBufferSize;
 	}
@@ -415,13 +507,13 @@ public:
 	/**
 		@returns whether this instance is thread-safe (compile-time constant)
 	*/
-	static constexpr bool isThreadSafeInstance()
+	static constexpr bool isThreadSafeInstance() noexcept
 	{
 		return IsThreadSafe;
 	}
 
 	/** Destructs KVector object.*/
-	~KVector()
+	~KVector() noexcept
 	{
 		if (!usingSmallBuffer)
 			delete[] list;

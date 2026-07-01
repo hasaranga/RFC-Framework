@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,7 +25,9 @@
 #include <Xmllite.h>
 #include <shlwapi.h>
 
-#define MELEMENT_UNKNOWN -1
+enum class KModelElementType : int {
+	Unknown = -1
+};
 
 // extend KModelElement by each element type.
 // each type has unique elementType value which can be used to identify the instance type.
@@ -38,9 +40,9 @@ public:
 	KModelElement* parent;
 	KModelElement* firstChild;
 
-	KModelElement()
+	KModelElement() noexcept
 	{
-		elementType = MELEMENT_UNKNOWN;
+		elementType = (int)KModelElementType::Unknown;
 		next = nullptr;
 		prev = nullptr;
 		parent = nullptr;
@@ -50,14 +52,14 @@ public:
 	// name and value will become invalid after the call.
 	// make a copy of name and value if you are using them for later.
 	virtual void setAttribute(const wchar_t* name, UINT nameLength,
-		const wchar_t* value, UINT valueLength) {}
+		const wchar_t* value, UINT valueLength) noexcept {}
 
 	// content will become invalid after the call.
 	// make a copy of content if you are using it for later.
-	virtual void setContent(const wchar_t* content, UINT length) {}
+	virtual void setContent(const wchar_t* content, UINT length) noexcept {}
 
 	// deleting root node will recuresively delete all other nodes.
-	virtual ~KModelElement()
+	virtual ~KModelElement() noexcept
 	{
 		if (firstChild)
 			delete firstChild;
@@ -71,8 +73,8 @@ class KModelElementFactory
 {
 public:
 	// create the required element type with default values.
-	// if the elementType is unknown, return an object of KModelElement with id of MELEMENT_UNKNOWN.
-	virtual KModelElement* createModelElement(const wchar_t* elementName, UINT length) = 0;
+	// if the elementType is unknown, return an object of KModelElement with id of KModelElementType::Unknown.
+	virtual KModelElement* createModelElement(const wchar_t* elementName, UINT length) noexcept = 0;
 };
 
 // https://learn.microsoft.com/en-us/archive/msdn-magazine/2007/april/xmllite-a-small-and-fast-xml-parser-for-native-c
@@ -85,14 +87,14 @@ protected:
 public:
 	IXmlReader* reader;
 
-	KXMLReader()
+	KXMLReader() noexcept
 	{
 		reader = nullptr;
 		stream = nullptr;
 		::CreateXmlReader(__uuidof(IXmlReader), reinterpret_cast<void**>(&reader), 0);
 	}
 
-	bool loadFromFile(const wchar_t* filePath)
+	bool loadFromFile(const wchar_t* filePath) noexcept
 	{
 		if (!reader)
 			return false;
@@ -114,7 +116,7 @@ public:
 		return true;
 	}
 
-	bool loadFromString(const wchar_t* text, UINT length = 0)
+	bool loadFromString(const wchar_t* text, UINT length = 0) noexcept
 	{
 		if (!reader)
 			return false;
@@ -148,7 +150,7 @@ public:
 	}
 
 	// returns the root model element. There can be only one root element in xml.
-	KModelElement* parse(KModelElementFactory* factory)
+	KModelElement* parse(KModelElementFactory* factory) noexcept
 	{
 		if ((!reader) || (!stream) || (!factory))
 			return nullptr;
@@ -259,7 +261,7 @@ public:
 		return rootElement;
 	}
 
-	virtual ~KXMLReader()
+	virtual ~KXMLReader() noexcept
 	{
 		if (stream)
 			stream->Release();
@@ -274,8 +276,10 @@ public:
 
 #include <wchar.h>
 
-#define MELEMENT_LABEL 100
-#define MELEMENT_PANEL 101
+enum class MyXmlElementType : int {
+	Label = 100,
+	Panel = 101
+};
 
 class LabelElement : public KModelElement
 {
@@ -284,16 +288,16 @@ public:
 	int x;
 	int y;
 
-	LabelElement()
+	LabelElement() noexcept
 	{
-		elementType = MELEMENT_LABEL;
+		elementType = (int)MyXmlElementType::Label;
 		text = ::_wcsdup(L"Default Text");
 		x = 0;
 		y = 0;
 	}
 
 	void setAttribute(const wchar_t* name, UINT nameLength,
-		const wchar_t* value, UINT valueLength) override
+		const wchar_t* value, UINT valueLength) noexcept override
 	{
 		::wprintf(L"element=Label attribute=%s value=%s\n", name, value);
 
@@ -303,7 +307,7 @@ public:
 			y = ::_wtoi(value);
 	}
 
-	void setContent(const wchar_t* content, UINT length) override
+	void setContent(const wchar_t* content, UINT length) noexcept override
 	{
 		::wprintf(L"element=Label content=%s\n", content);
 
@@ -315,7 +319,7 @@ public:
 		}
 	}
 
-	~LabelElement()
+	~LabelElement() noexcept
 	{
 		::wprintf(L"deleting Label\n");
 		if (text)
@@ -329,15 +333,15 @@ public:
 	int width;
 	int height;
 
-	PanelElement()
+	PanelElement() noexcept
 	{
-		elementType = MELEMENT_PANEL;
+		elementType = (int)MyXmlElementType::Panel;
 		width = 100;
 		height = 100;
 	}
 
 	void setAttribute(const wchar_t* name, UINT nameLength,
-		const wchar_t* value, UINT valueLength) override
+		const wchar_t* value, UINT valueLength) noexcept override
 	{
 		::wprintf(L"element=Panel attribute=%s value=%s\n", name, value);
 
@@ -356,7 +360,7 @@ public:
 class TestModelElementFactory : public KModelElementFactory
 {
 public:
-	KModelElement* createModelElement(const wchar_t* elementName, UINT length) override
+	KModelElement* createModelElement(const wchar_t* elementName, UINT length) noexcept override
 	{
 		if (::wcscmp(elementName, L"Label") == 0)
 		{
@@ -379,20 +383,20 @@ class TestClass
 {
 	int tabCount;
 
-	const wchar_t* getElementName(KModelElement* element)
+	const wchar_t* getElementName(KModelElement* element) noexcept
 	{
 		switch (element->elementType)
 		{
-		case MELEMENT_PANEL:
+		case (int)MyXmlElementType::Panel:
 			return L"Panel";
-		case MELEMENT_LABEL:
+		case (int)MyXmlElementType::Label:
 			return L"Label";
 		default:
 			return L"Unknown";
 		}
 	}
 
-	void printElements(KModelElement* element)
+	void printElements(KModelElement* element) noexcept
 	{
 		int count = tabCount;
 		while (count)
@@ -432,12 +436,12 @@ class TestClass
 	}
 
 public:
-	TestClass()
+	TestClass() noexcept
 	{
 		tabCount = 0;
 	}
 
-	void TestFunction()
+	void TestFunction() noexcept
 	{
 		const wchar_t* xmlText = L"<Panel width = '400' height = '200'>"
 			"<Panel width = '400' height = '100'>"

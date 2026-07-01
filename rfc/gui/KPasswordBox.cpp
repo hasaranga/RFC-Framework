@@ -21,13 +21,13 @@
 
 #include "KPasswordBox.h"
 
-KPasswordBox::KPasswordBox(bool readOnly):KTextBox(readOnly)
+KPasswordBox::KPasswordBox(bool readOnly) noexcept :KTextBox(readOnly)
 {
 	pwdChar = L'*';
 	compDwStyle = compDwStyle | ES_PASSWORD;
 }
 
-void KPasswordBox::setPasswordChar(const wchar_t pwdChar)
+void KPasswordBox::setPasswordChar(const wchar_t pwdChar) noexcept
 {
 	this->pwdChar = pwdChar;
 	if(compHWND)
@@ -37,21 +37,17 @@ void KPasswordBox::setPasswordChar(const wchar_t pwdChar)
 	}
 }
 
-wchar_t KPasswordBox::getPasswordChar()
+wchar_t KPasswordBox::getPasswordChar() noexcept
 {
 	return pwdChar;
 }
 
-bool KPasswordBox::create(bool requireInitialMessages)
+void KPasswordBox::afterCreated() noexcept
 {
-	if(KTextBox::create(requireInitialMessages))
-	{
-		::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
-		return true;
-	}
-	return false;
+	::SendMessageW(compHWND, EM_SETPASSWORDCHAR, pwdChar, 0);
+	__super::afterCreated();
 }
 
-KPasswordBox::~KPasswordBox()
+KPasswordBox::~KPasswordBox() noexcept
 {
 }

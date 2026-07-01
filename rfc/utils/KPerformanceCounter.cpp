@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "KPerformanceCounter.h"
 
-KPerformanceCounter::KPerformanceCounter()
+KPerformanceCounter::KPerformanceCounter() noexcept
 {
 	LARGE_INTEGER li;
 	::QueryPerformanceFrequency(&li);
@@ -29,7 +29,7 @@ KPerformanceCounter::KPerformanceCounter()
 	this->pcFreq = double(li.QuadPart) / 1000.0;
 }
 
-void KPerformanceCounter::startCounter()
+void KPerformanceCounter::startCounter() noexcept
 {
 	LARGE_INTEGER li;
 	::QueryPerformanceCounter(&li);
@@ -37,7 +37,7 @@ void KPerformanceCounter::startCounter()
 	this->counterStart = li.QuadPart;
 }
 
-double KPerformanceCounter::endCounter()
+double KPerformanceCounter::endCounter() noexcept
 {
 	LARGE_INTEGER li;
 	::QueryPerformanceCounter(&li);
@@ -45,7 +45,7 @@ double KPerformanceCounter::endCounter()
 	return double(li.QuadPart - this->counterStart) / this->pcFreq;
 }
 
-KPerformanceCounter::~KPerformanceCounter()
+KPerformanceCounter::~KPerformanceCounter() noexcept
 {
 
 }

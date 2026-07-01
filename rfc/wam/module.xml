@@ -1,0 +1,7 @@
+<xml>
+	<name>WAM</name>
+	<fixed>false</fixed>
+	<dependencies>Core,COM,Containers</dependencies>
+	<platform>Win7 or higher</platform>
+	<description>KWebView</description>
+</xml>

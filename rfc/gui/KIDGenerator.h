@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -36,8 +36,8 @@ class KIDGenerator
 {
 private:
 	RFC_LEAK_DETECTOR(KIDGenerator)
-	KIDGenerator();
-	~KIDGenerator();
+	KIDGenerator() noexcept;
+	~KIDGenerator() noexcept;
 
 protected:
 	int classCount;
@@ -56,26 +56,28 @@ protected:
 	KPointerList<KTimer*, rfc_InitialTimerCount, false> timerList;
 
 public:
+	static const UINT DynamicMenuItemStart = 60000; // assume 30000 static menu items are enough :-)
+
 	// do not delete the returned instance.
-	static KIDGenerator* getInstance();
+	static KIDGenerator* getInstance() noexcept;
 
 	// [gui thread only]
-	UINT generateControlID();
+	UINT generateControlID() noexcept;
 
 	// KApplication:hInstance must be valid before calling this method
 	// can generate up to 9999 class names.
 	// [gui thread only]
-	void generateClassName(KString& stringToModify);
+	void generateClassName(KString& stringToModify) noexcept;
 
 	// [gui thread only]
-	UINT generateMenuItemID(KMenuItem* menuItem);
+	UINT generateMenuItemID(KMenuItem* menuItem) noexcept;
 
 	// [gui thread only]
-	KMenuItem* getMenuItemByID(UINT id);
+	KMenuItem* getMenuItemByID(UINT id) noexcept;
 
 	// [gui thread only]
-	UINT generateTimerID(KTimer* timer);
+	UINT generateTimerID(KTimer* timer) noexcept;
 
 	// [gui thread only]
-	KTimer* getTimerByID(UINT id);
+	KTimer* getTimerByID(UINT id) noexcept;
 };

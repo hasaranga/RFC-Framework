@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -29,47 +29,49 @@ class KGridView : public KComponent
 protected:
 	int colCount;
 	int itemCount;
+	virtual void afterCreated() noexcept override;
 
 public:
 	std::function<void(KGridView*)> onItemSelect;
 	std::function<void(KGridView*)> onItemRightClick;
 	std::function<void(KGridView*)> onItemDoubleClick;
 
-	KGridView(bool sortItems = false);
+	KGridView(bool sortItems = false) noexcept;
 
-	virtual void insertRecord(KString** columnsData);
+	void insertRecord(KString** columnsData) noexcept;
 
-	virtual void insertRecordTo(int rowIndex, KString** columnsData);
+	void insertRecordTo(int rowIndex, KString** columnsData) noexcept;
 
-	virtual KString getRecordAt(int rowIndex, int columnIndex);
+	KString getRecordAt(int rowIndex, int columnIndex) noexcept;
 
 	/**
 		returns -1 if nothing selected.
 	*/
-	virtual int getSelectedRow();
+	int getSelectedRow() noexcept;
 
-	virtual void removeRecordAt(int rowIndex);
+	void removeRecordAt(int rowIndex) noexcept;
 
-	virtual void removeAll();
+	void removeAll() noexcept;
 
-	virtual void updateRecordAt(int rowIndex, int columnIndex, const KString& text);
+	void updateRecordAt(int rowIndex, int columnIndex, const KString& text) noexcept;
 
-	virtual void setColumnWidth(int columnIndex, int columnWidth);
+	// columnWidth is a logical value.
+	void setColumnWidth(int columnIndex, Logical columnWidth) noexcept;
 
-	virtual int getColumnWidth(int columnIndex);
+	// returns a logical value.
+	Logical getColumnWidth(int columnIndex) noexcept;
 
-	virtual void createColumn(const KString& text, int columnWidth = 100);
+	// columnWidth is a logical value.
+	void createColumn(const KString& text, Logical columnWidth = 100) noexcept;
 
-	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) noexcept override;
 
-	virtual bool create(bool requireInitialMessages = false) override;
+	virtual void _onItemSelect() noexcept;
 
-	virtual void _onItemSelect();
+	virtual void _onItemRightClick() noexcept;
 
-	virtual void _onItemRightClick();
+	virtual void _onItemDoubleClick() noexcept;
 
-	virtual void _onItemDoubleClick();
-
-	virtual ~KGridView();
+	virtual ~KGridView() noexcept;
 };
 

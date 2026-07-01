@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -38,37 +38,37 @@ protected:
 public:
 	std::function<void(KMenuItem*)> onPress;
 
-	KMenuItem();
+	KMenuItem() noexcept;
 
-	virtual void addToMenu(HMENU hMenu);
+	void addToMenu(HMENU hMenu) noexcept;
 
-	virtual void setParam(void* param);
+	void setParam(void* param) noexcept;
 
-	virtual void setIntParam(int intParam);
+	void setIntParam(int intParam) noexcept;
 
-	virtual int getIntParam();
+	int getIntParam() noexcept;
 
-	virtual void* getParam();
+	void* getParam() noexcept;
 
-	virtual bool isChecked();
+	bool isChecked() noexcept;
 
-	virtual void setCheckedState(bool state);
+	void setCheckedState(bool state) noexcept;
 
-	virtual bool isEnabled();
+	bool isEnabled() noexcept;
 
-	virtual void setEnabled(bool state);
+	void setEnabled(bool state) noexcept;
 
-	virtual void setText(const KString& text);
+	void setText(const KString& text) noexcept;
 
-	virtual KString getText();
+	KString getText() noexcept;
 
-	virtual UINT getItemID();
+	UINT getItemID() noexcept;
 
-	virtual HMENU getMenuHandle();
+	HMENU getMenuHandle() noexcept;
 
-	virtual void _onPress();
+	virtual void _onPress() noexcept;
 
-	virtual ~KMenuItem();
+	virtual ~KMenuItem() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KMenuItem)

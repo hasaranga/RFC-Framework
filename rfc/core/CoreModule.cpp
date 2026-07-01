@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,7 @@ KDPIAwareness CoreModuleInitParams::dpiAwareness = KDPIAwareness::UNAWARE_MODE;
 
 class RFC_CoreModule {
 public:
-	static bool rfcModuleInit()
+	static bool rfcModuleInit() noexcept
 	{
 		if (!CoreModuleInitParams::hInstance)
 		{
@@ -39,12 +39,10 @@ public:
 
 		KApplication::hInstance = CoreModuleInitParams::hInstance;
 		KApplication::dpiAwareness = CoreModuleInitParams::dpiAwareness;
+		KDPIUtility::initDPIFunctions(); // even in unaware mode we load dpi functions. so we can use them.
 
 		if (KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE)
-		{
-			KDPIUtility::initDPIFunctions();
 			KDPIUtility::makeProcessDPIAware(KApplication::dpiAwareness);
-		}
 
 		if (CoreModuleInitParams::initCOMAsSTA)
 			::CoInitialize(NULL); //Initializes COM as STA.
@@ -52,7 +50,7 @@ public:
 		return true;
 	}
 
-	static void rfcModuleFree()
+	static void rfcModuleFree() noexcept
 	{
 		if (CoreModuleInitParams::initCOMAsSTA)
 			::CoUninitialize();

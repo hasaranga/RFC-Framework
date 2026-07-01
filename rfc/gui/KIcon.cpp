@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,18 +22,18 @@
 #include "KIcon.h"
 #include <commctrl.h>
 
-KIcon::KIcon()
+KIcon::KIcon() noexcept
 {
 	resourceID = 0;
 	hIcon = 0;
 }
 
-void KIcon::setResource(WORD resourceID)
+void KIcon::setResource(WORD resourceID) noexcept
 {
 	this->resourceID = resourceID;
 }
 
-HICON KIcon::getScaledIcon(int size)
+HICON KIcon::getScaledIcon(Physical size) noexcept
 {
 	HICON icon = 0;
 	::LoadIconWithScaleDown(KApplication::hInstance,
@@ -43,7 +43,7 @@ HICON KIcon::getScaledIcon(int size)
 	return icon;
 }
 
-bool KIcon::loadFromResource(WORD resourceID)
+bool KIcon::loadFromResource(WORD resourceID) noexcept
 {
 	this->resourceID = resourceID;
 
@@ -56,7 +56,7 @@ bool KIcon::loadFromResource(WORD resourceID)
 	return false;
 }
 
-bool KIcon::loadFromFile(const KString& filePath)
+bool KIcon::loadFromFile(const KString& filePath) noexcept
 {
 	hIcon = (HICON)::LoadImageW(KApplication::hInstance, 
 		filePath, IMAGE_ICON, 0, 0, 
@@ -67,17 +67,17 @@ bool KIcon::loadFromFile(const KString& filePath)
 	return false;
 }
 
-HICON KIcon::getHandle()
+HICON KIcon::getHandle() noexcept
 {
 	return hIcon;
 }
 
-KIcon::operator HICON()const
+KIcon::operator HICON()const noexcept
 {
 	return hIcon;
 }
 
-KIcon::~KIcon()
+KIcon::~KIcon() noexcept
 {
 	if(hIcon)
 		::DestroyIcon(hIcon);

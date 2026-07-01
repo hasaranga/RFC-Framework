@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -57,6 +57,10 @@
 #include "KListBox.h"
 #include "KNotifyIconHandler.h"
 #include "KZoomRectEffect.h"
+#include "KDynamicMenu.h"
+#include "KSignal.h"
+#include "KSignalHandler.h"
+#include "KInvokable.h"
 
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "Shell32.lib")

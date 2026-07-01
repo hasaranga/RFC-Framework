@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,23 +21,29 @@
 
 #include "KMenu.h"
 
-KMenu::KMenu()
+KMenu::KMenu() noexcept
 {
 	hMenu = ::CreatePopupMenu();
 }
 
-void KMenu::addMenuItem(KMenuItem* menuItem)
+void KMenu::addMenuItem(KMenuItem* menuItem) noexcept
 {
 	menuItem->addToMenu(hMenu);
 }
 
-void KMenu::addSubMenu(const KString& text, KMenu* menu)
+void KMenu::addSubMenu(const KString& text, KMenu* menu) noexcept
 {
 	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING, 
 		(UINT_PTR)menu->getMenuHandle(), text);
 }
 
-void KMenu::addSeperator()
+void KMenu::addSubMenu(const KString& text, HMENU menuHandle) noexcept
+{
+	::InsertMenuW(hMenu, 0xFFFFFFFF, MF_BYPOSITION | MF_POPUP | MF_STRING,
+		(UINT_PTR)menuHandle, text);
+}
+
+void KMenu::addSeperator() noexcept
 {
 	MENUITEMINFOW mii;
 	::ZeroMemory(&mii, sizeof(mii));
@@ -49,12 +55,12 @@ void KMenu::addSeperator()
 	::InsertMenuItemW(hMenu, 0xFFFFFFFF, FALSE, &mii);
 }
 
-HMENU KMenu::getMenuHandle()
+HMENU KMenu::getMenuHandle() noexcept
 {
 	return hMenu;
 }
 
-void KMenu::popUpMenu(HWND window, bool bringWindowToForeground)
+void KMenu::popUpMenu(HWND window, bool bringWindowToForeground) noexcept
 {
 	if (bringWindowToForeground)
 		::SetForegroundWindow(window);
@@ -64,7 +70,7 @@ void KMenu::popUpMenu(HWND window, bool bringWindowToForeground)
 	::TrackPopupMenu(hMenu, TPM_LEFTBUTTON, p.x, p.y, 0, window, NULL);
 }
 
-KMenu::~KMenu()
+KMenu::~KMenu() noexcept
 {
 	::DestroyMenu(hMenu);
 }

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,16 +27,15 @@ class KProgressBar : public KComponent
 {
 protected:
 	int value;
+	virtual void afterCreated() noexcept override;
 
 public:
-	KProgressBar(bool smooth=true, bool vertical=false);
+	KProgressBar(bool smooth=true, bool vertical=false) noexcept;
 
-	virtual int getValue();
+	int getValue() noexcept;
 
-	virtual void setValue(int value);
+	void setValue(int value) noexcept;
 
-	virtual bool create(bool requireInitialMessages = false) override;
-
-	virtual ~KProgressBar();
+	virtual ~KProgressBar() noexcept;
 };
 

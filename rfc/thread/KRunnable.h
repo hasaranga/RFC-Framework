@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,11 +28,11 @@ class KThread;
 class KRunnable
 {
 public:
-	KRunnable() = default;
+	KRunnable() noexcept = default;
 
-	virtual ~KRunnable() = default;
+	virtual ~KRunnable() noexcept = default;
 
-	virtual void run(KThread* thread) {}
+	virtual void run(KThread* thread) noexcept {}
 
 private:
 	RFC_LEAK_DETECTOR(KRunnable)

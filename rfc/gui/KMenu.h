@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -24,27 +24,30 @@
 #include "KMenuItem.h"
 #include "../core/CoreModule.h"
 
+// only use for static menu items. if the item count are dynamically changing, use KDynamicMenu.
 class KMenu
 {
 protected:
 	HMENU hMenu;
 
 public:
-	KMenu();
+	KMenu() noexcept;
 
-	virtual void addMenuItem(KMenuItem* menuItem);
+	void addMenuItem(KMenuItem* menuItem) noexcept;
 
-	virtual void addSubMenu(const KString& text, KMenu* menu);
+	void addSubMenu(const KString& text, KMenu* menu) noexcept;
 
-	virtual void addSeperator();
+	void addSubMenu(const KString& text, HMENU menuHandle) noexcept;
 
-	virtual HMENU getMenuHandle();
+	void addSeperator() noexcept;
+
+	HMENU getMenuHandle() noexcept;
 
 	// set bringWindowToForeground when showing popup menu for notify icon(systray).
 	// does not return until the menu close.
-	virtual void popUpMenu(HWND window, bool bringWindowToForeground = false);
+	void popUpMenu(HWND window, bool bringWindowToForeground = false) noexcept;
 
-	virtual ~KMenu();
+	virtual ~KMenu() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KMenu)

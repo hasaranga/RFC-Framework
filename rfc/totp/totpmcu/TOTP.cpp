@@ -9,35 +9,35 @@ namespace totpmcu {
     uint32_t TOTPGen::_timeStep;
 
     // Init the library with the private key, its length and the timeStep duration
-    void TOTPGen::TOTP(uint8_t* hmacKey, uint8_t keyLength, uint32_t timeStep) {
+    void TOTPGen::TOTP(uint8_t* hmacKey, uint8_t keyLength, uint32_t timeStep) noexcept {
         _hmacKey = hmacKey;
         _keyLength = keyLength;
         _timeStep = timeStep;
     }
 
-    void TOTPGen::setTimezone(uint8_t timezone) {
+    void TOTPGen::setTimezone(uint8_t timezone) noexcept {
         _timeZoneOffset = timezone;
     }
 
-    uint32_t TOTPGen::TimeStruct2Timestamp(struct tm time) {
+    uint32_t TOTPGen::TimeStruct2Timestamp(struct tm time) noexcept {
         //time.tm_mon -= 1;
         //time.tm_year -= 1900;
         return (uint32_t)mktime(&(time)) - (_timeZoneOffset * 3600) - 2208988800;
     }
 
     // Generate a code, using the timestamp provided
-    uint32_t TOTPGen::getCodeFromTimestamp(uint32_t timeStamp) {
+    uint32_t TOTPGen::getCodeFromTimestamp(uint32_t timeStamp) noexcept {
         uint32_t steps = timeStamp / _timeStep;
         return getCodeFromSteps(steps);
     }
 
     // Generate a code, using the timestamp provided
-    uint32_t TOTPGen::getCodeFromTimeStruct(struct tm time) {
+    uint32_t TOTPGen::getCodeFromTimeStruct(struct tm time) noexcept {
         return getCodeFromTimestamp(TimeStruct2Timestamp(time));
     }
 
     // Generate a code, using the number of steps provided
-    uint32_t TOTPGen::getCodeFromSteps(uint32_t steps) {
+    uint32_t TOTPGen::getCodeFromSteps(uint32_t steps) noexcept {
         // STEP 0, map the number of steps in a 8-bytes array (counter value)
         uint8_t _byteArray[8];
         _byteArray[0] = 0x00;

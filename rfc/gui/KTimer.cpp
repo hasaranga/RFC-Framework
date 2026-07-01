@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,7 @@
 #include "KTimer.h"
 #include "KIDGenerator.h"
 
-KTimer::KTimer()
+KTimer::KTimer() noexcept
 {
 	resolution = 1000;
 	started = false;
@@ -30,22 +30,22 @@ KTimer::KTimer()
 	hwndWindow = NULL;
 }
 
-int KTimer::getInterval()
+int KTimer::getInterval() noexcept
 {
 	return resolution;
 }
 
-void KTimer::setTimerID(UINT timerID)
+void KTimer::setTimerID(UINT timerID) noexcept
 {
 	this->timerID = timerID;
 }
 
-UINT KTimer::getTimerID()
+UINT KTimer::getTimerID() noexcept
 {
 	return timerID;
 }
 
-void KTimer::start(int resolution, KWindow& window)
+void KTimer::start(int resolution, KWindow& window) noexcept
 {
 	if(started)
 		return;
@@ -62,13 +62,13 @@ void KTimer::start(int resolution, KWindow& window)
 	}	
 }
 
-void KTimer::start(int resolution, KWindow& window, std::function<void(KTimer*)> onTimerCallback)
+void KTimer::start(int resolution, KWindow& window, std::function<void(KTimer*)> onTimerCallback) noexcept
 {
 	onTimer = std::move(onTimerCallback);
 	start(resolution, window);
 }
 
-void KTimer::stop()
+void KTimer::stop() noexcept
 {
 	if (hwndWindow)
 	{
@@ -79,18 +79,18 @@ void KTimer::stop()
 	}
 }
 
-bool KTimer::isRunning()
+bool KTimer::isRunning() noexcept
 {
 	return started;
 }
 
-void KTimer::_onTimer()
+void KTimer::_onTimer() noexcept
 {
 	if(onTimer)
 		onTimer(this);
 }
 
-KTimer::~KTimer()
+KTimer::~KTimer() noexcept
 {
 	if(started)
 		this->stop();

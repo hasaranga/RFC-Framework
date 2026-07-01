@@ -1,0 +1,7 @@
+<xml>
+	<name>WebView</name>
+	<fixed>false</fixed>
+	<dependencies>Core,GUI</dependencies>
+	<platform>Win 10 or higher</platform>
+	<description>KWebView</description>
+</xml>

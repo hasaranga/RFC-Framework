@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -31,7 +31,7 @@ bool KCommonDialogBox::showOpenFileDialog(KWindow* window,
 	const wchar_t* filter, 
 	KString* fileName, 
 	bool saveLastLocation, 
-	const KString& dialogGuid)
+	const KString& dialogGuid) noexcept
 {
 	// assumes MAX_PATH * 2 is enough!	
 	wchar_t *buff = (wchar_t*)::malloc( (MAX_PATH * 2) * sizeof(wchar_t) );
@@ -87,7 +87,7 @@ bool KCommonDialogBox::showSaveFileDialog(KWindow* window,
 	const wchar_t* filter, 
 	KString* fileName,
 	bool saveLastLocation,
-	const KString& dialogGuid)
+	const KString& dialogGuid) noexcept
 {
 	// assumes MAX_PATH * 2 is enough!
 	wchar_t *buff = (wchar_t*)::malloc((MAX_PATH * 2) * sizeof(wchar_t));

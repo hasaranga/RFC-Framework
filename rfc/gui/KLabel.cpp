@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -24,16 +24,13 @@
 #include "KGUIProc.h"
 #include "KGraphics.h"
 
-KLabel::KLabel() : KComponent(false)
+KLabel::KLabel() noexcept : KComponent(false)
 {
 	compClassName.assignStaticText(TXT_WITH_LEN("STATIC"));
 	compText.assignStaticText(TXT_WITH_LEN("Label"));
 
-	compWidth = 100;
-	compHeight = 25;
-
-	compX = 0;
-	compY = 0;
+	compLWidth = 100;
+	compLHeight = 25;
 
 	autoResize = false;
 
@@ -41,103 +38,46 @@ KLabel::KLabel() : KComponent(false)
 	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
-void KLabel::resizeToTextSize()
+void KLabel::resizeToTextSize() noexcept
 {
 	if (compText.isNotEmpty())
 	{
-		RECT rect = KGraphics::calculateTextSize(compText, compFont->getFontHandle());
-		this->setSize(rect.right + AUTOSIZE_EXTRA_GAP, rect.bottom);
+		const int dpi = compFontRef.getCurrentDPI();
+		RECT rect = KGraphics::calculateTextSize(compText, compFontRef.getFontHandle());
+		// AUTOSIZE_EXTRA_GAP is already a logical value.
+		setSize(KDPIUtility::toLogical(rect.right, dpi) + AUTOSIZE_EXTRA_GAP,
+			KDPIUtility::toLogical(rect.bottom, dpi));
 	}
 	else // text is empty
 	{
-		this->setSize(20, 25);
+		setSize(20, 25);
 	}
 
-	this->repaint(); // to fix bug when text contain one space character and os repaint only resized area.
+	repaint(); // to fix bug when text contain one space character and os repaint only resized area.
 }
 
-void KLabel::enableAutoResize(bool enable)
+void KLabel::enableAutoResize(bool enable) noexcept
 {
 	autoResize = enable;
 
 	if(autoResize)
-		this->resizeToTextSize();
+		resizeToTextSize();
 }
 
-void KLabel::setText(const KString& compText)
+void KLabel::setText(const KString& compText) noexcept
 {
 	KComponent::setText(compText);
 
 	if (autoResize)
-		this->resizeToTextSize();
+		resizeToTextSize();
 }
 
-void KLabel::setFont(KFont* compFont)
+void KLabel::setFontType(const KFontType& fontType) noexcept
 {
-	KComponent::setFont(compFont);
+	__super::setFontType(fontType);
 
 	if (autoResize)
-		this->resizeToTextSize();
+		resizeToTextSize();
 }
 
-void KLabel::setDPI(int newDPI)
-{
-	if (newDPI == compDPI)
-		return;
-
-	int oldDPI = compDPI;
-	compDPI = newDPI;
-
-	this->compX = ::MulDiv(compX, newDPI, oldDPI);
-	this->compY = ::MulDiv(compY, newDPI, oldDPI);
-
-	if (!compFont->isDefaultFont())
-		compFont->setDPI(newDPI);
-	
-	if (compText.isNotEmpty() && autoResize)
-	{
-		RECT rect = KGraphics::calculateTextSize(compText, compFont->getFontHandle());
-		this->compWidth = rect.right + AUTOSIZE_EXTRA_GAP;
-		this->compHeight = rect.bottom;
-	}
-	else
-	{
-		this->compWidth = ::MulDiv(compWidth, newDPI, oldDPI);
-		this->compHeight = ::MulDiv(compHeight, newDPI, oldDPI);
-	}
-
-	if (compHWND)
-	{
-		::SetWindowPos(compHWND, 0, compX, compY, compWidth, 
-			compHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
-
-		if ((!compFont->isDefaultFont()) && (compDwStyle & WS_CHILD))
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
-	}
-}
-
-bool KLabel::create(bool requireInitialMessages)
-{
-	if(!compParentHWND) // user must specify parent handle!
-		return false;
-
-	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register Label class!
-
-	if(compHWND)
-	{
-		::SendMessageW(compHWND, WM_SETFONT, 
-			(WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
-
-		::EnableWindow(compHWND, compEnabled);
-
-		if(compVisible)
-			::ShowWindow(compHWND, SW_SHOW);
-
-		return true;
-	}
-	return false;
-}
-
-KLabel::~KLabel()
-{
-}
+KLabel::~KLabel() noexcept {}

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -41,7 +41,7 @@ protected:
 	KString notifyIconToolTipText;
 	UINT taskbarRestartMsg;
 
-	virtual LRESULT onNotifyIconMessage(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onNotifyIconMessage(WPARAM wParam, LPARAM lParam) noexcept
 	{
 		if (lParam == WM_LBUTTONUP)
 			this->onNotifyIconLeftClick();
@@ -51,7 +51,7 @@ protected:
 		return 0;
 	}
 
-	virtual void createNotifyIcon(HWND window, HICON icon, const KString& toolTipText)
+	virtual void createNotifyIcon(HWND window, HICON icon, const KString& toolTipText) noexcept
 	{
 		NOTIFYICONDATAW nid = { 0 };
 
@@ -68,7 +68,7 @@ protected:
 	}
 
 	// on explorer crash
-	virtual LRESULT onTaskBarReCreate(WPARAM wParam, LPARAM lParam)
+	virtual LRESULT onTaskBarReCreate(WPARAM wParam, LPARAM lParam) noexcept
 	{
 		if (notifyIconHandle)
 			this->createNotifyIcon(this->compHWND, notifyIconHandle, notifyIconToolTipText);
@@ -77,27 +77,27 @@ protected:
 	}
 
 	// override this method in your subclass and show popup menu.
-	virtual void onNotifyIconRightClick()
+	virtual void onNotifyIconRightClick() noexcept
 	{
 		::SetForegroundWindow(this->compHWND);
 		// show you popup menu here...
 	}
 
 	// override this method in your subclass.
-	virtual void onNotifyIconLeftClick()
+	virtual void onNotifyIconLeftClick() noexcept
 	{
 		::SetForegroundWindow(this->compHWND);
 	}
 
 public:
 	template<typename... Args>
-	KNotifyIconHandler(Args&&... args) : T(std::forward<Args>(args)...)
+	KNotifyIconHandler(Args&&... args) noexcept : T(std::forward<Args>(args)...)
 	{
 		notifyIconHandle = 0;
 		taskbarRestartMsg = ::RegisterWindowMessageW(L"TaskbarCreated");
 	}
 
-	virtual ~KNotifyIconHandler()
+	virtual ~KNotifyIconHandler() noexcept
 	{
 		if (notifyIconHandle)
 			::DestroyIcon(notifyIconHandle);
@@ -105,7 +105,7 @@ public:
 
 	// window must be created.
 	// maximum tooltip text size is 128
-	virtual void addNotifyIcon(WORD iconResourceID, const KString& tooltipText)
+	virtual void addNotifyIcon(WORD iconResourceID, const KString& tooltipText) noexcept
 	{
 		// supports high dpi.
 		// LoadIconMetric: only for system tray. cannot use for a window. because multiple window can have different dpi.
@@ -117,7 +117,7 @@ public:
 		this->createNotifyIcon(this->compHWND, notifyIconHandle, notifyIconToolTipText);
 	}
 
-	virtual void updateNotifyIcon(WORD iconResourceID)
+	virtual void updateNotifyIcon(WORD iconResourceID) noexcept
 	{
 		if (notifyIconHandle)
 			::DestroyIcon(notifyIconHandle);
@@ -138,7 +138,7 @@ public:
 	}
 
 	// maximum tooltip text size is 128
-	virtual void updateNotifyIconToolTip(const KString& tooltipText)
+	virtual void updateNotifyIconToolTip(const KString& tooltipText) noexcept
 	{
 		notifyIconToolTipText = tooltipText;
 
@@ -154,7 +154,7 @@ public:
 		::Shell_NotifyIconW(NIM_MODIFY, &nid);
 	}
 
-	virtual void destroyNotifyIcon()
+	virtual void destroyNotifyIcon() noexcept
 	{
 		NOTIFYICONDATAW nid = { 0 };
 		nid.cbSize = sizeof(NOTIFYICONDATAW);
@@ -164,7 +164,7 @@ public:
 		::Shell_NotifyIconW(NIM_DELETE, &nid);
 	}
 
-	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept override
 	{
 		if (msg == RFC_NOTIFY_ICON_MESSAGE)
 			return this->onNotifyIconMessage(wParam, lParam);

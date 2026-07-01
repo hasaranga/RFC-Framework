@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -76,30 +76,30 @@ public:
 		PARAM_DOUBLE = 5,
 	};
 
-	KLogger(DWORD bufferSize = (SZ_MEGABYTE * 10));
+	KLogger(DWORD bufferSize = (SZ_MEGABYTE * 10)) noexcept;
 
-	bool writeNewEvent(unsigned char eventType = EVT_INFORMATION);
+	bool writeNewEvent(unsigned char eventType = EVT_INFORMATION) noexcept;
 
-	bool endEvent();
+	bool endEvent() noexcept;
 
 	/**
 		textLength is number of chars. max value is 255.
 	*/
-	bool addTextParam(const char *text, unsigned char textLength);
+	bool addTextParam(const char *text, unsigned char textLength) noexcept;
 
-	bool addIntParam(int value);
+	bool addIntParam(int value) noexcept;
 
-	bool addShortParam(unsigned short value);
+	bool addShortParam(unsigned short value) noexcept;
 
-	bool addFloatParam(float value);
+	bool addFloatParam(float value) noexcept;
 	
-	bool addDoubleParam(double value);
+	bool addDoubleParam(double value) noexcept;
 
-	bool isBufferFull();
+	bool isBufferFull() noexcept;
 
-	bool writeToFile(const KString &filePath);
+	bool writeToFile(const KString &filePath) noexcept;
 
-	~KLogger();
+	~KLogger() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KLogger)

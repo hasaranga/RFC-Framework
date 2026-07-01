@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -26,7 +26,7 @@
 char KStaticAllocator::memory_pool[KStaticAllocator::POOL_SIZE];
 std::atomic<size_t> KStaticAllocator::current_offset{ 0 };
 
-void* KStaticAllocator::allocate(size_t size, size_t alignment)
+void* KStaticAllocator::allocate(size_t size, size_t alignment) noexcept
 {
     size_t old_offset, new_offset;
 
@@ -54,7 +54,7 @@ void* KStaticAllocator::allocate(size_t size, size_t alignment)
     return memory_pool + final_aligned_offset;
 }
 
-void KStaticAllocator::reset()
+void KStaticAllocator::reset() noexcept
 {
     current_offset.store(0, std::memory_order_release);
 }

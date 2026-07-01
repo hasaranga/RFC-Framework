@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -33,17 +33,17 @@ class KTOTPAuth
 {
 protected:
     // generates a cryptographically secure random key
-    static int generateSecretKey(uint8_t* key, DWORD keyLength);
+    static int generateSecretKey(uint8_t* key, DWORD keyLength) noexcept;
 
     // encodes key to Base32 (for compatibility with authenticator apps)
-    static void encodeBase32(const uint8_t* input, size_t inputLength, char* output);
+    static void encodeBase32(const uint8_t* input, size_t inputLength, char* output) noexcept;
 
     // converts key to Base32 format string
     // make sure to free the returned string.
-    static char* keyToBase32String(const uint8_t* key, size_t keyLength);
+    static char* keyToBase32String(const uint8_t* key, size_t keyLength) noexcept;
 
     // make sure to free the returned string.
-    static char* totpCodeToString(uint32_t totpCode);
+    static char* totpCodeToString(uint32_t totpCode) noexcept;
 
     /**
      * Decode Base32 string to binary key
@@ -53,25 +53,27 @@ protected:
      * @param keyLength Maximum size of output buffer
      * @return Number of bytes decoded, or -1 on error
      */
-    static int base32StringToKey(const char* str, uint8_t* key, size_t keyLength);
+    static int base32StringToKey(const char* str, uint8_t* key, size_t keyLength) noexcept;
 
     // get current Unix timestamp
-    static uint32_t getCurrentTimestamp();
+    static uint32_t getCurrentTimestamp() noexcept;
 
     // generates TOTP for specific timestamp
-    static uint32_t generateTOTPForTime(uint8_t* hmacKey, uint8_t keyLength, uint32_t timeStep, uint32_t timestamp);
+    static uint32_t generateTOTPForTime(uint8_t* hmacKey, uint8_t keyLength, 
+        uint32_t timeStep, uint32_t timestamp) noexcept;
 
     // generates TOTP for current timestamp
-    static uint32_t generateTOTPForCurrentTime(uint8_t* hmacKey, uint8_t keyLength, uint32_t timeStep);
+    static uint32_t generateTOTPForCurrentTime(uint8_t* hmacKey, uint8_t keyLength, uint32_t timeStep) noexcept;
 
     // validates TOTP code with time window tolerance.
     // returns: 0 = invalid, 1 = valid (current), 2 = valid (previous), 3 = valid (next)
     // windowTolerance: +1 means 30 seconds next and previous also check.
-    static int _validateTOTPCode(uint8_t* hmacKey, uint8_t keyLength, uint32_t inputCode, uint32_t timeStep = 30, int windowTolerance = 1);
+    static int _validateTOTPCode(uint8_t* hmacKey, uint8_t keyLength, 
+        uint32_t inputCode, uint32_t timeStep = 30, int windowTolerance = 1) noexcept;
 
     // uses UrlEscapeW winapi. Not RFC 3986 Compliant. but enough for totp requirements.
     // maximum text size is 512.
-    static KString urlEncode(const KString& text);
+    static KString urlEncode(const KString& text) noexcept;
 public:
 
     /* calculates remaining seconds until next TOTP code.
@@ -90,23 +92,24 @@ public:
             ::Sleep(1000);
         }
     */
-    static int getRemainingSeconds(uint32_t timeStep = 30);
+    static int getRemainingSeconds(uint32_t timeStep = 30) noexcept;
 
-    static KString generateTOTPKey();
+    static KString generateTOTPKey() noexcept;
 
     // generate a string which can be used to create a QR code.
     // issuer & username will be converted to url-encode format. no need to convert it yourself.
-    static KString generateQRText(const KString& key, const KString& issuer, const KString& username);
+    static KString generateQRText(const KString& key, const KString& issuer, const KString& username) noexcept;
 
     // returns empty string on error.
     // important: do not compare returned string with user entered code. Instead, use validateTOTPCode method.
     // validateTOTPCode method correctly checks for prev/next codes also. it will prevent clock drift issues.
     // this method should only be use for displaying current code.
-    static KString getTOTPCodeForCurrentTime(const KString& key, uint32_t timeStep = 30);
+    static KString getTOTPCodeForCurrentTime(const KString& key, uint32_t timeStep = 30) noexcept;
 
     // validates TOTP code with time window tolerance.
     // returns: 0 = invalid, 1 = valid (current), 2 = valid (previous), 3 = valid (next)
     // windowTolerance: +1 means 30 seconds next and previous also check.
-    static int validateTOTPCode(const KString& key, const KString& inputCode, uint32_t timeStep = 30, int windowTolerance = 1);
+    static int validateTOTPCode(const KString& key, const KString& inputCode, 
+        uint32_t timeStep = 30, int windowTolerance = 1) noexcept;
 };
 

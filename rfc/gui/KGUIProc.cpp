@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -34,7 +34,7 @@ HHOOK RFCInternalVariables::wnd_hook = 0;
 ATOM KGUIProc::atomComponent;
 ATOM KGUIProc::atomOldProc;
 
-LRESULT CALLBACK RFCCTL_CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK RFCCTL_CBTProc(int nCode, WPARAM wParam, LPARAM lParam) noexcept
 {
 	if (nCode < 0)
 		return ::CallNextHookEx(RFCInternalVariables::wnd_hook, nCode, wParam, lParam);
@@ -67,7 +67,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode, WPARAM wParam, LPARAM lParam)
 	return ::CallNextHookEx(RFCInternalVariables::wnd_hook, nCode, wParam, lParam);
 }
 
-void KGUIProc::attachRFCPropertiesToHWND(HWND hwnd, KComponent* component)
+void KGUIProc::attachRFCPropertiesToHWND(HWND hwnd, KComponent* component) noexcept
 {
 	::SetPropW(hwnd, MAKEINTATOM(KGUIProc::atomComponent), (HANDLE)component);
 
@@ -78,7 +78,7 @@ void KGUIProc::attachRFCPropertiesToHWND(HWND hwnd, KComponent* component)
 		::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)KGUIProc::windowProc); // subclassing...
 }
 
-LRESULT CALLBACK KGUIProc::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK KGUIProc::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
 	KComponent* component = (KComponent*)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::atomComponent));
 
@@ -109,7 +109,7 @@ LRESULT CALLBACK KGUIProc::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 	return component->windowProc(hwnd, msg, wParam, lParam);
 }
 
-INT_PTR CALLBACK KGUIProc::dialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK KGUIProc::dialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) noexcept
 {
 	if (uMsg == WM_INITDIALOG)
 	{
@@ -122,7 +122,7 @@ INT_PTR CALLBACK KGUIProc::dialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LP
 	return FALSE;
 }
 
-HWND KGUIProc::createComponent(KComponent* component, bool requireInitialMessages)
+HWND KGUIProc::createComponentFor96DPI(KComponent* component, bool requireInitialMessages, int x, int y) noexcept
 {
 	if (requireInitialMessages)
 	{
@@ -133,7 +133,8 @@ HWND KGUIProc::createComponent(KComponent* component, bool requireInitialMessage
 
 		// pass current component as lpParam. so CBT proc can ignore other unknown windows.
 		HWND hwnd = ::CreateWindowExW(component->getExStyle(), component->getComponentClassName(), component->getText(),
-			component->getStyle(), component->getX(), component->getY(), component->getWidth(), component->getHeight(),
+			component->getStyle(), x, y, 
+			component->getWidth(), component->getHeight(),
 			component->getParentHWND(), (HMENU)(UINT_PTR)component->getControlID(), KApplication::hInstance, (LPVOID)component);
 
 		// unhook at here will cause catching childs which are created at WM_CREATE. so, unhook at CBT proc.
@@ -144,7 +145,8 @@ HWND KGUIProc::createComponent(KComponent* component, bool requireInitialMessage
 	else
 	{
 		HWND hwnd = ::CreateWindowExW(component->getExStyle(), component->getComponentClassName(), component->getText(),
-			component->getStyle(), component->getX(), component->getY(), component->getWidth(), component->getHeight(),
+			component->getStyle(), x, y, 
+			component->getWidth(), component->getHeight(),
 			component->getParentHWND(), (HMENU)(UINT_PTR)component->getControlID(), KApplication::hInstance, 0);
 
 		KGUIProc::attachRFCPropertiesToHWND(hwnd, component);
@@ -154,12 +156,12 @@ HWND KGUIProc::createComponent(KComponent* component, bool requireInitialMessage
 	}
 }
 
-int KGUIProc::hotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
+int KGUIProc::hotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component) noexcept
 {
 	return (int)::DialogBoxParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, KGUIProc::dialogProc, (LPARAM)component);
 }
 
-HWND KGUIProc::hotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component)
+HWND KGUIProc::hotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component) noexcept
 {
 	return ::CreateDialogParamW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), parentHwnd, KGUIProc::dialogProc, (LPARAM)component);
 }

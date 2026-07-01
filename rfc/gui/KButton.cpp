@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,28 +22,25 @@
 #include "KButton.h"
 #include "KGUIProc.h"
 
-KButton::KButton() : KComponent(false)
+KButton::KButton() noexcept : KComponent(false)
 {
 	compClassName.assignStaticText(TXT_WITH_LEN("BUTTON"));
 	compText.assignStaticText(TXT_WITH_LEN("Button"));
 
-	compWidth = 100;
-	compHeight = 30;
-
-	compX = 0;
-	compY = 0;
+	compLWidth = 100;
+	compLHeight = 30;
 
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS | BS_NOTIFY | WS_TABSTOP;
 	compDwExStyle = WS_EX_WINDOWEDGE;
 }
 
-void KButton::_onPress()
+void KButton::_onPress() noexcept
 {
 	if(onClick)
 		onClick(this);
 }
 
-bool KButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) noexcept
 {
 	if ((msg == WM_COMMAND) && (HIWORD(wParam) == BN_CLICKED))
 	{
@@ -56,26 +53,4 @@ bool KButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
 	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KButton::create(bool requireInitialMessages)
-{
-	if(!compParentHWND) // user must specify parent handle!
-		return false;
-
-	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register BUTTON class!
-
-	if(compHWND)
-	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
-		::EnableWindow(compHWND, compEnabled);
-
-		if(compVisible)
-			::ShowWindow(compHWND, SW_SHOW);
-
-		return true;
-	}
-	return false;
-}
-
-KButton::~KButton()
-{
-}
+KButton::~KButton() noexcept {}

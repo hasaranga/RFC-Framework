@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -32,14 +32,14 @@ public:
     std::function<void(const T& oldValue, const T& newValue)> onChangeWithOldValue;
     std::function<void(const T& newValue)> onChange;
 
-    KProperty() = default;
+    KProperty() noexcept = default;
 
     // Perfect forwarding constructor
     template<typename U, typename = std::enable_if_t<!std::is_same_v<std::decay_t<U>, KProperty>>>
-    KProperty(U&& initial) : value(std::forward<U>(initial)) {}
+    KProperty(U&& initial) noexcept : value(std::forward<U>(initial)) {}
 
     // Copy assignment operator
-    KProperty& operator=(const T& newValue)
+    KProperty& operator=(const T& newValue) noexcept
     {
         if (value != newValue) // only trigger if different
         {
@@ -59,7 +59,7 @@ public:
     }
 
     // Move assignment operator
-    KProperty& operator=(T&& newValue)
+    KProperty& operator=(T&& newValue) noexcept
     {
         if (value != newValue) // only trigger if different
         {
@@ -79,20 +79,20 @@ public:
     }
 
     // Copy version of setSilent
-    void setSilent(const T& newValue)
+    void setSilent(const T& newValue) noexcept
     {
         value = newValue;
     }
 
     // Move version of setSilent
-    void setSilent(T&& newValue)
+    void setSilent(T&& newValue) noexcept
     {
         value = std::move(newValue);
     }
 
     // Get current value
-    const T& get() const { return value; }
-    operator const T& () const { return value; } // implicit conversion
+    const T& get() const noexcept { return value; }
+    operator const T& () const noexcept { return value; } // implicit conversion
 
 private:
     T value{};

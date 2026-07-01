@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -33,46 +33,48 @@ protected:
 	int selectedItemEnd;
 	bool multipleSelection;
 
+	virtual void afterCreated() noexcept override;
+
 public:
 	std::function<void(KListBox*)> onItemSelect;
 	std::function<void(KListBox*)> onItemRightClick;
 	std::function<void(KListBox*)> onItemDoubleClick;
 
-	KListBox(bool multipleSelection=false, bool sort=false, bool vscroll=true);
+	KListBox(bool multipleSelection=false, bool sort=false, bool vscroll=true) noexcept;
 
-	virtual void addItem(const KString& text);
+	void addItem(const KString& text) noexcept;
 
-	virtual void removeItem(int index);
+	void removeItem(int index) noexcept;
 
-	virtual void removeItem(const KString& text);
+	void removeItem(const KString& text) noexcept;
 
-	virtual void updateItem(int index, const KString& text);
+	void updateItem(int index, const KString& text) noexcept;
 
-	virtual int getItemIndex(const KString& text);
+	int getItemIndex(const KString& text) noexcept;
 
-	virtual int getItemCount();
+	int getItemCount() noexcept;
 
-	virtual int getSelectedItemIndex();
+	int getSelectedItemIndex() noexcept;
 
-	virtual KString getSelectedItem();
+	KString getSelectedItem() noexcept;
 
-	virtual int getSelectedItems(int* itemArray, int itemCountInArray);
+	KString getItem(int index) noexcept;
 
-	virtual void clearList();
+	int getSelectedItems(int* itemArray, int itemCountInArray) noexcept;
 
-	virtual void selectItem(int index);
+	void clearList() noexcept;
 
-	virtual void selectItems(int start, int end);
+	void selectItem(int index) noexcept;
 
-	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
+	void selectItems(int start, int end) noexcept;
 
-	virtual bool create(bool requireInitialMessages = false) override;
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) noexcept override;
 
-	virtual void _onItemSelect();
+	virtual void _onItemSelect() noexcept;
 
-	virtual void _onItemDoubleClick();
+	virtual void _onItemDoubleClick() noexcept;
 
-	virtual void _onItemRightClick();
+	virtual void _onItemRightClick() noexcept;
 
 	virtual ~KListBox();
 };

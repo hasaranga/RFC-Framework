@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,38 +23,38 @@
 #include "KGlyphButton.h"
 #include <commctrl.h>
 
-KGlyphButton::KGlyphButton()
+KGlyphButton::KGlyphButton() noexcept
 {
-	glyphFont = nullptr;
 	glyphChar = nullptr;
 	glyphLeft = 6;
 }
 
-KGlyphButton::~KGlyphButton()
+KGlyphButton::~KGlyphButton() noexcept
 {
 }
 
-void KGlyphButton::setGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor, int glyphLeft)
+void KGlyphButton::setGlyph(const wchar_t* glyphChar, const KFontType& glyphFontType,
+	COLORREF glyphColor, Logical glyphLeft) noexcept
 {
-	this->glyphChar = glyphChar;
-	this->glyphFont = glyphFont;
+	this->glyphChar = glyphChar;	
 	this->glyphColor = glyphColor;
 	this->glyphLeft = glyphLeft;
 
-	this->repaint();
+	glyphFontRef.update(glyphFontType, compHWND == NULL ? USER_DEFAULT_SCREEN_DPI :
+		KDPIUtility::getWindowDPI(compHWND));
+
+	repaint();
 }
 
-void KGlyphButton::setDPI(int newDPI)
+void KGlyphButton::setDPI(int newDPI) noexcept
 {
-	if (glyphFont)
-		glyphFont->setDPI(newDPI);
-
+	glyphFontRef.update(newDPI);
 	KButton::setDPI(newDPI);
 }
 
-bool KGlyphButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
+bool KGlyphButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) noexcept
 {
-	if (glyphFont)
+	if (glyphChar)
 	{
 		if (msg == WM_NOTIFY)
 		{
@@ -73,11 +73,12 @@ bool KGlyphButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* re
 					const RECT rc = lpNMCD->rc;
 					const bool bDisabled = (lpNMCD->uItemState & (CDIS_DISABLED | CDIS_GRAYED)) != 0;
 
-					HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, glyphFont->getFontHandle());
+					HGDIOBJ oldFont = ::SelectObject(lpNMCD->hdc, glyphFontRef.getFontHandle());
 					const COLORREF oldTextColor = ::SetTextColor(lpNMCD->hdc, bDisabled ? ::GetSysColor(COLOR_GRAYTEXT) : glyphColor);
 					const int oldBkMode = ::SetBkMode(lpNMCD->hdc, TRANSPARENT);
 
-					RECT rcIcon = { rc.left + ::MulDiv(glyphLeft, compDPI, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
+					RECT rcIcon = { rc.left + KDPIUtility::toPhysical(glyphLeft, KDPIUtility::getWindowDPI(compHWND)),
+						rc.top, rc.right, rc.bottom };
 					::DrawTextW(lpNMCD->hdc, glyphChar, 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER); // draw glyph
 
 					::SetBkMode(lpNMCD->hdc, oldBkMode);

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -39,24 +39,24 @@ private:
 	void  operator delete[](void*);
 
 public:
-	KScopedHandle()
+	KScopedHandle() noexcept
 	{
 		handle = 0;
 	}
 
-	KScopedHandle(HANDLE handle)
+	KScopedHandle(HANDLE handle) noexcept
 	{
 		this->handle = handle;
 	}
 
-	HANDLE detach()
+	HANDLE detach() noexcept
 	{
 		HANDLE h = handle;
 		handle = 0;
 		return h;
 	}
 
-	KScopedHandle& operator= (HANDLE newHandle)
+	KScopedHandle& operator= (HANDLE newHandle) noexcept
 	{
 		if (handle != newHandle)
 		{
@@ -70,20 +70,20 @@ public:
 		return *this;
 	}
 
-	bool isNull()
+	bool isNull() noexcept
 	{
 		return (handle == 0);
 	}
 
-	~KScopedHandle()
+	~KScopedHandle() noexcept
 	{
 		if (handle)
 			::CloseHandle(handle);
 	}
 
-	inline operator HANDLE() const { return handle; }
+	inline operator HANDLE() const noexcept { return handle; }
 
-	inline HANDLE* operator&() { return &handle; }
+	inline HANDLE* operator&() noexcept { return &handle; }
 
 };
 

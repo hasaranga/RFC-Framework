@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,34 +25,44 @@
 class KGraphics
 {
 public:
-	KGraphics();
+	KGraphics() noexcept;
 
-	virtual ~KGraphics();
+	virtual ~KGraphics() noexcept;
 
-	static void draw3dVLine(HDC hdc, int startX, int startY, int height);
+	static void draw3dVLine(HDC hdc, Physical startX, Physical startY, Physical height) noexcept;
 
-	static void draw3dHLine(HDC hdc, int startX, int startY, int width);
+	static void draw3dHLine(HDC hdc, Physical startX, Physical startY, Physical width) noexcept;
 
-	static void draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight);
+	static void draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight) noexcept;
 
-	static void draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight);
+	static void draw3dRect(HDC hdc, Physical x, Physical y, Physical cx, Physical cy, COLORREF clrTopLeft, COLORREF clrBottomRight) noexcept;
 
-	static void fillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color);
+	static void fillSolidRect(HDC hdc, Physical x, Physical y, Physical cx, Physical cy, COLORREF color) noexcept;
 
-	static void fillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color);
+	static void fillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color) noexcept;
 
-	static RECT calculateTextSize(const wchar_t* text, HFONT hFont);
+	// destX and destY are the left top location to place the src image on destination.
+	// rotation angle in degrees.
+	// does not support alpha channel.
+	static void drawHDCRotated(HDC srcHDC, Physical srcX, Physical srcY, Physical srcWidth, Physical srcHeight,
+		HDC destHDC, Physical destX, Physical destY, float rotation) noexcept;
 
-	static int calculateTextHeight(const wchar_t* text, HFONT hFont, int width);
+	// make sure to use matching HFONT for current dpi.
+	// returns physical values.
+	static RECT calculateTextSize(const wchar_t* text, HFONT hFont) noexcept;
+
+	// make sure to use matching HFONT for current dpi. width is physical.
+	// returns a physical value.
+	static int calculateTextHeight(const wchar_t* text, HFONT hFont, int width) noexcept;
 
 	// This function sets the alpha channel to 255 without affecting any of the color channels.
 	// hdc is a memory DC with a 32bpp bitmap selected into it.
 	// can be use to fix 32bit bitmap alpha which is destroyed by the gdi operations.
-	static void makeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy);
+	static void makeBitmapOpaque(HDC hdc, Physical x, Physical y, Physical cx, Physical cy) noexcept;
 
 	// hdc is a memory DC with a 32bpp bitmap selected into it.
 	// This function sets the alpha channel without affecting any of the color channels.
-	static void setBitmapAlphaChannel(HDC hdc, int x, int y, int cx, int cy, BYTE alpha);
+	static void setBitmapAlphaChannel(HDC hdc, Physical x, Physical y, Physical cx, Physical cy, BYTE alpha) noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KGraphics)

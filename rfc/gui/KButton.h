@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -29,13 +29,11 @@ class KButton : public KComponent
 public:
 	std::function<void(KButton*)> onClick;
 
-	KButton();
+	KButton() noexcept;
 
-	virtual void _onPress();
+	virtual void _onPress() noexcept;
 
-	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) noexcept override;
 
-	virtual bool create(bool requireInitialMessages = false) override;
-
-	virtual ~KButton();
+	virtual ~KButton() noexcept;
 };

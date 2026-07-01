@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -79,62 +79,62 @@ protected:
 	std::atomic<bool> stopRequestedFlag;
 	KRunnable* runnable;
 
-	bool createRFCThread();
+	bool createRFCThread() noexcept;
 
 public:
 	std::function<void(KThread*)> onRun;
 
-	KThread();
+	KThread() noexcept;
 
 	/**
 		Sets runnable object for this thread.
 	*/
-	void setRunnable(KRunnable* runnable);
+	void setRunnable(KRunnable* runnable) noexcept;
 
 	/**
 		Returns handle of the thread
 	*/
-	HANDLE getHandle();
+	HANDLE getHandle() noexcept;
 
-	operator HANDLE()const;
+	operator HANDLE()const noexcept;
 
 	/**
 		you can override this method in your subclass.
 	*/
-	virtual void run();
+	virtual void run() noexcept;
 
 	/**
 		Starts thread
 	*/
-	bool start();
+	bool start() noexcept;
 
 	/**
 		Another thread can signal this thread should stop. It is upto this thread to decide whether to stop or not.
 	*/
-	void shouldStop();
+	void shouldStop() noexcept;
 
 	/**
 		@returns true if thread should continue.
 	*/
-	bool isRunningAllowed();
+	bool isRunningAllowed() noexcept;
 
 	/**
 		@returns true if thread is still running
 	*/
-	bool isRunning();
+	bool isRunning() noexcept;
 
 	/**
 		Caller will not return until this thread finish.
 		Set pumpMessages to true to enable message processing for caller. It will help to avoid deadlocks if the caller is a gui thread!
 	*/
-	DWORD waitUntilThreadFinish(bool pumpMessages = false);
+	DWORD waitUntilThreadFinish(bool pumpMessages = false) noexcept;
 
 	/**
 		Sleeps calling thread to given micro seconds.
 	*/
-	static void uSleep(int waitTime);
+	static void uSleep(int waitTime) noexcept;
 
-	virtual ~KThread();
+	virtual ~KThread() noexcept;
 	
 	// no copy/movable
 	KThread(const KThread&) = delete;

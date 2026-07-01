@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -18,7 +18,6 @@
 	   misrepresented as being the original software.
 	3. This notice may not be removed or altered from any source distribution.
 */
-
 
 #pragma once
 
@@ -40,12 +39,12 @@ struct KThreadSafetyBase<true>
 {
 	CRITICAL_SECTION criticalSection;
 
-	KThreadSafetyBase()
+	KThreadSafetyBase() noexcept
 	{
 		::InitializeCriticalSection(&criticalSection);
 	}
 
-	~KThreadSafetyBase()
+	~KThreadSafetyBase() noexcept
 	{
 		::DeleteCriticalSection(&criticalSection);
 	}
@@ -79,7 +78,7 @@ protected:
 	T smallBuffer[SmallBufferSize]; // Stack-allocated small buffer
 	bool usingSmallBuffer;
 
-	void resetToSmallBuffer()
+	void resetToSmallBuffer() noexcept
 	{
 		usingSmallBuffer = true;
 		list = smallBuffer;
@@ -88,7 +87,7 @@ protected:
 	}
 
 	// Thread safety helper methods
-	inline void enterCriticalSectionIfNeeded()
+	inline void enterCriticalSectionIfNeeded() noexcept
 	{
 		if constexpr (IsThreadSafe)
 		{
@@ -96,7 +95,7 @@ protected:
 		}
 	}
 
-	inline void leaveCriticalSectionIfNeeded()
+	inline void leaveCriticalSectionIfNeeded() noexcept
 	{
 		if constexpr (IsThreadSafe)
 		{
@@ -109,7 +108,7 @@ public:
 		Constructs PointerList object.
 		Thread safety is determined at compile time via template parameter.
 	*/
-	KPointerList()
+	KPointerList() noexcept
 	{
 		resetToSmallBuffer();
 		// Critical section initialization is handled by base class constructor
@@ -119,7 +118,7 @@ public:
 		Adds new item to the list.
 		@returns false if memory allocation failed!
 	*/
-	bool add(T pointer)
+	bool add(T pointer) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -188,7 +187,7 @@ public:
 		Get pointer at index.
 		@returns 0 if index is out of range!
 	*/
-	T get(const int index)
+	T get(const int index) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -209,7 +208,7 @@ public:
 		Get pointer at index.
 		@returns 0 if index is out of range!
 	*/
-	T operator[](const int index)
+	T operator[](const int index) noexcept
 	{
 		return get(index);
 	}
@@ -218,7 +217,7 @@ public:
 		Replace pointer of given index with new pointer
 		@returns false if index is out of range!
 	*/
-	bool set(const int index, T pointer)
+	bool set(const int index, T pointer) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -239,7 +238,7 @@ public:
 		Remove pointer of given index
 		@returns false if index is out of range!
 	*/
-	bool remove(const int index)
+	bool remove(const int index) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -262,7 +261,7 @@ public:
 		}
 	}
 
-	bool remove(T pointer)
+	bool remove(T pointer) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -278,7 +277,7 @@ public:
 	/**
 		Removes all pointers from the list! Falls back to small buffer.
 	*/
-	void removeAll()
+	void removeAll() noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -294,7 +293,7 @@ public:
 		Call destructors of all objects which are pointed by pointers in the list.
 		Also clears the list. Falls back to small buffer.
 	*/
-	void deleteAll()
+	void deleteAll() noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -317,7 +316,7 @@ public:
 	 * The entire iteration is protected by critical section if thread safety is enabled.
 	 * @param func Function/lambda to call for each pointer in the list
 	*/
-	void forEach(std::function<void(T)> func)
+	void forEach(std::function<void(T)> func) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 		for (int i = 0; i < itemCount; i++) 
@@ -331,7 +330,7 @@ public:
 	 * Safely iterate with index access. Useful when you need the index as well.
 	 * @param func Function/lambda that takes (pointer, index) as parameters
 	*/
-	void forEachWithIndex(std::function<void(T, int)> func)
+	void forEachWithIndex(std::function<void(T, int)> func) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -357,7 +356,7 @@ public:
 			return true; // Continue
 		});
 	*/
-	bool forEachUntil(std::function<bool(T)> func)
+	bool forEachUntil(std::function<bool(T)> func) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -375,11 +374,29 @@ public:
 		return completed;
 	}
 
+	bool forEachUntilWithIndex(std::function<bool(T,int)> func) noexcept
+	{
+		enterCriticalSectionIfNeeded();
+
+		bool completed = true;
+		for (int i = 0; i < itemCount; i++)
+		{
+			if (!func(list[i], i))
+			{
+				completed = false;
+				break;
+			}
+		}
+
+		leaveCriticalSectionIfNeeded();
+		return completed;
+	}
+
 	/**
 		Finds the index of the first pointer which matches the pointer passed in.
 		@returns -1 if not found!
 	*/
-	int getIndex(T pointer)
+	int getIndex(T pointer) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -399,7 +416,7 @@ public:
 	/**
 		@returns item count in the list
 	*/
-	int size()
+	int size() noexcept
 	{
 		return itemCount;
 	}
@@ -407,7 +424,7 @@ public:
 	/**
 		@returns whether the list is currently using the small buffer optimization
 	*/
-	bool isUsingSmallBuffer() const
+	bool isUsingSmallBuffer() const noexcept
 	{
 		return usingSmallBuffer;
 	}
@@ -415,7 +432,7 @@ public:
 	/**
 		@returns the size of the small buffer
 	*/
-	static constexpr int getSmallBufferSize()
+	static constexpr int getSmallBufferSize() noexcept
 	{
 		return SmallBufferSize;
 	}
@@ -423,13 +440,13 @@ public:
 	/**
 		@returns whether this instance is thread-safe (compile-time constant)
 	*/
-	static constexpr bool isThreadSafeInstance()
+	static constexpr bool isThreadSafeInstance() noexcept
 	{
 		return IsThreadSafe;
 	}
 
 	/** Destructs PointerList object.*/
-	~KPointerList()
+	~KPointerList() noexcept
 	{
 		if (!usingSmallBuffer)
 			::free((void*)list);

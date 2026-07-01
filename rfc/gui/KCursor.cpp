@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,38 +21,42 @@
 
 #include "KCursor.h"
 
-KCursor::KCursor()
+KCursor::KCursor() noexcept
 {
 	hCursor = 0;
 }
 
-bool KCursor::loadFromResource(WORD resourceID)
+bool KCursor::loadFromResource(WORD resourceID) noexcept
 {
-	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, MAKEINTRESOURCEW(resourceID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, 
+		MAKEINTRESOURCEW(resourceID), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+
 	if(hCursor)
 		return true;	
 	return false;
 }
 
-bool KCursor::loadFromFile(const KString& filePath)
+bool KCursor::loadFromFile(const KString& filePath) noexcept
 {
-	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+	hCursor = (HCURSOR)::LoadImageW(KApplication::hInstance, 
+		filePath, IMAGE_CURSOR, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_DEFAULTCOLOR);
+
 	if(hCursor)
 		return true;	
 	return false;
 }
 
-HCURSOR KCursor::getHandle()
+HCURSOR KCursor::getHandle() noexcept
 {
 	return hCursor;
 }
 
-KCursor::operator HCURSOR()const
+KCursor::operator HCURSOR()const noexcept
 {
 	return hCursor;
 }
 
-KCursor::~KCursor()
+KCursor::~KCursor() noexcept
 {
 	if(hCursor)
 		::DestroyCursor(hCursor);

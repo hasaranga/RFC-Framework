@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,31 +27,33 @@
 class KMenuButton : public KButton
 {
 protected:
-	KFont arrowFont;
-	KFont* glyphFont;
+	KFontReference arrowFontRef;
+	KFontReference glyphFontRef;
 	KMenu* buttonMenu;
 	const wchar_t* glyphChar;
 	COLORREF glyphColor;
-	int glyphLeft;
+	Logical glyphLeft; // logical value
 
 public:
-	KMenuButton();
+	KMenuButton() noexcept;
 
-	virtual ~KMenuButton();
+	virtual ~KMenuButton() noexcept;
 
-	virtual void setMenu(KMenu* buttonMenu);
+	void setMenu(KMenu* buttonMenu) noexcept;
 
 	/**
 		Use character code for glyphChar. ex: "\x36" for down arrow when using Webdings font.
 		You can use "Character Map" tool get character codes.
 		Default text color will be used if glyphColor not specified.
+		glyphLeft is a logical value.
 	*/
-	virtual void setGlyph(const wchar_t* glyphChar, KFont* glyphFont, COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), int glyphLeft = 6);
+	void setGlyph(const wchar_t* glyphChar, const KFontType& glyphFontType,
+		COLORREF glyphColor = ::GetSysColor(COLOR_BTNTEXT), Logical glyphLeft = 6) noexcept;
 
-	virtual void setDPI(int newDPI) override;
+	virtual void setDPI(int newDPI) noexcept override;
 
-	virtual void _onPress() override;
+	virtual void _onPress() noexcept override;
 
-	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) noexcept override;
 };
 

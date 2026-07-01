@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,10 +26,10 @@
 class KTextArea : public KTextBox
 {
 public:
-	KTextArea(bool autoScroll = false, bool readOnly = false);
+	KTextArea(bool autoScroll = false, bool readOnly = false) noexcept;
 
-	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept override;
 
-	virtual ~KTextArea();
+	virtual ~KTextArea() noexcept;
 };
 

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,26 +30,97 @@
 
 class KGuid
 {
+	GUID guid;
 public:
+	KGuid(bool generate = false) noexcept 
+	{
+		if(generate)
+			KGuid::generateGUID(&guid);
+	}
 
-	KGuid(){}
+	KGuid(const GUID& other) noexcept
+	{
+		guid = other;
+	}
 
-	static bool generateGUID(GUID* pGUID)
+	KGuid(const KGuid& other) noexcept
+	{
+		guid = other.guid;
+	}
+
+	KGuid(KGuid&& other) noexcept
+	{
+		guid = other.guid;
+	}
+
+	// Replaces this guid contents with another guid.
+	const KGuid& operator= (const KGuid& other) noexcept
+	{
+		if (this != &other)
+		{
+			guid = other.guid;
+		}
+		return *this;
+	}
+
+	const KGuid& operator= (const GUID& other) noexcept
+	{
+		guid = other;	
+		return *this;
+	}
+
+	// Move assignment. does not clear other guid.
+	KGuid& operator= (KGuid&& other) noexcept
+	{
+		if (this != &other)
+		{
+			guid = other.guid;
+		}
+		return *this;
+	}
+
+	// compare with other guid
+	bool operator==(const KGuid& other) const noexcept
+	{
+		return (::IsEqualGUID(guid, other.guid) == TRUE);
+	}
+
+	operator const GUID* ()const noexcept
+	{
+		return &guid;
+	}
+
+	operator GUID ()const noexcept
+	{
+		return guid;
+	}
+
+	GUID* data() noexcept
+	{
+		return &guid;
+	}
+
+	KString toString() const noexcept
+	{
+		return KGuid::guidToString(&guid);
+	}
+
+	bool compare(const KGuid& other) const noexcept
+	{
+		return (::IsEqualGUID(guid, other.guid) == TRUE);
+	}
+
+	bool compare(const GUID& other) const noexcept
+	{
+		return (::IsEqualGUID(guid, other) == TRUE);
+	}
+
+	static bool generateGUID(GUID* pGUID) noexcept
 	{
 		return (::CoCreateGuid(pGUID) == S_OK);
 	}
 
-	static KString generateGUID()
-	{
-		GUID guid;
-
-		if (KGuid::generateGUID(&guid))
-			return KGuid::guidToString(&guid);
-
-		return KString();
-	}
-
-	static KString guidToString(GUID* pGUID)
+	static KString guidToString(const GUID* pGUID) noexcept
 	{
 		wchar_t* strGuid = nullptr;
 		::UuidToStringW(pGUID, (RPC_WSTR*)&strGuid);
@@ -60,7 +131,17 @@ public:
 		return result;
 	}
 
-	~KGuid(){}
+	static KString generateGUID() noexcept
+	{
+		GUID guid;
+
+		if (KGuid::generateGUID(&guid))
+			return KGuid::guidToString(&guid);
+
+		return KString();
+	}
+
+	~KGuid() noexcept {}
 
 private:
 	RFC_LEAK_DETECTOR(KGuid)

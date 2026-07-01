@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,10 +21,10 @@
 
 #include "KTextArea.h"
 
-KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
+KTextArea::KTextArea(bool autoScroll, bool readOnly) noexcept :KTextBox(readOnly)
 {
-	compWidth = 200;
-	compHeight = 100;
+	compLWidth = 200;
+	compLHeight = 100;
 
 	compDwStyle = compDwStyle | ES_MULTILINE | ES_WANTRETURN;
 
@@ -34,13 +34,11 @@ KTextArea::KTextArea(bool autoScroll, bool readOnly):KTextBox(readOnly)
 		compDwStyle = compDwStyle | WS_HSCROLL | WS_VSCROLL;
 }
 
-LRESULT KTextArea::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KTextArea::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
 	if(msg == WM_GETDLGCODE)
 		return DLGC_WANTALLKEYS; // to catch TAB key
 	return KTextBox::windowProc(hwnd, msg, wParam, lParam);
 }
 
-KTextArea::~KTextArea()
-{
-}
+KTextArea::~KTextArea() noexcept {}

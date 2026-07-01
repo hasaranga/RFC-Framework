@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -27,54 +27,56 @@
 
 /**
 	Can be use to create 32bit bitmap image from data.
+	all values are physical values.
 */
 class KTransparentBitmap
 {
 protected:
-	int width;
-	int height;
+	Physical width;
+	Physical height;
 	HDC hdcMem;
 	HBITMAP hbm;
 	HBITMAP hbmPrev;
 	void* pvBits;
 
-	void releaseResources();
-	void createEmptyBitmap(int width, int height);
+	void releaseResources() noexcept;
+	void createEmptyBitmap(Physical width, Physical height) noexcept;
 
 public:
 	// data must be in 0xaarrggbb format with premultiplied alpha.
 	// stride must be equal to width * 4.
 	// data will be copied to internal buffer.
-	KTransparentBitmap(void* data, int width, int height, int stride);
+	KTransparentBitmap(void* data, Physical width, Physical height, int stride) noexcept;
 
 	// creates a transparent empty image
-	KTransparentBitmap(int width, int height);
+	KTransparentBitmap(Physical width, Physical height) noexcept;
 
 	// color format: 0xaarrggbb
-	unsigned int getPixel(int x, int y);
+	unsigned int getPixel(Physical x, Physical y) noexcept;
 
-	bool hitTest(int x, int y);
+	bool hitTest(Physical x, Physical y) noexcept;
 
-	int getWidth();
+	Physical getWidth() noexcept;
 
-	int getHeight();
+	Physical getHeight() noexcept;
 
 	// also clears the content
-	void resize(int width, int height);
+	void resize(Physical width, Physical height) noexcept;
 
 	// use AlphaBlend to draw
 	// standard gdi drawing commands may not work with the returned hdc. (content has premultiplied alpha)
 	// copy to secondary hdc using AlphaBlend or use gdi+ with PixelFormat32bppPARGB
-	HDC getDC();
+	HDC getDC() noexcept;
 
-	void draw(HDC destHdc, int destX, int destY, BYTE alpha = 255);
+	void draw(HDC destHdc, Physical destX, Physical destY, BYTE alpha = 255) noexcept;
 
-	void draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha = 255);
+	void draw(HDC destHdc, Physical destX, Physical destY, Physical destWidth, Physical destHeight, BYTE alpha = 255) noexcept;
 
 	// can copy/scale specific part of the image
-	void draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha = 255);
+	void draw(HDC destHdc, Physical destX, Physical destY, Physical destWidth, Physical destHeight,
+		Physical srcX, Physical srcY, Physical srcWidth, Physical srcHeight, BYTE alpha = 255) noexcept;
 
-	virtual ~KTransparentBitmap();
+	virtual ~KTransparentBitmap() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KTransparentBitmap)

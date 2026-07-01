@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,38 +23,37 @@
 
 HINSTANCE KApplication::hInstance = 0;
 KDPIAwareness KApplication::dpiAwareness;
-bool KApplication::dpiAwareAPICalled = false;
 
-KApplication::KApplication()
+KApplication::KApplication() noexcept
 {
 }
 
-void KApplication::modifyModuleInitParams()
+void KApplication::modifyModuleInitParams() noexcept
 {
 
 }
 
-int KApplication::main(wchar_t** argv, int argc)
+int KApplication::main(wchar_t** argv, int argc) noexcept
 {
 	return 0;
 }
 
-bool KApplication::allowMultipleInstances()
+bool KApplication::allowMultipleInstances() noexcept
 {
 	return true;
 }
 
-int KApplication::anotherInstanceIsRunning(wchar_t** argv, int argc)
+int KApplication::anotherInstanceIsRunning(wchar_t** argv, int argc) noexcept
 {
 	return 0;
 }
 
-const wchar_t* KApplication::getApplicationID()
+const wchar_t* KApplication::getApplicationID() noexcept
 {
 	return L"RFC_APPLICATION";
 }
 
-void KApplication::messageLoop(bool handleTabKey)
+void KApplication::messageLoop(bool handleTabKey) noexcept
 {
 	MSG msg;
 
@@ -70,6 +69,6 @@ void KApplication::messageLoop(bool handleTabKey)
 	}
 }
 
-KApplication::~KApplication()
+KApplication::~KApplication() noexcept
 {
 }

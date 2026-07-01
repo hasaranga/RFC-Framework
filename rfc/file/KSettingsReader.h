@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,6 +22,7 @@
 #pragma once
 
 #include "../core/CoreModule.h"
+#include "KStream.h"
 #include "KFile.h"
 
 /**
@@ -31,28 +32,46 @@ class KSettingsReader
 {
 protected:
 	KFile settingsFile;
-
+	KStream* streamPtr;
 public:
-	KSettingsReader();
+	KSettingsReader() noexcept;
 
-	bool openFile(const wchar_t* fileName, int formatID);
+	/**
+		Constructor that accepts an existing KStream reference.
+		The stream object should already be opened for reading.
+		KSettingsReader will not use formatID or close the stream object. it just read data.
+	*/
+	KSettingsReader(KStream* stream) noexcept;
+
+	bool openFile(const wchar_t* fileName, int formatID) noexcept;
 
 	/**
 		read struct, array or whatever...
 	*/
-	void readData(DWORD size, void *buffer);
+	bool readData(DWORD size, void *buffer) noexcept;
 
-	KString readString();
+	template<typename T>
+	bool readData(T* buffer) noexcept
+	{
+		if (buffer && streamPtr)
+			return streamPtr->readStream((BYTE*)buffer, sizeof(T));
 
-	int readInt();
+		return false;
+	}
 
-	float readFloat();
+	KString readString() noexcept;
 
-	double readDouble();
+	int readInt() noexcept;
 
-	bool readBool();
+	unsigned int readUInt() noexcept;
 
-	~KSettingsReader();
+	float readFloat() noexcept;
+
+	double readDouble() noexcept;
+
+	bool readBool() noexcept;
+
+	~KSettingsReader() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KSettingsReader)

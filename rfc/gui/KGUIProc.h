@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -31,21 +31,24 @@ public:
 	static ATOM atomComponent;
 	static ATOM atomOldProc;
 
-	static LRESULT CALLBACK windowProc(HWND, UINT, WPARAM, LPARAM);
-	static INT_PTR CALLBACK dialogProc(HWND, UINT, WPARAM, LPARAM);
+	static LRESULT CALLBACK windowProc(HWND, UINT, WPARAM, LPARAM) noexcept;
+	static INT_PTR CALLBACK dialogProc(HWND, UINT, WPARAM, LPARAM) noexcept;
 
 	/**
 		set requireInitialMessages to true to receive initial messages lke WM_CREATE... (installs a hook)
+		createComponentFor96DPI will create the component for logical(96dpi) position/size.
+		for component x,y will be logical. for a window x,y will be physical.
+		after calling this method, you must call SetWindowPos to scale component/window to current dpi.
 	*/
-	static HWND createComponent(KComponent* component, bool requireInitialMessages);
+	static HWND createComponentFor96DPI(KComponent* component, bool requireInitialMessages, int x, int y) noexcept;
 
 	/**
 		hwnd can be window, custom control, dialog or common control.
 		hwnd will be subclassed if it is a common control or dialog.
 	*/
-	static void attachRFCPropertiesToHWND(HWND hwnd, KComponent* component);
+	static void attachRFCPropertiesToHWND(HWND hwnd, KComponent* component) noexcept;
 
-	static int hotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
-	static HWND hotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component);
+	static int hotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component) noexcept;
+	static HWND hotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component) noexcept;
 };
 

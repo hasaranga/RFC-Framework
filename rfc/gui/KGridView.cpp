@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,18 +23,15 @@
 #include "KGUIProc.h"
 #include <commctrl.h>
 
-KGridView::KGridView(bool sortItems) : KComponent(false)
+KGridView::KGridView(bool sortItems) noexcept : KComponent(false)
 {
 	itemCount = 0;
 	colCount = 0;
 
 	compClassName.assignStaticText(TXT_WITH_LEN("SysListView32"));
 
-	compWidth = 300;
-	compHeight = 200;
-
-	compX = 0;
-	compY = 0;
+	compLWidth = 300;
+	compLHeight = 200;
 
 	compDwStyle = WS_CHILD | WS_TABSTOP | WS_BORDER | 
 		LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SINGLESEL;
@@ -45,10 +42,12 @@ KGridView::KGridView(bool sortItems) : KComponent(false)
 		compDwStyle |= LVS_SORTASCENDING;
 }
 
-KGridView::~KGridView(){}
+KGridView::~KGridView() noexcept {}
 
-void KGridView::insertRecord(KString** columnsData)
+void KGridView::insertRecord(KString** columnsData) noexcept
 {
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
+
 	LVITEMW lvi = {};
 	lvi.mask = LVIF_TEXT;
 	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
@@ -70,8 +69,10 @@ void KGridView::insertRecord(KString** columnsData)
 	++itemCount;
 }
 
-void KGridView::insertRecordTo(int rowIndex, KString **columnsData)
+void KGridView::insertRecordTo(int rowIndex, KString **columnsData) noexcept
 {
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
+
 	LVITEMW lvi = {};
 	lvi.mask = LVIF_TEXT;
 	lvi.pszText = (wchar_t*)(const wchar_t*)(*columnsData[0]);
@@ -93,8 +94,10 @@ void KGridView::insertRecordTo(int rowIndex, KString **columnsData)
 	++itemCount;
 }
 
-KString KGridView::getRecordAt(int rowIndex, int columnIndex)
+KString KGridView::getRecordAt(int rowIndex, int columnIndex) noexcept
 {
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
+
 	wchar_t *buffer = (wchar_t*)::malloc(512 * sizeof(wchar_t));
 	buffer[0] = 0;
 
@@ -109,25 +112,29 @@ KString KGridView::getRecordAt(int rowIndex, int columnIndex)
 	return KString(buffer, KStringBehaviour::FREE_ON_DESTROY);
 }
 
-int KGridView::getSelectedRow()
+int KGridView::getSelectedRow() noexcept
 {
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
 	return ListView_GetNextItem(compHWND, -1, LVNI_SELECTED);
 }
 
-void KGridView::removeRecordAt(int rowIndex)
+void KGridView::removeRecordAt(int rowIndex) noexcept
 {
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
 	if (ListView_DeleteItem(compHWND, rowIndex))
 		--itemCount;
 }
 
-void KGridView::removeAll()
+void KGridView::removeAll() noexcept
 {
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
 	ListView_DeleteAllItems(compHWND);
 	itemCount = 0;
 }
 
-void KGridView::updateRecordAt(int rowIndex, int columnIndex, const KString& text)
+void KGridView::updateRecordAt(int rowIndex, int columnIndex, const KString& text) noexcept
 {
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
 	LV_ITEMW lvi = {};
 	lvi.iSubItem = columnIndex;
 	lvi.pszText = (wchar_t*)(const wchar_t*)text;
@@ -136,23 +143,30 @@ void KGridView::updateRecordAt(int rowIndex, int columnIndex, const KString& tex
 		(WPARAM)rowIndex, (LPARAM)&lvi); // explicity call unicode version. we can't use ListView_SetItemText macro. it relies on preprocessor defs.
 }
 
-void KGridView::setColumnWidth(int columnIndex, int columnWidth)
+void KGridView::setColumnWidth(int columnIndex, Logical columnWidth) noexcept
 {
-	ListView_SetColumnWidth(compHWND, columnIndex, columnWidth);
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
+	const int dpi = KDPIUtility::getWindowDPI(compHWND);
+	ListView_SetColumnWidth(compHWND, columnIndex, KDPIUtility::toPhysical(columnWidth, dpi));
 }
 
-int KGridView::getColumnWidth(int columnIndex)
+Logical KGridView::getColumnWidth(int columnIndex) noexcept
 {
-	return ListView_GetColumnWidth(compHWND, columnIndex);
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
+	const int dpi = KDPIUtility::getWindowDPI(compHWND);
+	return KDPIUtility::toLogical(ListView_GetColumnWidth(compHWND, columnIndex), dpi);
 }
 
-void KGridView::createColumn(const KString& text, int columnWidth)
+void KGridView::createColumn(const KString& text, Logical columnWidth) noexcept
 {
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
+	const int dpi = KDPIUtility::getWindowDPI(compHWND);
+
 	LVCOLUMNW lvc = {};
 
 	lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 	lvc.fmt = LVCFMT_LEFT;
-	lvc.cx = columnWidth;
+	lvc.cx = KDPIUtility::toPhysical(columnWidth, dpi);
 	lvc.pszText = (wchar_t*)(const wchar_t*)text;
 	lvc.iSubItem = colCount;
 
@@ -162,7 +176,7 @@ void KGridView::createColumn(const KString& text, int columnWidth)
 	++colCount;
 }
 
-bool KGridView::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KGridView::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) noexcept
 {
 	if (msg == WM_NOTIFY)
 	{
@@ -193,44 +207,26 @@ bool KGridView::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *resul
 	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KGridView::create(bool requireInitialMessages)
+void KGridView::afterCreated() noexcept
 {
-	if (!compParentHWND) // user must specify parent handle!
-		return false;
-
-	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register WC_LISTVIEWW class!
-
-	if (compHWND)
-	{
-		ListView_SetExtendedListViewStyle(compHWND, 
-			LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-
-		::SendMessageW(compHWND, WM_SETFONT, 
-			(WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
-
-		::EnableWindow(compHWND, compEnabled);
-
-		if(compVisible)
-			::ShowWindow(compHWND, SW_SHOW);
-
-		return true;
-	}
-	return false;
+	ListView_SetExtendedListViewStyle(compHWND,
+		LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+	__super::afterCreated();
 }
 
-void KGridView::_onItemSelect()
+void KGridView::_onItemSelect() noexcept
 {
 	if (onItemSelect)
 		onItemSelect(this);
 }
 
-void KGridView::_onItemRightClick()
+void KGridView::_onItemRightClick() noexcept
 {
 	if (onItemRightClick)
 		onItemRightClick(this);
 }
 
-void KGridView::_onItemDoubleClick()
+void KGridView::_onItemDoubleClick() noexcept
 {
 	if (onItemRightClick)
 		onItemRightClick(this);

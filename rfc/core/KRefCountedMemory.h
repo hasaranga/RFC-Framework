@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -32,7 +32,7 @@ template<class T>
 class KRefCountedMemory
 {
 private:
-	~KRefCountedMemory() {}
+	~KRefCountedMemory() noexcept {}
 
 protected:
 	volatile LONG refCount;
@@ -40,12 +40,12 @@ protected:
 public:
 	T buffer;
 
-	KRefCountedMemory(T buffer) : refCount(1), buffer(buffer) {}
+	KRefCountedMemory(T buffer) noexcept : refCount(1), buffer(buffer) {}
 	
 	/**
 		Make sure to call this method if you construct new KRefCountedMemory or keep reference to another KRefCountedMemory object.
 	*/
-	void addReference()
+	void addReference() noexcept
 	{
 		::InterlockedIncrement(&refCount);
 	}
@@ -54,7 +54,7 @@ public:
 		Make sure to call this method if you clear reference to KRefCountedMemory object. 
 		it will release allocated memory for string if ref count is zero.
 	*/
-	void releaseReference()
+	void releaseReference() noexcept
 	{
 		const LONG res = ::InterlockedDecrement(&refCount);
 		if (res == 0)

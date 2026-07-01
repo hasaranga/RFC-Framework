@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -24,17 +24,14 @@
 #include "KGUIProc.h"
 #include <commctrl.h>
 
-KProgressBar::KProgressBar(bool smooth, bool vertical) : KComponent(false)
+KProgressBar::KProgressBar(bool smooth, bool vertical) noexcept : KComponent(false)
 {
 	value = 0;
 
 	compClassName.assignStaticText(TXT_WITH_LEN("msctls_progress32"));
 
-	compWidth = 100;
-	compHeight = 20;
-
-	compX = 0;
-	compY = 0;
+	compLWidth = 100;
+	compLHeight = 20;
 
 	compDwStyle = WS_CHILD | WS_CLIPSIBLINGS;
 	compDwExStyle = WS_EX_WINDOWEDGE;
@@ -46,12 +43,12 @@ KProgressBar::KProgressBar(bool smooth, bool vertical) : KComponent(false)
 		compDwStyle = compDwStyle | PBS_VERTICAL;
 }
 
-int KProgressBar::getValue()
+int KProgressBar::getValue() noexcept
 {
 	return value;
 }
 
-void KProgressBar::setValue(int value)
+void KProgressBar::setValue(int value) noexcept
 {
 	this->value=value;
 
@@ -59,27 +56,11 @@ void KProgressBar::setValue(int value)
 		::SendMessageW(compHWND, PBM_SETPOS, value, 0);
 }
 
-bool KProgressBar::create(bool requireInitialMessages)
+void KProgressBar::afterCreated() noexcept
 {
-	if(!compParentHWND) // user must specify parent handle!
-		return false;
-
-	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register PROGRESS_CLASSW class!
-
-	if(compHWND)
-	{
-		::SendMessageW(compHWND, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); // set range between 0-100
-		::SendMessageW(compHWND, PBM_SETPOS, value, 0); // set current value!
-		::EnableWindow(compHWND, compEnabled);
-
-		if(compVisible)
-			::ShowWindow(compHWND, SW_SHOW);
-
-		return true;
-	}
-	return false;	
+	::SendMessageW(compHWND, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); // set range between 0-100
+	::SendMessageW(compHWND, PBM_SETPOS, value, 0); // set current value!
+	__super::afterCreated();
 }
 
-KProgressBar::~KProgressBar()
-{
-}
+KProgressBar::~KProgressBar() noexcept {}

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,16 +30,16 @@ protected:
 	__int64 counterStart;
 
 public:
-	KPerformanceCounter();
+	KPerformanceCounter() noexcept;
 
-	void startCounter();
+	void startCounter() noexcept;
 
 	/**
 		returns delta time(milliseconds) between startCounter and endCounter calls.
 	*/
-	double endCounter();
+	double endCounter() noexcept;
 
-	~KPerformanceCounter();
+	~KPerformanceCounter() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KPerformanceCounter)

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,28 +22,28 @@
 #include "KDirectory.h"
 
 
-KDirectory::KDirectory(){}
+KDirectory::KDirectory() noexcept {}
 
-KDirectory::~KDirectory(){}
+KDirectory::~KDirectory() noexcept {}
 
-bool KDirectory::isDirExists(const KString& dirName)
+bool KDirectory::isDirExists(const KString& dirName) noexcept
 {
 	const DWORD dwAttrib = ::GetFileAttributesW(dirName);
 
 	return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-bool KDirectory::createDir(const KString& dirName)
+bool KDirectory::createDir(const KString& dirName) noexcept
 {
 	return (::CreateDirectoryW(dirName, NULL) == 0 ? false : true);
 }
 
-bool KDirectory::removeDir(const KString& dirName)
+bool KDirectory::removeDir(const KString& dirName) noexcept
 {
 	return (::RemoveDirectoryW(dirName) == 0 ? false : true);
 }
 
-void KDirectory::getModuleDir(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars)
+void KDirectory::getModuleDir(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars) noexcept
 {
 	outBuffer[0] = 0;
 	::GetModuleFileNameW(hModule, outBuffer, bufferSizeInWChars);
@@ -54,13 +54,13 @@ void KDirectory::getModuleDir(HMODULE hModule, wchar_t* outBuffer, int bufferSiz
 	*p = 0;	// kill it
 }
 
-void KDirectory::getModuleFilePath(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars)
+void KDirectory::getModuleFilePath(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars) noexcept
 {
 	outBuffer[0] = 0;
 	::GetModuleFileNameW(hModule, outBuffer, bufferSizeInWChars);
 }
 
-void KDirectory::getParentDir(const wchar_t* filePath, wchar_t* outBuffer, int bufferSizeInWChars)
+void KDirectory::getParentDir(const wchar_t* filePath, wchar_t* outBuffer, int bufferSizeInWChars) noexcept
 {
 	::wcscpy_s(outBuffer, bufferSizeInWChars, filePath);
 
@@ -70,19 +70,19 @@ void KDirectory::getParentDir(const wchar_t* filePath, wchar_t* outBuffer, int b
 	*p = 0;	// kill it
 }
 
-void KDirectory::getTempDir(wchar_t* outBuffer, int bufferSizeInWChars)
+void KDirectory::getTempDir(wchar_t* outBuffer, int bufferSizeInWChars) noexcept
 {
 	outBuffer[0] = 0;
 	::GetTempPathW(bufferSizeInWChars, outBuffer);
 }
 
-void KDirectory::getAllUserDataDir(wchar_t* outBuffer)
+void KDirectory::getAllUserDataDir(wchar_t* outBuffer) noexcept
 {
 	outBuffer[0] = 0;
 	::SHGetFolderPathW(NULL, CSIDL_COMMON_APPDATA, NULL, 0, outBuffer);
 }
 
-void KDirectory::getLoggedInUserFolderPath(int csidl, wchar_t* outBuffer)
+void KDirectory::getLoggedInUserFolderPath(int csidl, wchar_t* outBuffer) noexcept
 {
 	DWORD dwProcessId;
 	::GetWindowThreadProcessId(::GetShellWindow(), &dwProcessId);
@@ -98,17 +98,17 @@ void KDirectory::getLoggedInUserFolderPath(int csidl, wchar_t* outBuffer)
 	::CloseHandle(tokenHandle);
 }
 
-void KDirectory::getRoamingFolder(wchar_t* outBuffer)
+void KDirectory::getRoamingFolder(wchar_t* outBuffer) noexcept
 {
 	KDirectory::getLoggedInUserFolderPath(CSIDL_APPDATA, outBuffer);
 }
 
-void KDirectory::getNonRoamingFolder(wchar_t* outBuffer)
+void KDirectory::getNonRoamingFolder(wchar_t* outBuffer) noexcept
 {
 	KDirectory::getLoggedInUserFolderPath(CSIDL_LOCAL_APPDATA, outBuffer);
 }
 
-KPointerList<KString*,32, false>* KDirectory::scanFolderForExtension(const KString& folderPath, const KString& extension)
+KPointerList<KString*,32, false>* KDirectory::scanFolderForExtension(const KString& folderPath, const KString& extension) noexcept
 {
 	KPointerList<KString*,32,false>* result = new KPointerList<KString*,32,false>();
 	WIN32_FIND_DATAW findData;
@@ -125,7 +125,7 @@ KPointerList<KString*,32, false>* KDirectory::scanFolderForExtension(const KStri
 	{
 		if (!(findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 		{
-			result->add(new KString(findData.cFileName,KStringBehaviour::MAKE_A_COPY));
+			result->add(new KString(findData.cFileName, KStringBehaviour::MAKE_A_COPY));
 		}
 	} while (::FindNextFileW(hFind, &findData) != 0);
 

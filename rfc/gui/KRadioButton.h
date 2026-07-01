@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,8 +26,8 @@
 class KRadioButton : public KCheckBox
 {
 public:
-	KRadioButton();
+	KRadioButton() noexcept;
 
-	virtual ~KRadioButton();
+	virtual ~KRadioButton() noexcept;
 };
 

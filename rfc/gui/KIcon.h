@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -33,38 +33,39 @@ protected:
 	WORD resourceID;
 
 public:
-	KIcon();
+	KIcon() noexcept;
 
 	// does not load. to be use with getScaledIcon method.
-	void setResource(WORD resourceID);
+	void setResource(WORD resourceID) noexcept;
 
 	// this method scales down a larger image instead of scaling up a smaller image.
 	// can be use for high-dpi requirements.
 	// must destroy returned icon by calling DestroyIcon
-	HICON getScaledIcon(int size);
+	// size is a physical value.
+	HICON getScaledIcon(Physical size) noexcept;
 
 	/**
 		Loads icon from resource with default size given by the system
 		@param resourceID resource ID of icon file
 		@returns false if icon load fails
 	*/
-	bool loadFromResource(WORD resourceID);
+	bool loadFromResource(WORD resourceID) noexcept;
 
 	/**
 		Loads icon from file with default size given by the system
 		@param filePath path to icon file
 		@returns false if icon load fails
 	*/
-	bool loadFromFile(const KString& filePath);
+	bool loadFromFile(const KString& filePath) noexcept;
 
 	/**
 		Returns icon handle
 	*/
-	HICON getHandle();
+	HICON getHandle() noexcept;
 
-	operator HICON()const;
+	operator HICON()const noexcept;
 
-	virtual ~KIcon();
+	virtual ~KIcon() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KIcon)

@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -40,8 +40,8 @@ private:
 public:
     // once allocated, returned buffer will stay until the application exit.
     // returns nullptr if KSTATIC_POOL_SIZE is not enough.
-    static void* allocate(size_t size, size_t alignment = alignof(std::max_align_t));
+    static void* allocate(size_t size, size_t alignment = alignof(std::max_align_t)) noexcept;
     
-    static void reset();
+    static void reset() noexcept;
 };
 

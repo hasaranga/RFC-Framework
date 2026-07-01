@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -32,45 +32,45 @@ Can be use to manipulate dirs.
 class KDirectory
 {
 public:
-	KDirectory();
+	KDirectory() noexcept;
 
-	static bool isDirExists(const KString& dirName);
+	static bool isDirExists(const KString& dirName) noexcept;
 
 	/**
 		returns false if directory already exists.
 	*/
-	static bool createDir(const KString& dirName);
+	static bool createDir(const KString& dirName) noexcept;
 
 	/**
 		deletes an existing empty directory.
 	*/
-	static bool removeDir(const KString& dirName);
+	static bool removeDir(const KString& dirName) noexcept;
 
 	/**
 		returns the directory of given module. if HModule is NULL this function will return dir of exe.
 		returns empty string on error.
 	*/
-	static void getModuleDir(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars);
+	static void getModuleDir(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars) noexcept;
 
-	static void getModuleFilePath(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars);
+	static void getModuleFilePath(HMODULE hModule, wchar_t* outBuffer, int bufferSizeInWChars) noexcept;
 
 	/**
 		returns the parent directory of given file.
 	*/
-	static void getParentDir(const wchar_t* filePath, wchar_t* outBuffer, int bufferSizeInWChars);
+	static void getParentDir(const wchar_t* filePath, wchar_t* outBuffer, int bufferSizeInWChars) noexcept;
 
 	/**
 		returns the the directory for temporary files.
 		returns empty string on error.
 	*/
-	static void getTempDir(wchar_t* outBuffer, int bufferSizeInWChars);
+	static void getTempDir(wchar_t* outBuffer, int bufferSizeInWChars) noexcept;
 
 	/**
 		returns the all user data directory. Requires admin priviledges for writing to this dir.
 		returns empty string on error.
 		outBuffer size must be MAX_PATH
 	*/
-	static void getAllUserDataDir(wchar_t* outBuffer);
+	static void getAllUserDataDir(wchar_t* outBuffer) noexcept;
 
 	/*
 		known path for the logged in user of the pc. (not affected by right click -> run as admin)
@@ -93,24 +93,24 @@ public:
 		CSIDL_SYSTEM
 		CSIDL_WINDOWS
 	*/
-	static void getLoggedInUserFolderPath(int csidl, wchar_t* outBuffer);
+	static void getLoggedInUserFolderPath(int csidl, wchar_t* outBuffer) noexcept;
 
 	// path for logged in user of pc (not affected by right click -> run as admin)
 	// outBuffer size must be MAX_PATH
-	static void getRoamingFolder(wchar_t* outBuffer);
+	static void getRoamingFolder(wchar_t* outBuffer) noexcept;
 
 	// path for logged in user of pc (not affected by right click -> run as admin)
 	// outBuffer size must be MAX_PATH
-	static void getNonRoamingFolder(wchar_t* outBuffer);
+	static void getNonRoamingFolder(wchar_t* outBuffer) noexcept;
 
 	// must delete returned strings and list.
 	// extension without dot. ex: "mp3"
 	// folderPath is without ending slash
 	// returns only file names. not full path.
 	// does not scan for child folders.
-	static KPointerList<KString*, 32, false>* scanFolderForExtension(const KString& folderPath, const KString& extension);
+	static KPointerList<KString*, 32, false>* scanFolderForExtension(const KString& folderPath, const KString& extension) noexcept;
 
-	~KDirectory();
+	~KDirectory() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KDirectory)

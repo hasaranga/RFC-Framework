@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@
 #include "KGUIProc.h"
 #include <windowsx.h>
 
-KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent(false)
+KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) noexcept : KComponent(false)
 {
 	this->multipleSelection = multipleSelection;
 
@@ -32,11 +32,8 @@ KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent
 
 	compClassName.assignStaticText(TXT_WITH_LEN("LISTBOX"));
 
-	compWidth = 100;
-	compHeight = 100;
-
-	compX = 0;
-	compY = 0;
+	compLWidth = 100;
+	compLHeight = 100;
 
 	compDwStyle = LBS_NOTIFY | WS_CHILD | WS_CLIPSIBLINGS | WS_TABSTOP;
 	compDwExStyle = WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE;
@@ -49,7 +46,7 @@ KListBox::KListBox(bool multipleSelection, bool sort, bool vscroll) : KComponent
 		compDwStyle = compDwStyle | WS_VSCROLL;
 }
 
-void KListBox::addItem(const KString& text)
+void KListBox::addItem(const KString& text) noexcept
 {
 	stringList.add(text);
 
@@ -57,7 +54,7 @@ void KListBox::addItem(const KString& text)
 		::SendMessageW(compHWND, LB_ADDSTRING, 0, (LPARAM)(const wchar_t*)text);
 }
 
-void KListBox::removeItem(int index)
+void KListBox::removeItem(int index) noexcept
 {
 	if(stringList.remove(index))
 	{
@@ -66,14 +63,14 @@ void KListBox::removeItem(int index)
 	}
 }
 
-void KListBox::removeItem(const KString& text)
+void KListBox::removeItem(const KString& text) noexcept
 {
 	const int itemIndex = getItemIndex(text);
 	if(itemIndex > -1)
 		this->removeItem(itemIndex);
 }
 
-void KListBox::updateItem(int index, const KString& text)
+void KListBox::updateItem(int index, const KString& text) noexcept
 {
 	if (stringList.set(index, text))
 	{
@@ -85,17 +82,17 @@ void KListBox::updateItem(int index, const KString& text)
 	}
 }
 
-int KListBox::getItemIndex(const KString& text)
+int KListBox::getItemIndex(const KString& text) noexcept
 {
 	return stringList.getIndex(text);
 }
 
-int KListBox::getItemCount()
+int KListBox::getItemCount() noexcept
 {
 	return stringList.size();
 }
 
-int KListBox::getSelectedItemIndex()
+int KListBox::getSelectedItemIndex() noexcept
 {
 	if(compHWND)
 	{	 
@@ -106,7 +103,12 @@ int KListBox::getSelectedItemIndex()
 	return -1;	
 }
 
-KString KListBox::getSelectedItem()
+KString KListBox::getItem(int index) noexcept
+{
+	return stringList.get(index);
+}
+
+KString KListBox::getSelectedItem() noexcept
 {
 	const int itemIndex = getSelectedItemIndex();
 	if(itemIndex > -1)
@@ -115,7 +117,7 @@ KString KListBox::getSelectedItem()
 	return KString();
 }
 
-int KListBox::getSelectedItems(int* itemArray, int itemCountInArray)
+int KListBox::getSelectedItems(int* itemArray, int itemCountInArray) noexcept
 {
 	if(compHWND)
 	{	 
@@ -128,7 +130,7 @@ int KListBox::getSelectedItems(int* itemArray, int itemCountInArray)
 	return -1;
 }
 
-void KListBox::clearList()
+void KListBox::clearList() noexcept
 {
 	stringList.removeAll();
 
@@ -136,7 +138,7 @@ void KListBox::clearList()
 		::SendMessageW(compHWND, LB_RESETCONTENT, 0, 0);
 }
 
-void KListBox::selectItem(int index)
+void KListBox::selectItem(int index) noexcept
 {
 	selectedItemIndex = index;
 
@@ -144,7 +146,7 @@ void KListBox::selectItem(int index)
 		::SendMessageW(compHWND, LB_SETCURSEL, index, 0);
 }
 
-void KListBox::selectItems(int start, int end)
+void KListBox::selectItems(int start, int end) noexcept
 {
 	if(multipleSelection)
 	{
@@ -156,7 +158,7 @@ void KListBox::selectItems(int start, int end)
 	}
 }
 
-bool KListBox::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
+bool KListBox::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) noexcept
 {
 	if (msg == WM_COMMAND) 
 	{
@@ -200,64 +202,47 @@ bool KListBox::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result
 	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KListBox::create(bool requireInitialMessages)
+void KListBox::afterCreated() noexcept
 {
-	if(!compParentHWND) // user must specify parent handle!
-		return false;
-
-	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register LISTBOX class!
-
-	if(compHWND)
+	const int listSize = stringList.size();
+	if (listSize)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, 
-			(WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
-
-		::EnableWindow(compHWND, compEnabled);
-
-		const int listSize = stringList.size();
-		if(listSize)
+		for (int i = 0; i < listSize; i++)
 		{
-			for (int i = 0; i < listSize; i++)
-			{
-				::SendMessageW(compHWND, LB_ADDSTRING, 0, (LPARAM)(const wchar_t*)stringList.get(i));
-			}
+			::SendMessageW(compHWND, LB_ADDSTRING, 0, (LPARAM)(const wchar_t*)stringList.get(i));
 		}
-
-		if(!multipleSelection) // single selction!
-		{
-			if(selectedItemIndex > -1)
-				::SendMessageW(compHWND, LB_SETCURSEL, selectedItemIndex, 0);
-		}else
-		{
-			if(selectedItemIndex>-1)
-				::SendMessageW(compHWND, LB_SELITEMRANGE, TRUE, MAKELPARAM(selectedItemIndex, selectedItemEnd));
-		}
-
-		if(compVisible)
-			::ShowWindow(compHWND, SW_SHOW);
-
-		return true;
 	}
 
-	return false;
+	if (!multipleSelection) // single selction!
+	{
+		if (selectedItemIndex > -1)
+			::SendMessageW(compHWND, LB_SETCURSEL, selectedItemIndex, 0);
+	}
+	else
+	{
+		if (selectedItemIndex > -1)
+			::SendMessageW(compHWND, LB_SELITEMRANGE, TRUE, MAKELPARAM(selectedItemIndex, selectedItemEnd));
+	}
+
+	__super::afterCreated();
 }
 
-void KListBox::_onItemSelect()
+void KListBox::_onItemSelect() noexcept
 {
 	if(onItemSelect)
 		onItemSelect(this);
 }
 
-void KListBox::_onItemDoubleClick()
+void KListBox::_onItemDoubleClick() noexcept
 {
 	if(onItemDoubleClick)
 		onItemDoubleClick(this);
 }
 
-void KListBox::_onItemRightClick()
+void KListBox::_onItemRightClick() noexcept
 {
 	if (onItemRightClick)
 		onItemRightClick(this);
 }
 
-KListBox::~KListBox() {}
+KListBox::~KListBox() noexcept {}

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,36 +30,35 @@ class KComboBox : public KComponent
 protected:
 	KVector<KString, 10, false> stringList;
 	int selectedItemIndex;
+	virtual void afterCreated() noexcept override;
 
 public:
 	std::function<void(KComboBox*)> onItemSelect;
 
-	KComboBox(bool sort=false);
+	KComboBox(bool sort=false) noexcept;
 
-	virtual void addItem(const KString& text);
+	void addItem(const KString& text) noexcept;
 
-	virtual void removeItem(int index);
+	void removeItem(int index) noexcept;
 
-	virtual void removeItem(const KString& text);
+	void removeItem(const KString& text) noexcept;
 
-	virtual int getItemIndex(const KString& text);
+	int getItemIndex(const KString& text) noexcept;
 
-	virtual int getItemCount();
+	int getItemCount() noexcept;
 
-	virtual int getSelectedItemIndex();
+	int getSelectedItemIndex() noexcept;
 
-	virtual KString getSelectedItem();
+	KString getSelectedItem() noexcept;
 
-	virtual void clearList();
+	void clearList() noexcept;
 
-	virtual void selectItem(int index);
+	void selectItem(int index) noexcept;
 
-	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) override;
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) noexcept override;
 
-	virtual bool create(bool requireInitialMessages = false) override;
+	virtual void _onItemSelect() noexcept;
 
-	virtual void _onItemSelect();
-
-	virtual ~KComboBox();
+	virtual ~KComboBox() noexcept;
 };
 

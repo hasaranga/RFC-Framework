@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,32 +21,12 @@
 
 #pragma once
 
-#include <malloc.h>
-#include <Objbase.h>
-
-template<class StructType>
-class KReleaseUsingFree
-{
-public:
-	static void release(StructType* structPtr)
-	{
-		::free(structPtr);
-	}
-};
-
-template<class StructType>
-class KReleaseUsingTaskMemFree
-{
-public:
-	static void release(StructType* memory)
-	{
-		::CoTaskMemFree(memory);
-	}
-};
+#include "KReleaseTypes.h"
 
 /**
 	This class holds a pointer to the struct which is automatically freed when this object goes
 	out of scope. 
+	ex: KScopedStructPointer<RECT, KReleaseUsingFree<RECT>> x(&rect);
 */
 template<class StructType, class ReleaseMethod = KReleaseUsingFree<StructType>>
 class KScopedStructPointer
@@ -61,23 +41,23 @@ private:
 	void  operator delete[](void*);
 
 public:
-	inline KScopedStructPointer()
+	inline KScopedStructPointer() noexcept
 	{
 		structPointer = nullptr;
 	}
 
-	inline KScopedStructPointer(StructType* structPointer)
+	inline KScopedStructPointer(StructType* structPointer) noexcept
 	{
 		this->structPointer = structPointer;
 	}
 
-	KScopedStructPointer(KScopedStructPointer& structPointerToTransferFrom)
+	KScopedStructPointer(KScopedStructPointer& structPointerToTransferFrom) noexcept
 	{
 		this->structPointer = structPointerToTransferFrom.structPointer;
 		structPointerToTransferFrom.structPointer = nullptr;
 	}
 
-	bool isNull()
+	bool isNull() noexcept
 	{
 		return (structPointer == nullptr);
 	}
@@ -86,14 +66,14 @@ public:
 		Removes the current struct pointer from this KScopedStructPointer without freeing it.
 		This will return the current struct pointer, and set the KScopedStructPointer to a null pointer.
 	*/
-	StructType* detach()
+	StructType* detach() noexcept
 	{ 
 		StructType* m = structPointer;
 		structPointer = nullptr;
 		return m; 
 	}
 
-	~KScopedStructPointer()
+	~KScopedStructPointer() noexcept
 	{
 		if (structPointer)
 			ReleaseMethod::release(structPointer);
@@ -107,7 +87,7 @@ public:
 
 		The pointer that you pass in may be a nullptr.
 	*/
-	KScopedStructPointer& operator= (StructType* const newStructPointer)
+	KScopedStructPointer& operator= (StructType* const newStructPointer) noexcept
 	{
 		if (structPointer != newStructPointer)
 		{
@@ -121,16 +101,16 @@ public:
 		return *this;
 	}
 
-	inline StructType** operator&() { return &structPointer; }
+	inline StructType** operator&() noexcept { return &structPointer; }
 
 	/** Returns the struct pointer that this KScopedStructPointer refers to. */
-	inline operator StructType*() const { return structPointer; }
+	inline operator StructType*() const noexcept { return structPointer; }
 
 	/** Returns the struct pointer that this KScopedStructPointer refers to. */
-	inline StructType& operator*() const { return *structPointer; }
+	inline StructType& operator*() const noexcept { return *structPointer; }
 
 	/** Lets you access properties of the struct that this KScopedStructPointer refers to. */
-	inline StructType* operator->() const { return structPointer; }
+	inline StructType* operator->() const noexcept { return structPointer; }
 
 };
 

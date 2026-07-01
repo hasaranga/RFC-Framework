@@ -1,7 +1,7 @@
 
 /*
 	RFC - KComponent.cpp
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -26,9 +26,10 @@
 #include "KIDGenerator.h"
 #include "KGUIProc.h"
 
-KComponent::KComponent(bool generateWindowClassDetails)
+KComponent::KComponent(bool generateWindowClassDetails) noexcept
 {
 	isRegistered = false;
+	shouldRegisterClassName = generateWindowClassDetails;
 
 	KIDGenerator *idGenerator = KIDGenerator::getInstance();
 	compCtlID = idGenerator->generateControlID();
@@ -37,12 +38,10 @@ KComponent::KComponent(bool generateWindowClassDetails)
 	compParentHWND = 0;
 	compDwStyle = 0;
 	compDwExStyle = 0;
-	cursor = 0;
-	compX = 0;
-	compY = 0;
-	compWidth = CW_USEDEFAULT;
-	compHeight = CW_USEDEFAULT;
-	compDPI = USER_DEFAULT_SCREEN_DPI;
+	compLX = 0;
+	compLY = 0;
+	compLWidth = CW_USEDEFAULT;
+	compLHeight = CW_USEDEFAULT;
 	compVisible = true;
 	compEnabled = true;
 
@@ -63,21 +62,16 @@ KComponent::KComponent(bool generateWindowClassDetails)
 
 		wc.lpfnWndProc = KGUIProc::windowProc;
 	}
-
-	compFont = KFont::getDefaultFont();
 }
 
-KComponent::operator HWND()const
+KComponent::operator HWND()const noexcept
 {
 	return compHWND;
 }
 
-void KComponent::onHotPlug()
-{
+void KComponent::onHotPlug() noexcept {}
 
-}
-
-void KComponent::hotPlugInto(HWND component, bool fetchInfo)
+void KComponent::hotPlugInto(HWND component, bool fetchInfo) noexcept
 {
 	compHWND = component;
 
@@ -91,13 +85,15 @@ void KComponent::hotPlugInto(HWND component, bool fetchInfo)
 		::GetClassInfoExW(KApplication::hInstance, compClassName, &wc);
 
 		compCtlID = (UINT)::GetWindowLongPtrW(compHWND, GWL_ID);
+		const int compDPI = KDPIUtility::getWindowDPI(compHWND);
 
-		RECT rect;
-		::GetWindowRect(compHWND, &rect);
-		compWidth = rect.right - rect.left;
-		compHeight = rect.bottom - rect.top;
-		compX = rect.left;
-		compY = rect.top;
+		RECT physicalRect;
+		::GetWindowRect(compHWND, &physicalRect);
+
+		compLWidth = KDPIUtility::toLogical(physicalRect.right - physicalRect.left, compDPI);
+		compLHeight = KDPIUtility::toLogical(physicalRect.bottom - physicalRect.top, compDPI);
+		compLX = KDPIUtility::toLogical(physicalRect.left, compDPI);
+		compLY = KDPIUtility::toLogical(physicalRect.top, compDPI);
 
 		compVisible = (::IsWindowVisible(compHWND) ? true : false);
 		compEnabled = (::IsWindowEnabled(compHWND) ? true : false);
@@ -118,58 +114,70 @@ void KComponent::hotPlugInto(HWND component, bool fetchInfo)
 	this->onHotPlug();
 }
 
-UINT KComponent::getControlID()
+UINT KComponent::getControlID() noexcept
 {
 	return compCtlID;
 }
 
-void KComponent::setMouseCursor(KCursor *cursor)
-{
-	this->cursor = cursor;
-	if(compHWND)
-		::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->getHandle());
-}
-
-KString KComponent::getComponentClassName()
+KString KComponent::getComponentClassName() noexcept
 {
 	return compClassName;
 }
 
-bool KComponent::create(bool requireInitialMessages)
+void KComponent::afterCreated() noexcept
 {
-	if(!::RegisterClassExW(&wc))
-		return false;
+	if (compVisible)
+		::ShowWindow(compHWND, SW_SHOW);
+}
 
-	isRegistered = true;
+bool KComponent::create(bool requireInitialMessages) noexcept
+{
+	// if this is a child component, then compParentHWND must be valid.
+	if (compDwStyle & WS_CHILD)
+	{
+		K_ASSERT(compParentHWND != NULL, "compParentHWND is NULL");
+	}
 
-	KGUIProc::createComponent(this, requireInitialMessages);
+	if (shouldRegisterClassName)
+	{
+		if (!::RegisterClassExW(&wc))
+			return false;
+
+		isRegistered = true;
+	}
+
+	KGUIProc::createComponentFor96DPI(this, requireInitialMessages, getX(), getY());
 
 	if(compHWND)
 	{
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFontRef.getFontHandle(), 
+			MAKELPARAM(true, 0)); // set font!
 		::EnableWindow(compHWND, compEnabled ? TRUE : FALSE);
-		::ShowWindow(compHWND, compVisible ? SW_SHOW : SW_HIDE);
 
-		if(cursor)
-			::SetClassLongPtrW(compHWND, GCLP_HCURSOR, (LONG_PTR)cursor->getHandle());
-
+		afterCreated();
 		return true;
 	}
 	return false;
 }
 
-void KComponent::onParentDestroy() {}
+void KComponent::onParentDestroy() noexcept {}
 
-void KComponent::destroy()
+void KComponent::destroy() noexcept
 {
 	if (compHWND)
 	{
 		::DestroyWindow(compHWND);
 		compHWND = 0;
 	}
+
+	if (isRegistered)
+	{
+		::UnregisterClassW(compClassName, KApplication::hInstance);
+		isRegistered = false;
+	}
 }
 
-LRESULT KComponent::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KComponent::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
 	FARPROC lpfnOldWndProc = (FARPROC)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::atomOldProc));
 	if(lpfnOldWndProc)
@@ -178,217 +186,233 @@ LRESULT KComponent::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 	return ::DefWindowProcW(hwnd, msg, wParam, lParam); // custom control or window
 }
 
-bool KComponent::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result)
+bool KComponent::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT *result) noexcept
 {
 	return false;
 }
 
-void KComponent::setFont(KFont *compFont)
+void KComponent::setFontType(const KFontType& fontType) noexcept
 {
-	this->compFont = compFont;
-	if(compHWND)
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
+	if (compHWND)
+	{
+		compFontRef.update(fontType, KDPIUtility::getWindowDPI(compHWND));
+		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFontRef.getFontHandle(), MAKELPARAM(true, 0));
+	}
+	else
+	{
+		compFontRef.update(fontType, USER_DEFAULT_SCREEN_DPI);
+	}
 }
 
-KFont* KComponent::getFont()
+KFontType KComponent::getFontType() noexcept
 {
-	return compFont;
+	return compFontRef.getFontType();
 }
 
-KString KComponent::getText()
+KString KComponent::getText() noexcept
 {
 	return compText;
 }
 
-void KComponent::setText(const KString& compText)
+void KComponent::setText(const KString& compText) noexcept
 {
 	this->compText = compText;
 	if(compHWND)
 		::SetWindowTextW(compHWND, this->compText);
 }
 
-void KComponent::setHWND(HWND compHWND)
+void KComponent::setHWND(HWND compHWND) noexcept
 {
 	this->compHWND = compHWND;
 }
 
-HWND KComponent::getHWND()
+HWND KComponent::getHWND() noexcept
 {
 	return compHWND;
 }
 
-void KComponent::setParentHWND(HWND compParentHWND)
+void KComponent::setParentHWND(HWND compParentHWND) noexcept
 {
 	this->compParentHWND = compParentHWND;
 	if(compHWND)
 		::SetParent(compHWND, compParentHWND);
 }
 
-HWND KComponent::getParentHWND()
+HWND KComponent::getParentHWND() noexcept
 {
 	return compParentHWND;
 }
 
-DWORD KComponent::getStyle()
+DWORD KComponent::getStyle() noexcept
 {
 	return compDwStyle;
 }
 
-void KComponent::setStyle(DWORD compStyle)
+void KComponent::setStyle(DWORD compStyle) noexcept
 {
 	this->compDwStyle = compStyle;
 	if(compHWND)
 		::SetWindowLongPtrW(compHWND, GWL_STYLE, compStyle);
 }
 
-DWORD KComponent::getExStyle()
+DWORD KComponent::getExStyle() noexcept
 {
 	return compDwExStyle;
 }
 
-void KComponent::setExStyle(DWORD compDwExStyle)
+void KComponent::setExStyle(DWORD compDwExStyle) noexcept
 {
 	this->compDwExStyle = compDwExStyle;
 	if(compHWND)
 		::SetWindowLongPtrW(compHWND, GWL_EXSTYLE, compDwExStyle);
 }
 
-int KComponent::getDPI()
+Logical KComponent::getX() noexcept
 {
-	return compDPI;
+	return compLX; 
 }
 
-int KComponent::scaleToCurrentDPI(int valueFor96DPI)
+Logical KComponent::getY() noexcept
 {
-	return MulDiv(valueFor96DPI, compDPI, USER_DEFAULT_SCREEN_DPI);
+	return compLY;
 }
 
-int KComponent::getX()
+Logical KComponent::getWidth() noexcept
 {
-	return compX; 
+	return compLWidth;
 }
 
-int KComponent::getY()
+Logical KComponent::getHeight() noexcept
 {
-	return compY;
+	return compLHeight;
 }
 
-int KComponent::getWidth()
+void KComponent::setDPI(int newDPI) noexcept
 {
-	return compWidth;
-}
-
-int KComponent::getHeight()
-{
-	return compHeight;
-}
-
-void KComponent::setDPI(int newDPI)
-{
-	if (newDPI == compDPI)
-		return;
-
-	const int oldDPI = compDPI;
-	compDPI = newDPI;
-
-	if (compDwStyle & WS_CHILD) // do not change position and font size of top level windows.
-	{
-		this->compX = ::MulDiv(compX, newDPI, oldDPI);
-		this->compY = ::MulDiv(compY, newDPI, oldDPI);
-
-		if (!compFont->isDefaultFont())
-			compFont->setDPI(newDPI);
-	}
-
-	this->compWidth = ::MulDiv(compWidth, newDPI, oldDPI);
-	this->compHeight = ::MulDiv(compHeight, newDPI, oldDPI);
+	compFontRef.update(newDPI);
 
 	if (compHWND)
 	{
-		::SetWindowPos(compHWND, 0, compX, compY, compWidth, compHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
-		if((!compFont->isDefaultFont()) && (compDwStyle & WS_CHILD))
-			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0));
+		const Physical physicalX = KDPIUtility::toPhysical(compLX, newDPI);
+		const Physical physicalY = KDPIUtility::toPhysical(compLY, newDPI);
+		const Physical physicalWidth = KDPIUtility::toPhysical(compLWidth, newDPI);
+		const Physical physicalHeight = KDPIUtility::toPhysical(compLHeight, newDPI);
+
+		::SetWindowPos(compHWND, 0, physicalX, physicalY,
+			physicalWidth, physicalHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+
+		// do not set font of top level windows.
+		if(compDwStyle & WS_CHILD)
+			::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFontRef.getFontHandle(), MAKELPARAM(true, 0));
 	}
 }
 
-void KComponent::setSize(int compWidth, int compHeight)
+void KComponent::setSize(Logical width, Logical height) noexcept
 {
-	this->compWidth = compWidth;
-	this->compHeight = compHeight;
+	compLWidth = width;
+	compLHeight = height;
 
-	if(compHWND)
-		::SetWindowPos(compHWND, 0, 0, 0, compWidth, compHeight, SWP_NOMOVE | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+	if (compHWND)
+	{
+		const int dpi = KDPIUtility::getWindowDPI(compHWND);
+		const Physical physicalWidth = KDPIUtility::toPhysical(width, dpi);
+		const Physical physicalHeight = KDPIUtility::toPhysical(height, dpi);
+
+		::SetWindowPos(compHWND, 0, 0, 0, 
+			physicalWidth, physicalHeight, SWP_NOMOVE | SWP_NOREPOSITION |
+			SWP_NOACTIVATE | SWP_NOZORDER);
+	}
 }
 
-void KComponent::setPosition(int compX, int compY)
+void KComponent::setSizePhysical(Physical width, Physical height) noexcept
 {
-	this->compX = compX;
-	this->compY = compY;
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
 
-	if(compHWND)
-		::SetWindowPos(compHWND, 0, compX, compY, 0, 0, SWP_NOSIZE | SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+	const int dpi = getDPI();
+	compLWidth = KDPIUtility::toLogical(width, dpi);
+	compLHeight = KDPIUtility::toLogical(height, dpi);
+
+	::SetWindowPos(compHWND, 0, 0, 0,
+		width, height, SWP_NOMOVE | SWP_NOREPOSITION |
+		SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
-void KComponent::placeToRightOf(KComponent& target, int spacing)
+void KComponent::setPosition(Logical x, Logical y) noexcept
+{
+	compLX = x;
+	compLY = y;
+
+	if (compHWND)
+	{
+		const int dpi = KDPIUtility::getWindowDPI(compHWND);
+		const Physical physicalX = KDPIUtility::toPhysical(x, dpi);
+		const Physical physicalY = KDPIUtility::toPhysical(y, dpi);
+
+		::SetWindowPos(compHWND, 0, physicalX, physicalY, 0, 0, SWP_NOSIZE |
+			SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+	}
+}
+
+void KComponent::placeToRightOf(KComponent& target, Logical spacing) noexcept
 {
 	setPosition(target.getX() + target.getWidth() + spacing, target.getY());
 }
 
-void KComponent::placeToLeftOf(KComponent& target, int spacing)
+void KComponent::placeToLeftOf(KComponent& target, Logical spacing) noexcept
 {
-	setPosition(target.getX() - getWidth() - spacing, target.getY());
+	setPosition((target.getX() - getWidth()) - spacing, target.getY());
 }
 
-void KComponent::placeBelow(KComponent& target, int spacing)
+void KComponent::placeBelow(KComponent& target, Logical spacing) noexcept
 {
 	setPosition(target.getX(), target.getY() + target.getHeight() + spacing);
 }
 
-void KComponent::placeAbove(KComponent& target, int spacing)
+void KComponent::placeAbove(KComponent& target, Logical spacing) noexcept
 {
-	setPosition(target.getX(), target.getY() - getHeight() - spacing);
+	setPosition(target.getX(), (target.getY() - getHeight()) - spacing);
 }
 
-void KComponent::alignTopWith(KComponent& target)
+void KComponent::alignTopWith(KComponent& target) noexcept
 {
 	setPosition(getX(), target.getY());
 }
 
-void KComponent::alignBottomWith(KComponent& target)
+void KComponent::alignBottomWith(KComponent& target) noexcept
 {
-	setPosition(getX(), target.getY() + target.getHeight() - getHeight());
+	setPosition(getX(), (target.getY() + target.getHeight()) - getHeight());
 }
 
-void KComponent::alignLeftWith(KComponent& target)
+void KComponent::alignLeftWith(KComponent& target) noexcept
 {
 	setPosition(target.getX(), getY());
 }
 
-void KComponent::alignRightWith(KComponent& target)
+void KComponent::alignRightWith(KComponent& target) noexcept
 {
 	setPosition(target.getX() + target.getWidth() - getWidth(), getY());
 }
 
-void KComponent::alignCenterHorizontallyWith(KComponent& target)
+void KComponent::alignCenterHorizontallyWith(KComponent& target) noexcept
 {
-	int x = target.getX() + (target.getWidth() - getWidth()) / 2;
+	const int x = target.getX() + (target.getWidth() - getWidth()) / 2;
 	setPosition(x, getY());
 }
 
-void KComponent::alignCenterVerticallyWith(KComponent& target)
+void KComponent::alignCenterVerticallyWith(KComponent& target) noexcept
 {
-	int y = target.getY() + (target.getHeight() - getHeight()) / 2;
+	const int y = target.getY() + (target.getHeight() - getHeight()) / 2;
 	setPosition(getX(), y);
 }
 
-void KComponent::setVisible(bool state)
+void KComponent::setVisible(bool state) noexcept
 {
 	compVisible = state;
 	if(compHWND)
 		::ShowWindow(compHWND, state ? SW_SHOW : SW_HIDE);
 }
 
-bool KComponent::isVisible()
+bool KComponent::isVisible() noexcept
 {
 	if (compHWND)
 	{
@@ -399,7 +423,7 @@ bool KComponent::isVisible()
 	return false;
 }
 
-bool KComponent::isEnabled()
+bool KComponent::isEnabled() noexcept
 {
 	if (compHWND)
 		compEnabled = (::IsWindowEnabled(compHWND) == TRUE);
@@ -407,7 +431,7 @@ bool KComponent::isEnabled()
 	return compEnabled;
 }
 
-void KComponent::setEnabled(bool state)
+void KComponent::setEnabled(bool state) noexcept
 {
 	compEnabled = state;
 
@@ -415,19 +439,19 @@ void KComponent::setEnabled(bool state)
 		::EnableWindow(compHWND, compEnabled);
 }
 
-void KComponent::bringToFront()
+void KComponent::bringToFront() noexcept
 {
 	if(compHWND)
 		::BringWindowToTop(compHWND);
 }
 
-void KComponent::setKeyboardFocus()
+void KComponent::setKeyboardFocus() noexcept
 {
 	if(compHWND)
 		::SetFocus(compHWND);
 }
 
-void KComponent::repaint()
+void KComponent::repaint() noexcept
 {
 	if (compHWND)
 	{
@@ -436,8 +460,11 @@ void KComponent::repaint()
 	}
 }
 
-KComponent::~KComponent()
+KComponent::~KComponent() noexcept
 {
-	if(isRegistered)
+	if (isRegistered)
+	{
 		::UnregisterClassW(compClassName, KApplication::hInstance);
+		isRegistered = false;
+	}
 }

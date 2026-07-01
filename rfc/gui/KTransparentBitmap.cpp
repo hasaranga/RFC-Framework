@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #include "KTransparentBitmap.h"
 
-KTransparentBitmap::KTransparentBitmap(void* data, int width, int height, int stride)
+KTransparentBitmap::KTransparentBitmap(void* data, Physical width, Physical height, int stride) noexcept
 {
 	if ((width * sizeof(unsigned int)) != stride) // this should not happen! no padding in 32bpp data.
 	{
@@ -59,12 +59,12 @@ KTransparentBitmap::KTransparentBitmap(void* data, int width, int height, int st
 
 }
 
-KTransparentBitmap::KTransparentBitmap(int width, int height)
+KTransparentBitmap::KTransparentBitmap(Physical width, Physical height) noexcept
 {
 	this->createEmptyBitmap(width, height);
 }
 
-void KTransparentBitmap::createEmptyBitmap(int width, int height)
+void KTransparentBitmap::createEmptyBitmap(Physical width, Physical height) noexcept
 {
 	this->width = width;
 	this->height = height;
@@ -88,7 +88,7 @@ void KTransparentBitmap::createEmptyBitmap(int width, int height)
 	hbmPrev = (HBITMAP)::SelectObject(hdcMem, hbm);
 }
 
-void KTransparentBitmap::releaseResources()
+void KTransparentBitmap::releaseResources() noexcept
 {
 	if (hdcMem == 0)
 		return;
@@ -98,7 +98,7 @@ void KTransparentBitmap::releaseResources()
 	::DeleteDC(hdcMem);
 }
 
-bool KTransparentBitmap::hitTest(int x, int y)
+bool KTransparentBitmap::hitTest(Physical x, Physical y) noexcept
 {
 	if (pvBits == nullptr)
 		return false;
@@ -110,7 +110,7 @@ bool KTransparentBitmap::hitTest(int x, int y)
 	return ((pixelColor >> 24) == 0xff);
 }
 
-unsigned int KTransparentBitmap::getPixel(int x, int y)
+unsigned int KTransparentBitmap::getPixel(Physical x, Physical y) noexcept
 {
 	if (pvBits == nullptr)
 		return 0;
@@ -121,45 +121,46 @@ unsigned int KTransparentBitmap::getPixel(int x, int y)
 	return ((unsigned int*)pvBits)[x + y * width];
 }
 
-int KTransparentBitmap::getWidth()
+int KTransparentBitmap::getWidth() noexcept
 {
 	return width;
 }
 
-int KTransparentBitmap::getHeight()
+int KTransparentBitmap::getHeight() noexcept
 {
 	return height;
 }
 
-void KTransparentBitmap::resize(int width, int height)
+void KTransparentBitmap::resize(Physical width, Physical height) noexcept
 {
 	this->releaseResources();
 	this->createEmptyBitmap(width, height);
 }
 
-HDC KTransparentBitmap::getDC()
+HDC KTransparentBitmap::getDC() noexcept
 {
 	return hdcMem;
 }
 
-void KTransparentBitmap::draw(HDC destHdc, int destX, int destY, BYTE alpha)
+void KTransparentBitmap::draw(HDC destHdc, Physical destX, Physical destY, BYTE alpha) noexcept
 {
 	this->draw(destHdc, destX, destY, width, height, 0, 0, width, height, alpha);
 }
 
-void KTransparentBitmap::draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, BYTE alpha)
+void KTransparentBitmap::draw(HDC destHdc, Physical destX, Physical destY, Physical destWidth, Physical destHeight, BYTE alpha) noexcept
 {
 	this->draw(destHdc, destX, destY, destWidth, destHeight, 0, 0, width, height, alpha);
 }
 
-void KTransparentBitmap::draw(HDC destHdc, int destX, int destY, int destWidth, int destHeight, int srcX, int srcY, int srcWidth, int srcHeight, BYTE alpha)
+void KTransparentBitmap::draw(HDC destHdc, Physical destX, Physical destY, Physical destWidth, Physical destHeight, Physical srcX,
+	Physical srcY, Physical srcWidth, Physical srcHeight, BYTE alpha) noexcept
 {
 	BLENDFUNCTION bf = { AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
 	::AlphaBlend(destHdc, destX, destY, destWidth, destHeight,
 		hdcMem, srcX, srcY, srcWidth, srcHeight, bf);
 }
 
-KTransparentBitmap::~KTransparentBitmap()
+KTransparentBitmap::~KTransparentBitmap() noexcept
 {
 	this->releaseResources();
 }

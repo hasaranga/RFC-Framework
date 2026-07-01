@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,12 +21,12 @@
 
 #include "KRegistry.h"
 
-KRegistry::KRegistry()
+KRegistry::KRegistry() noexcept
 {
 
 }
 
-bool KRegistry::createKey(HKEY hKeyRoot, const KString& subKey)
+bool KRegistry::createKey(HKEY hKeyRoot, const KString& subKey) noexcept
 {
 	HKEY hkey = 0;
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
@@ -36,12 +36,12 @@ bool KRegistry::createKey(HKEY hKeyRoot, const KString& subKey)
 	return true;
 }
 
-bool KRegistry::deleteKey(HKEY hKeyRoot, const KString& subKey)
+bool KRegistry::deleteKey(HKEY hKeyRoot, const KString& subKey) noexcept
 {
 	return ::RegDeleteKeyW(hKeyRoot, subKey) == ERROR_SUCCESS ? true : false;
 }
 
-bool KRegistry::readString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString* result)
+bool KRegistry::readString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, KString* result) noexcept
 {
 	HKEY hkey = 0;
 	if (::RegOpenKeyExW(hKeyRoot, subKey, 0, KEY_READ, &hkey) == ERROR_SUCCESS)
@@ -73,7 +73,7 @@ bool KRegistry::readString(HKEY hKeyRoot, const KString& subKey, const KString& 
 	return false;
 }
 
-bool KRegistry::writeString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value)
+bool KRegistry::writeString(HKEY hKeyRoot, const KString& subKey, const KString& valueName, const KString& value) noexcept
 {
 	HKEY hkey = 0;
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
@@ -89,7 +89,7 @@ bool KRegistry::writeString(HKEY hKeyRoot, const KString& subKey, const KString&
 	return false;
 }
 
-bool KRegistry::readDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD* result)
+bool KRegistry::readDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD* result) noexcept
 {
 	HKEY hkey = 0;
 	if (::RegOpenKeyExW(hKeyRoot, subKey, 0, KEY_READ, &hkey) == ERROR_SUCCESS)
@@ -105,7 +105,7 @@ bool KRegistry::readDWORD(HKEY hKeyRoot, const KString& subKey, const KString& v
 	return false;
 }
 
-bool KRegistry::writeDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value)
+bool KRegistry::writeDWORD(HKEY hKeyRoot, const KString& subKey, const KString& valueName, DWORD value) noexcept
 {
 	HKEY hkey = 0;
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
@@ -121,7 +121,7 @@ bool KRegistry::writeDWORD(HKEY hKeyRoot, const KString& subKey, const KString& 
 	return false;
 }
 
-bool KRegistry::readBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void** buffer, DWORD* buffSize)
+bool KRegistry::readBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void** buffer, DWORD* buffSize) noexcept
 {
 	HKEY hkey = 0;
 	if (::RegOpenKeyExW(hKeyRoot, subKey, 0, KEY_READ, &hkey) == ERROR_SUCCESS)
@@ -132,18 +132,19 @@ bool KRegistry::readBinary(HKEY hKeyRoot, const KString& subKey, const KString& 
 
 		if (ret == ERROR_SUCCESS)
 		{
-			*buffSize = requiredBytes;
 			if (requiredBytes == 0) // value might be empty
 			{
-				*buffer = 0;
+				::RegCloseKey(hkey);
+				return false;
 			}
-			else{
+			else
+			{
+				*buffSize = requiredBytes;
 				*buffer = ::malloc(requiredBytes);
 				ret = ::RegQueryValueExW(hkey, valueName, NULL, NULL, (LPBYTE)*buffer, &requiredBytes);
+				::RegCloseKey(hkey);
+				return true;
 			}
-
-			::RegCloseKey(hkey);
-			return true;
 		}
 
 		::RegCloseKey(hkey);
@@ -151,7 +152,7 @@ bool KRegistry::readBinary(HKEY hKeyRoot, const KString& subKey, const KString& 
 	return false;
 }
 
-bool KRegistry::writeBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize)
+bool KRegistry::writeBinary(HKEY hKeyRoot, const KString& subKey, const KString& valueName, void* buffer, DWORD buffSize) noexcept
 {
 	HKEY hkey = 0;
 	if (::RegCreateKeyExW(hKeyRoot, subKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hkey, NULL) != ERROR_SUCCESS)
@@ -166,7 +167,7 @@ bool KRegistry::writeBinary(HKEY hKeyRoot, const KString& subKey, const KString&
 	return false;
 }
 
-KRegistry::~KRegistry()
+KRegistry::~KRegistry() noexcept
 {
 
 }

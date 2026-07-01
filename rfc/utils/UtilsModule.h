@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -26,5 +26,8 @@
 #include "KTime.h"
 #include "KGuid.h"
 #include "KStackInfo.h"
+#include "KProcess.h"
 
 #pragma comment(lib, "Rpcrt4.lib")
+#pragma comment(lib, "psapi.lib")
+#pragma comment(lib, "Shell32.lib")

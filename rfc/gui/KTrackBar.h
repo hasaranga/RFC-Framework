@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,28 +28,29 @@ class KTrackBar : public KComponent
 {
 protected:
 	int rangeMin,rangeMax,value;
+	bool vertical;
+
+	virtual void afterCreated() noexcept override;
 
 public:
 	std::function<void(KTrackBar*,int)> onChange;
 
-	KTrackBar(bool showTicks = false, bool vertical = false);
+	KTrackBar(bool showTicks = false, bool vertical = false) noexcept;
 
 	/**
 		Range between 0 to 100
 	*/
-	virtual void setRange(int min, int max);
+	void setRange(int min, int max) noexcept;
 
-	virtual void setValue(int value);
+	void setValue(int value) noexcept;
 
-	virtual int getValue();
+	int getValue() noexcept;
 
-	virtual void _onChange();
+	virtual void _onChange() noexcept;
 
-	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
+	virtual bool eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) noexcept override;
 
-	virtual bool create(bool requireInitialMessages = false) override;
-
-	virtual ~KTrackBar();
+	virtual ~KTrackBar() noexcept;
 };
 
 

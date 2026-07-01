@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -29,9 +29,10 @@
 #include "KScopedCriticalSection.h"
 #include "KScopedGdiObject.h"
 #include "KScopedHandle.h"
-#include "KScopedMallocPointer.h"
-#include "KScopedMemoryBlock.h"
+#include "KScopedMemory.h"
 #include "KScopedStructPointer.h"
 #include "KStaticAllocator.h"
 #include "KFixedStack.h"
 #include "KProperty.h"
+#include "KFixedQueue.h"
+#include "KReleaseTypes.h"

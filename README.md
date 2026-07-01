@@ -8,6 +8,8 @@ RFC Framework is a C++ framework which helps you to create high DPI Windows appl
 
 Run the "Generator.exe" and select required modules. Browse the output location and press "Generate" button. It will generate single header and cpp file which can be used with your project.
 
+Also you can use AGENTS.md file with your AI agent to learn the framework easily without polluting the context.
+
 ![Code Example](code.png)
 
 Checkout examples dir for usage of this framework.

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -24,17 +24,15 @@
 #include "KGUIProc.h"
 #include <commctrl.h>
 
-KTrackBar::KTrackBar(bool showTicks, bool vertical) : KComponent(false)
+KTrackBar::KTrackBar(bool showTicks, bool vertical) noexcept : KComponent(false)
 {
 	rangeMin = 0;
 	rangeMax = 100;
 	value = 0;
+	this->vertical = vertical;
 
-	compWidth = 100;
-	compHeight = 25;
-
-	compX = 0;
-	compY = 0;
+	compLWidth = 100;
+	compLHeight = 25;
 
 	compDwStyle = (WS_TABSTOP | WS_CHILD | WS_CLIPSIBLINGS) | 
 		(showTicks ? TBS_AUTOTICKS : TBS_NOTICKS) | 
@@ -45,7 +43,7 @@ KTrackBar::KTrackBar(bool showTicks, bool vertical) : KComponent(false)
 	compClassName.assignStaticText(TXT_WITH_LEN("msctls_trackbar32"));
 }
 
-void KTrackBar::setRange(int min, int max)
+void KTrackBar::setRange(int min, int max) noexcept
 {
 	rangeMin = min;
 	rangeMax = max;
@@ -53,26 +51,27 @@ void KTrackBar::setRange(int min, int max)
 		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(min, max));	
 }
 
-void KTrackBar::setValue(int value)
+void KTrackBar::setValue(int value) noexcept
 {
 	this->value = value;
 	if(compHWND)
-		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
+		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)(vertical ? (100 - value) : value));
 }
 
-void KTrackBar::_onChange()
+void KTrackBar::_onChange() noexcept
 {
 	value = (int)::SendMessageW(compHWND, TBM_GETPOS, 0, 0);
+	value = vertical ? (100 - value) : value;
 	if(onChange)
 		onChange(this, value);
 }
 
-int KTrackBar::getValue()
+int KTrackBar::getValue() noexcept
 {
 	return value;
 }
 
-bool KTrackBar::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result)
+bool KTrackBar::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* result) noexcept
 {
 	if( (msg == WM_HSCROLL) || (msg == WM_VSCROLL) )
 	{
@@ -91,30 +90,12 @@ bool KTrackBar::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* resul
 	return KComponent::eventProc(msg, wParam, lParam, result);
 }
 
-bool KTrackBar::create(bool requireInitialMessages)
+void KTrackBar::afterCreated() noexcept
 {
-	if(!compParentHWND) // user must specify parent handle!
-		return false;
-
-	KGUIProc::createComponent(this, requireInitialMessages); // we dont need to register TRACKBAR_CLASSW class!
-
-	if(compHWND)
-	{
-		::EnableWindow(compHWND, compEnabled);
-		::SendMessageW(compHWND, WM_SETFONT, (WPARAM)compFont->getFontHandle(), MAKELPARAM(true, 0)); // set font!	
-		::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM) MAKELONG(rangeMin, rangeMax));	
-		::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)value);
-
-		if(compVisible)
-			::ShowWindow(compHWND, SW_SHOW);
-
-		return true;
-	}
-
-	return false;
+	::SendMessageW(compHWND, TBM_SETRANGE, TRUE, (LPARAM)MAKELONG(rangeMin, rangeMax));
+	::SendMessageW(compHWND, TBM_SETPOS, TRUE, (LPARAM)(vertical ? (100 - value) : value));
+	__super::afterCreated();
 }
 
-KTrackBar::~KTrackBar()
-{
-}
+KTrackBar::~KTrackBar() noexcept {}
 

@@ -2,6 +2,6 @@
 	<name>Security</name>
 	<fixed>false</fixed>
 	<dependencies>Core,File</dependencies>
-	<platform>Win XP or higher</platform>
-	<description>KMD5, KSHA1</description>
+	<platform>Vista or higher</platform>
+	<description>KSignCheck, KHashGen, KDPAPI, KXXHash32</description>
 </xml>

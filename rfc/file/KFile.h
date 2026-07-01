@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -22,6 +22,7 @@
 #pragma once
 
 #include "../core/CoreModule.h"
+#include "KStream.h"
 #include <shlwapi.h>
 
 // macro to specify file format type in the first 4 bytes of file.
@@ -34,7 +35,7 @@
 /**
 	Can be use to read/write data from a file easily.
 */
-class KFile
+class KFile : public KStream
 {
 protected:
 	HANDLE fileHandle;
@@ -42,7 +43,7 @@ protected:
 	DWORD desiredAccess;
 
 public:
-	KFile();
+	KFile() noexcept;
 
 	/** 
 		Used in file opening, to specify whether to open as read or write or both.
@@ -57,70 +58,74 @@ public:
 	/** 
 		If the file does not exist, it will be created.
 	*/
-	KFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
+	KFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true) noexcept;
 
 	/** 
 		If the file does not exist, it will be created.
 	*/
-	bool openFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true);
+	bool openFile(const wchar_t* fileName, DWORD desiredAccess = KFile::KBOTH, bool autoCloseHandle = true) noexcept;
 
-	bool closeFile();
+	bool closeFile() noexcept;
 
-	HANDLE getFileHandle();
+	HANDLE getFileHandle() noexcept;
 
-	operator HANDLE()const;
+	operator HANDLE()const noexcept;
 
 	/** 
 		fills given buffer and returns number of bytes read.
 	*/
-	DWORD readFile(void* buffer, DWORD numberOfBytesToRead);
+	DWORD readFile(void* buffer, DWORD numberOfBytesToRead) noexcept;
 
 	/** 
 		You must free the returned buffer yourself. To get the size of buffer, use getFileSize method. return value will be null on read error.
 	*/
-	void* readAsData();
+	void* readAsData() noexcept;
 
-	KString readAsString(bool isUnicode = true);
+	KString readAsString(bool isUnicode = true) noexcept;
 
 	/**
 		returns number of bytes written.
 	*/
-	DWORD writeFile(const void* buffer, DWORD numberOfBytesToWrite);
+	DWORD writeFile(const void* buffer, DWORD numberOfBytesToWrite) noexcept;
 
-	bool writeString(const KString& text, bool isUnicode = true);
+	bool writeString(const KString& text, bool isUnicode = true) noexcept;
 
-	bool setFilePointerToStart();
+	bool setFilePointerToStart() noexcept;
 
 	/**
 		moves file pointer to given distance from "startingPoint".
 		"startingPoint" can be FILE_BEGIN, FILE_CURRENT or FILE_END
 		"distance" can be negative.
 	*/
-	bool setFilePointerTo(long distance, DWORD startingPoint = FILE_BEGIN);
+	bool setFilePointerTo(long distance, DWORD startingPoint = FILE_BEGIN) noexcept;
 
-	DWORD getFilePointerPosition();
+	DWORD getFilePointerPosition() noexcept;
 
-	bool setFilePointerToEnd();
+	bool setFilePointerToEnd() noexcept;
 
 	/**
 		returns zero on error
 	*/
-	DWORD getFileSize();
+	DWORD getFileSize() noexcept;
 
-	static bool deleteFile(const wchar_t* fileName);
+	static bool deleteFile(const wchar_t* fileName) noexcept;
 
-	static bool isFileExists(const wchar_t* fileName);
+	static bool isFileExists(const wchar_t* fileName) noexcept;
 
-	static bool copyFile(const wchar_t* sourceFileName, const wchar_t* destFileName);
+	static bool copyFile(const wchar_t* sourceFileName, const wchar_t* destFileName) noexcept;
 
 	/**
 		returns the file name part of the path.
 	*/
-	static KString getFileNameFromPath(const wchar_t* path);
+	static KString getFileNameFromPath(const wchar_t* path, bool withExtension = true) noexcept;
 
-	static KString getFileExtension(const wchar_t* path);
+	static KString getFileExtension(const wchar_t* path) noexcept;
 
-	~KFile();
+	~KFile() noexcept;
+
+	// ============= KStream ===============
+	bool readStream(BYTE* buffer, DWORD bytesToRead) noexcept override;
+	bool writeStream(const BYTE* buffer, DWORD bytesToWrite) noexcept override;
 
 private:
 	RFC_LEAK_DETECTOR(KFile)

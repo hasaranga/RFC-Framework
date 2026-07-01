@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -40,12 +40,12 @@ private:
 	void  operator delete[](void*);
 
 public:
-	inline KScopedComPointer()
+	inline KScopedComPointer() noexcept
 	{
 		object = nullptr;
 	}
 
-	inline KScopedComPointer(T* object)
+	inline KScopedComPointer(T* object) noexcept
 	{
 		this->object = object;
 
@@ -53,7 +53,7 @@ public:
 			this->object->AddRef();
 	}
 
-	KScopedComPointer(KScopedComPointer& objectToTransferFrom)
+	KScopedComPointer(KScopedComPointer& objectToTransferFrom) noexcept
 	{
 		object = objectToTransferFrom.object;
 
@@ -61,7 +61,7 @@ public:
 			object->AddRef();
 	}
 
-	bool isNull()
+	bool isNull() noexcept
 	{
 		return (object == nullptr);
 	}
@@ -70,14 +70,14 @@ public:
 		Removes the current COM object from this KScopedComPointer without releasing it.
 		This will return the current object, and set the KScopedComPointer to a null pointer.
 	*/
-	T* detach()
+	T* detach() noexcept
 	{ 
 		T* o = object; 
 		object = nullptr;
 		return o; 
 	}
 
-	~KScopedComPointer()
+	~KScopedComPointer() noexcept
 	{
 		if (object)
 			object->Release();
@@ -85,16 +85,28 @@ public:
 		object = nullptr;
 	}
 
-	inline T** operator&() { return &object; }
+	// pointer to pointer
+	void** asVoidPP() noexcept
+	{
+		return (void**)&object;
+	}
+
+	// pointer to pointer
+	T** getAddressOf() noexcept
+	{
+		return &object;
+	}
+
+	inline T** operator&() noexcept { return &object; }
 
 	/** Returns the object that this KScopedComPointer refers to. */
-	inline operator T*() const { return object; }
+	inline operator T*() const noexcept { return object; }
 
 	/** Returns the object that this KScopedComPointer refers to. */
-	inline T& operator*() const { return *object; }
+	inline T& operator*() const noexcept { return *object; }
 
 	/** Lets you access methods and properties of the object that this KScopedComPointer refers to. */
-	inline T* operator->() const { return object; }
+	inline T* operator->() const noexcept { return object; }
 
 };
 

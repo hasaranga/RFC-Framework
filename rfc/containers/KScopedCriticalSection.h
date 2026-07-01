@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -39,27 +39,27 @@ private:
 	void  operator delete[](void*);
 
 public:
-	KScopedCriticalSection(CRITICAL_SECTION* criticalSection)
+	KScopedCriticalSection(CRITICAL_SECTION* criticalSection) noexcept
 	{
 		this->criticalSection = criticalSection;
 		::EnterCriticalSection(criticalSection);
 	}
 
 	// does not call LeaveCriticalSection
-	CRITICAL_SECTION* detach()
+	CRITICAL_SECTION* detach() noexcept
 	{ 
 		CRITICAL_SECTION* c = criticalSection;
 		criticalSection = nullptr;
 		return c; 
 	}
 
-	~KScopedCriticalSection()
+	~KScopedCriticalSection() noexcept
 	{
 		if (criticalSection)
 			::LeaveCriticalSection(criticalSection);
 	}
 
-	inline operator CRITICAL_SECTION*() const { return criticalSection; }
+	inline operator CRITICAL_SECTION*() const noexcept { return criticalSection; }
 
 };
 

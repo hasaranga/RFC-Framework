@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -43,33 +43,33 @@ protected:
 public:
 	std::function<void(KTimer*)> onTimer;
 
-	KTimer();
+	KTimer() noexcept;
 
-	int getInterval();
+	int getInterval() noexcept;
 
-	void setTimerID(UINT timerID);
+	void setTimerID(UINT timerID) noexcept;
 
 	/**
 		@returns unique id of this timer
 	*/
-	UINT getTimerID();
+	UINT getTimerID() noexcept;
 
 	// Starts timer. window must be created before calling this method. resolution in ms.
-	void start(int resolution, KWindow& window);
+	void start(int resolution, KWindow& window) noexcept;
 
 	// Starts timer. window must be created before calling this method. resolution in ms.
-	void start(int resolution, KWindow& window, std::function<void(KTimer*)> onTimerCallback);
+	void start(int resolution, KWindow& window, std::function<void(KTimer*)> onTimerCallback) noexcept;
 
 	/**
 		Stops the timer. You can restart it by calling start() method.
 	*/
-	void stop();
+	void stop() noexcept;
 
-	bool isRunning();
+	bool isRunning() noexcept;
 
-	void _onTimer();
+	virtual void _onTimer() noexcept;
 
-	~KTimer();
+	virtual ~KTimer() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KTimer)

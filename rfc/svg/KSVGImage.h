@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -33,22 +33,22 @@ protected:
 	plutosvg::plutovg_surface_t* surface = nullptr;
 
 public:
-	KSVGImage() {}
+	KSVGImage() noexcept {}
 
-	bool loadFromFile(const char* filePath)
+	bool loadFromFile(const char* filePath) noexcept
 	{
 		document = plutosvg::plutosvg_document_load_from_file(filePath, -1, -1);
 		return document != NULL;
 	}
 
-	bool loadFromData(const char* data, int length)
+	bool loadFromData(const char* data, int length) noexcept
 	{
 		document = plutosvg::plutosvg_document_load_from_data(data, length, -1, -1, 0, 0);
 		return document != NULL;
 	}
 
 	// can call multiple times
-	void rasterize(int width, int height)
+	void rasterize(Physical width, Physical height) noexcept
 	{
 		if (document == NULL)
 			return;
@@ -63,7 +63,7 @@ public:
 	}
 
 	// can call multiple times
-	void rasterize(int newDPI = USER_DEFAULT_SCREEN_DPI)
+	void rasterize(int newDPI = USER_DEFAULT_SCREEN_DPI) noexcept
 	{
 		if (document == NULL)
 			return;
@@ -75,19 +75,19 @@ public:
 		this->rasterize(newWidth, newHeight);
 	}
 
-	bool isImageRasterized()
+	bool isImageRasterized() noexcept
 	{
 		return surface != NULL;
 	}
 
-	bool isDocumentLoaded()
+	bool isDocumentLoaded() noexcept
 	{
 		return document != NULL;
 	}
 
 	// data format is premultiplied gdi 0xaarrggbb or gdiplus PixelFormat32bppPARGB or 
 	// direct2d {DXGI_FORMAT_B8G8R8A8_UNORM,D2D1_ALPHA_MODE_PREMULTIPLIED}
-	void getImageData(int* width, int* height, unsigned char** data, int* stride)
+	void getImageData(Physical* width, Physical* height, unsigned char** data, int* stride) noexcept
 	{
 		if (surface == NULL)
 			return;
@@ -107,7 +107,7 @@ public:
 
 	// free the generated pixel data. does not free the document.
 	// you need to call rasterize method again to generate the image data.
-	void freeRasterData()
+	void freeRasterData() noexcept
 	{
 		if (surface)
 		{
@@ -116,7 +116,7 @@ public:
 		}
 	}
 
-	~KSVGImage()
+	~KSVGImage() noexcept
 	{
 		if (surface)
 			plutosvg::plutovg_surface_destroy(surface);

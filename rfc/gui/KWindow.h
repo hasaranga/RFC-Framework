@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -31,6 +31,9 @@
 
 enum class KCloseOperation { DestroyAndExit, Hide, Nothing };
 
+// for a window, position is physical and size is logical. therefore compLX and compLY are ignored. (logical values)
+// always use physical values when saving/restore window position.
+// always use logical values when saving/restore window size.
 class KWindow : public KComponent
 {
 protected:
@@ -42,99 +45,135 @@ protected:
 	bool dpiAwarenessContextChanged;
 	KIcon* windowIcon;
 	HICON largeIconHandle, smallIconHandle;
+	Physical compPX, compPY; // physical virtual desktop coordinates (use this instead of compLX,compLY)
 
-	void updateWindowIconForNewDPI();
+	bool resizingForDPIChange;
+	void updateWindowIconForNewDPI() noexcept;
 
 public:
-	std::function<void(KWindow*)> onDPIChange; // called after dpi change.
+	std::function<void(KWindow* window,int newDPI)> onDPIChange; // called after dpi change.
 
-	KWindow();
+	KWindow() noexcept;
 
-	virtual bool create(bool requireInitialMessages = false) override;
+	virtual bool create(bool requireInitialMessages = false) noexcept override;
 
-	virtual void flash();
+	void flash() noexcept;
 
 	// can only call after create.
-	virtual void setIcon(KIcon* icon);
+	virtual void setIcon(KIcon* icon) noexcept;
 
-	virtual void setCloseOperation(KCloseOperation closeOperation);
+	void setCloseOperation(KCloseOperation closeOperation) noexcept;
 
-	virtual void onClose();
+	virtual void onClose() noexcept;
 
-	virtual void onDestroy();
+	virtual void onDestroy() noexcept;
+
+	virtual void onDynamicMenuItemPress(UINT itemID) noexcept;
+
+	// can only call after create.
+	void postCloseMessage() noexcept;
 
 	// Custom messages are used to send a signal/data from worker thread to gui thread.
-	virtual void postCustomMessage(WPARAM msgID, LPARAM param);
+	// can only call after create.
+	void postCustomMessage(WPARAM msgID, LPARAM param) noexcept;
 
-	virtual void onCustomMessage(WPARAM msgID, LPARAM param);
+	virtual void onCustomMessage(WPARAM msgID, LPARAM param) noexcept;
 
-	virtual void centerScreen();
+	// can only call after create.
+	virtual void centerScreen() noexcept;
 
 	// puts our window on same monitor as given window + centered
-	virtual void centerOnSameMonitor(HWND window);
+	// can only call after create.
+	virtual void centerOnSameMonitor(HWND window) noexcept;
 
 	/**
 		Set requireInitialMessages to true to receive initial messages (WM_CREATE etc.)
 		Adding a component does not mean that the window will own or delete the component - it's
 		your responsibility to delete the component. you need to remove the component if you are
 		deleting it before WM_DESTROY message arrived.
-.
 	*/
-	virtual bool addComponent(KComponent* component, bool requireInitialMessages = false);
+	virtual bool addComponent(KComponent* component, bool requireInitialMessages = false) noexcept;
 
-	bool addComponent(KComponent& component, bool requireInitialMessages = false);
+	bool addComponent(KComponent& component, bool requireInitialMessages = false) noexcept;
 
 	template<typename... Components>
-	void addComponents(bool requireInitialMessages, Components&... comps)
+	void addComponents(bool requireInitialMessages, Components&... comps) noexcept
 	{
 		(addComponent(comps, requireInitialMessages), ...); // fold expression (C++17+)
 	}
 
 	template<typename... Components>
-	void addComponents(Components&... comps)
+	void addComponents(Components&... comps) noexcept
 	{
 		(addComponent(comps, false), ...); // fold expression (C++17+)
 	}
 
 	// Can be also use to remove a container. Also destroys the hwnd.
 	// you need to remove the component if you are deleting it before WM_DESTROY message arrived.
-	virtual void removeComponent(KComponent* component);
+	virtual void removeComponent(KComponent* component) noexcept;
 
 	// use this method to add KHostPanel to the window.
-	virtual bool addContainer(KHostPanel* container, bool requireInitialMessages = false);
+	bool addContainer(KHostPanel* container, bool requireInitialMessages = false) noexcept;
 
-	virtual bool setClientAreaSize(int width, int height);
+	// not used. do not call. window dpi only changed by the OS using WM_DPICHANGED msg.
+	virtual void setDPI(int newDPI) noexcept override { K_ASSERT(false, "deprecated method KWindow::setDPI called"); }
 
 	// Mixed-Mode DPI Scaling - window scaled by the system. can only call before create.
 	// InitRFC must be called with KDPIAwareness::MIXEDMODE_ONLY
 	// Only works with Win10 or higher
-	virtual void setEnableDPIUnawareMode(bool enable);
+	// must call before create method.
+	void setEnableDPIUnawareMode(bool enable) noexcept;
 
 	// In mixed-mode dpi unaware window, before adding any child we need to set current thread dpi mode to unaware mode.
 	// by default this method automatically called with AddComponent method.
 	// if you add a child without calling AddComponent then you have to call ApplyDPIUnawareModeToThread method first.
-	virtual void applyDPIUnawareModeToThread();
+	void applyDPIUnawareModeToThread() noexcept;
 
 	// after adding the child, we need to restore the last dpi mode of the thread.
 	// Mixed-Mode only
-	virtual void restoreDPIModeOfThread();
+	void restoreDPIModeOfThread() noexcept;
 
-	static bool isOffScreen(int posX, int posY);
+	// x & y are physical positions
+	static bool isOffScreen(Physical x, Physical y) noexcept;
 
-	virtual bool getClientAreaSize(int* width, int* height);
+	bool isMinimized() noexcept;
+
+	// do not call. instead use getPositionPhysical.
+	virtual Logical getX() noexcept override { K_ASSERT(false, "deprecated method KWindow::getX called"); return 0; }
+	virtual Logical getY() noexcept override { K_ASSERT(false, "deprecated method KWindow::getY called"); return 0; }
+
+	// do not call. instead use setPositionPhysical.
+	virtual void setPosition(Logical x, Logical y) noexcept override { K_ASSERT(false, "deprecated method setPosition called"); }
+
+	// width & height are logical values.
+	// can only call after create.
+	virtual void setClientAreaSize(Logical width, Logical height) noexcept;
+
+	// width & height are physical values.
+	// can only call after create.
+	virtual void setClientAreaSizePhysical(Physical width, Physical height) noexcept;
+
+	// width & height are logical values
+	// can only call after create.
+	void getClientAreaSize(Logical& width, Logical& height) noexcept;
 
 	// can be use to get the window size even if it were minimized.
-	virtual void getNormalSize(int* width, int* height);
+	void getNormalSize(Logical& width, Logical& height) noexcept;
 
-	virtual void onMoved();
+	// can be use to get the window position even if it were minimized.
+	void getPositionPhysical(Physical& x, Physical& y) noexcept;
+
+	virtual void setPositionPhysical(Physical x, Physical y) noexcept;
+
+	virtual void onMoved() noexcept;
 
 	// This method will be called on window resize and dpi change.
 	// Note: if this method called as a result of dpi change, the dpi of controls in this window are still in old dpi scale.
-	// Do not change the control positions/sizes in here if the window and controls are in different dpi scale. (use KDPIChangeListener)
-	virtual void onResized();
+	// Do not change the control positions/sizes in here if resizingForDPIChange is true. (to detect dpi changes use onDPIChange event)
+	virtual void onResized(bool resizingForDPIChange) noexcept;
 
-	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) override;
+	virtual LRESULT windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept override;
 
-	virtual ~KWindow();
+	virtual ~KWindow() noexcept;
 };
 

@@ -1,0 +1,233 @@
+# Framework Skeleton Spec (Minimal)
+
+Flat navigation index: one line per construct with its file path. No member lists — read the source file for exact signatures, members, and implementation. See AGENTS.md for usage rules. paths are relative to current directory. if the current dir is `c:/myprojects` then the real path of `rfc/gui/KComponent.h` file is `c:/myprojects/rfc/gui/KComponent.h`
+
+- **Macro**: `BEGIN_KMSG_HANDLER` — `rfc/gui/KComponent.h`
+- **Macro**: `CONST_TXT` — `rfc/core/KString.h`
+- **Macro**: `CONST_TXT_PARAMS` — `rfc/core/KString.h`
+- **Class**: `CoreModuleInitParams` — `rfc/core/CoreModule.h`
+- **Macro**: `DEBUG_PRINT` — `rfc/core/Core.h`
+- **Macro**: `DEF_XORED_KSTRING` — `rfc/security/KXoredString.h`
+- **Macro**: `DEF_XORED_VAR` — `rfc/security/KXoredString.h`
+- **Function**: `DeInitRFCModules` — `rfc/core/Core.cpp`
+- **Macro**: `END_KMSG_HANDLER` — `rfc/gui/KComponent.h`
+- **Function**: `InitRFCModules` — `rfc/core/Core.cpp`
+- **Typedef**: `KAdjustWindowRectExForDpi` — `rfc/core/KDPIUtility.h`
+- **Class**: `KAnimationEventListener` — `rfc/wam/KAnimationManager.h`
+- **Class**: `KAnimationManager` — `rfc/wam/KAnimationManager.h`
+- **Class**: `KAnimationUpdateListener` — `rfc/wam/KAnimationManager.h`
+- **Class**: `KApplication` — `rfc/core/KApplication.h`
+- **Class**: `KBitmap` — `rfc/gui/KBitmap.h`
+- **Class**: `KBufferReadStream` (Inherits: `KStream`) — `rfc/file/KBufferStream.h`
+- **Class**: `KBufferWriteStream` (Inherits: `KStream`) — `rfc/file/KBufferStream.h`
+- **Class**: `KButton` (Inherits: `KComponent`) — `rfc/gui/KButton.h`
+- **Class**: `KCheckBox` (Inherits: `KButton`) — `rfc/gui/KCheckBox.h`
+- **Class**: `KChildControl` (Inherits: `KComponent`) — `rfc/gui/KWindowTypes.h`
+- **Enum**: `KCloseOperation` — `rfc/gui/KWindow.h`
+- **Class**: `KComMultiObject` (Inherits: `IUnknown`) — `rfc/com/KComMultiObject.h`
+- **Class**: `KComObject` (Inherits: `Interface`) — `rfc/com/KComObject.h`
+- **Class**: `KComPtr` — `rfc/com/KComPtr.h`
+- **Class**: `KComboBox` (Inherits: `KComponent`) — `rfc/gui/KComboBox.h`
+- **Class**: `KCommonDialogBox` — `rfc/gui/KCommonDialogBox.h`
+- **Class**: `KComponent` — `rfc/gui/KComponent.h`
+- **Class**: `KCursor` — `rfc/gui/KCursor.h`
+- **Class**: `KDPAPI` — `rfc/security/KDPAPI.h`
+- **Enum**: `KDPIAwareness` — `rfc/core/KDPIUtility.h`
+- **Class**: `KDPIUtility` — `rfc/core/KDPIUtility.h`
+- **Class**: `KDialog` (Inherits: `KWindow`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KDirectory` — `rfc/file/KDirectory.h`
+- **Class**: `KDiskDrive` — `rfc/hardware/KDiskDrive.h`
+- **Class**: `KDraggable` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KDrawable` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KDynamicMenu` — `rfc/gui/KDynamicMenu.h`
+- **Macro**: `KFILE_FILTER` — `rfc/gui/KCommonDialogBox.h`
+- **Macro**: `KFORMAT_ID` — `rfc/file/KFile.h`
+- **Class**: `KFile` (Inherits: `KStream`) — `rfc/file/KFile.h`
+- **Class**: `KFixedQueue` (Inherits: `KThreadSafetyBase<IsThreadSafe>`) — `rfc/containers/KFixedQueue.h`
+- **Class**: `KFixedStack` — `rfc/containers/KFixedStack.h`
+- **Class**: `KFontCache` — `rfc/gui/KFont.h`
+- **Class**: `KFontHandle` — `rfc/gui/KFont.h`
+- **Class**: `KFontReference` — `rfc/gui/KFont.h`
+- **Class**: `KFontType` — `rfc/gui/KFont.h`
+- **Class**: `KFrame` (Inherits: `KWindow`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KGUIProc` — `rfc/gui/KGUIProc.h`
+- **Typedef**: `KGetDpiForMonitor` — `rfc/core/KDPIUtility.h`
+- **Typedef**: `KGetDpiForWindow` — `rfc/core/KDPIUtility.h`
+- **Class**: `KGlyphButton` (Inherits: `KButton`) — `rfc/gui/KGlyphButton.h`
+- **Class**: `KGraphics` — `rfc/gui/KGraphics.h`
+- **Class**: `KGridView` (Inherits: `KComponent`) — `rfc/gui/KGridView.h`
+- **Class**: `KGroupBox` (Inherits: `KButton`) — `rfc/gui/KGroupBox.h`
+- **Class**: `KGuid` — `rfc/utils/KGuid.h`
+- **Enum**: `KHashAlgorithm` — `rfc/security/KHashGen.h`
+- **Class**: `KHashGen` — `rfc/security/KHashGen.h`
+- **Class**: `KHostPanel` (Inherits: `KComponent`) — `rfc/gui/KHostPanel.h`
+- **Class**: `KHotPluggedDialog` (Inherits: `KWindow`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KIDGenerator` — `rfc/gui/KIDGenerator.h`
+- **Class**: `KIPCClient` — `rfc/ipc/KIPCObjects.h`
+- **Class**: `KIPCServer` — `rfc/ipc/KIPCObjects.h`
+- **Macro**: `KIPC_CLNT_DATA_READY_POSTFIX` — `rfc/ipc/KIPCObjects.h`
+- **Macro**: `KIPC_CLNT_LIVE_POSTFIX` — `rfc/ipc/KIPCObjects.h`
+- **Macro**: `KIPC_CLNT_STARTED_POSTFIX` — `rfc/ipc/KIPCObjects.h`
+- **Macro**: `KIPC_CLOSE_CLIENT_MESSAGE` — `rfc/ipc/KIPCObjects.h`
+- **Macro**: `KIPC_CLOSE_CLIENT_TIMEOUT` — `rfc/ipc/KIPCObjects.h`
+- **Macro**: `KIPC_SHARED_MEM_POSTFIX` — `rfc/ipc/KIPCObjects.h`
+- **Macro**: `KIPC_SVR_DATA_READY_POSTFIX` — `rfc/ipc/KIPCObjects.h`
+- **Macro**: `KIPC_SVR_LIVE_POSTFIX` — `rfc/ipc/KIPCObjects.h`
+- **Macro**: `KIPC_USER_MESSAGE` — `rfc/ipc/KIPCObjects.h`
+- **Class**: `KIcon` — `rfc/gui/KIcon.h`
+- **Class**: `KInternet` — `rfc/network/KInternet.h`
+- **Class**: `KInterruptableSleep` — `rfc/thread/KInterruptableSleep.h`
+- **Class**: `KInvokable` — `rfc/gui/KInvokable.h`
+- **Union**: `KInvokeParam` — `rfc/gui/KInvokable.h`
+- **Class**: `KLabel` (Inherits: `KComponent`) — `rfc/gui/KLabel.h`
+- **Class**: `KLeakDetector` — `rfc/core/KLeakDetector.h`
+- **Class**: `KListBox` (Inherits: `KComponent`) — `rfc/gui/KListBox.h`
+- **Class**: `KLogger` — `rfc/file/KLogger.h`
+- **Class**: `KMemoryStream` (Inherits: `IStream`) — `rfc/com/KMemoryStream.h`
+- **Class**: `KMenu` — `rfc/gui/KMenu.h`
+- **Class**: `KMenuBar` — `rfc/gui/KMenuBar.h`
+- **Class**: `KMenuButton` (Inherits: `KButton`) — `rfc/gui/KMenuButton.h`
+- **Class**: `KMenuItem` — `rfc/gui/KMenuItem.h`
+- **Class**: `KModelElement` — `rfc/xml/KXMLReader.h`
+- **Class**: `KModelElementFactory` — `rfc/xml/KXMLReader.h`
+- **Enum**: `KModelElementType` — `rfc/xml/KXMLReader.h`
+- **Class**: `KModuleManager` — `rfc/core/KModuleManager.h`
+- **Class**: `KNotifyIconHandler` (Inherits: `T`) — `rfc/gui/KNotifyIconHandler.h`
+- **Class**: `KNumericField` (Inherits: `KTextBox`) — `rfc/gui/KNumericField.h`
+- **Class**: `KOverlappedWindow` (Inherits: `KWindow`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KPSObject` — `rfc/file/KPropertyStorage.h`
+- **Class**: `KPSObjectView` (Inherits: `KPSObject`) — `rfc/file/KPropertyStorage.h`
+- **Class**: `KPSProperty` — `rfc/file/KPropertyStorage.h`
+- **Class**: `KPSPropertyView` (Inherits: `KPSProperty`) — `rfc/file/KPropertyStorage.h`
+- **Class**: `KPSReader` — `rfc/file/KPropertyStorage.h`
+- **Class**: `KPasswordBox` (Inherits: `KTextBox`) — `rfc/gui/KPasswordBox.h`
+- **Class**: `KPerformanceCounter` — `rfc/utils/KPerformanceCounter.h`
+- **Class**: `KPointerList` (Inherits: `KThreadSafetyBase<IsThreadSafe>`) — `rfc/containers/KPointerList.h`
+- **Class**: `KPointerQueue` (Inherits: `KThreadSafetyBase<IsThreadSafe>`) — `rfc/containers/KPointerQueue.h`
+- **Class**: `KProcess` — `rfc/utils/KProcess.h`
+- **Class**: `KProgressBar` (Inherits: `KComponent`) — `rfc/gui/KProgressBar.h`
+- **Class**: `KProperty` — `rfc/containers/KProperty.h`
+- **Class**: `KPushButton` (Inherits: `KCheckBox`) — `rfc/gui/KPushButton.h`
+- **Class**: `KQRCodeBox` (Inherits: `KComponent`) — `rfc/qrcode/KQRCodeBox.h`
+- **Class**: `KQueueNode` — `rfc/containers/KPointerQueue.h`
+- **Class**: `KRadioButton` (Inherits: `KCheckBox`) — `rfc/gui/KRadioButton.h`
+- **Class**: `KRefCountedMemory` — `rfc/core/KRefCountedMemory.h`
+- **Class**: `KRegistry` — `rfc/utils/KRegistry.h`
+- **Class**: `KReleasePtrUsingFree` — `rfc/containers/KReleaseTypes.h`
+- **Class**: `KReleasePtrUsingGlobalFree` — `rfc/containers/KReleaseTypes.h`
+- **Class**: `KReleasePtrUsingLocalFree` — `rfc/containers/KReleaseTypes.h`
+- **Class**: `KReleasePtrUsingTaskMemFree` — `rfc/containers/KReleaseTypes.h`
+- **Class**: `KReleaseUsingFree` — `rfc/containers/KReleaseTypes.h`
+- **Class**: `KReleaseUsingGlobalFree` — `rfc/containers/KReleaseTypes.h`
+- **Class**: `KReleaseUsingLocalFree` — `rfc/containers/KReleaseTypes.h`
+- **Class**: `KReleaseUsingTaskMemFree` — `rfc/containers/KReleaseTypes.h`
+- **Class**: `KRemoveTitleBar` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KRunnable` — `rfc/thread/KRunnable.h`
+- **Macro**: `KSTATIC_POOL_SIZE` — `rfc/containers/KStaticAllocator.h`
+- **Class**: `KSVGImage` — `rfc/svg/KSVGImage.h`
+- **Class**: `KScopedClassPointer` — `rfc/containers/KScopedClassPointer.h`
+- **Class**: `KScopedComPointer` — `rfc/containers/KScopedComPointer.h`
+- **Class**: `KScopedCriticalSection` — `rfc/containers/KScopedCriticalSection.h`
+- **Class**: `KScopedGdiObject` — `rfc/containers/KScopedGdiObject.h`
+- **Class**: `KScopedHandle` — `rfc/containers/KScopedHandle.h`
+- **Class**: `KScopedMemory` — `rfc/containers/KScopedMemory.h`
+- **Class**: `KScopedStructPointer` — `rfc/containers/KScopedStructPointer.h`
+- **Class**: `KSerialPort` — `rfc/hardware/KSerialPort.h`
+- **Typedef**: `KSetProcessDPIAware` — `rfc/core/KDPIUtility.h`
+- **Typedef**: `KSetProcessDpiAwareness` — `rfc/core/KDPIUtility.h`
+- **Typedef**: `KSetProcessDpiAwarenessContext` — `rfc/core/KDPIUtility.h`
+- **Typedef**: `KSetThreadDpiAwarenessContext` — `rfc/core/KDPIUtility.h`
+- **Class**: `KSettingsReader` — `rfc/file/KSettingsReader.h`
+- **Class**: `KSettingsWriter` — `rfc/file/KSettingsWriter.h`
+- **Class**: `KSignCheck` — `rfc/security/KSignCheck.h`
+- **Class**: `KSignal` — `rfc/gui/KSignal.h`
+- **Class**: `KSignalHandler` (Inherits: `T`) — `rfc/gui/KSignalHandler.h`
+- **Class**: `KStackInfo` — `rfc/utils/KStackInfo.h`
+- **Class**: `KStaticAllocator` — `rfc/containers/KStaticAllocator.h`
+- **Class**: `KStream` — `rfc/file/KStream.h`
+- **Class**: `KString` — `rfc/core/KString.h`
+- **Enum**: `KStringBehaviour` — `rfc/core/KString.h`
+- **Enum**: `KStringBufferType` — `rfc/core/KString.h`
+- **Class**: `KSystemID` — `rfc/hardware/KSystemID.h`
+- **Class**: `KTOTPAuth` — `rfc/totp/KTOTPAuth.h`
+- **Class**: `KTextArea` (Inherits: `KTextBox`) — `rfc/gui/KTextArea.h`
+- **Class**: `KTextBox` (Inherits: `KComponent`) — `rfc/gui/KTextBox.h`
+- **Class**: `KThread` — `rfc/thread/KThread.h`
+- **Struct**: `KThreadSafetyBase` — `rfc/containers/KPointerList.h`
+- **Class**: `KTime` — `rfc/utils/KTime.h`
+- **Class**: `KTimer` — `rfc/gui/KTimer.h`
+- **Class**: `KToolTip` (Inherits: `KComponent`) — `rfc/gui/KToolTip.h`
+- **Class**: `KToolWindow` (Inherits: `KWindow`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KTrackBar` (Inherits: `KComponent`) — `rfc/gui/KTrackBar.h`
+- **Class**: `KTransparentBitmap` — `rfc/gui/KTransparentBitmap.h`
+- **Class**: `KVector` (Inherits: `KThreadSafetyBase<IsThreadSafe>`) — `rfc/containers/KVector.h`
+- **Class**: `KWebView` (Inherits: `KDrawable<KChildControl>`) — `rfc/webview/KWebView.h`
+- **Class**: `KWidget` (Inherits: `KDrawable<KDraggable<KWindow>>`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KWindow` (Inherits: `KComponent`) — `rfc/gui/KWindow.h`
+- **Class**: `KWithOnCloseEvent` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KWithOnCustomMsgEvent` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KWithOnDestroyEvent` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KWithOnWindowProcEvent` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
+- **Class**: `KXMLReader` — `rfc/xml/KXMLReader.h`
+- **Class**: `KXXHash32` — `rfc/security/KXXHash32.h`
+- **Struct**: `KXoredString` — `rfc/security/KXoredString.h`
+- **Class**: `KZoomRectEffect` (Inherits: `T`) — `rfc/gui/KZoomRectEffect.h`
+- **Macro**: `K_ASSERT` — `rfc/core/KAssert.h`
+- **Macro**: `K_NO_COPY` — `rfc/core/Core.h`
+- **Macro**: `K_NO_COPY_MOVE` — `rfc/core/Core.h`
+- **Macro**: `K_NO_DEFAULTS` — `rfc/core/Core.h`
+- **Macro**: `K_NO_MOVE` — `rfc/core/Core.h`
+- **Macro**: `LEN_ANSI_STR` — `rfc/core/KString.h`
+- **Macro**: `LEN_UNI_STR` — `rfc/core/KString.h`
+- **Class**: `LabelElement` (Inherits: `KModelElement`) — `rfc/xml/KXMLReader.h`
+- **Typedef**: `Logical` — `rfc/core/KDPIUtility.h`
+- **Struct**: `LogicalEdges` — `rfc/core/KDPIUtility.h`
+- **Struct**: `LogicalPoint` — `rfc/core/KDPIUtility.h`
+- **Struct**: `LogicalRect` — `rfc/core/KDPIUtility.h`
+- **Macro**: `MAX_RFC_MODULE_COUNT` — `rfc/core/KModuleManager.h`
+- **Enum**: `MyXmlElementType` — `rfc/xml/KXMLReader.h`
+- **Macro**: `ON_KMSG` — `rfc/gui/KComponent.h`
+- **Macro**: `PS_V1_HEADER` — `rfc/file/KPropertyStorage.h`
+- **Class**: `PanelElement` (Inherits: `KModelElement`) — `rfc/xml/KXMLReader.h`
+- **Typedef**: `Physical` — `rfc/core/KDPIUtility.h`
+- **Struct**: `PhysicalPoint` — `rfc/core/KDPIUtility.h`
+- **Macro**: `REGISTER_RFC_MODULE` — `rfc/core/KModuleManager.h`
+- **Macro**: `RFC32` — `rfc/core/Architecture.h`
+- **Macro**: `RFC64` — `rfc/core/Architecture.h`
+- **Function**: `RFCCTL_CBTProc` — `rfc/gui/KGUIProc.cpp`
+- **Function**: `RFCDllFree` — `rfc/core/Core.cpp`
+- **Function**: `RFCDllInit` — `rfc/core/Core.cpp`
+- **Typedef**: `RFCModuleFreeFunc` — `rfc/core/KModuleManager.h`
+- **Typedef**: `RFCModuleInitFunc` — `rfc/core/KModuleManager.h`
+- **Macro**: `RFC_CHECK_ARRAY_AS_LITERAL` — `rfc/core/KString.h`
+- **Macro**: `RFC_CUSTOM_MESSAGE` — `rfc/gui/KWindow.h`
+- **Macro**: `RFC_LEAK_DETECTOR` — `rfc/core/KLeakDetector.h`
+- **Macro**: `RFC_MAX_PATH` — `rfc/core/Core.h`
+- **Macro**: `RFC_NATIVE_INT` — `rfc/core/Architecture.h`
+- **Macro**: `RFC_NOTIFY_ICON_MESSAGE` — `rfc/gui/KNotifyIconHandler.h`
+- **Macro**: `RFC_PTR_SIZE` — `rfc/core/Architecture.h`
+- **Macro**: `RFC_SIGNAL_MESSAGE` — `rfc/gui/KSignal.h`
+- **Typedef**: `RPC_WSTR` — `rfc/utils/KGuid.h`
+- **Macro**: `START_RFC_APPLICATION` — `rfc/core/Core.h`
+- **Macro**: `START_RFC_APPLICATION_NO_CMD_ARGS` — `rfc/core/Core.h`
+- **Macro**: `START_RFC_CONSOLE_APP` — `rfc/core/Core.h`
+- **Macro**: `START_RFC_CONSOLE_APP_NO_CMD_ARGS` — `rfc/core/Core.h`
+- **Macro**: `STR_COPY` — `rfc/core/KString.h`
+- **Macro**: `STYLE_MANIFEST_DEFINED` — `rfc/core/Core.h`
+- **Macro**: `TXT_WITH_LEN` — `rfc/core/KString.h`
+- **Class**: `TestClass` — `rfc/xml/KXMLReader.h`
+- **Class**: `TestModelElementFactory` (Inherits: `KModelElementFactory`) — `rfc/xml/KXMLReader.h`
+- **Function**: `_RFCThread_Proc` — `rfc/thread/KThread.cpp`
+- **Function**: `kmake_xorkey` — `rfc/security/KXoredString.h`
+- **Function**: `kxored_str` — `rfc/security/KXoredString.h`
+- **Function**: `operator !=` — `rfc/com/KComPtr.h`
+- **Function**: `operator +` — `rfc/core/KString.cpp`
+- **Function**: `operator ==` — `rfc/com/KComPtr.h`
+- **Union**: `timeunion` — `rfc/utils/KTime.h`
+- **Enum**: `KPSPropertyTypes` *(ns: KPSPropertyTypes)* — `rfc/file/KPropertyStorage.h`
+- **Class**: `AnimatorBase` *(ns: composition)* — `rfc/composition/composition.h`
+- **Class**: `BaseWindow` *(ns: composition)* (Inherits: `KWindow`) — `rfc/composition/composition.h`
+- **Class**: `CompExampleWindow` *(ns: composition)* (Inherits: `BaseWindow`) — `rfc/composition/composition.h`
+- **Class**: `Layer` *(ns: composition)* — `rfc/composition/composition.h`
+- **Class**: `XPosAnimator` *(ns: composition)* (Inherits: `AnimatorBase`) — `rfc/composition/composition.h`
+- **Function**: `operator ""_st` *(ns: kstring_literals)* — `rfc/core/KString.cpp`

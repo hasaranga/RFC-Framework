@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,9 +21,11 @@
 
 #include "KSettingsWriter.h"
 
-KSettingsWriter::KSettingsWriter() {}
+KSettingsWriter::KSettingsWriter() noexcept : streamPtr(nullptr){}
 
-bool KSettingsWriter::openFile(const wchar_t* fileName, int formatID)
+KSettingsWriter::KSettingsWriter(KStream* stream) noexcept : streamPtr(stream){}
+
+bool KSettingsWriter::openFile(const wchar_t* fileName, int formatID) noexcept
 {
 	if (KFile::isFileExists(fileName))
 		KFile::deleteFile(fileName);
@@ -31,55 +33,65 @@ bool KSettingsWriter::openFile(const wchar_t* fileName, int formatID)
 	if (!settingsFile.openFile(fileName, KFile::KWRITE))
 		return false;
 
-	settingsFile.setFilePointerToStart();
-	settingsFile.writeFile(&formatID, sizeof(int));
-
-	return true;
+	streamPtr = &settingsFile;
+	return streamPtr->writeStream((BYTE*)&formatID, sizeof(int));
 }
 
-void KSettingsWriter::writeData(DWORD size, void *buffer)
+void KSettingsWriter::writeData(DWORD size, void *buffer) noexcept
 {
-	if (buffer)
-		settingsFile.writeFile(buffer, size);
+	if (buffer && streamPtr)
+		streamPtr->writeStream((BYTE*)buffer, size);
 }
 
-void KSettingsWriter::writeString(const KString& text)
+void KSettingsWriter::writeString(const KString& text) noexcept
 {
+	if (!streamPtr)
+		return;
+
 	int size = text.length();
 	if (size)
 	{
 		size = (size + 1) * sizeof(wchar_t);
-		settingsFile.writeFile(&size, sizeof(int));
-
-		settingsFile.writeFile((const wchar_t*)text, size);
+		streamPtr->writeStream((BYTE*)&size, sizeof(int));
+		streamPtr->writeStream((BYTE*)(const wchar_t*)text, size);
 	}
 	else // write only empty size
 	{
-		settingsFile.writeFile(&size, sizeof(int));
+		streamPtr->writeStream((BYTE*)&size, sizeof(int));
 	}
 }
 
-void KSettingsWriter::writeInt(int value)
+void KSettingsWriter::writeInt(int value) noexcept
 {
-	settingsFile.writeFile(&value, sizeof(int));
+	if (streamPtr)
+		streamPtr->writeStream((BYTE*)&value, sizeof(int));
 }
 
-void KSettingsWriter::writeFloat(float value)
+void KSettingsWriter::writeUInt(unsigned int value) noexcept
 {
-	settingsFile.writeFile(&value, sizeof(float));
+	if (streamPtr)
+		streamPtr->writeStream((BYTE*)&value, sizeof(unsigned int));
 }
 
-void KSettingsWriter::writeDouble(double value)
+void KSettingsWriter::writeFloat(float value) noexcept
 {
-	settingsFile.writeFile(&value, sizeof(double));
+	if (streamPtr)
+		streamPtr->writeStream((BYTE*)&value, sizeof(float));
 }
 
-void KSettingsWriter::writeBool(bool value)
+void KSettingsWriter::writeDouble(double value) noexcept
 {
-	settingsFile.writeFile(&value, sizeof(bool));
+	if (streamPtr)
+		streamPtr->writeStream((BYTE*)&value, sizeof(double));
 }
 
-KSettingsWriter::~KSettingsWriter()
+void KSettingsWriter::writeBool(bool value) noexcept
+{
+	if (streamPtr)
+		streamPtr->writeStream((BYTE*)&value, sizeof(bool));
+}
+
+KSettingsWriter::~KSettingsWriter() noexcept
 {
 
 }

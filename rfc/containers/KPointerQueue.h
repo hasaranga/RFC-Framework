@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -19,14 +19,12 @@
 	3. This notice may not be removed or altered from any source distribution.
 */
 
-
 #pragma once
 
 #include "../core/CoreModule.h"
 #include "KPointerList.h"
 
-#ifndef _KQUEUE_H_
-#define _KQUEUE_H_
+#pragma once
 
 template<class T>
 class KQueueNode {
@@ -44,7 +42,7 @@ protected:
 	KQueueNode<T>* lastNode;
 
 	// Thread safety helper methods
-	inline void enterCriticalSectionIfNeeded()
+	inline void enterCriticalSectionIfNeeded() noexcept
 	{
 		if constexpr (IsThreadSafe)
 		{
@@ -52,7 +50,7 @@ protected:
 		}
 	}
 
-	inline void leaveCriticalSectionIfNeeded()
+	inline void leaveCriticalSectionIfNeeded() noexcept
 	{
 		if constexpr (IsThreadSafe)
 		{
@@ -61,13 +59,13 @@ protected:
 	}
 
 public:
-	KPointerQueue()
+	KPointerQueue() noexcept
 	{
 		firstNode = nullptr;
 		lastNode = nullptr;
 	}
 
-	void push(T value)
+	void push(T value) noexcept
 	{
 		KQueueNode<T>* newNode = new KQueueNode<T>();
 		newNode->data = value;
@@ -89,7 +87,7 @@ public:
 		leaveCriticalSectionIfNeeded();
 	}
 
-	T pop()
+	T pop() noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -113,8 +111,8 @@ public:
 		return value;
 	}
 
-	// calls desctructor of all the T objects in the queue. also clear the queue.
-	void deleteAllObjects()
+	// calls destructor of all the T objects in the queue. also clear the queue.
+	void deleteAllObjects() noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -140,7 +138,7 @@ public:
 		leaveCriticalSectionIfNeeded();
 	}
 
-	~KPointerQueue()
+	~KPointerQueue() noexcept
 	{
 		// delete all nodes
 
@@ -157,4 +155,3 @@ public:
 	}
 };
 
-#endif

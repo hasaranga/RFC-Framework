@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -58,7 +58,7 @@ const uint8_t KTOTPAuth_base32_decode_table[256] = {
       255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255
 };
 
-int KTOTPAuth::generateSecretKey(uint8_t* key, DWORD keyLength)
+int KTOTPAuth::generateSecretKey(uint8_t* key, DWORD keyLength) noexcept
 {
     HCRYPTPROV hProv = 0;
 
@@ -77,7 +77,7 @@ int KTOTPAuth::generateSecretKey(uint8_t* key, DWORD keyLength)
     return 1;
 }
 
-void KTOTPAuth::encodeBase32(const uint8_t* input, size_t inputLength, char* output)
+void KTOTPAuth::encodeBase32(const uint8_t* input, size_t inputLength, char* output) noexcept
 {
     // Base32 encoding table (RFC 4648)
     const char base32_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
@@ -110,7 +110,7 @@ void KTOTPAuth::encodeBase32(const uint8_t* input, size_t inputLength, char* out
     output[j] = '\0';
 }
 
-char* KTOTPAuth::keyToBase32String(const uint8_t* key, size_t keyLength)
+char* KTOTPAuth::keyToBase32String(const uint8_t* key, size_t keyLength) noexcept
 {
     // Calculate required buffer size for Base32
     size_t base32Length = ((keyLength * 8) + 4) / 5;  // Round up
@@ -121,7 +121,7 @@ char* KTOTPAuth::keyToBase32String(const uint8_t* key, size_t keyLength)
     return base32Key;
 }
 
-char* KTOTPAuth::totpCodeToString(uint32_t totpCode)
+char* KTOTPAuth::totpCodeToString(uint32_t totpCode) noexcept
 {
     char* result = (char*)::malloc(7 * sizeof(char));
 
@@ -130,7 +130,7 @@ char* KTOTPAuth::totpCodeToString(uint32_t totpCode)
     return result;
 }
 
-int KTOTPAuth::base32StringToKey(const char* str, uint8_t* key, size_t keyLength)
+int KTOTPAuth::base32StringToKey(const char* str, uint8_t* key, size_t keyLength) noexcept
 {
     if (!str || !key || keyLength == 0)
     {
@@ -208,24 +208,25 @@ int KTOTPAuth::base32StringToKey(const char* str, uint8_t* key, size_t keyLength
     return (int)outputPos; // Return number of bytes decoded
 }
 
-uint32_t KTOTPAuth::getCurrentTimestamp()
+uint32_t KTOTPAuth::getCurrentTimestamp() noexcept
 {
     return (uint32_t)::time(NULL);
 }
 
-uint32_t KTOTPAuth::generateTOTPForTime(uint8_t* hmacKey, uint8_t keyLength, uint32_t timeStep, uint32_t timestamp)
+uint32_t KTOTPAuth::generateTOTPForTime(uint8_t* hmacKey, uint8_t keyLength, uint32_t timeStep, uint32_t timestamp) noexcept
 {
     totpmcu::TOTPGen::TOTP(hmacKey, keyLength, timeStep);
     return  totpmcu::TOTPGen::getCodeFromTimestamp(timestamp);
 }
 
-uint32_t KTOTPAuth::generateTOTPForCurrentTime(uint8_t* hmacKey, uint8_t keyLength, uint32_t timeStep)
+uint32_t KTOTPAuth::generateTOTPForCurrentTime(uint8_t* hmacKey, uint8_t keyLength, uint32_t timeStep) noexcept
 {
     uint32_t currentTime = getCurrentTimestamp();
     return generateTOTPForTime(hmacKey, keyLength, timeStep, currentTime);
 }
 
-int KTOTPAuth::_validateTOTPCode(uint8_t* hmacKey, uint8_t keyLength, uint32_t inputCode, uint32_t timeStep, int windowTolerance)
+int KTOTPAuth::_validateTOTPCode(uint8_t* hmacKey, uint8_t keyLength, 
+    uint32_t inputCode, uint32_t timeStep, int windowTolerance) noexcept
 {
     uint32_t currentTime = getCurrentTimestamp();
 
@@ -251,13 +252,13 @@ int KTOTPAuth::_validateTOTPCode(uint8_t* hmacKey, uint8_t keyLength, uint32_t i
     return 0; // Invalid code
 }
 
-int KTOTPAuth::getRemainingSeconds(uint32_t timeStep)
+int KTOTPAuth::getRemainingSeconds(uint32_t timeStep) noexcept
 {
     uint32_t currentTime = KTOTPAuth::getCurrentTimestamp();
     return timeStep - (currentTime % timeStep);
 }
 
-KString KTOTPAuth::generateTOTPKey()
+KString KTOTPAuth::generateTOTPKey() noexcept
 {
     uint8_t hmacKey[20] = { 0 }; // 160-bit key (recommended for SHA-1)
     uint8_t keyLength = (uint8_t)sizeof(hmacKey);
@@ -270,12 +271,12 @@ KString KTOTPAuth::generateTOTPKey()
     return strKey;
 }
 
-KString KTOTPAuth::getTOTPCodeForCurrentTime(const KString& key, uint32_t timeStep)
+KString KTOTPAuth::getTOTPCodeForCurrentTime(const KString& key, uint32_t timeStep) noexcept
 {
     uint8_t hmacKey[20] = { 0 }; // 160-bit key (recommended for SHA-1)
     uint8_t keyLength = (uint8_t)sizeof(hmacKey);
 
-    char* ansiKey = KString::toAnsiString(key);
+    char* ansiKey = KString::toUTF8String(key);
     const int res = KTOTPAuth::base32StringToKey(ansiKey, hmacKey, keyLength);
     ::free(ansiKey);
 
@@ -290,12 +291,13 @@ KString KTOTPAuth::getTOTPCodeForCurrentTime(const KString& key, uint32_t timeSt
     return strTOTPCode;
 }
 
-int KTOTPAuth::validateTOTPCode(const KString& key, const KString& inputCode, uint32_t timeStep, int windowTolerance)
+int KTOTPAuth::validateTOTPCode(const KString& key, const KString& inputCode, 
+    uint32_t timeStep, int windowTolerance) noexcept
 {
     uint8_t hmacKey[20] = { 0 }; // 160-bit key (recommended for SHA-1)
     uint8_t keyLength = (uint8_t)sizeof(hmacKey);
 
-    char* ansiKey = KString::toAnsiString(key);
+    char* ansiKey = KString::toUTF8String(key);
     const int res = base32StringToKey(ansiKey, hmacKey, keyLength);
     ::free(ansiKey);
 
@@ -306,7 +308,7 @@ int KTOTPAuth::validateTOTPCode(const KString& key, const KString& inputCode, ui
     return KTOTPAuth::_validateTOTPCode(hmacKey, keyLength, inputCodeInt, timeStep, windowTolerance);
 }
 
-KString KTOTPAuth::generateQRText(const KString& key, const KString& issuer, const KString& username)
+KString KTOTPAuth::generateQRText(const KString& key, const KString& issuer, const KString& username) noexcept
 {
     KString encodedIssuer = KTOTPAuth::urlEncode(issuer);
     KString encodedUsername = KTOTPAuth::urlEncode(username);
@@ -315,7 +317,7 @@ KString KTOTPAuth::generateQRText(const KString& key, const KString& issuer, con
         key + CONST_TXT("&issuer=") + encodedIssuer;
 }
 
-KString KTOTPAuth::urlEncode(const KString& text)
+KString KTOTPAuth::urlEncode(const KString& text) noexcept
 {
     wchar_t output[512];
     output[0] = 0;

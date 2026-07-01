@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <windows.h>
+#include "../core/CoreModule.h"
 
 class KSerialPort
 {
@@ -29,16 +29,16 @@ protected:
 	HANDLE hPort;
 
 public:
-	KSerialPort()
+	KSerialPort() noexcept
 	{
 		hPort = NULL;
 	}
 
-	~KSerialPort() {}
+	~KSerialPort() noexcept {}
 
 	// portText can be COM2 etc...
 	// set waitForInitialize to true if connect to arduino board
-	bool open(const char* portText, bool waitForInitialize = false)
+	bool open(const char* portText, bool waitForInitialize = false) noexcept
 	{
 		DCB dcb;
 		hPort = ::CreateFileA(portText, GENERIC_WRITE | GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
@@ -67,7 +67,7 @@ public:
 		return true;
 	}
 
-	bool write(const char* data, int len)
+	bool write(const char* data, int len) noexcept
 	{
 		DWORD bytesWritten = 0;
 		::WriteFile(hPort, data, len, &bytesWritten, NULL);
@@ -76,7 +76,7 @@ public:
 
 	// reading will not wait.
 	// call this after open.
-	void setReadTimeOuts()
+	void setReadTimeOuts() noexcept
 	{
 		COMMTIMEOUTS cto;
 		::GetCommTimeouts(hPort, &cto);
@@ -89,14 +89,14 @@ public:
 	}
 
 	// reads a single byte
-	bool read(char* data)
+	bool read(char* data) noexcept
 	{
 		DWORD bytesRead = 0;
 		::ReadFile(hPort, data, 1, &bytesRead, NULL);
 		return (bytesRead == 1);
 	}
 
-	void close()
+	void close() noexcept
 	{
 		if (hPort)
 			::CloseHandle(hPort);

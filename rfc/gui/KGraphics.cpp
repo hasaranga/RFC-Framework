@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -20,33 +20,34 @@
 */
 
 #include "KGraphics.h"
+#include <cmath>
 
-KGraphics::KGraphics(){}
+KGraphics::KGraphics() noexcept {}
 
-KGraphics::~KGraphics(){}
+KGraphics::~KGraphics() noexcept {}
 
-void KGraphics::draw3dVLine(HDC hdc, int startX, int startY, int height)
+void KGraphics::draw3dVLine(HDC hdc, Physical startX, Physical startY, Physical height) noexcept
 {
 	KGraphics::draw3dRect(hdc, startX, startY, 2, 
 		height, ::GetSysColor(COLOR_BTNSHADOW), 
 		::GetSysColor(COLOR_BTNHIGHLIGHT));
 }
 
-void KGraphics::draw3dHLine(HDC hdc, int startX, int startY, int width)
+void KGraphics::draw3dHLine(HDC hdc, Physical startX, Physical startY, Physical width) noexcept
 {
 	KGraphics::draw3dRect(hdc, startX, startY, width, 
 		2, ::GetSysColor(COLOR_BTNSHADOW), 
 		::GetSysColor(COLOR_BTNHIGHLIGHT));
 }
 
-void KGraphics::draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight)
+void KGraphics::draw3dRect(HDC hdc, LPCRECT lpRect, COLORREF clrTopLeft, COLORREF clrBottomRight) noexcept
 {
 	KGraphics::draw3dRect(hdc, lpRect->left, lpRect->top, 
 		lpRect->right - lpRect->left, lpRect->bottom - lpRect->top, 
 		clrTopLeft, clrBottomRight);
 }
 
-void KGraphics::draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTopLeft, COLORREF clrBottomRight)
+void KGraphics::draw3dRect(HDC hdc, Physical x, Physical y, Physical cx, Physical cy, COLORREF clrTopLeft, COLORREF clrBottomRight) noexcept
 {
 	KGraphics::fillSolidRect(hdc, x, y, cx - 1, 1, clrTopLeft);
 	KGraphics::fillSolidRect(hdc, x, y, 1, cy - 1, clrTopLeft);
@@ -54,13 +55,13 @@ void KGraphics::draw3dRect(HDC hdc, int x, int y, int cx, int cy, COLORREF clrTo
 	KGraphics::fillSolidRect(hdc, x, y + cy, cx, -1, clrBottomRight);
 }
 
-void KGraphics::fillSolidRect(HDC hdc, int x, int y, int cx, int cy, COLORREF color)
+void KGraphics::fillSolidRect(HDC hdc, Physical x, Physical y, Physical cx, Physical cy, COLORREF color) noexcept
 {
 	RECT rect = { x, y, x + cx, y + cy };
 	KGraphics::fillSolidRect(hdc, &rect, color);
 }
 
-void KGraphics::fillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
+void KGraphics::fillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color) noexcept
 {
 	const COLORREF clrOld = ::SetBkColor(hdc, color);
 
@@ -68,7 +69,31 @@ void KGraphics::fillSolidRect(HDC hdc, LPCRECT lpRect, COLORREF color)
 	::SetBkColor(hdc, clrOld);
 }
 
-RECT KGraphics::calculateTextSize(const wchar_t* text, HFONT hFont)
+void KGraphics::drawHDCRotated(HDC srcHDC, Physical srcX, Physical srcY, Physical srcWidth, Physical srcHeight,
+	HDC destHDC, Physical destX, Physical destY, float rotation) noexcept
+{
+	const float rad = rotation * (3.14159265f / 180.0f);
+	const float cosA = ::cosf(rad);
+	const float sinA = ::sinf(rad);
+
+	POINT pts[3];
+
+	// upper-left (0, 0)
+	pts[0].x = destX;
+	pts[0].y = destY;
+
+	// upper-right (srcWidth, 0)
+	pts[1].x = destX + (LONG)(srcWidth * cosA);
+	pts[1].y = destY + (LONG)(srcWidth * sinA);
+
+	// lower-left (0, srcHeight)
+	pts[2].x = destX + (LONG)(-srcHeight * sinA);
+	pts[2].y = destY + (LONG)(srcHeight * cosA);
+
+	::PlgBlt(destHDC, pts, srcHDC, srcX, srcY, srcWidth, srcHeight, NULL, 0, 0);
+}
+
+RECT KGraphics::calculateTextSize(const wchar_t* text, HFONT hFont) noexcept
 {
 	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
 	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
@@ -81,7 +106,7 @@ RECT KGraphics::calculateTextSize(const wchar_t* text, HFONT hFont)
 	return sz;
 }
 
-int KGraphics::calculateTextHeight(const wchar_t* text, HFONT hFont, int width)
+int KGraphics::calculateTextHeight(const wchar_t* text, HFONT hFont, int width) noexcept
 {
 	HDC hDC = ::CreateICW(L"DISPLAY", NULL, NULL, NULL);
 	HGDIOBJ hOldFont = ::SelectObject(hDC, hFont);
@@ -97,7 +122,7 @@ int KGraphics::calculateTextHeight(const wchar_t* text, HFONT hFont, int width)
 }
 
 // https://devblogs.microsoft.com/oldnewthing/20210915-00/?p=105687
-void KGraphics::makeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy)
+void KGraphics::makeBitmapOpaque(HDC hdc, Physical x, Physical y, Physical cx, Physical cy) noexcept
 {
 	BITMAPINFO bi = {};
 	bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -114,7 +139,7 @@ void KGraphics::makeBitmapOpaque(HDC hdc, int x, int y, int cx, int cy)
 		DIB_RGB_COLORS, SRCPAINT);
 }
 
-void KGraphics::setBitmapAlphaChannel(HDC hdc, int x, int y, int cx, int cy, BYTE alpha)
+void KGraphics::setBitmapAlphaChannel(HDC hdc, Physical x, Physical y, Physical cx, Physical cy, BYTE alpha) noexcept
 {
 	BITMAPINFO bi = {};
 	bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);

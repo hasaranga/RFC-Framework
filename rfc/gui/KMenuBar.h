@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -30,13 +30,13 @@ protected:
 	HMENU hMenu;
 
 public:
-	KMenuBar();
+	KMenuBar() noexcept;
 
-	virtual void addMenu(const KString& text, KMenu* menu);
+	void addMenu(const KString& text, KMenu* menu) noexcept;
 
-	virtual void addToWindow(KWindow* window);
+	void addToWindow(KWindow* window) noexcept;
 
-	virtual ~KMenuBar();
+	virtual ~KMenuBar() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KMenuBar)

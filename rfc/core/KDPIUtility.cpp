@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -28,8 +28,9 @@ KSetProcessDpiAwareness KDPIUtility::pSetProcessDpiAwareness = nullptr;
 KSetProcessDPIAware KDPIUtility::pSetProcessDPIAware = nullptr;
 KSetThreadDpiAwarenessContext KDPIUtility::pSetThreadDpiAwarenessContext = nullptr;
 KAdjustWindowRectExForDpi KDPIUtility::pAdjustWindowRectExForDpi = nullptr;
+KGetDpiForWindow KDPIUtility::pGetDpiForWindow = nullptr;
 
-void KDPIUtility::initDPIFunctions()
+void KDPIUtility::initDPIFunctions() noexcept
 {
 	HMODULE hShcore = ::LoadLibraryW(L"Shcore.dll");
 	if (hShcore)
@@ -46,6 +47,10 @@ void KDPIUtility::initDPIFunctions()
 	HMODULE hUser32 = ::LoadLibraryW(L"User32.dll");
 	if (hUser32)
 	{
+		KDPIUtility::pGetDpiForWindow =
+			reinterpret_cast<KGetDpiForWindow>
+			(::GetProcAddress(hUser32, "GetDpiForWindow")); // win10 version 1607
+
 		KDPIUtility::pSetThreadDpiAwarenessContext =
 			reinterpret_cast<KSetThreadDpiAwarenessContext>
 			(::GetProcAddress(hUser32, "SetThreadDpiAwarenessContext")); // win10
@@ -65,27 +70,50 @@ void KDPIUtility::initDPIFunctions()
 }
 
 // https://building.enlyze.com/posts/writing-win32-apps-like-its-2020-part-3/
-WORD KDPIUtility::getWindowDPI(HWND hWnd)
+WORD KDPIUtility::getWindowDPI(HWND hWnd) noexcept
 {
+	if (KDPIUtility::pGetDpiForWindow != nullptr)
+		return KDPIUtility::pGetDpiForWindow(hWnd);
+
 	if (KDPIUtility::pGetDpiForMonitor != nullptr)
 	{
 		HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY);
 		UINT uiDpiX, uiDpiY;
-		HRESULT hr = KDPIUtility::pGetDpiForMonitor(hMonitor, 0, &uiDpiX, &uiDpiY);
+		HRESULT hr = KDPIUtility::pGetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &uiDpiX, &uiDpiY);
 
 		if (SUCCEEDED(hr))
 			return static_cast<WORD>(uiDpiX);
 	}
 
 	// for win8 & win7
-	HDC hScreenDC = ::GetDC(0);
+	HDC hScreenDC = ::GetDC(NULL);
 	int iDpiX = ::GetDeviceCaps(hScreenDC, LOGPIXELSX);
-	::ReleaseDC(0, hScreenDC);
+	::ReleaseDC(NULL, hScreenDC);
 
 	return static_cast<WORD>(iDpiX);
 }
 
-BOOL KDPIUtility::adjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi)
+int KDPIUtility::getDPIOfPoint(const POINT& point) noexcept
+{
+	UINT dpiX, dpiY;
+	if (KDPIUtility::pGetDpiForMonitor != nullptr)
+	{
+		HMONITOR hMonitor = ::MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST);		
+		HRESULT hr = KDPIUtility::pGetDpiForMonitor(hMonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+
+		if (SUCCEEDED(hr))
+			return (int)dpiX;
+	}
+
+	// for win8 & win7
+	HDC hdc = ::GetDC(NULL);
+	dpiX = ::GetDeviceCaps(hdc, LOGPIXELSX);
+	::ReleaseDC(NULL, hdc);
+
+	return dpiX;
+}
+
+BOOL KDPIUtility::adjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi) noexcept
 {
 	if (KDPIUtility::pAdjustWindowRectExForDpi)
 		return pAdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi);
@@ -93,7 +121,7 @@ BOOL KDPIUtility::adjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bM
 	return ::AdjustWindowRectEx(lpRect, dwStyle, bMenu, dwExStyle);
 }
 
-void KDPIUtility::makeProcessDPIAware(KDPIAwareness dpiAwareness)
+void KDPIUtility::makeProcessDPIAware(KDPIAwareness dpiAwareness) noexcept
 {
 	if (dpiAwareness == KDPIAwareness::MIXEDMODE_ONLY)
 	{
@@ -101,7 +129,6 @@ void KDPIUtility::makeProcessDPIAware(KDPIAwareness dpiAwareness)
 		{
 			KDPIUtility::pSetProcessDpiAwarenessContext(
 				DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-			KApplication::dpiAwareAPICalled = true;
 		}
 	}
 	else if (dpiAwareness == KDPIAwareness::STANDARD_MODE)
@@ -110,23 +137,20 @@ void KDPIUtility::makeProcessDPIAware(KDPIAwareness dpiAwareness)
 		{
 			KDPIUtility::pSetProcessDpiAwarenessContext(
 				DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-			KApplication::dpiAwareAPICalled = true;
 		}
 		else if (KDPIUtility::pSetProcessDpiAwareness)
 		{
 			KDPIUtility::pSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-			KApplication::dpiAwareAPICalled = true;
 		}
 		else if (KDPIUtility::pSetProcessDPIAware)
 		{
 			KDPIUtility::pSetProcessDPIAware();
-			KApplication::dpiAwareAPICalled = true;
 		}
 	}
 }
 
 // https://stackoverflow.com/questions/70976583/get-real-screen-resolution-using-win32-api
-float KDPIUtility::getMonitorScalingRatio(HMONITOR monitor)
+float KDPIUtility::getMonitorScalingRatio(HMONITOR monitor) noexcept
 {
 	MONITORINFOEXW info = {};
 	info.cbSize = sizeof(MONITORINFOEXW);
@@ -137,17 +161,7 @@ float KDPIUtility::getMonitorScalingRatio(HMONITOR monitor)
 	return (info.rcMonitor.right - info.rcMonitor.left) / static_cast<float>(devmode.dmPelsWidth);
 }
 
-float KDPIUtility::getScaleForMonitor(HMONITOR monitor)
+float KDPIUtility::getScaleForMonitor(HMONITOR monitor) noexcept
 {
 	return (float)(::GetDpiForSystem() / 96.0 / getMonitorScalingRatio(monitor));
-}
-
-int KDPIUtility::scaleToWindowDPI(int valueFor96DPI, HWND window)
-{
-	return KDPIUtility::scaleToNewDPI(valueFor96DPI, KDPIUtility::getWindowDPI(window));
-}
-
-int KDPIUtility::scaleToNewDPI(int valueFor96DPI, int newDPI)
-{
-	return ::MulDiv(valueFor96DPI, newDPI, USER_DEFAULT_SCREEN_DPI);
 }

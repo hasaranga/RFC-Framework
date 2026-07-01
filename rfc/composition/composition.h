@@ -1,6 +1,6 @@
 
 /*
-    Copyright (C) 2013-2025 CrownSoft
+    Copyright (C) 2013-2026 CrownSoft
 
     This software is provided 'as-is', without any express or implied
     warranty.  In no event will the authors be held liable for any damages
@@ -45,10 +45,10 @@ namespace composition {
     class Layer
     {
     protected:
-        int x = 0;
-        int y = 0;
-        int width = 100;
-        int height = 100;
+        Physical x = 0;
+        Physical y = 0;
+        Physical width = 100;
+        Physical height = 100;
         bool visible = true;
         IDCompositionVisual2* visual = nullptr;
         IDCompositionSurface* surface = nullptr;
@@ -58,7 +58,7 @@ namespace composition {
         IDCompositionVisual2* rootVisual = nullptr;
         D2D1::ColorF backgroundColor = D2D1::ColorF(0,0.0f); // transparent
 
-        virtual void recreateSurface()
+        virtual void recreateSurface() noexcept
         {
             if (surface)
             {
@@ -75,13 +75,13 @@ namespace composition {
 
     public:
 
-        Layer() {}
-        virtual ~Layer() {}
+        Layer() noexcept {}
+        virtual ~Layer() noexcept {}
 
-        IDCompositionVisual2* getVisual() { return visual; }
-        IDCompositionSurface* getSurface() { return surface; }
+        IDCompositionVisual2* getVisual() noexcept { return visual; }
+        IDCompositionSurface* getSurface() noexcept { return surface; }
 
-        void removeFromParent()
+        void removeFromParent() noexcept
         {
             IDCompositionVisual2* parentVisual = nullptr;
             if (parentLayer)
@@ -102,7 +102,7 @@ namespace composition {
         }
 
         // MSDN: Do not hide visuals by setting opacity to 0% or clipping; instead, remove visuals from the visual tree.
-        void setVisible(bool visible)
+        void setVisible(bool visible) noexcept
         {
             if (this->visible == visible)
                 return;
@@ -128,9 +128,9 @@ namespace composition {
             }
         }
 
-        bool isVisible() { return visible; }
+        bool isVisible() noexcept { return visible; }
 
-        void setBackgroundColor(const D2D1::ColorF& color)
+        void setBackgroundColor(const D2D1::ColorF& color) noexcept
         {
             backgroundColor = color;
 
@@ -138,7 +138,7 @@ namespace composition {
                 updateSurface();
         }
 
-        virtual void setPosition(int x, int y)
+        virtual void setPosition(Physical x, Physical y) noexcept
         {
             this->x = x;
             this->y = y;
@@ -150,16 +150,16 @@ namespace composition {
         }
 
         // this method will be called when animating positions to set final value.
-        void updatePosition(int x, int y)
+        void updatePosition(Physical x, Physical y) noexcept
         {
             this->x = x;
             this->y = y;
         }
 
-        int getX() { return x; }
-        int getY() { return y; }
+        Physical getX() { return x; }
+        Physical getY() { return y; }
 
-        virtual void setSize(int width, int height)
+        virtual void setSize(Physical width, Physical height) noexcept
         {
             this->width = width;
             this->height = height;
@@ -172,7 +172,7 @@ namespace composition {
 
         // you can also pass nullptr to newParentLayer to remove this layer from parent.
         // or call removeFromParent().
-        virtual void setParentLayer(Layer* newParentLayer)
+        virtual void setParentLayer(Layer* newParentLayer) noexcept
         {
             if (parentLayer)
             {
@@ -205,7 +205,7 @@ namespace composition {
         }
 
         virtual bool createGPUResources(IDCompositionDesktopDevice* compositionDevice, 
-            ID2D1DeviceContext* d2dDeviceContext, IDCompositionVisual2* rootVisual)
+            ID2D1DeviceContext* d2dDeviceContext, IDCompositionVisual2* rootVisual) noexcept
         {
             // we don't increase ref count. :-)
             this->compositionDevice = compositionDevice;
@@ -237,7 +237,7 @@ namespace composition {
             return true;
         }
 
-        virtual void updateSurface()
+        virtual void updateSurface() noexcept
         {
             ID2D1DeviceContext* dc;
             POINT offset = {};
@@ -253,7 +253,7 @@ namespace composition {
             dc->Release();
         }
 
-        virtual void onDPIChange(int oldDPI, int newDPI)
+        virtual void onDPIChange(int oldDPI, int newDPI) noexcept
         {
             x = ::MulDiv(x, newDPI, oldDPI);
             y = ::MulDiv(y, newDPI, oldDPI);
@@ -266,7 +266,7 @@ namespace composition {
             visual->SetOffsetY((float)y);
         }
 
-        virtual void releaseGPUResources()
+        virtual void releaseGPUResources() noexcept
         {
             if (surface)
             {
@@ -294,23 +294,23 @@ namespace composition {
         IUIAnimationManager2* animationManager = nullptr;
         IUIAnimationTransitionLibrary2* transitionLibrary = nullptr;
     public:
-        AnimatorBase() {}
-        virtual ~AnimatorBase() {}
+        AnimatorBase() noexcept {}
+        virtual ~AnimatorBase() noexcept {}
 
         // call at constructor of BaseWindow
-        void setAnimationManager(IUIAnimationManager2* animationManager, IUIAnimationTransitionLibrary2* transitionLibrary)
+        void setAnimationManager(IUIAnimationManager2* animationManager, IUIAnimationTransitionLibrary2* transitionLibrary) noexcept
         {
             this->animationManager = animationManager;
             this->transitionLibrary = transitionLibrary;
         }
 
         // call at BaseWindow::createGPUResources method.
-        void setCompositionDevice(IDCompositionDesktopDevice* compositionDevice)
+        void setCompositionDevice(IDCompositionDesktopDevice* compositionDevice) noexcept
         {
             this->compositionDevice = compositionDevice;
         }
 
-        virtual void setLayer(Layer* layer)
+        virtual void setLayer(Layer* layer) noexcept
         {
             this->layer = layer;
         }
@@ -322,15 +322,15 @@ namespace composition {
         IUIAnimationVariable2* animationVarX = nullptr;
         
     public:
-        XPosAnimator() {}
-        ~XPosAnimator()
+        XPosAnimator() noexcept {}
+        ~XPosAnimator() noexcept
         {
             if (animationVarX)
                 animationVarX->Release();
         }
 
         // supports to change layer to another after setting it to one.
-        virtual void setLayer(Layer* layer) override
+        virtual void setLayer(Layer* layer) noexcept override
         {
             __super::setLayer(layer);
 
@@ -342,7 +342,7 @@ namespace composition {
         }
 
         // when you call this method, layer x position value is assigned endX before ending the animation.
-        void start(int endX, DOUBLE accelerationRatio = 0.1, DOUBLE decelerationRatio=0.9, DOUBLE duration=0.3)
+        void start(Physical endX, DOUBLE accelerationRatio = 0.1, DOUBLE decelerationRatio=0.9, DOUBLE duration=0.3) noexcept
         {
             if ((layer == nullptr) || (animationManager == nullptr) || 
                 (transitionLibrary == nullptr) || (compositionDevice == nullptr))
@@ -399,8 +399,7 @@ namespace composition {
     // A window which uses visual layers instead of redirection surface of the dwm.
     // after you modify visual surface, call BaseWindow::commit method.
     // you cannot have ws_child controls within this window.
-    // no drop shadows or non rectangular. because we cannot let mouse messages pass through!
-    // (if we use WS_EX_TRANSPARENT, whole window will pass through mouse messages.)
+    // no drop shadows or non rectangular top level windows. because we cannot clip child visuals to parent shape.
     // override createGPUResources, releaseGPUResources, updateAllSurfaces and onDPIChange methods in your subclass and
     // -create your own visual layers!
     class BaseWindow : public KWindow
@@ -422,7 +421,7 @@ namespace composition {
         // override this method in subclass then release your own objects!
         // make sure to call __super::releaseGPUResources() after it.
         // this method may called multiple times at runtime if gpu is disabled.
-        virtual void releaseGPUResources()
+        virtual void releaseGPUResources() noexcept
         {
             if (rootSurface)
             {
@@ -483,7 +482,7 @@ namespace composition {
         // make sure to call __super::createGPUResources() as first line.
         // this method may called multiple times at runtime if gpu is disabled.
         // so, save position, sizes of visuals and surfaces then restore them at here also.
-        virtual bool createGPUResources(HWND hwnd)
+        virtual bool createGPUResources(HWND hwnd) noexcept
         {
             D3D_FEATURE_LEVEL featureLevelSupported;
             HRESULT hr = ::D3D11CreateDevice(
@@ -577,7 +576,7 @@ namespace composition {
         // this method will be called at startup, dpi change and recovering from gpu disable.
         // make sure to call __super::updateAllSurfaces() as first line.
         // after this call there will be a commit().
-        virtual void updateAllSurfaces()
+        virtual void updateAllSurfaces() noexcept
         {
             ID2D1DeviceContext* dc;
             POINT offset = {};
@@ -596,13 +595,13 @@ namespace composition {
         // override this method in subclass then resize your surfaces and reposition visuals!
         // after this call there will be an updateAllSurfaces() and commit().
         // make sure to call __super::onDPIChange() as first line.
-        virtual void onDPIChange(int oldDPI, int newDPI)
+        virtual void onDPIChange(int oldDPI, int newDPI) noexcept
         {
             // window size already updated to new dpi at this moment.
             resizeRootSurface();
         }
 
-        void resizeRootSurface()
+        void resizeRootSurface() noexcept
         {
             if (compositionDevice == nullptr)
                 return;
@@ -627,9 +626,9 @@ namespace composition {
             rootVisual->SetContent(rootSurface);
         }
 
-        LRESULT onDPIChangeMsg(WPARAM wParam, LPARAM lParam)
+        LRESULT onDPIChangeMsg(WPARAM wParam, LPARAM lParam) noexcept
         {
-            int oldDPI = compDPI;
+            int oldDPI = compFontRef.getCurrentDPI();
             int newDPI = HIWORD(wParam);
 
             LRESULT result = __super::windowProc(compHWND, WM_DPICHANGED, wParam, lParam);
@@ -639,7 +638,7 @@ namespace composition {
             return result;
         }
 
-        LRESULT onNCCalcSizeMsg(WPARAM wParam, LPARAM lParam)
+        LRESULT onNCCalcSizeMsg(WPARAM wParam, LPARAM lParam) noexcept
         {
             // WS_CAPTION is needed to display minimize animation.
             // but to avoid displaying titlebar, we return 0 at here.
@@ -649,7 +648,7 @@ namespace composition {
             return __super::windowProc(compHWND, WM_NCCALCSIZE, wParam, lParam);
         }
 
-        LRESULT onPaintMsg(WPARAM wParam, LPARAM lParam)
+        LRESULT onPaintMsg(WPARAM wParam, LPARAM lParam) noexcept
         {
             ::ValidateRect(compHWND, NULL);
 
@@ -661,19 +660,19 @@ namespace composition {
             return 0;
         }
 
-        LRESULT onEraseBackgroundMsg(WPARAM wParam, LPARAM lParam)
+        LRESULT onEraseBackgroundMsg(WPARAM wParam, LPARAM lParam) noexcept
         {
             return 1; // avoids flickering
         }
 
     public:
-        BaseWindow()
+        BaseWindow() noexcept
         {
             compText = L"BaseWindow";
             compDwStyle = WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
             compDwExStyle = WS_EX_NOREDIRECTIONBITMAP | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT;
-            compWidth = 720;
-            compHeight = 480;
+            compLWidth = 720;
+            compLHeight = 480;
 
             ::CoCreateInstance(
                 CLSID_UIAnimationManager2,
@@ -691,7 +690,7 @@ namespace composition {
         }
 
         // combine all visuals and display. if gpu loss detected, it will recreate gpu resources.
-        virtual void commit()
+        virtual void commit() noexcept
         {
             if (compositionDevice == nullptr)
                 return;
@@ -712,7 +711,7 @@ namespace composition {
             compositionDevice->Commit();
         }
 
-        virtual bool create(bool requireInitialMessages = false) override
+        virtual bool create(bool requireInitialMessages = false)  noexcept override
         {
             if (enableDPIUnawareMode)
                 this->applyDPIUnawareModeToThread();
@@ -721,39 +720,55 @@ namespace composition {
             // it will allow us to catch WM_NCCALCSIZE message and hide the title bar.
             requireInitialMessages = (compDwStyle & WS_CAPTION) == WS_CAPTION;
 
-            // we wanted to override KWindow::create and use KComponent::create instead.
-            const bool retVal = KComponent::create(requireInitialMessages);
+            if (::RegisterClassExW(&wc))
+            {
+                isRegistered = true;
+                KGUIProc::createComponentFor96DPI(this, requireInitialMessages, compPX, compPY);
+                if (compHWND)
+                {
+                    if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode))
+                    {
+                        // if the default monitor is scaled then we won't get dpi change message.
+                        // so we do manual positioning/scaling for the window.
+                        // if the SetWindowPos causes window to position over scaled second monitor, then os will send dpi change message.
+                        const int dpi_1 = getDPI();
+                        ::SetWindowPos(compHWND,
+                            NULL,
+                            compPX,
+                            compPY,
+                            KDPIUtility::toPhysical(compLWidth, dpi_1),
+                            KDPIUtility::toPhysical(compLHeight, dpi_1),
+                            SWP_NOZORDER | SWP_NOACTIVATE);
+                    }
+
+                    ::EnableWindow(compHWND, compEnabled ? TRUE : FALSE);
+
+                    if (createGPUResources(compHWND))
+                    {
+                        updateAllSurfaces();
+                        commit();
+
+                        if (enableDPIUnawareMode)
+                            this->restoreDPIModeOfThread();
+
+                        afterCreated();
+                        return true;
+                    }
+                    else
+                    {
+                        releaseGPUResources();
+                        ::ExitProcess(1);
+                    }
+                }
+            }
 
             if (enableDPIUnawareMode)
                 this->restoreDPIModeOfThread();
 
-            if (retVal)
-            {
-                if (!createGPUResources(compHWND))
-                {
-                    releaseGPUResources();
-                    ::ExitProcess(1);
-                }
-            }
-
-            if (retVal && (KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) &&
-                (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
-            {
-                int dpi = KDPIUtility::getWindowDPI(compHWND);
-                if (dpi != USER_DEFAULT_SCREEN_DPI)
-                    setDPI(dpi);
-            }
-
-            if (retVal)
-            {
-                updateAllSurfaces();
-                commit();
-            }
-
-            return retVal;
+            return false;
         }
 
-        virtual void setSize(int compWidth, int compHeight) override
+        virtual void setSize(Logical compWidth, Logical compHeight)  noexcept override
         {
             __super::setSize(compWidth, compHeight);
             if (compositionDevice)
@@ -764,22 +779,13 @@ namespace composition {
             }
         }
 
-        // this method will be called only at startup if dpi is not 96.
-        // if dpi changed at runtime, only onDPIChangeMsg will be called.
-        virtual void setDPI(int newDPI) override
-        {
-            int oldDPI = compDPI;
-            __super::setDPI(newDPI);
-            onDPIChange(oldDPI, newDPI);
-        }
-
-        virtual void onDestroy() override
+        virtual void onDestroy()  noexcept override
         {
             releaseGPUResources();
             __super::onDestroy();
         }
 
-        virtual ~BaseWindow()
+        virtual ~BaseWindow() noexcept
         {
             if (transitionLibrary)
                 transitionLibrary->Release();
@@ -804,14 +810,14 @@ namespace composition {
         Layer sideBarRect;
         XPosAnimator sideBarAnimator;
 
-        virtual void releaseGPUResources() override
+        virtual void releaseGPUResources() noexcept override
         {
             sideBarRect.releaseGPUResources();
             sideBarLayer.releaseGPUResources();
             __super::releaseGPUResources();
         }
 
-        virtual bool createGPUResources(HWND hwnd) override
+        virtual bool createGPUResources(HWND hwnd) noexcept override
         {
             if (!__super::createGPUResources(hwnd))
                 return false;
@@ -823,21 +829,21 @@ namespace composition {
             return sideBarRect.createGPUResources(compositionDevice, d2dDeviceContext, rootVisual);
         }
 
-        virtual void updateAllSurfaces() override
+        virtual void updateAllSurfaces() noexcept override
         {
             __super::updateAllSurfaces();
             sideBarLayer.updateSurface();
             sideBarRect.updateSurface();
         }
 
-        virtual void onDPIChange(int oldDPI, int newDPI) override
+        virtual void onDPIChange(int oldDPI, int newDPI) noexcept override
         {
             __super::onDPIChange(oldDPI, newDPI);
             sideBarLayer.onDPIChange(oldDPI, newDPI);
             sideBarRect.onDPIChange(oldDPI, newDPI);
         }
 
-        LRESULT onLButtonDownMsg(WPARAM wParam, LPARAM lParam)
+        LRESULT onLButtonDownMsg(WPARAM wParam, LPARAM lParam) noexcept
         {
             //sideBarRect.setVisible(!sideBarRect.isVisible());
             if(sideBarLayer.getX() == -50)
@@ -849,10 +855,10 @@ namespace composition {
         }
 
     public:
-        CompExampleWindow()
+        CompExampleWindow() noexcept
         {
             sideBarLayer.setPosition(-50, 0);
-            sideBarLayer.setSize(50, compHeight);
+            sideBarLayer.setSize(50, compLHeight);
             sideBarLayer.setBackgroundColor(D2D1::ColorF::DarkBlue);
 
             sideBarRect.setPosition(5, 5);

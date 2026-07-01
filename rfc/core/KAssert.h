@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -21,6 +21,7 @@
 #pragma once
 
 #include <crtdbg.h>
+#include <windows.h>
 
 // spawns crt assertion error gui if condition is false.
 #ifdef _DEBUG

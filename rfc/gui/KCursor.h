@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -32,33 +32,33 @@ protected:
 	HCURSOR hCursor;
 
 public:
-	KCursor();
+	KCursor() noexcept;
 
 	/**
 		Loads cursor from resource
 		@param resourceID resource ID of cursor file
 		@returns false if cursor load fails
 	*/
-	bool loadFromResource(WORD resourceID);
+	bool loadFromResource(WORD resourceID) noexcept;
 
 	/**
 		Loads cursor from file
 		@param filePath path to cursor file
 		@returns false if cursor load fails
 	*/
-	bool loadFromFile(const KString& filePath);
+	bool loadFromFile(const KString& filePath) noexcept;
 
 	/**
 		Returns cursor handle
 	*/
-	HCURSOR getHandle();
+	HCURSOR getHandle() noexcept;
 
 	/**
 		Returns cursor handle
 	*/
-	operator HCURSOR()const;
+	operator HCURSOR()const noexcept;
 
-	virtual ~KCursor();
+	virtual ~KCursor() noexcept;
 
 private:
 	RFC_LEAK_DETECTOR(KCursor)

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -25,7 +25,7 @@
 #include "KTimer.h"
 #include "KIDGenerator.h"
 
-KHostPanel::KHostPanel() : KComponent(true)
+KHostPanel::KHostPanel() noexcept : KComponent(true)
 {
 	compDwStyle = WS_CHILD | WS_CLIPCHILDREN;
 	compDwExStyle = compDwExStyle | WS_EX_CONTROLPARENT; // non-top-level windows that contain child controls/dialogs must have the WS_EX_CONTROLPARENT style.
@@ -36,36 +36,38 @@ KHostPanel::KHostPanel() : KComponent(true)
 	componentList = nullptr;
 }
 
-void KHostPanel::setComponentList(KPointerList<KComponent*, 24, false>* componentList)
+void KHostPanel::setComponentList(KPointerList<KComponent*, 24, false>* componentList) noexcept
 {
 	this->componentList = componentList;
 }
 
-void KHostPanel::setEnableDPIUnawareMode(bool enable)
+void KHostPanel::setEnableDPIUnawareMode(bool enable) noexcept
 {
 	enableDPIUnawareMode = enable;
 }
 
-bool KHostPanel::addComponent(KComponent* component, bool requireInitialMessages)
+bool KHostPanel::addComponent(KComponent* component, bool requireInitialMessages) noexcept
 {
-	if (component)
+	K_ASSERT(component != nullptr, "component is null");
+	K_ASSERT(compHWND != NULL, "compHWND is NULL");
+	K_ASSERT(componentList != nullptr, "componentList is null");
+
+	component->setParentHWND(compHWND);
+	componentList->add(component);
+
+	const bool retVal = component->create(requireInitialMessages);
+
+	if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode))
 	{
-		if ((compHWND != 0) && (componentList != nullptr))
-		{
-			component->setParentHWND(compHWND);
-
-			if ((KApplication::dpiAwareness != KDPIAwareness::UNAWARE_MODE) && (!enableDPIUnawareMode) && KApplication::dpiAwareAPICalled)
-				component->setDPI(compDPI);
-
-			componentList->add(component);
-
-			return component->create(requireInitialMessages);
-		}
+		const int dpi = KDPIUtility::getWindowDPI(compHWND);
+		component->setDPI(dpi);
 	}
-	return false;
+
+	return retVal;
+	
 }
 
-void KHostPanel::removeComponent(KComponent* component)
+void KHostPanel::removeComponent(KComponent* component) noexcept
 {
 	if (componentList == nullptr)
 		return;
@@ -78,7 +80,7 @@ void KHostPanel::removeComponent(KComponent* component)
 	}
 }
 
-bool KHostPanel::addContainer(KHostPanel* container, bool requireInitialMessages)
+bool KHostPanel::addContainer(KHostPanel* container, bool requireInitialMessages) noexcept
 {
 	if (container)
 	{
@@ -89,7 +91,7 @@ bool KHostPanel::addContainer(KHostPanel* container, bool requireInitialMessages
 	return false;
 }
 
-LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
 	switch (msg)
 	{
@@ -240,4 +242,4 @@ LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 	return 0;
 }
 
-KHostPanel::~KHostPanel() {}
+KHostPanel::~KHostPanel() noexcept {}

@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
   
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -29,23 +29,23 @@ protected:
 	HWND attachedCompHWND;
 
 public:
-	KToolTip();
+	KToolTip() noexcept;
 
-	virtual ~KToolTip();
+	virtual ~KToolTip() noexcept;
 
 	/**
 		"parentWindow" must be created before you call this method.
 		"attachedComponent" must be added to a window before you call this method.
 		do not attach same tooltip into multiple components.
 	*/
-	virtual void attachToComponent(KWindow* parentWindow, KComponent* attachedComponent);
+	virtual void attachToComponent(HWND parentWindow, HWND attachedComponent) noexcept;
 
 	/**
 		calling this method has no effect.
 	*/
-	virtual bool create(bool requireInitialMessages = false) override;
+	virtual bool create(bool requireInitialMessages = false) noexcept override;
 
-	virtual void setText(const KString& compText) override;
+	virtual void setText(const KString& compText) noexcept override;
 };
 
 
