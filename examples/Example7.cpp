@@ -1,109 +1,78 @@
 
-// Shows how to use KSettingsReader class and how to resize a control manually on dpi change.
+// Shows how to create and draw a custom component.
 
 #include "rfc/rfc.h"
 
-// use your own file format ID! (4 chars)
-#define MY_FORMAT_ID KFORMAT_ID('WVR1')
-
-class MyWindow : public KOverlappedWindow
+class CustomComponent : public KDrawable<KChildControl>
 {
 protected:
-	KTextArea textArea;
-	KString settingsFile;
+	COLORREF colBTNFACE, colBTNFRAME;
+	KScopedGdiObject<HBRUSH> hFaceBrush, hFrameBrush;
+
+	virtual void onPaint(HDC hDCMem, const RECT& clientRect, 
+		const Physical width, const Physical height) noexcept override
+	{
+		// let's use gdi apis to draw on hDCMem(double buffered)
+
+		::FillRect(hDCMem, &clientRect, hFaceBrush);
+		::FrameRect(hDCMem, &clientRect, hFrameBrush);
+
+		HGDIOBJ oldFont = ::SelectObject(hDCMem, compFontRef.getFontHandle());
+		COLORREF oldTextColor = ::SetTextColor(hDCMem, RGB(255, 255, 255));
+		int oldBkMode = ::SetBkMode(hDCMem, TRANSPARENT);
+
+		RECT rect = clientRect;
+		::DrawTextW(hDCMem, compText, compText.length(), &rect, 
+			DT_SINGLELINE | DT_VCENTER | DT_CENTER);
+
+		// restore
+		::SetBkMode(hDCMem, oldBkMode);
+		::SetTextColor(hDCMem, oldTextColor);
+		::SelectObject(hDCMem, oldFont);
+	}
 
 public:
-	MyWindow() noexcept
+	CustomComponent() noexcept
 	{
-		setText(L"My Window");
-		create();
+		setSize(100, 25);
+		setText(L"Hello World");
 
-		onDPIChange = [this](KWindow*, int newDPI) {
-			// on dpi change, the textArea will be automatically resized by the framework. 
-			// But we want the size of textArea to be exact size of the client area!
-			int width, height;
-			this->getClientAreaSize(width, height);
-			textArea.setSize(width, height);
-		};
+		colBTNFACE = RGB(147, 196, 255);
+		colBTNFRAME = RGB(89, 164, 255);
 
-		textArea.setPosition(0, 0);
-		textArea.setFontType(KFontType(L"Segoe UI", 18));
+		hFaceBrush = ::CreateSolidBrush(colBTNFACE);
+		hFrameBrush = ::CreateSolidBrush(colBTNFRAME);
 
-		addComponent(textArea);
-
-		wchar_t pathBuffer[MAX_PATH];
-		KDirectory::getRoamingFolder(pathBuffer);
-
-		KString appDataDir = KString(pathBuffer, KStringBehaviour::DO_NOT_FREE) + L"\\TestRFCApp1";
-		KDirectory::createDir(appDataDir);
-
-		settingsFile = appDataDir + L"\\settings.test";
-
-		// load settings
-		KSettingsReader settingsReader;
-		if (settingsReader.openFile(settingsFile, MY_FORMAT_ID))
-		{
-			textArea.setText(settingsReader.readString());
-
-			const Physical x = settingsReader.readInt(); // physical value
-			const Physical y = settingsReader.readInt(); // physical value
-
-			const Logical width = settingsReader.readInt(); // logical value
-			const Logical height = settingsReader.readInt(); // logical value
-			setSize(width, height);
-
-			// check if position is not on offscreen / turned off monitor.
-			if (KWindow::isOffScreen(x, y))
-				centerScreen();
-			else
-				setPositionPhysical(x, y);
-		}
-	}
-
-	// This method will be called on window resize and dpi change.
-	// Note: if this method called as a result of dpi change, the dpi of controls in this window are still in old dpi scale.
-	// Do not change the control positions/sizes in here if resizingForDPIChange is true. (to detect dpi changes use onDPIChange event)
-	void onResized(bool resizingForDPIChange) noexcept override
-	{
-		if (!resizingForDPIChange)
-		{
-			Logical width, height;
-			this->getClientAreaSize(width, height);
-			textArea.setSize(width, height);
-		}
-	}
-
-	void onClose() noexcept override
-	{
-		KSettingsWriter settingsWriter;
-
-		// save settings
-		if (settingsWriter.openFile(settingsFile, MY_FORMAT_ID))
-		{
-			settingsWriter.writeString(textArea.getText());
-			Physical x, y;
-			getPositionPhysical(x, y);
-			settingsWriter.writeInt(x);
-			settingsWriter.writeInt(y);
-
-			Logical w, h;
-			getNormalSize(w, h);
-			settingsWriter.writeInt(w);
-			settingsWriter.writeInt(h);
-		}
-
-		KOverlappedWindow::onClose();
+		setFontType(KFontType(L"Courier New", 14));
 	}
 };
 
-class MyApplication : public KApplication
+class ShinyGUI : public KFrame
+{
+protected:
+	CustomComponent customComp;
+
+public:
+	ShinyGUI() noexcept
+	{
+		setText(L"ShinyGUI");
+		create();	
+
+		customComp.setPosition(50, 50);
+		addComponent(customComp);
+	}
+
+};
+
+class MyGreatApp : public KApplication
 {
 public:
-
 	int main(wchar_t** argv, int argc) noexcept
 	{
-		MyWindow wnd;
-		wnd.setVisible(true);
+		ShinyGUI mainWnd;
+
+		mainWnd.centerScreen();
+		mainWnd.setVisible(true);
 
 		KApplication::messageLoop();
 
@@ -111,4 +80,4 @@ public:
 	}
 };
 
-START_RFC_APPLICATION(MyApplication, KDPIAwareness::STANDARD_MODE);
+START_RFC_APPLICATION_NO_CMD_ARGS(MyGreatApp, KDPIAwareness::STANDARD_MODE)

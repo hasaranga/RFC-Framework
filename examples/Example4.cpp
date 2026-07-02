@@ -1,14 +1,15 @@
 
-// Shows how to use menubar and popup menus.
+
+// Creates a window with a button on it. pressing button will show the second window.
+// demonstrate the use of close operation.
 
 #include "rfc/rfc.h"
 
 class MyWindow : public KFrame
 {
 protected:
-	KMenuBar menuBar;
-	KMenu mFile, mEdit, mHelp;
-	KMenuItem miOpen, miExit, miCut, miCopy, miPaste, miAbout;
+	KButton btn1;
+	KFrame aboutWindow;
 
 public:
 	MyWindow() noexcept
@@ -16,50 +17,27 @@ public:
 		setText(L"My Window");
 		create();
 
-		miOpen.setText(L"Open...");
-		miExit.setText(L"Exit");
-		miCut.setText(L"Cut");
-		miCopy.setText(L"Copy");
-		miPaste.setText(L"Paste");
-		miAbout.setText(L"About...");
+		aboutWindow.setParentHWND(getHWND()); // parent must created first to get HWND.
+		aboutWindow.setSize(100, 50);
 
-		miAbout.onPress = [this](KMenuItem* item) {
-			::MessageBoxW(this->getHWND(), L"RFC Menu Example.", L"About", MB_ICONINFORMATION);
+		// using KCloseOperation::DestroyAndExit will destroy the window and exit from message loop.
+		// the default close operation of a window is KCloseOperation::DestroyAndExit.
+		// KCloseOperation::Hide option just hide the window. it does not destroy or quit the message loop.
+		// you can also override KWindow::onClose, KWindow::onDestroy methods to change closing behaviour.
+		aboutWindow.setCloseOperation(KCloseOperation::Hide);
+
+		aboutWindow.create();
+
+		btn1.setPosition(10, 10);
+		btn1.setText(L"About");
+
+		btn1.onClick = [this](KButton* button) {
+			aboutWindow.setVisible(true);
+			aboutWindow.bringToFront();
 		};
-
-		miExit.onPress = [this](KMenuItem* item) {
-			this->onClose(); // destroy window and quit from message loop!
-		};
-
-		// add menu items into menu
-		mFile.addMenuItem(&miOpen);
-		mFile.addSeperator();
-		mFile.addMenuItem(&miExit);
-		mEdit.addMenuItem(&miCut);
-		mEdit.addSeperator();
-		mEdit.addMenuItem(&miCopy);
-		mEdit.addMenuItem(&miPaste);
-		mHelp.addMenuItem(&miAbout);
-
-		// add menu into menubar
-		menuBar.addMenu(L"File", &mFile);
-		menuBar.addMenu(L"Edit", &mEdit);
-		menuBar.addMenu(L"Help", &mHelp);
-
-		menuBar.addToWindow(this); // add menubar into the window	
+	
+		addComponent(btn1);
 	}
-
-	LRESULT onRClickWindow(WPARAM wParam, LPARAM lParam) noexcept
-	{
-		mEdit.popUpMenu(this->getHWND()); // show mEdit menu as popup
-		return 0;
-	}
-
-	// macro to handle window messages...
-	BEGIN_KMSG_HANDLER
-		ON_KMSG(WM_RBUTTONUP, onRClickWindow) // calls onRClickWindow method when WM_RBUTTONUP msg received
-	END_KMSG_HANDLER
-
 };
 
 class MyApplication : public KApplication
