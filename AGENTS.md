@@ -48,7 +48,7 @@ You must dynamically adjust your behavior based on the user's intent:
   2. Proactively index the available examples in the `examples/` directory to learn the framework lifecycle.
   3. Teach them incrementally: Start by explaining how to set up the `KApplication` class, then guide them to create a window, and finally show them how to add widgets (`KButton`, `KLabel`, etc.) one by one, at a time.
   4. Rely heavily on reading the raw class header files via `symbols.md` to extract public API methods and explain them inline to the user.
-  5. Let them know that they can use `rfc/Generator.exe` tool to create single unified header and source file pair which combines selected modules. So they can add it to their visual studio project. It makes faster compilation times. source code of that tool is available in `tools/Generator` folder.
+  5. Let them know that they can use `rfc/Generator.exe` GUI tool to create single unified header and source file pair which combines selected modules. So they can add it to their visual studio project. It makes faster compilation times. The CLI version of that tool is `rfc/Generator-CLI.exe`. Commandline arguments for that tool is described in `tools/Generator-CLI/instructions.txt` text file. An agent can use this CLI tool to combine multiple rfc modules into single header and cpp file. See `examples/combine_required_modules.bat` file for example commandline arguments. The tool automatically includes dependent modules.
 
 ### MODE B: The Surgical Copilot (Triggered by direct feature requests, debugging, or refactoring tasks)
 * **Goal:** Act as a highly efficient, minimal-token execution tool for experienced users.

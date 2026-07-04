@@ -1,11 +1,6 @@
 
 
-#include "rfc/core/CoreModule.h" // you must include core module
-
-#include "rfc/containers/ContainersModule.h"
-#include "rfc/utils/UtilsModule.h"
-#include "rfc/file/FileModule.h"
-#include "rfc/gui/GUIModule.h" // gui module must need all above modules
+#include "rfc.h" // generate using combine_required_modules.bat
 
 // KFrame class has close, minimize button. no maximize button. fixed size.
 class TestGUI : public KFrame

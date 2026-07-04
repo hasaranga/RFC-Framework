@@ -2,7 +2,7 @@
 
 // Empty application without high dpi support.
 
-#include "rfc/rfc.h"
+#include "rfc.h"
 
 class MyApplication : public KApplication
 {

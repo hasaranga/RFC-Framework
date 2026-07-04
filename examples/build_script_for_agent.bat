@@ -1,1 +1,1 @@
-cl.exe rfc/core/*.cpp rfc/containers/*.cpp rfc/utils/*.cpp rfc/file/*.cpp rfc/gui/*.cpp rfc_example_for_agent.cpp /Fe:my_program.exe
+cl.exe /D "UNICODE" /D "_UNICODE" /std:c++17 rfc.cpp rfc_example_for_agent.cpp /Fe:my_program.exe

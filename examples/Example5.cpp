@@ -1,7 +1,7 @@
 
 // Shows how to use menubar and popup menus.
 
-#include "rfc/rfc.h"
+#include "rfc.h"
 
 class MyWindow : public KFrame
 {

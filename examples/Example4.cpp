@@ -3,7 +3,7 @@
 // Creates a window with a button on it. pressing button will show the second window.
 // demonstrate the use of close operation.
 
-#include "rfc/rfc.h"
+#include "rfc.h"
 
 class MyWindow : public KFrame
 {

@@ -1,7 +1,7 @@
 
 // Widgets Demo.
 
-#include "rfc/rfc.h"
+#include "rfc.h"
 
 class TestGUI : public KFrame
 {

@@ -1,7 +1,7 @@
 
 // Shows how to create and draw a custom component.
 
-#include "rfc/rfc.h"
+#include "rfc.h"
 
 class CustomComponent : public KDrawable<KChildControl>
 {

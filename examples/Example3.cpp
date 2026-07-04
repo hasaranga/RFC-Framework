@@ -2,7 +2,7 @@
 
 // Creates a window with a button on it.
 
-#include "rfc/rfc.h"
+#include "rfc.h"
 
 class MyWindow : public KFrame
 {

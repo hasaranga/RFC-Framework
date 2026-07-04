@@ -1,7 +1,7 @@
 
 // Shows how to use KSettingsReader class and how to resize a control manually on dpi change.
 
-#include "rfc/rfc.h"
+#include "rfc.h"
 
 // use your own file format ID! (4 chars)
 #define MY_FORMAT_ID KFORMAT_ID('WVR1')
