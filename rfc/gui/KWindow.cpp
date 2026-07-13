@@ -40,7 +40,7 @@ KWindow::KWindow() noexcept : KComponent(true)
 	dpiAwarenessContextChanged = false;
 	compDwStyle = WS_POPUP | WS_CLIPCHILDREN;
 	compDwExStyle = WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT;
-	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
 	compCtlID = 0; // control id is zero for top level window
 	lastFocusedChild = 0;
 	windowIcon = nullptr;
@@ -73,6 +73,25 @@ bool KWindow::create(bool requireInitialMessages) noexcept
 	if (enableDPIUnawareMode)
 		applyDPIUnawareModeToThread();
 
+	// captured BEFORE createComponentFor96DPI (see below) - compLWidth/compLHeight themselves
+	// can get silently corrupted by that call when requireInitialMessages is true: that wires up
+	// the HWND<->component association (via a CBT hook) before CreateWindowExW even returns,
+	// which means an early, synchronous WM_SIZE (sent by CreateWindowExW as a normal part of
+	// creating the window, while it's still at its unscaled "for96DPI" physical size) reaches
+	// this class's own WM_SIZE handler further down in this file, which recomputes
+	// compLWidth/compLHeight from the window's CURRENT (still unscaled) physical rect using the
+	// monitor's ACTUAL (already-correct) DPI - e.g. toLogical(640, 120) = 512 instead of the
+	// intended 640, at 125%. callers using requireInitialMessages=false never hit this: the
+	// association is only wired up AFTER CreateWindowExW returns, so that same early WM_SIZE
+	// falls through to DefWindowProcW instead and never touches compLWidth/compLHeight at all.
+	// using these captured originals (not compLWidth/compLHeight directly, which may already be
+	// corrupted by the time we get here) for the SetWindowPos fixup below sidesteps the
+	// corruption entirely - the fixup's OWN resize then sends a SECOND WM_SIZE, this time with
+	// the window truly at its scaled physical size, which correctly (re)computes
+	// compLWidth/compLHeight back to their intended values.
+	const Logical originalCompLWidth = compLWidth;
+	const Logical originalCompLHeight = compLHeight;
+
 	if (::RegisterClassExW(&wc))
 	{
 		isRegistered = true;
@@ -89,8 +108,8 @@ bool KWindow::create(bool requireInitialMessages) noexcept
 					NULL,
 					compPX,
 					compPY,
-					KDPIUtility::toPhysical(compLWidth, dpi_1),
-					KDPIUtility::toPhysical(compLHeight, dpi_1),
+					KDPIUtility::toPhysical(originalCompLWidth, dpi_1),
+					KDPIUtility::toPhysical(originalCompLHeight, dpi_1),
 					SWP_NOZORDER | SWP_NOACTIVATE);
 			}
 

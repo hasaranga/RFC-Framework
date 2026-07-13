@@ -56,7 +56,7 @@ KComponent::KComponent(bool generateWindowClassDetails) noexcept
 		wc.cbClsExtra = 0;
 		wc.cbWndExtra = 0;
 		wc.hIconSm = 0;
-		wc.style = 0;
+		wc.style = CS_DBLCLKS;
 		wc.hInstance = KApplication::hInstance;
 		wc.lpszClassName = compClassName;
 
