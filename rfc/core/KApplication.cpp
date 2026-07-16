@@ -61,6 +61,25 @@ void KApplication::messageLoop(bool handleTabKey) noexcept
 	{
 		if (handleTabKey)
 		{
+			// a focused window that answers WM_GETDLGCODE with DLGC_WANTALLKEYS (e.g. a
+			// custom control doing its own keyboard handling, a native multiline edit) must
+			// get its keyboard messages through the plain TranslateMessage/DispatchMessage
+			// pair below. handing them to IsDialogMessage only works while the focus sits on
+			// a CHILD window: with focus on the top-level window ITSELF, IsDialogMessage
+			// consumes WM_KEYDOWN without running TranslateMessage, so WM_CHAR is never
+			// generated - KeyDown-driven ops (arrows/delete/ctrl+V) keep working while
+			// typing is silently dead. so ask the target window first and route
+			// want-all-keys messages around the dialog manager entirely.
+			if ((msg.message >= WM_KEYFIRST) && (msg.message <= WM_KEYLAST))
+			{
+				if (::SendMessageW(msg.hwnd, WM_GETDLGCODE, msg.wParam, (LPARAM)&msg) & DLGC_WANTALLKEYS)
+				{
+					::TranslateMessage(&msg);
+					::DispatchMessageW(&msg);
+					continue;
+				}
+			}
+
 			if (::IsDialogMessage(::GetActiveWindow(), &msg))
 				continue;
 		}
