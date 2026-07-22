@@ -135,6 +135,10 @@ void KDPIUtility::makeProcessDPIAware(KDPIAwareness dpiAwareness) noexcept
 	{
 		if (KDPIUtility::pSetProcessDpiAwarenessContext)
 		{
+			// intentionally requests the same _V2 context as MIXEDMODE_ONLY to get the
+			// best available feature set; mixed-mode windows are simply never enabled
+			// for this mode, since KWindow.cpp only exercises them when
+			// KApplication::dpiAwareness == KDPIAwareness::MIXEDMODE_ONLY.
 			KDPIUtility::pSetProcessDpiAwarenessContext(
 				DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		}
@@ -158,6 +162,10 @@ float KDPIUtility::getMonitorScalingRatio(HMONITOR monitor) noexcept
 	DEVMODEW devmode = {};
 	devmode.dmSize = sizeof(DEVMODEW);
 	::EnumDisplaySettingsW(info.szDevice, ENUM_CURRENT_SETTINGS, &devmode);
+
+	if (devmode.dmPelsWidth == 0) // GetMonitorInfoW/EnumDisplaySettingsW failed (e.g. monitor unplugged mid-call)
+		return 1.0f;
+
 	return (info.rcMonitor.right - info.rcMonitor.left) / static_cast<float>(devmode.dmPelsWidth);
 }
 

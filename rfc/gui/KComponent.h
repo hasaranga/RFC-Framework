@@ -52,6 +52,7 @@ protected:
 	bool isRegistered;
 	bool shouldRegisterClassName;
 	KFontReference compFontRef;
+	void* userParam;
 
 	virtual void afterCreated() noexcept;
 public:
@@ -194,6 +195,16 @@ public:
 	*/
 	Logical getHeight() noexcept;
 
+	/**
+		Returns logical right edge (x + width) of the component.
+	*/
+	Logical getRight() noexcept;
+
+	/**
+		Returns logical bottom edge (y + height) of the component.
+	*/
+	Logical getBottom() noexcept;
+
 	// dpi is 96 if the component is not created.
 	inline int getDPI() noexcept
 	{
@@ -214,6 +225,12 @@ public:
 		Sets logical x and y position of the component. x and y are relative to parent component
 	*/
 	virtual void setPosition(Logical x, Logical y) noexcept;
+
+	/**
+		Sets logical x, y, width and height of the component in a single call.
+		x and y are relative to parent component.
+	*/
+	virtual void setBounds(Logical x, Logical y, Logical width, Logical height) noexcept;
 
 	// --- Positioning relative to another component. spacing is a logical value. ---
 	// The width and height of both this component and the target must be set before calling these methods.
@@ -267,6 +284,16 @@ public:
 		Repaints the component
 	*/
 	virtual void repaint() noexcept;
+
+	/**
+		Attaches an application-defined value to this component. Not used by the framework itself.
+	*/
+	void setParam(void* userParam) noexcept;
+
+	/**
+		Returns the value previously set by setParam. Returns nullptr if never set.
+	*/
+	void* getParam() noexcept;
 
 	virtual ~KComponent() noexcept;
 

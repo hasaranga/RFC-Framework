@@ -66,7 +66,8 @@ public:
 		const int postDataLength,
 		const bool ignoreCertificateErros,
 		const wchar_t* userAgent,
-		const wchar_t* verb) noexcept;
+		const wchar_t* verb,
+		const INTERNET_PORT port = INTERNET_DEFAULT_PORT) noexcept;
 
 	/**
 		this method posts data to given url. post data must be in url enocoded format.
@@ -82,7 +83,8 @@ public:
 		const char* postData,
 		const int postDataLength,
 		const bool ignoreCertificateErros = true,
-		const wchar_t* userAgent = L"RFC Application/1.0") noexcept;
+		const wchar_t* userAgent = L"RFC Application/1.0",
+		const INTERNET_PORT port = INTERNET_DEFAULT_PORT) noexcept;
 
 	// each extraHeaderData must end with \r\n
 	static KString postJSONData(const wchar_t* url,
@@ -92,7 +94,8 @@ public:
 		const int postDataLength,
 		const wchar_t* extraHeaderData = nullptr,
 		const bool ignoreCertificateErros = true,
-		const wchar_t* userAgent = L"RFC Application/1.0") noexcept;
+		const wchar_t* userAgent = L"RFC Application/1.0",
+		const INTERNET_PORT port = INTERNET_DEFAULT_PORT) noexcept;
 
 	// each extraHeaderData must end with \r\n
 	static KString getJSONData(const wchar_t* url,
@@ -100,7 +103,8 @@ public:
 		const bool isHttps,
 		const wchar_t* extraHeaderData = nullptr,
 		const bool ignoreCertificateErros = true,
-		const wchar_t* userAgent = L"RFC Application/1.0") noexcept;
+		const wchar_t* userAgent = L"RFC Application/1.0",
+		const INTERNET_PORT port = INTERNET_DEFAULT_PORT) noexcept;
 
 	// fileSize will become zero on error or stopped
 	static void downloadFile(const wchar_t* url,
@@ -110,7 +114,8 @@ public:
 		std::atomic<bool>* shouldStop,
 		std::atomic<unsigned int>* fileSize,
 		const bool ignoreCertificateErrors = true,
-		const wchar_t* userAgent = L"RFC Application/1.0") noexcept;
+		const wchar_t* userAgent = L"RFC Application/1.0",
+		const INTERNET_PORT port = INTERNET_DEFAULT_PORT) noexcept;
 
 	~KInternet() noexcept;
 

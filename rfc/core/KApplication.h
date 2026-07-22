@@ -44,7 +44,7 @@
 			}
 	};
 
-	START_RFC_APPLICATION(MyApp)
+	START_RFC_APPLICATION(MyApp, KDPIAwareness::STANDARD_MODE)
 	@endcode
 */
 class KApplication

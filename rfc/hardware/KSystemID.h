@@ -25,7 +25,7 @@
 #include <comdef.h>
 #include <Wbemidl.h>
 
-// generates unique id to identify given PC.
+// can be use to generate unique id to identify given PC.
 class KSystemID
 {
 public:

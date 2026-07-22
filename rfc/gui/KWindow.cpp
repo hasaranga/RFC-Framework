@@ -39,7 +39,7 @@ KWindow::KWindow() noexcept : KComponent(true)
 	prevDPIContext = 0;
 	dpiAwarenessContextChanged = false;
 	compDwStyle = WS_POPUP | WS_CLIPCHILDREN;
-	compDwExStyle = WS_EX_APPWINDOW | WS_EX_ACCEPTFILES | WS_EX_CONTROLPARENT;
+	compDwExStyle = WS_EX_APPWINDOW | WS_EX_CONTROLPARENT;
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
 	compCtlID = 0; // control id is zero for top level window
 	lastFocusedChild = 0;
@@ -471,8 +471,7 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) n
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, 
-						MAKEINTATOM(KGUIProc::atomComponent));
+					KComponent* component = KGUIProc::getComponentFromHWND(((LPDRAWITEMSTRUCT)lParam)->hwndItem);
 
 					if (component)
 					{
@@ -486,8 +485,7 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) n
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 			{
-				KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, 
-					MAKEINTATOM(KGUIProc::atomComponent));
+				KComponent* component = KGUIProc::getComponentFromHWND(((LPNMHDR)lParam)->hwndFrom);
 
 				if (component)
 				{
@@ -508,7 +506,7 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) n
 		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
 		case WM_CTLCOLORSTATIC: // static controls
 			{
-				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::atomComponent));
+				KComponent* component = KGUIProc::getComponentFromHWND((HWND)lParam);
 				if (component)
 				{
 					LRESULT result = 0; // just for safe
@@ -522,8 +520,7 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) n
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), 
-						MAKEINTATOM(KGUIProc::atomComponent));
+					KComponent* component = KGUIProc::getComponentFromHWND(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID));
 
 					if (component)
 					{
@@ -537,8 +534,7 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) n
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 			{
-				KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, 
-					MAKEINTATOM(KGUIProc::atomComponent));
+				KComponent* component = KGUIProc::getComponentFromHWND(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem);
 
 				if (component)
 				{
@@ -648,8 +644,7 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) n
 				}
 				else if(lParam)// send to appropriate component
 				{
-					KComponent* component = (KComponent*)::GetPropW((HWND)lParam, 
-						MAKEINTATOM(KGUIProc::atomComponent));
+					KComponent* component = KGUIProc::getComponentFromHWND((HWND)lParam);
 
 					if (component)
 					{
@@ -685,7 +680,7 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) n
 
 		case WM_CONTEXTMENU:
 			{
-				KComponent* component = (KComponent*)::GetPropW((HWND)wParam, MAKEINTATOM(KGUIProc::atomComponent));
+				KComponent* component = KGUIProc::getComponentFromHWND((HWND)wParam);
 				if (component)
 				{
 					LRESULT result = 0; // just for safe

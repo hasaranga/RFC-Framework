@@ -100,16 +100,35 @@ bool KThread::isRunning() noexcept
 	return false;
 }
 
+bool KThread::setPriority(int priority) noexcept
+{
+	if (!handle)
+		return false;
+
+	return ::SetThreadPriority(handle, priority) != 0;
+}
+
+int KThread::getPriority() noexcept
+{
+	if (!handle)
+		return THREAD_PRIORITY_ERROR_RETURN;
+
+	return ::GetThreadPriority(handle);
+}
+
 void KThread::shouldStop() noexcept
 {
 	stopRequestedFlag.store(true, std::memory_order_release);
 }
 
-DWORD KThread::waitUntilThreadFinish(bool pumpMessages) noexcept
+void KThread::waitUntilThreadFinish(bool pumpMessages) noexcept
 {
 	if (!pumpMessages)
-		return ::WaitForSingleObject(handle, INFINITE);
-	
+	{
+		::WaitForSingleObject(handle, INFINITE);
+		return;
+	}
+
 	while (true)
 	{
 		MSG msg;
@@ -119,13 +138,13 @@ DWORD KThread::waitUntilThreadFinish(bool pumpMessages) noexcept
 			::DispatchMessageW(&msg);
 		}
 
-		// if this thread sent msgs to caller thread before calling following function and after the above while block, those msgs will not be processed until new msg arrived. 
+		// if this thread sent msgs to caller thread before calling following function and after the above while block, those msgs will not be processed until new msg arrived.
 		// if there is no new msgs, there will be a deadlock! that's why we have a timeout! after the timeout, any pending msgs will be processed and continue...
 		DWORD dwRet = ::MsgWaitForMultipleObjects(1, &handle, FALSE, 200, QS_ALLINPUT);
 
 		if (dwRet == WAIT_OBJECT_0) // thread finished
 		{
-			return true;
+			return;
 		}
 		else if ((dwRet == (WAIT_OBJECT_0 + 1)) || (dwRet == WAIT_TIMEOUT)) // window message or timeout
 		{
@@ -133,11 +152,9 @@ DWORD KThread::waitUntilThreadFinish(bool pumpMessages) noexcept
 		}
 		else // failure
 		{
-			break;
+			return;
 		}
 	}
-
-	return false;
 }
 
 bool KThread::start() noexcept
@@ -171,9 +188,7 @@ KThread::~KThread() noexcept
 {
 	if (isRunning())
 	{
-		#ifdef _DEBUG
-		MessageBoxW(0, L"Thread object was destroyed while the associated thread was still running!", L"Error", MB_ICONERROR);
-		#endif
+		K_ASSERT(false, "Thread object was destroyed while the associated thread was still running!");
 		shouldStop();
 		::WaitForSingleObject(handle, 1000); // wait for one second
 	}

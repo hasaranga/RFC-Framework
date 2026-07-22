@@ -70,7 +70,7 @@ int main() \
 
 // use this macro if you are not using commandline arguments in your app.
 #define START_RFC_CONSOLE_APP_NO_CMD_ARGS(AppClass) \
-int WINAPI main() \
+int main() \
 { \
 	CoreModuleInitParams::hInstance = 0; \
 	CoreModuleInitParams::initCOMAsSTA = true; \

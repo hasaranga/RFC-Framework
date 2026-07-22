@@ -237,6 +237,11 @@ public:
 	KString subString(int start, int end)const noexcept;
 
 	/**
+		Returns a copy of this string with all occurrences of the given text replaced.
+	*/
+	KString replace(const KString& textToFind, const KString& replacementText)const noexcept;
+
+	/**
 		Case-insensitive comparison with another string. Slower than "Compare" method.
 		@returns     true if the two strings are identical, false if not
 	*/
@@ -264,6 +269,41 @@ public:
 		Compare last character with given unicode character
 	*/
 	bool endsWithChar(wchar_t character)const noexcept;
+
+	/**
+		Checks whether the string starts with the given text.
+	*/
+	bool startsWith(const KString& text)const noexcept;
+
+	/**
+		Checks whether the string ends with the given text.
+	*/
+	bool endsWith(const KString& text)const noexcept;
+
+	/**
+		Finds the first occurrence of a character in the string.
+		@param character	character to find
+		@param startIndex	index to start searching from
+		@returns			index of first occurrence, or -1 if not found
+	*/
+	int indexOfChar(wchar_t character, int startIndex = 0)const noexcept;
+
+	/**
+		Finds the last occurrence of a character in the string.
+		@returns			index of last occurrence, or -1 if not found
+	*/
+	int lastIndexOfChar(wchar_t character)const noexcept;
+
+	/**
+		Finds the first occurrence of a substring in the string.
+		@returns			index of first occurrence, or -1 if not found
+	*/
+	int indexOf(const KString& textToFind)const noexcept;
+
+	/**
+		Checks whether the string contains a given substring.
+	*/
+	bool contains(const KString& textToFind)const noexcept;
 
 	/**
 		Check if string is quoted or not
@@ -310,6 +350,15 @@ public:
 
 	// separate a string by newlines with index. remaining content will be also passed at the end.
 	void splitLines(bool ignoreEmptyLines, std::function<void(int, const KString&)> func) const noexcept;
+
+	// separate a string by given delimiter character with index. remaining content will be also passed at the end.
+	void split(wchar_t delimiter, bool ignoreEmptyParts, std::function<void(int, const KString&)> func) const noexcept;
+
+	// hash code for this string. useful for hashing/lookup structures.
+	size_t hashCode()const noexcept;
+
+	// printf-style formatted construction. e.g. KString::format(L"count: %d", n);
+	static KString format(const wchar_t* const fmt, ...) noexcept;
 
 	// free the returned buffer when done.
 	static char* toUTF8String(const wchar_t* text) noexcept;

@@ -44,6 +44,7 @@ KComponent::KComponent(bool generateWindowClassDetails) noexcept
 	compLHeight = CW_USEDEFAULT;
 	compVisible = true;
 	compEnabled = true;
+	userParam = nullptr;
 
 	if (generateWindowClassDetails)
 	{
@@ -287,6 +288,16 @@ Logical KComponent::getHeight() noexcept
 	return compLHeight;
 }
 
+Logical KComponent::getRight() noexcept
+{
+	return compLX + compLWidth;
+}
+
+Logical KComponent::getBottom() noexcept
+{
+	return compLY + compLHeight;
+}
+
 void KComponent::setDPI(int newDPI) noexcept
 {
 	compFontRef.update(newDPI);
@@ -353,9 +364,29 @@ void KComponent::setPosition(Logical x, Logical y) noexcept
 	}
 }
 
+void KComponent::setBounds(Logical x, Logical y, Logical width, Logical height) noexcept
+{
+	compLX = x;
+	compLY = y;
+	compLWidth = width;
+	compLHeight = height;
+
+	if (compHWND)
+	{
+		const int dpi = KDPIUtility::getWindowDPI(compHWND);
+		const Physical physicalX = KDPIUtility::toPhysical(x, dpi);
+		const Physical physicalY = KDPIUtility::toPhysical(y, dpi);
+		const Physical physicalWidth = KDPIUtility::toPhysical(width, dpi);
+		const Physical physicalHeight = KDPIUtility::toPhysical(height, dpi);
+
+		::SetWindowPos(compHWND, 0, physicalX, physicalY,
+			physicalWidth, physicalHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+	}
+}
+
 void KComponent::placeToRightOf(KComponent& target, Logical spacing) noexcept
 {
-	setPosition(target.getX() + target.getWidth() + spacing, target.getY());
+	setPosition(target.getRight() + spacing, target.getY());
 }
 
 void KComponent::placeToLeftOf(KComponent& target, Logical spacing) noexcept
@@ -365,7 +396,7 @@ void KComponent::placeToLeftOf(KComponent& target, Logical spacing) noexcept
 
 void KComponent::placeBelow(KComponent& target, Logical spacing) noexcept
 {
-	setPosition(target.getX(), target.getY() + target.getHeight() + spacing);
+	setPosition(target.getX(), target.getBottom() + spacing);
 }
 
 void KComponent::placeAbove(KComponent& target, Logical spacing) noexcept
@@ -380,7 +411,7 @@ void KComponent::alignTopWith(KComponent& target) noexcept
 
 void KComponent::alignBottomWith(KComponent& target) noexcept
 {
-	setPosition(getX(), (target.getY() + target.getHeight()) - getHeight());
+	setPosition(getX(), target.getBottom() - getHeight());
 }
 
 void KComponent::alignLeftWith(KComponent& target) noexcept
@@ -390,7 +421,7 @@ void KComponent::alignLeftWith(KComponent& target) noexcept
 
 void KComponent::alignRightWith(KComponent& target) noexcept
 {
-	setPosition(target.getX() + target.getWidth() - getWidth(), getY());
+	setPosition(target.getRight() - getWidth(), getY());
 }
 
 void KComponent::alignCenterHorizontallyWith(KComponent& target) noexcept
@@ -458,6 +489,16 @@ void KComponent::repaint() noexcept
 		::InvalidateRect(compHWND, NULL, TRUE);
 		::UpdateWindow(compHWND); // instant update
 	}
+}
+
+void KComponent::setParam(void* userParam) noexcept
+{
+	this->userParam = userParam;
+}
+
+void* KComponent::getParam() noexcept
+{
+	return userParam;
 }
 
 KComponent::~KComponent() noexcept

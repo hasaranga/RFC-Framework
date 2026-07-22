@@ -61,6 +61,6 @@ public:
 		ShExecInfo.lpDirectory = NULL;
 		ShExecInfo.nShow = SW_SHOW;
 		ShExecInfo.hInstApp = NULL;
-		return ::ShellExecuteExW(&ShExecInfo) > 32;
+		return ::ShellExecuteExW(&ShExecInfo) != FALSE;
 	}
 };

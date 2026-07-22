@@ -54,7 +54,7 @@ struct KXoredString {
 	printf(plain2);
 */
 template <auto KEY, std::size_t N, typename CharT = decltype(KEY)>
-consteval KXoredString<CharT, N, KEY> kxored_str(const CharT(&str)[N]) {
+constexpr KXoredString<CharT, N, KEY> kxored_str(const CharT(&str)[N]) {
 	KXoredString<CharT, N, KEY> result{};
 	for (std::size_t i = 0; i < N; ++i)
 		result.data[i] = str[i] ^ KEY;

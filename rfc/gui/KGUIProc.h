@@ -48,6 +48,11 @@ public:
 	*/
 	static void attachRFCPropertiesToHWND(HWND hwnd, KComponent* component) noexcept;
 
+	/**
+		Returns the KComponent attached to given hwnd. Returns nullptr if hwnd is not a rfc component.
+	*/
+	static KComponent* getComponentFromHWND(HWND hwnd) noexcept;
+
 	static int hotPlugAndRunDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component) noexcept;
 	static HWND hotPlugAndCreateDialogBox(WORD resourceID, HWND parentHwnd, KComponent* component) noexcept;
 };

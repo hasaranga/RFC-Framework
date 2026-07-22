@@ -1,6 +1,6 @@
 
 /*
-	Copyright (C) 2013-2025 CrownSoft
+	Copyright (C) 2013-2026 CrownSoft
 
 	This software is provided 'as-is', without any express or implied
 	warranty.  In no event will the authors be held liable for any damages
@@ -38,7 +38,7 @@ protected:
 	int iQueueTail;
 
 	// Thread safety helper methods
-	inline void enterCriticalSectionIfNeeded()
+	inline void enterCriticalSectionIfNeeded() noexcept
 	{
 		if constexpr (IsThreadSafe)
 		{
@@ -46,7 +46,7 @@ protected:
 		}
 	}
 
-	inline void leaveCriticalSectionIfNeeded()
+	inline void leaveCriticalSectionIfNeeded() noexcept
 	{
 		if constexpr (IsThreadSafe)
 		{
@@ -55,14 +55,18 @@ protected:
 	}
 
 public:
-	KFixedQueue() :iQueueHead(0), iQueueTail(0) {}
+	KFixedQueue() noexcept :iQueueHead(0), iQueueTail(0)
+	{
+		// one slot is always reserved to disambiguate full vs empty, so QueueSize == 1 leaves zero usable capacity.
+		K_ASSERT(QueueSize >= 2, "KFixedQueue requires QueueSize >= 2");
+	}
 
 	// Delete copy constructor and assignment operator
 	KFixedQueue(const KFixedQueue&) = delete;
 	KFixedQueue& operator=(const KFixedQueue&) = delete;
 
 	// Queue operations
-	void enqueue(const T& data)
+	void enqueue(const T& data) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -80,7 +84,7 @@ public:
 		leaveCriticalSectionIfNeeded();
 	}
 
-	bool dequeue(T& data)
+	bool dequeue(T& data) noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -102,7 +106,7 @@ public:
 	}
 
 	// Queue state
-	bool isEmpty() 
+	bool isEmpty() noexcept
 	{
 		enterCriticalSectionIfNeeded();
 		bool empty = (iQueueHead == iQueueTail);
@@ -110,7 +114,7 @@ public:
 		return empty;
 	}
 
-	bool isFull()
+	bool isFull() noexcept
 	{
 		enterCriticalSectionIfNeeded();
 		bool full = ((iQueueHead + 1) % QueueSize == iQueueTail);
@@ -118,7 +122,7 @@ public:
 		return full;
 	}
 
-	int getCount()
+	int getCount() noexcept
 	{
 		enterCriticalSectionIfNeeded();
 
@@ -136,7 +140,19 @@ public:
 		return count;
 	}
 
-	void clear()
+	// Maximum number of items the queue can hold (one slot is always reserved internally).
+	static constexpr size_t capacity() noexcept
+	{
+		return QueueSize - 1;
+	}
+
+	// Number of additional items that can be enqueued before the oldest entries start being overwritten.
+	int getRemainingSpace() noexcept
+	{
+		return static_cast<int>(capacity()) - getCount();
+	}
+
+	void clear() noexcept
 	{
 		enterCriticalSectionIfNeeded();
 		iQueueHead = 0;

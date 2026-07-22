@@ -31,8 +31,13 @@ private:
     size_t count = 0;
 
 public:
+    KFixedStack() noexcept
+    {
+        K_ASSERT(MaxSize > 0, "KFixedStack requires MaxSize > 0");
+    }
+
     // Push element, returns false if stack is full
-    bool push(const T& item)
+    bool push(const T& item) noexcept
     {
         if (count >= MaxSize) {
             K_ASSERT(false, "KFixedStack overflow!");
@@ -43,7 +48,7 @@ public:
     }
 
     // Pop element, returns false if stack is empty
-    bool pop()
+    bool pop() noexcept
     {
         if (count == 0) {
             K_ASSERT(false, "KFixedStack underflow!");
@@ -54,37 +59,37 @@ public:
     }
 
     // Get top element, returns pointer (nullptr if empty)
-    const T* top() const
+    const T* top() const noexcept
     {
         return (count > 0) ? &data[count - 1] : nullptr;
     }
 
     // Non-const version
-    T* top()
+    T* top() noexcept
     {
         return (count > 0) ? &data[count - 1] : nullptr;
     }
 
     // Check if empty
-    bool isEmpty() const
+    bool isEmpty() const noexcept
     {
         return count == 0;
     }
 
     // Get current size
-    size_t size() const
+    size_t size() const noexcept
     {
         return count;
     }
 
     // Check if full
-    bool isFull() const
+    bool isFull() const noexcept
     {
         return count >= MaxSize;
     }
 
     // Clear all elements
-    void clear()
+    void clear() noexcept
     {
         count = 0;
     }

@@ -20,6 +20,8 @@
 
 #include "KString.h"
 #include <stdio.h>
+#include <stdarg.h>
+#include <string_view>
 
 const KString operator+ (const char* const string1, const KString& string2) noexcept
 {
@@ -472,7 +474,7 @@ KString KString::subString(int start, int end)const noexcept
 
 	if ((0 <= start) && (start <= lastIndex))
 	{
-		if ((start < end) && (end <= lastIndex))
+		if ((start <= end) && (end <= lastIndex))
 		{
 			int size = (end - start) + 1;
 
@@ -489,8 +491,37 @@ KString KString::subString(int start, int end)const noexcept
 	return KString();
 }
 
+KString KString::replace(const KString& textToFind, const KString& replacementText)const noexcept
+{
+	if ((characterCount == 0) || (textToFind.characterCount == 0))
+		return *this;
+
+	KString result;
+	int searchStart = 0;
+
+	while (searchStart < characterCount)
+	{
+		KString remaining = subString(searchStart, characterCount - 1);
+		int foundAt = remaining.indexOf(textToFind);
+
+		if (foundAt == -1)
+		{
+			result = result.append(remaining);
+			break;
+		}
+
+		result = result.append(remaining.subString(0, foundAt - 1)).append(replacementText);
+		searchStart += foundAt + textToFind.characterCount;
+	}
+
+	return result;
+}
+
 bool KString::compareIgnoreCase(const KString& otherString)const noexcept
 {
+	if (characterCount == 0 && otherString.characterCount == 0)
+		return true;
+
 	if ((otherString.characterCount != 0) && (characterCount != 0))
 		return (::_wcsicmp(getStringPtr(), otherString.getStringPtr()) == 0);
 
@@ -499,6 +530,9 @@ bool KString::compareIgnoreCase(const KString& otherString)const noexcept
 
 bool KString::compare(const KString& otherString)const noexcept
 {
+	if (characterCount == 0 && otherString.characterCount == 0)
+		return true;
+
 	if ((otherString.characterCount != 0) && (characterCount != 0))
 		return (::wcscmp(getStringPtr(), otherString.getStringPtr()) == 0);
 
@@ -510,7 +544,7 @@ bool KString::compareWithStaticText(const wchar_t* const text)const noexcept
 	if (characterCount != 0)
 		return (::wcscmp(getStringPtr(), text) == 0);
 
-	return false;
+	return text[0] == L'\0';
 }
 
 bool KString::startsWithChar(wchar_t character)const noexcept
@@ -527,6 +561,62 @@ bool KString::endsWithChar(wchar_t character)const noexcept
 		return (getStringPtr()[characterCount - 1] == character);
 
 	return false;
+}
+
+bool KString::startsWith(const KString& text)const noexcept
+{
+	if (text.characterCount == 0)
+		return true;
+	if (characterCount < text.characterCount)
+		return false;
+
+	return (::wcsncmp(getStringPtr(), text.getStringPtr(), text.characterCount) == 0);
+}
+
+bool KString::endsWith(const KString& text)const noexcept
+{
+	if (text.characterCount == 0)
+		return true;
+	if (characterCount < text.characterCount)
+		return false;
+
+	return (::wcsncmp(getStringPtr() + (characterCount - text.characterCount),
+		text.getStringPtr(), text.characterCount) == 0);
+}
+
+int KString::indexOfChar(wchar_t character, int startIndex)const noexcept
+{
+	if ((characterCount == 0) || (startIndex < 0) || (startIndex >= characterCount))
+		return -1;
+
+	const wchar_t* str = getStringPtr();
+	const wchar_t* found = ::wcschr(str + startIndex, character);
+	return found ? (int)(found - str) : -1;
+}
+
+int KString::lastIndexOfChar(wchar_t character)const noexcept
+{
+	if (characterCount == 0)
+		return -1;
+
+	const wchar_t* str = getStringPtr();
+	const wchar_t* found = ::wcsrchr(str, character);
+	return found ? (int)(found - str) : -1;
+}
+
+int KString::indexOf(const KString& textToFind)const noexcept
+{
+	if ((characterCount == 0) || (textToFind.characterCount == 0))
+		return -1;
+
+	const wchar_t* str = getStringPtr();
+	const wchar_t* found = ::wcsstr(str, textToFind.getStringPtr());
+	return found ? (int)(found - str) : -1;
+}
+
+bool KString::contains(const KString& textToFind)const noexcept
+{
+	return indexOf(textToFind) != -1;
 }
 
 bool KString::isQuotedString()const noexcept
@@ -654,6 +744,70 @@ void KString::splitLines(bool ignoreEmptyLines, std::function<void(int, const KS
 	int lastLineLength = (int)((str + characterCount) - lineStart);
 	if (!(ignoreEmptyLines && lastLineLength == 0))
 		func(lineIndex, KString(lineStart, KStringBehaviour::MAKE_A_COPY, lastLineLength));
+}
+
+void KString::split(wchar_t delimiter, bool ignoreEmptyParts, std::function<void(int, const KString&)> func) const noexcept
+{
+	if (characterCount == 0)
+		return;
+
+	const wchar_t* str = getStringPtr();
+	int partIndex = 0;
+	const wchar_t* partStart = str;
+
+	for (const wchar_t* p = str; *p != L'\0'; ++p)
+	{
+		if (*p == delimiter)
+		{
+			int partLength = (int)(p - partStart);
+
+			if (!(ignoreEmptyParts && partLength == 0))
+				func(partIndex++, KString(partStart, KStringBehaviour::MAKE_A_COPY, partLength));
+
+			partStart = p + 1;
+		}
+	}
+
+	// last part
+	int lastPartLength = (int)((str + characterCount) - partStart);
+	if (!(ignoreEmptyParts && lastPartLength == 0))
+		func(partIndex, KString(partStart, KStringBehaviour::MAKE_A_COPY, lastPartLength));
+}
+
+size_t KString::hashCode()const noexcept
+{
+	if (characterCount == 0)
+		return 0;
+
+	return std::hash<std::wstring_view>{}(std::wstring_view(getStringPtr(), (size_t)characterCount));
+}
+
+KString KString::format(const wchar_t* const fmt, ...) noexcept
+{
+	wchar_t stackBuffer[256];
+
+	va_list args;
+	va_start(args, fmt);
+	int required = ::_vsnwprintf_s(stackBuffer, 256, _TRUNCATE, fmt, args);
+	va_end(args);
+
+	if (required >= 0) // fit in stack buffer, no truncation
+		return KString(stackBuffer, KStringBehaviour::MAKE_A_COPY, required);
+
+	va_start(args, fmt);
+	required = ::_vscwprintf(fmt, args);
+	va_end(args);
+
+	if (required <= 0)
+		return KString();
+
+	wchar_t* buffer = (wchar_t*)::malloc((required + 1) * sizeof(wchar_t));
+
+	va_start(args, fmt);
+	::_vsnwprintf_s(buffer, required + 1, _TRUNCATE, fmt, args);
+	va_end(args);
+
+	return KString(buffer, KStringBehaviour::FREE_ON_DESTROY, required);
 }
 
 char* KString::toUTF8String(const wchar_t* text) noexcept

@@ -124,10 +124,21 @@ public:
 	bool isRunning() noexcept;
 
 	/**
+		Sets thread scheduling priority. use THREAD_PRIORITY_* win32 constants (e.g. THREAD_PRIORITY_NORMAL).
+		Thread must be started (i.e. handle must be valid) before calling this.
+	*/
+	bool setPriority(int priority) noexcept;
+
+	/**
+		@returns thread scheduling priority, or THREAD_PRIORITY_ERROR_RETURN on failure.
+	*/
+	int getPriority() noexcept;
+
+	/**
 		Caller will not return until this thread finish.
 		Set pumpMessages to true to enable message processing for caller. It will help to avoid deadlocks if the caller is a gui thread!
 	*/
-	DWORD waitUntilThreadFinish(bool pumpMessages = false) noexcept;
+	void waitUntilThreadFinish(bool pumpMessages = false) noexcept;
 
 	/**
 		Sleeps calling thread to given micro seconds.

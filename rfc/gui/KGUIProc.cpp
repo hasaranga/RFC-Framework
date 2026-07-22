@@ -56,6 +56,7 @@ LRESULT CALLBACK RFCCTL_CBTProc(int nCode, WPARAM wParam, LPARAM lParam) noexcep
 
 					// we subclassed what we created. so remove the hook.
 					::UnhookWindowsHookEx(RFCInternalVariables::wnd_hook); // unhooking at here will allow child creation at WM_CREATE. otherwise this will hook child also!
+					RFCInternalVariables::wnd_hook = 0; // mark as unhooked so callers don't try to unhook it again.
 
 					return result;
 				}
@@ -78,9 +79,14 @@ void KGUIProc::attachRFCPropertiesToHWND(HWND hwnd, KComponent* component) noexc
 		::SetWindowLongPtrW(hwnd, GWLP_WNDPROC, (LONG_PTR)KGUIProc::windowProc); // subclassing...
 }
 
+KComponent* KGUIProc::getComponentFromHWND(HWND hwnd) noexcept
+{
+	return (KComponent*)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::atomComponent));
+}
+
 LRESULT CALLBACK KGUIProc::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept
 {
-	KComponent* component = (KComponent*)::GetPropW(hwnd, MAKEINTATOM(KGUIProc::atomComponent));
+	KComponent* component = KGUIProc::getComponentFromHWND(hwnd);
 
 	if (!component) // for safe!
 		return ::DefWindowProcW(hwnd, msg, wParam, lParam);
@@ -133,12 +139,20 @@ HWND KGUIProc::createComponentFor96DPI(KComponent* component, bool requireInitia
 
 		// pass current component as lpParam. so CBT proc can ignore other unknown windows.
 		HWND hwnd = ::CreateWindowExW(component->getExStyle(), component->getComponentClassName(), component->getText(),
-			component->getStyle(), x, y, 
+			component->getStyle(), x, y,
 			component->getWidth(), component->getHeight(),
 			component->getParentHWND(), (HMENU)(UINT_PTR)component->getControlID(), KApplication::hInstance, (LPVOID)component);
 
 		// unhook at here will cause catching childs which are created at WM_CREATE. so, unhook at CBT proc.
 		//::UnhookWindowsHookEx(RFCInternalVariables::wnd_hook);
+
+		// if window creation failed, HCBT_CREATEWND was never sent for our component, so the CBT proc
+		// never got a chance to unhook. remove it here, otherwise the hook stays installed forever.
+		if (!hwnd && RFCInternalVariables::wnd_hook)
+		{
+			::UnhookWindowsHookEx(RFCInternalVariables::wnd_hook);
+			RFCInternalVariables::wnd_hook = 0;
+		}
 
 		return hwnd;
 	}

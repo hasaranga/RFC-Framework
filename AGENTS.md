@@ -22,7 +22,7 @@ To preserve context memory and prevent hallucinated implementations, follow thes
 
 This framework is highly optimized for performance and direct Win32 API interaction. Standard modern C++ patterns will break it.
 
-* **No Exceptions & No STL:** This framework explicitly forbids C++ exceptions. Consequently, NO standard containers (`std::vector`, `std::string`, `std::map`, etc.) or `<memory>` smart pointers are allowed. All functions must be marked `noexcept`. Use existing framework container alternatives found via `symbols.md`.
+* **No Exceptions & No STL Containers:** This framework explicitly forbids C++ exceptions. Consequently, NO standard containers (`std::vector`, `std::string`, `std::map`, etc.) or `<memory>` smart pointers are allowed. All functions must be marked `noexcept`. Use existing framework container alternatives found via `symbols.md`.
 * **String Allocation Constraints:** `KString` is strictly optimized for Unicode (`wchar_t`). 
   * Never pass a raw local buffer directly to a constructor without explicit behavior flags (e.g., `wchar_t buff[32]; KString txt(buff);` is FORBIDDEN as it treats it as a literal pointer pointer instead of copying).
   * **Correct Pattern 1:** `KString txt(buff, KStringBehaviour::MAKE_A_COPY);`

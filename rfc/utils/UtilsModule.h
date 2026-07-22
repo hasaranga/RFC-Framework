@@ -27,6 +27,7 @@
 #include "KGuid.h"
 #include "KStackInfo.h"
 #include "KProcess.h"
+#include "KSystemInfo.h"
 
 #pragma comment(lib, "Rpcrt4.lib")
 #pragma comment(lib, "psapi.lib")

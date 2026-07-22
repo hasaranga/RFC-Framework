@@ -24,8 +24,6 @@
 #include "../core/CoreModule.h"
 #include "KPointerList.h"
 
-#pragma once
-
 template<class T>
 class KQueueNode {
 public:
@@ -40,6 +38,7 @@ class KPointerQueue : private KThreadSafetyBase<IsThreadSafe>
 protected:
 	KQueueNode<T>* firstNode;
 	KQueueNode<T>* lastNode;
+	size_t itemCount;
 
 	// Thread safety helper methods
 	inline void enterCriticalSectionIfNeeded() noexcept
@@ -63,6 +62,30 @@ public:
 	{
 		firstNode = nullptr;
 		lastNode = nullptr;
+		itemCount = 0;
+	}
+
+	// Linked-list nodes are owned via raw pointers with no refcounting, so copying/moving
+	// would either double-free (copy) or leave the source dangling mid-use (move).
+	KPointerQueue(const KPointerQueue&) = delete;
+	KPointerQueue& operator=(const KPointerQueue&) = delete;
+	KPointerQueue(KPointerQueue&&) = delete;
+	KPointerQueue& operator=(KPointerQueue&&) = delete;
+
+	bool isEmpty() noexcept
+	{
+		enterCriticalSectionIfNeeded();
+		bool empty = (itemCount == 0);
+		leaveCriticalSectionIfNeeded();
+		return empty;
+	}
+
+	size_t size() noexcept
+	{
+		enterCriticalSectionIfNeeded();
+		size_t count = itemCount;
+		leaveCriticalSectionIfNeeded();
+		return count;
 	}
 
 	void push(T value) noexcept
@@ -84,6 +107,8 @@ public:
 			lastNode = newNode;
 		}
 
+		++itemCount;
+
 		leaveCriticalSectionIfNeeded();
 	}
 
@@ -104,6 +129,8 @@ public:
 		firstNode = firstNode->next;
 		if (firstNode == nullptr) // we had only one item
 			lastNode = nullptr;
+
+		--itemCount;
 
 		delete tmp;
 
@@ -134,6 +161,7 @@ public:
 
 		firstNode = nullptr;
 		lastNode = nullptr;
+		itemCount = 0;
 
 		leaveCriticalSectionIfNeeded();
 	}

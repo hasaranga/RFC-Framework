@@ -20,10 +20,13 @@
 */
 
 #include "KModuleManager.h"
+#include "KAssert.h"
 
 
 bool KModuleManager::registerRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc)
 {
+	K_ASSERT((index >= 0) && (index < MAX_RFC_MODULE_COUNT), "KModuleManager: module index out of range");
+
 	KModuleManager::rfcModuleInitFuncList()[index] = initFunc;
 	KModuleManager::rfcModuleFreeFuncList()[index] = freeFunc;
 	return true;

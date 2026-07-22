@@ -171,7 +171,8 @@ KString KInternet::sendRequest(const wchar_t* url,
 	const int postDataLength,
 	const bool ignoreCertificateErros,
 	const wchar_t* userAgent,
-	const wchar_t* verb) noexcept
+	const wchar_t* verb,
+	const INTERNET_PORT port) noexcept
 {
 	HINTERNET hInternet = 0, hConnect = 0, hRequest = 0;
 	BOOL resultOK = FALSE;
@@ -184,7 +185,7 @@ KString KInternet::sendRequest(const wchar_t* url,
 		KInternet::applyProxySettings(url, hInternet);
 
 	if (hInternet)
-		hConnect = ::WinHttpConnect(hInternet, url, INTERNET_DEFAULT_PORT, 0);
+		hConnect = ::WinHttpConnect(hInternet, url, port, 0);
 
 	if (hConnect)
 		hRequest = ::WinHttpOpenRequest(hConnect, verb, objectName, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, isHttps ? (WINHTTP_FLAG_REFRESH | WINHTTP_FLAG_SECURE) : WINHTTP_FLAG_REFRESH);
@@ -245,11 +246,12 @@ KString KInternet::postText(const wchar_t* url,
 	const char* postData,
 	const int postDataLength,
 	const bool ignoreCertificateErros,
-	const wchar_t* userAgent) noexcept
+	const wchar_t* userAgent,
+	const INTERNET_PORT port) noexcept
 {
 	return KInternet::sendRequest(url, objectName, isHttps,
 		L"Content-Type: application/x-www-form-urlencoded\r\n", postData,
-		postDataLength, ignoreCertificateErros, userAgent, L"POST");
+		postDataLength, ignoreCertificateErros, userAgent, L"POST", port);
 }
 
 KString KInternet::postJSONData(const wchar_t* url,
@@ -259,14 +261,15 @@ KString KInternet::postJSONData(const wchar_t* url,
 	const int postDataLength,
 	const wchar_t* extraHeaderData,
 	const bool ignoreCertificateErros,
-	const wchar_t* userAgent) noexcept
+	const wchar_t* userAgent,
+	const INTERNET_PORT port) noexcept
 {
 	KString headers(L"accept: application/json\r\ncontent-type: application/json\r\n");
 	if (extraHeaderData)
 		headers = headers + KString(extraHeaderData, KStringBehaviour::DO_NOT_FREE);
 
 	return KInternet::sendRequest(url, objectName, isHttps, headers, postData, postDataLength,
-		ignoreCertificateErros, userAgent, L"POST");
+		ignoreCertificateErros, userAgent, L"POST", port);
 }
 
 KString KInternet::getJSONData(const wchar_t* url,
@@ -274,14 +277,15 @@ KString KInternet::getJSONData(const wchar_t* url,
 	const bool isHttps,
 	const wchar_t* extraHeaderData,
 	const bool ignoreCertificateErros,
-	const wchar_t* userAgent) noexcept
+	const wchar_t* userAgent,
+	const INTERNET_PORT port) noexcept
 {
 	KString headers(L"accept: application/json\r\n");
 	if (extraHeaderData)
 		headers = headers + KString(extraHeaderData, KStringBehaviour::DO_NOT_FREE);
 
 	return KInternet::sendRequest(url, objectName, isHttps, headers, NULL, 0,
-		ignoreCertificateErros, userAgent, L"GET");
+		ignoreCertificateErros, userAgent, L"GET", port);
 }
 
 void KInternet::downloadFile(const wchar_t* url,
@@ -291,7 +295,8 @@ void KInternet::downloadFile(const wchar_t* url,
 	std::atomic<bool>* shouldStop,
 	std::atomic<unsigned int>* fileSize,
 	const bool ignoreCertificateErrors,
-	const wchar_t* userAgent) noexcept
+	const wchar_t* userAgent,
+	const INTERNET_PORT port) noexcept
 {
 	fileSize->store(0, std::memory_order_relaxed);
 
@@ -308,7 +313,7 @@ void KInternet::downloadFile(const wchar_t* url,
 		KInternet::applyProxySettings(url, hInternet);
 
 	if (hInternet)
-		hConnect = ::WinHttpConnect(hInternet, url, INTERNET_DEFAULT_PORT, 0);
+		hConnect = ::WinHttpConnect(hInternet, url, port, 0);
 
 	if (hConnect)
 		hRequest = ::WinHttpOpenRequest(hConnect, L"GET", objectName, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, isHttps ? (WINHTTP_FLAG_REFRESH | WINHTTP_FLAG_SECURE) : WINHTTP_FLAG_REFRESH);

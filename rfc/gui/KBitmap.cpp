@@ -66,6 +66,24 @@ HBITMAP KBitmap::getHandle() noexcept
 	return hBitmap;
 }
 
+Physical KBitmap::getWidth() noexcept
+{
+	BITMAP bm;
+	if (hBitmap && ::GetObjectW(hBitmap, sizeof(BITMAP), &bm))
+		return (Physical)bm.bmWidth;
+
+	return 0;
+}
+
+Physical KBitmap::getHeight() noexcept
+{
+	BITMAP bm;
+	if (hBitmap && ::GetObjectW(hBitmap, sizeof(BITMAP), &bm))
+		return (Physical)bm.bmHeight;
+
+	return 0;
+}
+
 KBitmap::~KBitmap() noexcept
 {
 	if(hBitmap)

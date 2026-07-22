@@ -23,6 +23,7 @@
 
 #include "KWindow.h"
 #include <Windowsx.h> // GET_X_LPARAM
+#include <shellapi.h> // DragQueryFileW, DragFinish
 #include <type_traits> // std::is_base_of
 
 class KHotPluggedDialog : public KWindow
@@ -107,7 +108,6 @@ protected:
 		{
 			POINT pos;
 			::GetCursorPos(&pos);
-			const int dpi = KDPIUtility::getWindowDPI(this->compHWND);
 
 			this->setPositionPhysical(pos.x - clientAreaDraggingX,
 				pos.y - clientAreaDraggingY);
@@ -148,6 +148,55 @@ public:
 		ON_KMSG(WM_LBUTTONDOWN, onLButtonDown)
 		ON_KMSG(WM_MOUSEMOVE, onMouseMove)
 		ON_KMSG(WM_LBUTTONUP, onLButtonUp)
+	END_KMSG_HANDLER
+};
+
+// adds WM_DROPFILES support to a window (drag files from Explorer onto it).
+// T must be derived from KWindow
+template <class T,
+	typename = typename std::enable_if<std::is_base_of<KWindow, T>::value>::type>
+class KFileDropSupport : public T
+{
+protected:
+	virtual LRESULT onDropFiles(WPARAM wParam, LPARAM lParam) noexcept
+	{
+		HDROP hDrop = (HDROP)wParam;
+		const UINT fileCount = ::DragQueryFileW(hDrop, 0xFFFFFFFF, NULL, 0);
+
+		if (fileCount && onFilesDropped)
+		{
+			KString* filePaths = new KString[fileCount];
+
+			for (UINT i = 0; i < fileCount; i++)
+			{
+				const UINT charCount = ::DragQueryFileW(hDrop, i, NULL, 0);
+				wchar_t* buffer = (wchar_t*)::malloc((charCount + 1) * sizeof(wchar_t));
+				::DragQueryFileW(hDrop, i, buffer, charCount + 1);
+				filePaths[i] = KString(buffer, KStringBehaviour::FREE_ON_DESTROY, charCount);
+			}
+
+			onFilesDropped(filePaths, (int)fileCount);
+			delete[] filePaths;
+		}
+
+		::DragFinish(hDrop);
+		return 0;
+	}
+
+public:
+	// array is only valid for the duration of the callback.
+	std::function<void(KString* filePaths, int fileCount)> onFilesDropped;
+
+	template<typename... Args>
+	KFileDropSupport(Args&&... args) noexcept : T(std::forward<Args>(args)...)
+	{
+		this->compDwExStyle |= WS_EX_ACCEPTFILES;
+	}
+
+	virtual ~KFileDropSupport() noexcept = default;
+
+	BEGIN_KMSG_HANDLER
+		ON_KMSG(WM_DROPFILES, onDropFiles)
 	END_KMSG_HANDLER
 };
 

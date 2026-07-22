@@ -42,7 +42,7 @@ UNAWARE_MODE:	all windows are scaled by the system.
 
 enum class KDPIAwareness
 {
-	MIXEDMODE_ONLY, // win10 only, app is not dpi aware on other os
+	MIXEDMODE_ONLY, // win10 or higher only, app is not dpi aware on other os
 	STANDARD_MODE, // win7 or higher
 	UNAWARE_MODE
 };

@@ -97,6 +97,10 @@ public:
 	{
 		resetToSmallBuffer();
 
+		// other may be concurrently mutated by another thread, so its own lock must be held while we read it.
+		KVector& src = const_cast<KVector&>(other);
+		src.enterCriticalSectionIfNeeded();
+
 		// If other has more items than our small buffer can hold
 		if (other.itemCount > SmallBufferSize)
 		{
@@ -111,6 +115,8 @@ public:
 		{
 			list[i] = other.list[i];
 		}
+
+		src.leaveCriticalSectionIfNeeded();
 	}
 
 	/**
@@ -121,7 +127,19 @@ public:
 		if (this == &other)
 			return *this;
 
-		enterCriticalSectionIfNeeded();
+		// other may be concurrently mutated by another thread, so its own lock must be held while we read it.
+		// Lock in a consistent address order to avoid deadlocking against a concurrent reverse assignment (other = *this).
+		KVector& src = const_cast<KVector&>(other);
+		if (this < &src)
+		{
+			enterCriticalSectionIfNeeded();
+			src.enterCriticalSectionIfNeeded();
+		}
+		else
+		{
+			src.enterCriticalSectionIfNeeded();
+			enterCriticalSectionIfNeeded();
+		}
 
 		// Clean up current data
 		if (!usingSmallBuffer)
@@ -147,6 +165,7 @@ public:
 		}
 
 		leaveCriticalSectionIfNeeded();
+		src.leaveCriticalSectionIfNeeded();
 		return *this;
 	}
 
@@ -322,8 +341,9 @@ public:
 		if (!usingSmallBuffer)
 			delete[] list;
 
-		// we don't clear smallBuffer. 
-		// remaining objects on smallBuffer will be destroyed at destructor or freed when adding new items.
+		// smallBuffer items are intentionally left as-is: forcing a default-construct + assign here would pay
+		// T's construction cost on every removeAll() even when nothing needs it. They're released whenever
+		// the slot is next overwritten by add()/set(), or when the KVector itself is destroyed.
 
 		resetToSmallBuffer();
 
@@ -409,6 +429,7 @@ public:
 		}
 
 		leaveCriticalSectionIfNeeded();
+		return completed;
 	}
 
 	/**

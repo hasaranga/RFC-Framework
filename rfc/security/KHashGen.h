@@ -24,6 +24,7 @@
 #include "../core/CoreModule.h"
 #include <bcrypt.h>
 #include <stdio.h>
+#include <string.h>
 
 enum class KHashAlgorithm
 {
@@ -72,10 +73,10 @@ public:
         BYTE hashBytes[32] = {};  // sized for the largest (SHA256)
         char ansiHex[65] = {};    // sized for the largest (SHA256)
 
-        char* ansiText = KString::toUTF8String(text);
+        char* utf8Text = KString::toUTF8String(text);
 
         auto cleanup = [&]() {
-            ::free(ansiText);
+            ::free(utf8Text);
             if (hHash)
                 ::BCryptDestroyHash(hHash);
             if (hAlg)
@@ -94,7 +95,7 @@ public:
             return KString();
         }
 
-        if (!BCRYPT_SUCCESS(::BCryptHashData(hHash, (PUCHAR)ansiText, (ULONG)text.length(), 0)))
+        if (!BCRYPT_SUCCESS(::BCryptHashData(hHash, (PUCHAR)utf8Text, (ULONG)::strlen(utf8Text), 0)))
         {
             cleanup();
             return KString();

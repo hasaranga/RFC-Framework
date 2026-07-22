@@ -36,13 +36,13 @@ Flat navigation index: one line per construct with its file path. No member list
 - **Class**: `KDPIUtility` — `rfc/core/KDPIUtility.h`
 - **Class**: `KDialog` (Inherits: `KWindow`) — `rfc/gui/KWindowTypes.h`
 - **Class**: `KDirectory` — `rfc/file/KDirectory.h`
-- **Class**: `KDiskDrive` — `rfc/hardware/KDiskDrive.h`
 - **Class**: `KDraggable` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
 - **Class**: `KDrawable` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
 - **Class**: `KDynamicMenu` — `rfc/gui/KDynamicMenu.h`
 - **Macro**: `KFILE_FILTER` — `rfc/gui/KCommonDialogBox.h`
 - **Macro**: `KFORMAT_ID` — `rfc/file/KFile.h`
 - **Class**: `KFile` (Inherits: `KStream`) — `rfc/file/KFile.h`
+- **Class**: `KFileDropSupport` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
 - **Class**: `KFixedQueue` (Inherits: `KThreadSafetyBase<IsThreadSafe>`) — `rfc/containers/KFixedQueue.h`
 - **Class**: `KFixedStack` — `rfc/containers/KFixedStack.h`
 - **Class**: `KFontCache` — `rfc/gui/KFont.h`
@@ -94,6 +94,7 @@ Flat navigation index: one line per construct with its file path. No member list
 - **Class**: `KModuleManager` — `rfc/core/KModuleManager.h`
 - **Class**: `KNotifyIconHandler` (Inherits: `T`) — `rfc/gui/KNotifyIconHandler.h`
 - **Class**: `KNumericField` (Inherits: `KTextBox`) — `rfc/gui/KNumericField.h`
+- **Enum**: `KOSVersion` — `rfc/utils/KSystemInfo.h`
 - **Class**: `KOverlappedWindow` (Inherits: `KWindow`) — `rfc/gui/KWindowTypes.h`
 - **Class**: `KPSObject` — `rfc/file/KPropertyStorage.h`
 - **Class**: `KPSObjectView` (Inherits: `KPSObject`) — `rfc/file/KPropertyStorage.h`
@@ -122,6 +123,7 @@ Flat navigation index: one line per construct with its file path. No member list
 - **Class**: `KReleaseUsingLocalFree` — `rfc/containers/KReleaseTypes.h`
 - **Class**: `KReleaseUsingTaskMemFree` — `rfc/containers/KReleaseTypes.h`
 - **Class**: `KRemoveTitleBar` (Inherits: `T`) — `rfc/gui/KWindowTypes.h`
+- **Typedef**: `KRtlGetVersion` — `rfc/utils/KSystemInfo.h`
 - **Class**: `KRunnable` — `rfc/thread/KRunnable.h`
 - **Macro**: `KSTATIC_POOL_SIZE` — `rfc/containers/KStaticAllocator.h`
 - **Class**: `KSVGImage` — `rfc/svg/KSVGImage.h`
@@ -149,6 +151,7 @@ Flat navigation index: one line per construct with its file path. No member list
 - **Enum**: `KStringBehaviour` — `rfc/core/KString.h`
 - **Enum**: `KStringBufferType` — `rfc/core/KString.h`
 - **Class**: `KSystemID` — `rfc/hardware/KSystemID.h`
+- **Class**: `KSystemInfo` — `rfc/utils/KSystemInfo.h`
 - **Class**: `KTOTPAuth` — `rfc/totp/KTOTPAuth.h`
 - **Class**: `KTextArea` (Inherits: `KTextBox`) — `rfc/gui/KTextArea.h`
 - **Class**: `KTextBox` (Inherits: `KComponent`) — `rfc/gui/KTextBox.h`

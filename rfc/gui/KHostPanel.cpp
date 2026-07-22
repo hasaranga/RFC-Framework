@@ -99,8 +99,7 @@ LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 		{
 			if (wParam != 0) // ignore menus
 			{
-				KComponent* component = (KComponent*)::GetPropW(((LPDRAWITEMSTRUCT)lParam)->hwndItem, 
-					MAKEINTATOM(KGUIProc::atomComponent));
+				KComponent* component = KGUIProc::getComponentFromHWND(((LPDRAWITEMSTRUCT)lParam)->hwndItem);
 
 				if (component)
 				{
@@ -114,8 +113,7 @@ LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 		case WM_NOTIFY: // GridView, Custom drawing etc...
 		{
-			KComponent* component = (KComponent*)::GetPropW(((LPNMHDR)lParam)->hwndFrom, 
-				MAKEINTATOM(KGUIProc::atomComponent));
+			KComponent* component = KGUIProc::getComponentFromHWND(((LPNMHDR)lParam)->hwndFrom);
 
 			if (component)
 			{
@@ -136,7 +134,7 @@ LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 		case WM_CTLCOLORSCROLLBAR: // scroll bar controls 
 		case WM_CTLCOLORSTATIC: // static controls
 		{
-			KComponent* component = (KComponent*)::GetPropW((HWND)lParam, MAKEINTATOM(KGUIProc::atomComponent));
+			KComponent* component = KGUIProc::getComponentFromHWND((HWND)lParam);
 			if (component)
 			{
 				LRESULT result = 0; // just for safe
@@ -150,8 +148,8 @@ LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 		{
 			if (wParam != 0) // ignore menus
 			{
-				KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd, 
-					((LPMEASUREITEMSTRUCT)lParam)->CtlID), MAKEINTATOM(KGUIProc::atomComponent));
+				KComponent* component = KGUIProc::getComponentFromHWND(GetDlgItem(hwnd,
+					((LPMEASUREITEMSTRUCT)lParam)->CtlID));
 
 				if (component)
 				{
@@ -165,8 +163,7 @@ LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 		case WM_COMPAREITEM: // owner-drawn combo box or list box
 		{
-			KComponent* component = (KComponent*)::GetPropW(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem, 
-				MAKEINTATOM(KGUIProc::atomComponent));
+			KComponent* component = KGUIProc::getComponentFromHWND(((LPCOMPAREITEMSTRUCT)lParam)->hwndItem);
 
 			if (component)
 			{
@@ -201,8 +198,7 @@ LRESULT KHostPanel::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			else if (lParam)// send to appropriate component
 			{
-				KComponent* component = (KComponent*)::GetPropW((HWND)lParam, 
-					MAKEINTATOM(KGUIProc::atomComponent));
+				KComponent* component = KGUIProc::getComponentFromHWND((HWND)lParam);
 
 				if (component)
 				{

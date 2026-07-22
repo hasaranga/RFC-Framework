@@ -57,6 +57,16 @@ public:
 	HBITMAP getHandle() noexcept;
 
 	/**
+		Returns width of the bitmap in pixels. Returns 0 if no bitmap is loaded.
+	*/
+	Physical getWidth() noexcept;
+
+	/**
+		Returns height of the bitmap in pixels. Returns 0 if no bitmap is loaded.
+	*/
+	Physical getHeight() noexcept;
+
+	/**
 		Returns bitmap handle
 	*/
 	operator HBITMAP()const noexcept;
