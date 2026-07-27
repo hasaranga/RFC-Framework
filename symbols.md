@@ -12,6 +12,7 @@ Flat navigation index: one line per construct with its file path. No member list
 - **Function**: `DeInitRFCModules` — `rfc/core/Core.cpp`
 - **Macro**: `END_KMSG_HANDLER` — `rfc/gui/KComponent.h`
 - **Function**: `InitRFCModules` — `rfc/core/Core.cpp`
+- **Class**: `KAcrylicBackdrop` (Inherits: `T`) — `rfc/composition/KAcrylicBackdrop.h`
 - **Typedef**: `KAdjustWindowRectExForDpi` — `rfc/core/KDPIUtility.h`
 - **Class**: `KAnimationEventListener` — `rfc/wam/KAnimationManager.h`
 - **Class**: `KAnimationManager` — `rfc/wam/KAnimationManager.h`
@@ -30,6 +31,9 @@ Flat navigation index: one line per construct with its file path. No member list
 - **Class**: `KComboBox` (Inherits: `KComponent`) — `rfc/gui/KComboBox.h`
 - **Class**: `KCommonDialogBox` — `rfc/gui/KCommonDialogBox.h`
 - **Class**: `KComponent` — `rfc/gui/KComponent.h`
+- **Class**: `KComposition` — `rfc/composition/KComposition.h`
+- **Class**: `KCompositionWindow` (Inherits: `T,KCompositionWindowBase`) — `rfc/composition/KCompositionWindow.h`
+- **Class**: `KCompositionWindowBase` — `rfc/composition/KCompositionWindow.h`
 - **Class**: `KCursor` — `rfc/gui/KCursor.h`
 - **Class**: `KDPAPI` — `rfc/security/KDPAPI.h`
 - **Enum**: `KDPIAwareness` — `rfc/core/KDPIUtility.h`
@@ -88,6 +92,7 @@ Flat navigation index: one line per construct with its file path. No member list
 - **Class**: `KMenuBar` — `rfc/gui/KMenuBar.h`
 - **Class**: `KMenuButton` (Inherits: `KButton`) — `rfc/gui/KMenuButton.h`
 - **Class**: `KMenuItem` — `rfc/gui/KMenuItem.h`
+- **Class**: `KMicaBackdrop` (Inherits: `T`) — `rfc/composition/KMicaBackdrop.h`
 - **Class**: `KModelElement` — `rfc/xml/KXMLReader.h`
 - **Class**: `KModelElementFactory` — `rfc/xml/KXMLReader.h`
 - **Enum**: `KModelElementType` — `rfc/xml/KXMLReader.h`
@@ -228,9 +233,4 @@ Flat navigation index: one line per construct with its file path. No member list
 - **Function**: `operator ==` — `rfc/com/KComPtr.h`
 - **Union**: `timeunion` — `rfc/utils/KTime.h`
 - **Enum**: `KPSPropertyTypes` *(ns: KPSPropertyTypes)* — `rfc/file/KPropertyStorage.h`
-- **Class**: `AnimatorBase` *(ns: composition)* — `rfc/composition/composition.h`
-- **Class**: `BaseWindow` *(ns: composition)* (Inherits: `KWindow`) — `rfc/composition/composition.h`
-- **Class**: `CompExampleWindow` *(ns: composition)* (Inherits: `BaseWindow`) — `rfc/composition/composition.h`
-- **Class**: `Layer` *(ns: composition)* — `rfc/composition/composition.h`
-- **Class**: `XPosAnimator` *(ns: composition)* (Inherits: `AnimatorBase`) — `rfc/composition/composition.h`
 - **Function**: `operator ""_st` *(ns: kstring_literals)* — `rfc/core/KString.cpp`

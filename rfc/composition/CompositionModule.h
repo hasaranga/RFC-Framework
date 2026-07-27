@@ -19,11 +19,29 @@
     3. This notice may not be removed or altered from any source distribution.
 */
 
+// How to use Composition module with project:
+// install Microsoft.Windows.CppWinRT nuget package
+// then install Microsoft.WindowsAppSDK.Foundation nuget package
+// right click on solution then "unload project". it will allow to edit vcxproj file.
+// add following to inside of <PropertyGroup Label="Globals"> group
+//		<WindowsPackageType>None</WindowsPackageType>
+//		<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+// use precompiled headers to reduce compile time. (pch.h and pch.cpp)
+
 #pragma once
 
-#include "composition.h"
+#include <winrt/base.h>
+#include <winrt/Windows.UI.Composition.Desktop.h>
+#include <windows.ui.composition.interop.h>
+#include <winrt/Microsoft.ui.interop.h> // GetWindowIdFromWindow
+#include <winrt/Microsoft.UI.Composition.SystemBackdrops.h>
+#include <winrt/Windows.Foundation.Metadata.h>
+#include <winrt/Windows.System.h>
+#include <winrt/Windows.Foundation.Collections.h>
+#include <DispatcherQueue.h>
 
-#pragma comment(lib, "dxgi")
-#pragma comment(lib, "d3d11")
-#pragma comment(lib, "d2d1")
-#pragma comment(lib, "dcomp")
+#include "KComposition.h"
+#include "KCompositionWindow.h"
+#include "KAcrylicBackdrop.h"
+#include "KMicaBackdrop.h"
+

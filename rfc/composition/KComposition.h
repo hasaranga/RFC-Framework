@@ -21,17 +21,13 @@
 
 #pragma once
 
-typedef bool (*RFCModuleInitFunc)();
-typedef void (*RFCModuleFreeFunc)();
+#include <winrt/Windows.UI.Composition.h>
 
-#define MAX_RFC_MODULE_COUNT 5
-
-class KModuleManager {
+// App-wide access point for the Compositor created by RFC_CompositionModule.
+// Valid only after RFC module init has run (i.e. after START_RFC_APPLICATION).
+// Do not create your own Compositor - use KComposition::compositor instead.
+class KComposition
+{
 public:
-	static bool registerRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc);
-	static RFCModuleInitFunc* rfcModuleInitFuncList();
-	static RFCModuleFreeFunc* rfcModuleFreeFuncList();
+	static winrt::Windows::UI::Composition::Compositor compositor;
 };
-
-#define REGISTER_RFC_MODULE(index, ModuleObjectType) \
-static bool ModuleObjectType##_Registered = KModuleManager::registerRFCModule( index , ModuleObjectType::rfcModuleInit, ModuleObjectType::rfcModuleFree);

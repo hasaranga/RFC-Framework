@@ -19,19 +19,6 @@
     3. This notice may not be removed or altered from any source distribution.
 */
 
-#pragma once
+#include "KComposition.h"
 
-typedef bool (*RFCModuleInitFunc)();
-typedef void (*RFCModuleFreeFunc)();
-
-#define MAX_RFC_MODULE_COUNT 5
-
-class KModuleManager {
-public:
-	static bool registerRFCModule(int index, RFCModuleInitFunc initFunc, RFCModuleFreeFunc freeFunc);
-	static RFCModuleInitFunc* rfcModuleInitFuncList();
-	static RFCModuleFreeFunc* rfcModuleFreeFuncList();
-};
-
-#define REGISTER_RFC_MODULE(index, ModuleObjectType) \
-static bool ModuleObjectType##_Registered = KModuleManager::registerRFCModule( index , ModuleObjectType::rfcModuleInit, ModuleObjectType::rfcModuleFree);
+winrt::Windows::UI::Composition::Compositor KComposition::compositor{ nullptr };

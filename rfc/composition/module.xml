@@ -2,6 +2,6 @@
 	<name>Composition</name>
 	<fixed>false</fixed>
 	<dependencies>Core,GUI</dependencies>
-	<platform>Win 8.1 or higher</platform>
-	<description>Layer, XPosAnimator, BaseWindow</description>
+	<platform>Win 10 1803 or higher. WinRT and AppSDK required.</platform>
+	<description> </description>
 </xml>
