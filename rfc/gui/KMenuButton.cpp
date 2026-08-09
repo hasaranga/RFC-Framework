@@ -39,7 +39,7 @@ void KMenuButton::setMenu(KMenu* buttonMenu) noexcept
 }
 
 void KMenuButton::setGlyph(const wchar_t* glyphChar, 
-	const KFontType& glyphFontType, COLORREF glyphColor, int glyphLeft) noexcept
+	const KFontType& glyphFontType, COLORREF glyphColor, Logical glyphLeft) noexcept
 {
 	this->glyphChar = glyphChar;
 	this->glyphColor = glyphColor;
@@ -108,7 +108,10 @@ bool KMenuButton::eventProc(UINT msg, WPARAM wParam, LPARAM lParam, LRESULT* res
 					::SelectObject(lpNMCD->hdc, glyphFontRef.getFontHandle());
 					::SetTextColor(lpNMCD->hdc, bDisabled ? GetSysColor(COLOR_GRAYTEXT) : glyphColor);
 
-					rcIcon = { rc.left + ::MulDiv(glyphLeft, dpi, USER_DEFAULT_SCREEN_DPI), rc.top, rc.right, rc.bottom };
+					// was a hand-rolled MulDiv doing exactly what toPhysical does - same
+					// round-half-away-from-zero, same result, and now it goes through the one
+					// conversion boundary instead of assuming a logical unit is an int.
+					rcIcon = { rc.left + KDPIUtility::toPhysical(glyphLeft, dpi), rc.top, rc.right, rc.bottom };
 					::DrawTextW(lpNMCD->hdc, glyphChar, 1, &rcIcon, DT_SINGLELINE | DT_LEFT | DT_VCENTER);
 				}
 

@@ -80,7 +80,7 @@ bool KWindow::create(bool requireInitialMessages) noexcept
 	// creating the window, while it's still at its unscaled "for96DPI" physical size) reaches
 	// this class's own WM_SIZE handler further down in this file, which recomputes
 	// compLWidth/compLHeight from the window's CURRENT (still unscaled) physical rect using the
-	// monitor's ACTUAL (already-correct) DPI - e.g. toLogical(640, 120) = 512 instead of the
+	// monitor's ACTUAL (already-correct) DPI - e.g. toLogicalWholePixel(640, 120) = 512 instead of the
 	// intended 640, at 125%. callers using requireInitialMessages=false never hit this: the
 	// association is only wired up AFTER CreateWindowExW returns, so that same early WM_SIZE
 	// falls through to DefWindowProcW instead and never touches compLWidth/compLHeight at all.
@@ -300,8 +300,8 @@ void KWindow::getNormalSize(Logical& width, Logical& height) noexcept
 
 		const int dpi = KDPIUtility::getWindowDPI(compHWND);
 
-		width = KDPIUtility::toLogical(wndPlacement.rcNormalPosition.right - wndPlacement.rcNormalPosition.left, dpi);
-		height = KDPIUtility::toLogical(wndPlacement.rcNormalPosition.bottom - wndPlacement.rcNormalPosition.top, dpi);
+		width = KDPIUtility::toLogicalWholePixel(wndPlacement.rcNormalPosition.right - wndPlacement.rcNormalPosition.left, dpi);
+		height = KDPIUtility::toLogicalWholePixel(wndPlacement.rcNormalPosition.bottom - wndPlacement.rcNormalPosition.top, dpi);
 	}
 	else
 	{
@@ -418,8 +418,8 @@ void KWindow::setClientAreaSize(Logical width, Logical height) noexcept
 	KDPIUtility::adjustWindowRectExForDpi(&wndRect, compDwStyle,
 		::GetMenu(compHWND) == NULL ? FALSE : TRUE, compDwExStyle, dpi);
 
-	setSize(KDPIUtility::toLogical(wndRect.right - wndRect.left, dpi),
-		KDPIUtility::toLogical(wndRect.bottom - wndRect.top, dpi));
+	setSize(KDPIUtility::toLogicalWholePixel(wndRect.right - wndRect.left, dpi),
+		KDPIUtility::toLogicalWholePixel(wndRect.bottom - wndRect.top, dpi));
 }
 
 void KWindow::setClientAreaSizePhysical(Physical width, Physical height) noexcept
@@ -455,8 +455,8 @@ void KWindow::getClientAreaSize(Logical& width, Logical& height) noexcept
 	::GetClientRect(compHWND, &wndRect);
 	const int dpi = KDPIUtility::getWindowDPI(compHWND);
 
-	width = KDPIUtility::toLogical(wndRect.right - wndRect.left, dpi);
-	height = KDPIUtility::toLogical(wndRect.bottom - wndRect.top, dpi);
+	width = KDPIUtility::toLogicalWholePixel(wndRect.right - wndRect.left, dpi);
+	height = KDPIUtility::toLogicalWholePixel(wndRect.bottom - wndRect.top, dpi);
 }
 
 void KWindow::onMoved() noexcept {}
@@ -520,7 +520,8 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) n
 			{
 				if (wParam != 0) // ignore menus
 				{
-					KComponent* component = KGUIProc::getComponentFromHWND(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID));
+					KComponent* component = (KComponent*)::GetPropW(GetDlgItem(hwnd,((LPMEASUREITEMSTRUCT)lParam)->CtlID), 
+						MAKEINTATOM(KGUIProc::atomComponent));
 
 					if (component)
 					{
@@ -562,8 +563,8 @@ LRESULT KWindow::windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) n
 				::GetWindowRect(compHWND, &rect);
 				const int dpi = KDPIUtility::getWindowDPI(compHWND);
 
-				compLWidth = KDPIUtility::toLogical(rect.right - rect.left, dpi);
-				compLHeight = KDPIUtility::toLogical(rect.bottom - rect.top, dpi);
+				compLWidth = KDPIUtility::toLogicalWholePixel(rect.right - rect.left, dpi);
+				compLHeight = KDPIUtility::toLogicalWholePixel(rect.bottom - rect.top, dpi);
 
 				onResized(resizingForDPIChange);
 			}

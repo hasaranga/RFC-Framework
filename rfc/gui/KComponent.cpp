@@ -91,10 +91,10 @@ void KComponent::hotPlugInto(HWND component, bool fetchInfo) noexcept
 		RECT physicalRect;
 		::GetWindowRect(compHWND, &physicalRect);
 
-		compLWidth = KDPIUtility::toLogical(physicalRect.right - physicalRect.left, compDPI);
-		compLHeight = KDPIUtility::toLogical(physicalRect.bottom - physicalRect.top, compDPI);
-		compLX = KDPIUtility::toLogical(physicalRect.left, compDPI);
-		compLY = KDPIUtility::toLogical(physicalRect.top, compDPI);
+		compLWidth = KDPIUtility::toLogicalWholePixel(physicalRect.right - physicalRect.left, compDPI);
+		compLHeight = KDPIUtility::toLogicalWholePixel(physicalRect.bottom - physicalRect.top, compDPI);
+		compLX = KDPIUtility::toLogicalWholePixel(physicalRect.left, compDPI);
+		compLY = KDPIUtility::toLogicalWholePixel(physicalRect.top, compDPI);
 
 		compVisible = (::IsWindowVisible(compHWND) ? true : false);
 		compEnabled = (::IsWindowEnabled(compHWND) ? true : false);
@@ -131,6 +131,36 @@ void KComponent::afterCreated() noexcept
 		::ShowWindow(compHWND, SW_SHOW);
 }
 
+Logical KComponent::getRight() noexcept
+{
+	return compLX + compLWidth;
+}
+
+Logical KComponent::getBottom() noexcept
+{
+	return compLY + compLHeight;
+}
+
+void KComponent::setBounds(Logical x, Logical y, Logical width, Logical height) noexcept
+{
+	compLX = x;
+	compLY = y;
+	compLWidth = width;
+	compLHeight = height;
+
+	if (compHWND)
+	{
+		const int dpi = KDPIUtility::getWindowDPI(compHWND);
+		const Physical physicalX = KDPIUtility::toPhysical(x, dpi);
+		const Physical physicalY = KDPIUtility::toPhysical(y, dpi);
+		const Physical physicalWidth = KDPIUtility::toPhysical(width, dpi);
+		const Physical physicalHeight = KDPIUtility::toPhysical(height, dpi);
+
+		::SetWindowPos(compHWND, 0, physicalX, physicalY,
+			physicalWidth, physicalHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
+	}
+}
+
 bool KComponent::create(bool requireInitialMessages) noexcept
 {
 	// if this is a child component, then compParentHWND must be valid.
@@ -147,7 +177,10 @@ bool KComponent::create(bool requireInitialMessages) noexcept
 		isRegistered = true;
 	}
 
-	KGUIProc::createComponentFor96DPI(this, requireInitialMessages, getX(), getY());
+	// toWholePixels at the Win32 boundary: this path is the 96-dpi one by name, where a logical
+	// unit IS a device pixel, and CreateWindowExW takes ints.
+	KGUIProc::createComponentFor96DPI(this, requireInitialMessages,
+		getX().toWholePixels(), getY().toWholePixels());
 
 	if(compHWND)
 	{
@@ -288,14 +321,14 @@ Logical KComponent::getHeight() noexcept
 	return compLHeight;
 }
 
-Logical KComponent::getRight() noexcept
+void KComponent::setParam(void* userParam) noexcept
 {
-	return compLX + compLWidth;
+	this->userParam = userParam;
 }
 
-Logical KComponent::getBottom() noexcept
+void* KComponent::getParam() noexcept
 {
-	return compLY + compLHeight;
+	return userParam;
 }
 
 void KComponent::setDPI(int newDPI) noexcept
@@ -340,8 +373,8 @@ void KComponent::setSizePhysical(Physical width, Physical height) noexcept
 	K_ASSERT(compHWND != NULL, "compHWND is NULL");
 
 	const int dpi = getDPI();
-	compLWidth = KDPIUtility::toLogical(width, dpi);
-	compLHeight = KDPIUtility::toLogical(height, dpi);
+	compLWidth = KDPIUtility::toLogicalWholePixel(width, dpi);
+	compLHeight = KDPIUtility::toLogicalWholePixel(height, dpi);
 
 	::SetWindowPos(compHWND, 0, 0, 0,
 		width, height, SWP_NOMOVE | SWP_NOREPOSITION |
@@ -361,26 +394,6 @@ void KComponent::setPosition(Logical x, Logical y) noexcept
 
 		::SetWindowPos(compHWND, 0, physicalX, physicalY, 0, 0, SWP_NOSIZE |
 			SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
-	}
-}
-
-void KComponent::setBounds(Logical x, Logical y, Logical width, Logical height) noexcept
-{
-	compLX = x;
-	compLY = y;
-	compLWidth = width;
-	compLHeight = height;
-
-	if (compHWND)
-	{
-		const int dpi = KDPIUtility::getWindowDPI(compHWND);
-		const Physical physicalX = KDPIUtility::toPhysical(x, dpi);
-		const Physical physicalY = KDPIUtility::toPhysical(y, dpi);
-		const Physical physicalWidth = KDPIUtility::toPhysical(width, dpi);
-		const Physical physicalHeight = KDPIUtility::toPhysical(height, dpi);
-
-		::SetWindowPos(compHWND, 0, physicalX, physicalY,
-			physicalWidth, physicalHeight, SWP_NOREPOSITION | SWP_NOACTIVATE | SWP_NOZORDER);
 	}
 }
 
@@ -426,13 +439,13 @@ void KComponent::alignRightWith(KComponent& target) noexcept
 
 void KComponent::alignCenterHorizontallyWith(KComponent& target) noexcept
 {
-	const int x = target.getX() + (target.getWidth() - getWidth()) / 2;
+	const Logical x = target.getX() + (target.getWidth() - getWidth()) / 2;
 	setPosition(x, getY());
 }
 
 void KComponent::alignCenterVerticallyWith(KComponent& target) noexcept
 {
-	const int y = target.getY() + (target.getHeight() - getHeight()) / 2;
+	const Logical y = target.getY() + (target.getHeight() - getHeight()) / 2;
 	setPosition(getX(), y);
 }
 
@@ -489,16 +502,6 @@ void KComponent::repaint() noexcept
 		::InvalidateRect(compHWND, NULL, TRUE);
 		::UpdateWindow(compHWND); // instant update
 	}
-}
-
-void KComponent::setParam(void* userParam) noexcept
-{
-	this->userParam = userParam;
-}
-
-void* KComponent::getParam() noexcept
-{
-	return userParam;
 }
 
 KComponent::~KComponent() noexcept

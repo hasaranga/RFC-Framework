@@ -83,8 +83,8 @@ public:
                             cached = KOSVersion::Windows8;
                         else if ((major == 6) && (minor == 1))
                             cached = KOSVersion::Windows7;
-                        // older than win7 (or an unrecognized combination) stays Unknown - this
-                        // framework doesn't support it (FLEXModule.h: "win7 or higher").
+                        // older than win7 (or an unrecognized combination) stays Unknown - win7
+                        // is this framework's minimum supported OS.
                     }
                 }
             }

@@ -57,10 +57,10 @@ protected:
 			const int height = boundingRect.bottom - boundingRect.top;
 
 			const int dpi = KDPIUtility::getWindowDPI(compHWND);
-			const int logicalX = KDPIUtility::toLogical(boundingRect.left, dpi);
-			const int logicalY = KDPIUtility::toLogical(boundingRect.top, dpi);
-			const int logicalWidth = KDPIUtility::toLogical(width, dpi);
-			const int logicalHeight = KDPIUtility::toLogical(height, dpi);
+			const int logicalX = KDPIUtility::toLogicalWholePixel(boundingRect.left, dpi);
+			const int logicalY = KDPIUtility::toLogicalWholePixel(boundingRect.top, dpi);
+			const int logicalWidth = KDPIUtility::toLogicalWholePixel(width, dpi);
+			const int logicalHeight = KDPIUtility::toLogicalWholePixel(height, dpi);
 
 			setSize(logicalWidth, logicalHeight);
 			setPosition(logicalX, logicalY);

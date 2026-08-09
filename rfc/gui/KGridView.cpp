@@ -154,7 +154,7 @@ Logical KGridView::getColumnWidth(int columnIndex) noexcept
 {
 	K_ASSERT(compHWND != NULL, "compHWND is NULL");
 	const int dpi = KDPIUtility::getWindowDPI(compHWND);
-	return KDPIUtility::toLogical(ListView_GetColumnWidth(compHWND, columnIndex), dpi);
+	return KDPIUtility::toLogicalWholePixel(ListView_GetColumnWidth(compHWND, columnIndex), dpi);
 }
 
 void KGridView::createColumn(const KString& text, Logical columnWidth) noexcept

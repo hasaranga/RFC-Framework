@@ -45,8 +45,8 @@ void KLabel::resizeToTextSize() noexcept
 		const int dpi = compFontRef.getCurrentDPI();
 		RECT rect = KGraphics::calculateTextSize(compText, compFontRef.getFontHandle());
 		// AUTOSIZE_EXTRA_GAP is already a logical value.
-		setSize(KDPIUtility::toLogical(rect.right, dpi) + AUTOSIZE_EXTRA_GAP,
-			KDPIUtility::toLogical(rect.bottom, dpi));
+		setSize(KDPIUtility::toLogicalWholePixel(rect.right, dpi) + AUTOSIZE_EXTRA_GAP,
+			KDPIUtility::toLogicalWholePixel(rect.bottom, dpi));
 	}
 	else // text is empty
 	{

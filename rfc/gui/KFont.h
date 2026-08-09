@@ -112,7 +112,11 @@ private:
 
 	static KFontHandle* createFontHandle(const KFontType& type, int dpi) noexcept
 	{
-		HFONT hFont = ::CreateFontW(type.fontSize * dpi / USER_DEFAULT_SCREEN_DPI,
+		// toWholePixels() and NOT KDPIUtility::toPhysical(): this expression TRUNCATES
+		// (integer * then /), toPhysical rounds half away from zero. they disagree on
+		// roughly half of all sizes, so swapping it in would silently restyle text.
+		// deliberately left as-is - if this should round, that is its own change.
+		HFONT hFont = ::CreateFontW(type.fontSize.toWholePixels() * dpi / USER_DEFAULT_SCREEN_DPI,
 			0, (type.isVertical ? 900 : 0), (type.isVertical ? 900 : 0), type.isBold ? FW_BOLD : FW_NORMAL,
 			type.isItalic ? TRUE : FALSE, type.isUnderline ? TRUE : FALSE, 0, DEFAULT_CHARSET,
 			0, 0, type.isAntiAliased ? DEFAULT_QUALITY : NONANTIALIASED_QUALITY, 

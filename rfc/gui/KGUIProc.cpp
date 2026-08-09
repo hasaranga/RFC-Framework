@@ -139,8 +139,8 @@ HWND KGUIProc::createComponentFor96DPI(KComponent* component, bool requireInitia
 
 		// pass current component as lpParam. so CBT proc can ignore other unknown windows.
 		HWND hwnd = ::CreateWindowExW(component->getExStyle(), component->getComponentClassName(), component->getText(),
-			component->getStyle(), x, y,
-			component->getWidth(), component->getHeight(),
+			component->getStyle(), x, y, 
+			component->getWidth().toWholePixels(), component->getHeight().toWholePixels(),
 			component->getParentHWND(), (HMENU)(UINT_PTR)component->getControlID(), KApplication::hInstance, (LPVOID)component);
 
 		// unhook at here will cause catching childs which are created at WM_CREATE. so, unhook at CBT proc.
@@ -160,7 +160,7 @@ HWND KGUIProc::createComponentFor96DPI(KComponent* component, bool requireInitia
 	{
 		HWND hwnd = ::CreateWindowExW(component->getExStyle(), component->getComponentClassName(), component->getText(),
 			component->getStyle(), x, y, 
-			component->getWidth(), component->getHeight(),
+			component->getWidth().toWholePixels(), component->getHeight().toWholePixels(),
 			component->getParentHWND(), (HMENU)(UINT_PTR)component->getControlID(), KApplication::hInstance, 0);
 
 		KGUIProc::attachRFCPropertiesToHWND(hwnd, component);
