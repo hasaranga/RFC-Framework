@@ -228,7 +228,7 @@ void KGridView::_onItemRightClick() noexcept
 
 void KGridView::_onItemDoubleClick() noexcept
 {
-	if (onItemRightClick)
-		onItemRightClick(this);
+	if (onItemDoubleClick)
+		onItemDoubleClick(this);
 }
 
